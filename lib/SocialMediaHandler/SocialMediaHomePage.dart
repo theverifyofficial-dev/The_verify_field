@@ -652,15 +652,7 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
                                                     textColor: Colors.teal.shade700,
                                                     shadowColor: Colors.teal.shade100,
                                                   ),
-                                                  // _buildFeatureItem(
-                                                  //   context: context,
-                                                  //   icon: Icons.receipt_rounded,
-                                                  //   text: "Flat No. ${_filteredProperties[index].flatNumber}",
-                                                  //   borderColor: Colors.red.shade200,
-                                                  //   backgroundColor: Colors.red.shade50,
-                                                  //   textColor: Colors.red.shade700,
-                                                  //   shadowColor: Colors.red.shade100,
-                                                  // ),
+
 
                                                   _buildFeatureItem(
                                                     context: context,

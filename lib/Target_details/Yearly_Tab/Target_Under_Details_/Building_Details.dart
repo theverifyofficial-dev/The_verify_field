@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../Administrator/imagepreviewscreen.dart';
 import '../Building.dart';
 
 class BuildingDetailScreen extends StatelessWidget {
@@ -27,7 +28,19 @@ class BuildingDetailScreen extends StatelessWidget {
           SizedBox(
             height: 320,
             width: double.infinity,
-            child: Image.network(img(building.image), fit: BoxFit.cover),
+            child: GestureDetector(
+                onTap: (){
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ImagePreviewScreen(
+                        imageUrl: img(building.image),
+                      ),
+                    ),
+                  );
+                },
+
+                child: Image.network(img(building.image), fit: BoxFit.cover)),
           ),
 
           /// TOP BAR

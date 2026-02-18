@@ -6,6 +6,13 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'FieldWorker_Complete_Detail_Page.dart';
 import 'CompletePropertyCalculationFieldWorker.dart';
+class TenToTenGroup {
+  final DateTime start;
+  final String title;
+  final List<Property> items;
+
+  TenToTenGroup(this.start, this.title, this.items);
+}
 
 class PaymentAmount {
   final String label;
@@ -16,6 +23,7 @@ class PaymentAmount {
 }
 class Property {
   final int pId;
+  final String bookingDate;
   final String propertyPhoto;
   final String locations;
   final String flatNumber;
@@ -78,6 +86,7 @@ class Property {
 
   Property({
     required this.pId,
+    required this.bookingDate,
     required this.propertyPhoto,
     required this.locations,
     required this.flatNumber,
@@ -140,6 +149,7 @@ class Property {
   factory Property.fromJson(Map<String, dynamic> json) {
     return Property(
       pId: json["P_id"] ?? 0,
+      bookingDate: json["booking_date"] ?? "",
       propertyPhoto: json["property_photo"] ?? "",
       locations: json["locations"] ?? "",
       flatNumber: json["Flat_number"] ?? "",
@@ -748,15 +758,47 @@ class _NewDesignFieldWorkerCompleteFlatsNewState
     });
   }
 
-  double _toD(dynamic v) {
-    final s = (v ?? '').toString().trim();
-    return double.tryParse(s.replaceAll(RegExp(r'[^\d\.-]'), '')) ?? 0;
-  }
-  double _safeDouble(String? v) {
-    if (v == null) return 0;
-    return double.tryParse(
-        v.replaceAll(RegExp(r'[^0-9.]'), '')
-    ) ?? 0;
+  List<TenToTenGroup> groupByTenToTen(List<Property> list) {
+    final Map<String, TenToTenGroup> map = {};
+
+    for (final item in list) {
+      final date = DateTime.parse(item.bookingDate);
+
+      final DateTime start =
+      date.day >= 10
+          ? DateTime(date.year, date.month, 10)
+          : DateTime(date.year, date.month - 1, 10);
+
+      final DateTime end =
+      date.day >= 10
+          ? DateTime(date.year, date.month + 1, 9)
+          : DateTime(date.year, date.month, 9);
+
+      final title =
+          "${DateFormat('MMM').format(start)} – ${DateFormat('MMM yyyy').format(end)}";
+
+      map.putIfAbsent(
+        title,
+            () => TenToTenGroup(start, title, []),
+      );
+
+      map[title]!.items.add(item);
+    }
+
+    // sort items inside group
+    for (final g in map.values) {
+      g.items.sort((a, b) =>
+          DateTime.parse(b.bookingDate)
+              .compareTo(DateTime.parse(a.bookingDate)));
+
+    }
+
+    final groups = map.values.toList();
+
+    // sort groups
+    groups.sort((a, b) => b.start.compareTo(a.start));
+
+    return groups;
   }
 
   @override
@@ -785,12 +827,24 @@ class _NewDesignFieldWorkerCompleteFlatsNewState
 
             final bookingList = snapshot.data!;
 
+            final groups = groupByTenToTen(bookingList);
+
             return ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: bookingList.length,
+              itemCount: groups.length,
               itemBuilder: (context, index) {
-                final item = bookingList[index];
-                return _transactionCard(context, item);
+                final group = groups[index];
+
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+
+                      Text(group.title, style: const TextStyle(fontSize: 18, fontFamily: "PoppinsBold",fontWeight: FontWeight.bold)),
+                      ...group.items.map((item) => _transactionCard(context, item)),
+                    ],
+                  ),
+                );
               },
             );
           },
@@ -928,9 +982,15 @@ class _NewDesignFieldWorkerCompleteFlatsNewState
               ),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
+            Text("Booking Date : "+formatBookingDate(item.bookingDate),
+              style: const TextStyle(
+                fontSize: 14,
+                fontFamily: "Poppins",
+                fontWeight: FontWeight.w600,
+              ),),
+            const SizedBox(height: 6),
 
-            // _billingSection(item),
             /// SHOW BILLING BUTTON
             SizedBox(
               width: double.infinity,
@@ -970,89 +1030,20 @@ class _NewDesignFieldWorkerCompleteFlatsNewState
                 },
               ),
             ),
-
-            // SizedBox(
-            //   width: double.infinity,
-            //   child: ElevatedButton.icon(
-            //     style: ElevatedButton.styleFrom(
-            //       backgroundColor: Colors.blue,
-            //       shape: RoundedRectangleBorder(
-            //         borderRadius: BorderRadius.circular(10),
-            //       ),
-            //     ),
-            //     icon: const Icon(Icons.receipt_long, size: 16),
-            //     label: const Text(
-            //       "Show Billing",
-            //       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-            //     ),
-            //     onPressed: () async {
-            //       final ok = await Navigator.push<bool>(
-            //         context,
-            //         MaterialPageRoute(
-            //           builder: (_) => TransactionDetailsPage(
-            //               propertyId:item.pId
-            //           ),
-            //
-            //         ),
-            //       );
-            //
-            //       if (ok == true && context.mounted) {
-            //         setState(() {});
-            //       }
-            //     },
-            //   ),
-            // ),
           ],
         ),
       ),
     );
   }
 
-  Widget _statusBadge(Property item, BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    late String label;
-    late Color bgColor;
-    late Color textColor;
-
-    if (item.statusForFinalPayment == "final payment pending") {
-      label = "Due";
-      bgColor = isDark ? Colors.orange.shade900 : Colors.orange.shade100;
-      textColor = isDark ? Colors.orange.shade200 : Colors.orange.shade800;
+  String formatBookingDate(String rawDate) {
+    try {
+      final DateTime date = DateTime.parse(rawDate);
+      return DateFormat('dd MMM yyyy').format(date);
+    } catch (e) {
+      return rawDate;
     }
-    else if (item.statusForSecondPayment == "processing") {
-      label = "Processing";
-      bgColor = isDark ? Colors.blue.shade900 : Colors.blue.shade100;
-      textColor = isDark ? Colors.blue.shade200 : Colors.blue.shade800;
-    }
-    else if (item.statusForFinalPayment == "completed") {
-      label = "Completed";
-      bgColor = isDark ? Colors.green.shade900 : Colors.green.shade100;
-      textColor = isDark ? Colors.green.shade200 : Colors.green.shade800;
-    }
-    else {
-      label = "Pending";
-      bgColor = isDark ? Colors.grey.shade800 : Colors.grey.shade200;
-      textColor = isDark ? Colors.grey.shade300 : Colors.grey.shade800;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: textColor,
-        ),
-      ),
-    );
   }
-
   Widget _idChip(String text, Color color, bool isDarkMode) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

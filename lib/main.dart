@@ -171,7 +171,7 @@ class _MyAppState extends State<MyApp> {
         return;
       }
 
-      if (data['type'] == "EDITOR_REQUEST" && data['P_id'] != null) {
+      if (data['type'] == "EDITOR_Response" && data['P_id'] != null) {
         final int propertyIdFromPayload =
             int.tryParse(data['P_id'].toString()) ?? 0;
         final String? senderRole = data['sender_role']?.toString();

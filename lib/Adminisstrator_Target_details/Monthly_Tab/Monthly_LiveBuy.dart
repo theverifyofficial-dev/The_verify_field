@@ -2,190 +2,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/Custom_Widget/constant.dart';
-
+import 'package:verify_feild_worker/Target_details/Monthly_Tab/Monthly_LiveBuy.dart'
+    show LiveMonthlyBuyModel;
 import 'Monthly_under_detail/Monthlu_Livebuy_details.dart';
-
-/// =======================
-/// MODEL
-/// =======================
-class LiveMonthlyBuyModel {
-  final int id;
-
-  final String image;
-  final String locations;
-  final String flatNumber;
-  final String buyRent;
-  final String residenceCommercial;
-  final String apartmentName;
-  final String apartmentAddress;
-  final String typeOfProperty;
-  final String bhk;
-
-  final String showPrice;
-  final String lastPrice;
-  final String askingPrice;
-
-  final String floor;
-  final String totalFloor;
-  final String balcony;
-  final String squareFit;
-  final String maintaince;
-  final String parking;
-  final String ageOfProperty;
-
-  final String fieldworkerAddress;
-  final String roadSize;
-  final String metroDistance;
-  final String highwayDistance;
-  final String mainMarketDistance;
-  final String meter;
-
-  final String ownerName;
-  final String ownerNumber;
-
-  final String currentDates;
-  final String availableDate;
-
-  final String kitchen;
-  final String bathroom;
-  final String lift;
-  final String facility;
-  final String furnishedUnfurnished;
-
-  final String fieldWorkerName;
-  final String liveUnlive;
-  final String fieldWorkerNumber;
-
-  final String registryAndGpa;
-  final String loan;
-
-  final String longitude;
-  final String latitude;
-  final String videoLink;
-
-  final String caretakerName;
-  final String caretakerNumber;
-
-  final String sourceId;
-  final String dateForTarget;
-  final String localityList;
-
-  LiveMonthlyBuyModel({
-    required this.id,
-    required this.image,
-    required this.locations,
-    required this.flatNumber,
-    required this.buyRent,
-    required this.residenceCommercial,
-    required this.apartmentName,
-    required this.apartmentAddress,
-    required this.typeOfProperty,
-    required this.bhk,
-    required this.showPrice,
-    required this.lastPrice,
-    required this.askingPrice,
-    required this.floor,
-    required this.totalFloor,
-    required this.balcony,
-    required this.squareFit,
-    required this.maintaince,
-    required this.parking,
-    required this.ageOfProperty,
-    required this.fieldworkerAddress,
-    required this.roadSize,
-    required this.metroDistance,
-    required this.highwayDistance,
-    required this.mainMarketDistance,
-    required this.meter,
-    required this.ownerName,
-    required this.ownerNumber,
-    required this.currentDates,
-    required this.availableDate,
-    required this.kitchen,
-    required this.bathroom,
-    required this.lift,
-    required this.facility,
-    required this.furnishedUnfurnished,
-    required this.fieldWorkerName,
-    required this.liveUnlive,
-    required this.fieldWorkerNumber,
-    required this.registryAndGpa,
-    required this.loan,
-    required this.longitude,
-    required this.latitude,
-    required this.videoLink,
-    required this.caretakerName,
-    required this.caretakerNumber,
-    required this.sourceId,
-    required this.dateForTarget,
-    required this.localityList,
-  });
-
-  factory LiveMonthlyBuyModel.fromJson(Map<String, dynamic> json) {
-    return LiveMonthlyBuyModel(
-      id: int.tryParse(json['P_id']?.toString() ?? '0') ?? 0,
-
-      image: json['property_photo']?.toString() ?? '',
-      locations: json['locations']?.toString() ?? '',
-      flatNumber: json['Flat_number']?.toString() ?? '',
-      buyRent: json['Buy_Rent']?.toString() ?? '',
-      residenceCommercial: json['Residence_Commercial']?.toString() ?? '',
-      apartmentName: json['Apartment_name']?.toString() ?? '',
-      apartmentAddress: json['Apartment_Address']?.toString() ?? '',
-      typeOfProperty: json['Typeofproperty']?.toString() ?? '',
-      bhk: json['Bhk']?.toString() ?? '',
-
-      showPrice: json['show_Price']?.toString() ?? '',
-      lastPrice: json['Last_Price']?.toString() ?? '',
-      askingPrice: json['asking_price']?.toString() ?? '',
-
-      floor: json['Floor_']?.toString() ?? '',
-      totalFloor: json['Total_floor']?.toString() ?? '',
-      balcony: json['Balcony']?.toString() ?? '',
-      squareFit: json['squarefit']?.toString() ?? '',
-      maintaince: json['maintance']?.toString() ?? '',
-      parking: json['parking']?.toString() ?? '',
-      ageOfProperty: json['age_of_property']?.toString() ?? '',
-
-      fieldworkerAddress: json['fieldworkar_address']?.toString() ?? '',
-      roadSize: json['Road_Size']?.toString() ?? '',
-      metroDistance: json['metro_distance']?.toString() ?? '',
-      highwayDistance: json['highway_distance']?.toString() ?? '',
-      mainMarketDistance: json['main_market_distance']?.toString() ?? '',
-      meter: json['meter']?.toString() ?? '',
-
-      ownerName: json['owner_name']?.toString() ?? '',
-      ownerNumber: json['owner_number']?.toString() ?? '',
-
-      currentDates: json['current_dates']?.toString() ?? '',
-      availableDate: json['available_date']?.toString() ?? '',
-
-      kitchen: json['kitchen']?.toString() ?? '',
-      bathroom: json['bathroom']?.toString() ?? '',
-      lift: json['lift']?.toString() ?? '',
-      facility: json['Facility']?.toString() ?? '',
-      furnishedUnfurnished: json['furnished_unfurnished']?.toString() ?? '',
-
-      fieldWorkerName: json['field_warkar_name']?.toString() ?? '',
-      liveUnlive: json['live_unlive']?.toString() ?? '',
-      fieldWorkerNumber: json['field_workar_number']?.toString() ?? '',
-
-      registryAndGpa: json['registry_and_gpa']?.toString() ?? '',
-      loan: json['loan']?.toString() ?? '',
-
-      longitude: json['Longitude']?.toString() ?? '',
-      latitude: json['Latitude']?.toString() ?? '',
-      videoLink: json['video_link']?.toString() ?? '',
-
-      caretakerName: json['care_taker_name']?.toString() ?? '',
-      caretakerNumber: json['care_taker_number']?.toString() ?? '',
-
-      sourceId: json['source_id']?.toString() ?? '',
-      dateForTarget: json['date_for_target']?.toString() ?? '',
-      localityList: json['locality_list']?.toString() ?? '',
-    );
-  }
-}
 
 /// =======================
 /// API FETCH (BUY ONLY)
@@ -202,11 +21,8 @@ Future<List<LiveMonthlyBuyModel>> fetchLiveMonthlyBuy(String number) async {
   }
 
   final decoded = json.decode(res.body);
-  print(res.body);
-
   final List list = decoded['data'] ?? [];
 
-  /// ✅ ONLY BUY
   final buyOnly = list.where((e) => e['Buy_Rent'] == 'Buy').toList();
 
   return buyOnly.map((e) => LiveMonthlyBuyModel.fromJson(e)).toList();
@@ -217,7 +33,8 @@ Future<List<LiveMonthlyBuyModel>> fetchLiveMonthlyBuy(String number) async {
 /// =======================
 class MonthlyLiveBuy extends StatefulWidget {
   final String number;
-  const MonthlyLiveBuy({super.key,required this.number});
+
+  const MonthlyLiveBuy({super.key, required this.number});
 
   @override
   State<MonthlyLiveBuy> createState() => _MonthlyLiveBuyState();
@@ -267,113 +84,251 @@ class _MonthlyLiveBuyState extends State<MonthlyLiveBuy> {
             itemBuilder: (context, i) {
               final b = list[i];
 
-              return 
-                GestureDetector(
-                  onTap: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => LiveMonthlyBuyDetailScreen(p: b,)));
-                  },
-                    child: Container(
-                margin: const EdgeInsets.only(bottom: 14),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: theme.brightness == Brightness.dark
-                      ? []
-                      : [
-                    BoxShadow(
-                      blurRadius: 8,
-                      color: Colors.black.withOpacity(.08),
-                      offset: const Offset(0, 4),
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          LiveMonthlyBuyDetailScreen(p: b),
                     ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 22),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(
 
-                    /// IMAGE
-                    ClipRRect(
-                      borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(16)),
-                      child: Image.network(
-                        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${b.image}",
-                        height: 190,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 190,
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.image_not_supported),
-                        ),
+                        color: theme.cardColor,
+                        offset: const Offset(0, 10),
                       ),
-                    ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
 
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                      /// ================= IMAGE =================
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(22),
+                        child: Stack(
+                          children: [
 
-                          /// BUY TAG
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(.20),
-                              borderRadius: BorderRadius.circular(20),
+                            Image.network(
+                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${b.image}",
+                              height: 210,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
                             ),
-                            child: const Text(
-                              "Buy",
-                              style: TextStyle(
-                                color: Colors.green,
-                                fontWeight: FontWeight.w600,
+
+                            /// Gradient
+                            Container(
+                              height: 210,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.black.withOpacity(.65),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
 
-                          const SizedBox(height: 8),
+                            /// Property Type Badge (Same as Rent)
+                            Positioned(
+                              top: 14,
+                              left: 14,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Color(0xFFA855F7),
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: const Text(
+                                  "Buy",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: "PoppinsBold",
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
 
-                          /// PLACE
-                          Text(
-                            b.locations,
-                            style: theme.textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
+                            /// Verified Icon
+                            Positioned(
+                              top: 14,
+                              right: 14,
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: const Icon(
+                                  Icons.verified,
+                                  color: Color(0xFFA855F7),
+                                  size: 18,
+                                ),
+                              ),
+                            ),
 
-                          const SizedBox(height: 6),
+                            /// Title + Location
+                            Positioned(
+                              bottom: 18,
+                              left: 18,
+                              right: 18,
+                              child: Column(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                                children: [
 
-                          /// INFO ROW
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _InfoItem(Icons.home, b.bhk),
-                              _InfoItem(Icons.layers, b.floor),
-                              _InfoItem(Icons.local_parking, b.parking),
-                            ],
-                          ),
+                                  Text(
+                                    b.furnishedUnfurnished,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                      color: Colors.white,
+                                      fontFamily: "PoppinsMedium",
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
 
-                          const SizedBox(height: 8),
+                                  const SizedBox(height: 4),
 
-                          /// PRICE
-                          Text(
-                            "Price: ₹${b.locations}",
-                            style: theme.textTheme.bodySmall,
-                          ),
-
-                          const SizedBox(height: 6),
-
-                          /// FIELD WORKER
-                          Text(
-                            "Field Worker: ${b.fieldWorkerName}",
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.grey),
-                          ),
-                        ],
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.location_on,
+                                          color: Colors.white70,
+                                          size: 15),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          b.locations,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                            color: Colors.white70,
+                                            fontFamily:
+                                            "PoppinsMedium",
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+
+                      const SizedBox(height: 14),
+
+                      /// ================= DETAILS =================
+                      Padding(
+                        padding:
+                        const EdgeInsets.symmetric(horizontal: 6),
+                        child: Column(
+                          crossAxisAlignment:
+                          CrossAxisAlignment.start,
+                          children: [
+
+                            /// Field Worker + Price (Same Layout)
+                            Row(
+                              mainAxisAlignment:
+                              MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      b.fieldWorkerName,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                        fontWeight:
+                                        FontWeight.w600,
+                                        fontFamily:
+                                        "PoppinsMedium",
+                                      ),
+                                    ),
+                                    Text(
+                                      "(${b.fieldWorkerNumber})",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                        fontWeight:
+                                        FontWeight.w500,
+                                        fontFamily:
+                                        "PoppinsMedium",
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  "₹${b.askingPrice}",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleLarge
+                                      ?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontFamily: "PoppinsMedium",
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            /// Chips Row
+                            Row(
+                              children: [
+                                _LuxuryChip(
+                                    Icons.square_foot,
+                                    b.squareFit),
+                                const SizedBox(width: 8),
+                                _LuxuryChip(
+                                    Icons.layers,
+                                    b.floor),
+                                const SizedBox(width: 8),
+                                _LuxuryChip(
+                                    Icons.local_parking,
+                                    b.parking),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            if (b.facility.isNotEmpty)
+                              Text(
+                                b.facility,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                  color: Colors.grey,
+                                  fontFamily: "PoppinsMedium",
+                                ),
+                              ),
+
+                            const SizedBox(height: 12),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                    ),
               );
             },
           );
@@ -384,23 +339,41 @@ class _MonthlyLiveBuyState extends State<MonthlyLiveBuy> {
 }
 
 /// =======================
-/// SMALL INFO WIDGET
+/// CHIP (IDENTICAL)
 /// =======================
-class _InfoItem extends StatelessWidget {
+class _LuxuryChip extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const _InfoItem(this.icon, this.text);
+  const _LuxuryChip(this.icon, this.text);
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: theme.iconTheme.color),
-        const SizedBox(width: 4),
-        Text(text, style: theme.textTheme.bodySmall),
-      ],
+    return Container(
+      padding:
+      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey.shade800
+            : Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: Color(0xFFA855F7)),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: Theme.of(context)
+                .textTheme
+                .labelSmall
+                ?.copyWith(
+              fontFamily: "PoppinsMedium",
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

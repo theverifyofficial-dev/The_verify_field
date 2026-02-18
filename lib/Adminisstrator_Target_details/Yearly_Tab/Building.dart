@@ -186,122 +186,234 @@ class _YearlyBuildingState extends State<YearlyBuilding> {
             itemBuilder: (context, i) {
               final b = list[i];
               return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,  
-                      MaterialPageRoute(
-                        builder: (_) => BuildingDetailScreen(building: b,),
-                      ),
-                    );
-                  },
-                  child:
-                  Container(
-                margin: const EdgeInsets.only(bottom: 14),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: theme.brightness == Brightness.dark
-                      ? []
-                      : [
-                    BoxShadow(
-                      blurRadius: 8,
-                      color: Colors.black.withOpacity(.08),
-                      offset: const Offset(0, 4),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BuildingDetailScreen(building: b),
                     ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    /// IMAGE
-                    ClipRRect(
-                      borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(16)),
-                      child: Image.network(
-                        "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${b.image}",
-                        height: 190,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 190,
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.image_not_supported),
-                        ),
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 22),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.cardColor,
+                        offset: const Offset(0, 10),
                       ),
-                    ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
 
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                      /// ================= IMAGE =================
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(22),
+                        child: Stack(
+                          children: [
 
-                          /// BUY / RENT TAG
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: b.buyRent == "Buy"
-                                  ? Colors.green.withOpacity(.20)
-                                  : Colors.blue.withOpacity(.20),
-                              borderRadius: BorderRadius.circular(20),
+                            /// IMAGE
+                            Image.network(
+                              "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${b.image}",
+                              height: 210,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
                             ),
-                            child: Text(
-                              b.buyRent,
-                              style: TextStyle(
-                                color: b.buyRent == "Buy"
-                                    ? Colors.green
-                                    : Colors.blue,
-                                fontWeight: FontWeight.w600,
+
+                            /// GRADIENT
+                            Container(
+                              height: 210,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.black.withOpacity(.65),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
 
-                          const SizedBox(height: 8),
-
-                          /// PROPERTY NAME
-                          Text(
-                            b.propertyName,
-                            style: textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
+                            /// BUY / RENT BADGE
+                            Positioned(
+                              top: 14,
+                              left: 14,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: b.buyRent == "Buy"
+                                      ? Colors.green
+                                      : Color(0xFF22C55E),
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: Text(
+                                  b.buyRent,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: "PoppinsMedium",
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
 
-                          const SizedBox(height: 4),
+                            /// VERIFIED ICON
+                            Positioned(
+                              top: 14,
+                              right: 14,
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: Icon(
+                                  Icons.apartment,
+                                  color: b.buyRent == "Buy"
+                                      ? Colors.green
+                                      : Color(0xFF22C55E),
+                                  size: 18,
+                                ),
+                              ),
+                            ),
 
-                          /// PLACE
-                          Text(
-                            b.place,
-                            style: textTheme.bodySmall,
-                          ),
+                            /// VISUAL HEADLINE
+                            Positioned(
+                              bottom: 18,
+                              left: 18,
+                              right: 18,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
 
-                          const SizedBox(height: 10),
+                                  Text(
+                                    b.typeOfProperty,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                      color: Colors.white,
+                                      fontFamily: "PoppinsMedium",
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
 
-                          /// INFO ROW
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _InfoItem(Icons.train, b.metroName),
-                              _InfoItem(Icons.apartment, b.totalFloor),
-                            ],
-                          ),
+                                  const SizedBox(height: 4),
 
-                          const SizedBox(height: 8),
-
-                          /// FACILITY
-                          Text(
-                            b.facilities,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: textTheme.bodySmall,
-                          ),
-                        ],
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.location_on,
+                                          color: Colors.white70, size: 15),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          "${b.place} • ${b.localityList}",
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodySmall
+                                              ?.copyWith(
+                                            color: Colors.white70,
+                                            fontFamily: "PoppinsMedium",
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+
+                      const SizedBox(height: 14),
+
+                      /// ================= DETAILS =================
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+
+                            /// FIELD WORKER
+                            Row(
+                              children: [
+                                const Icon(Icons.person, size: 16, color: Colors.grey),
+                                const SizedBox(width: 6),
+                                Text(
+                                  b.fieldWorkerName,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                    fontFamily: "PoppinsMedium",
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                const Icon(Icons.call, size: 16, color: Colors.grey),
+                                const SizedBox(width: 6),
+                                Text(
+                                  b.fieldWorkerNumber,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                    fontFamily: "PoppinsMedium",
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            /// TECHNICAL SNAPSHOT
+                            Row(
+                              children: [
+                                _LuxuryChip(
+                                    Icons.square_foot,
+                                    b.squareFeet),
+                                const SizedBox(width: 8),
+                                _LuxuryChip(
+                                    Icons.layers,
+                                    b.totalFloor),
+                                const SizedBox(width: 8),
+                                _LuxuryChip(
+                                    Icons.local_parking,
+                                    b.parking),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            if (b.facilities.isNotEmpty)
+                              Text(
+                                b.facilities,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                  color: Colors.grey,
+                                  fontFamily: "PoppinsMedium",
+                                ),
+                              ),
+
+                            const SizedBox(height: 12),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
+                ),
               );
             },
           );
@@ -310,23 +422,37 @@ class _YearlyBuildingState extends State<YearlyBuilding> {
     );
   }
 }
-
-class _InfoItem extends StatelessWidget {
+class _LuxuryChip extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const _InfoItem(this.icon, this.text);
+  const _LuxuryChip(this.icon, this.text);
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: theme.iconTheme.color),
-        const SizedBox(width: 4),
-        Text(text, style: theme.textTheme.bodySmall),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey.shade800
+            : Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: Color(0xFF22C55E)),
+          const SizedBox(width: 4),
+          Text(
+            text.isEmpty ? "-" : text,
+            style: Theme.of(context)
+                .textTheme
+                .labelSmall
+                ?.copyWith(fontFamily: "PoppinsMedium"),
+          ),
+        ],
+      ),
     );
   }
 }
+

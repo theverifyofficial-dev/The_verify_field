@@ -200,130 +200,218 @@ class _YearlyPoliceVerificationScreenState
             itemCount: list.length,
             itemBuilder: (context, i) {
               final b = list[i];
+              final isDark = Theme.of(context).brightness == Brightness.dark;
 
-              return
-              GestureDetector(
-                onTap: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => PoliceVerificationDetailScreen(p: b,)));
+              final cardBg = isDark ? const Color(0xFF171717) : Colors.white;
+              final subText = isDark ? Colors.grey.shade400 : Colors.grey.shade800;
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PoliceVerificationDetailScreen(p: b),
+                    ),
+                  );
                 },
-                  child:
-                Container(
-                margin: const EdgeInsets.only(bottom: 14),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: theme.brightness == Brightness.dark
-                      ? []
-                      : [
-                    BoxShadow(
-                      blurRadius: 8,
-                      color: Colors.black.withOpacity(.08),
-                      offset: const Offset(0, 4),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 20),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: isDark ? Colors.white10 : Colors.grey.shade200,
                     ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
 
-                    /// IMAGE
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16)),
-                      child: Image.network(
-                        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/${b.tenantImage}",
-                        height: 190,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 190,
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.image_not_supported),
-                        ),
-                      ),
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      /// ================= IMAGE =================
+                      Stack(
                         children: [
-
-                          /// TAG
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(.20),
-                              borderRadius: BorderRadius.circular(20),
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(24),
                             ),
-                            child: const Text(
-                              "Police Verification",
-                              style: TextStyle(
-                                color: Colors.red,
-                                fontWeight: FontWeight.w600,
+                            child: Image.network(
+                              "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/${b.tenantImage}",
+                              height: 210,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                height: 210,
+                                color: Colors.grey.shade300,
+                                child: const Icon(Icons.image_not_supported),
                               ),
                             ),
                           ),
 
-                          const SizedBox(height: 8),
-
-                          /// ADDRESS
-                          Text(
-                            b.rentedAddress,
-                            style: theme.textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                          /// POLICE BADGE
+                          Positioned(
+                            top: 14,
+                            left: 14,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.red.withOpacity(.95),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Text(
+                                "Police Verification",
+                                style: TextStyle(
+                                  fontFamily: "PoppinsBold",
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
                           ),
 
-                          const SizedBox(height: 4),
-
-                          /// OWNER / TENANT
-                          Text(
-                            "Owner: ${b.ownerName} | Tenant: ${b.tenantName}",
-                            style: theme.textTheme.bodySmall,
-                          ),
-
-                          const SizedBox(height: 10),
-
-                          /// INFO ROW
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _InfoItem(Icons.home, b.bhk),
-                              _InfoItem(Icons.layers, b.floor),
-                              _InfoItem(Icons.local_parking, b.parking),
-                            ],
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          /// MOBILE
-                          Text(
-                            "Owner: ${b.ownerMobile} | Tenant: ${b.tenantMobile}",
-                            style: theme.textTheme.bodySmall,
-                          ),
-
-                          const SizedBox(height: 6),
-
-                          /// FIELD WORKER
-                          Text(
-                            "Field Worker: ${b.fieldWorkerName}",
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.grey),
+                          /// AGREEMENT TYPE
+                          Positioned(
+                            bottom: 14,
+                            left: 14,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(.55),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Text(
+                                b.agreementType,
+                                style: const TextStyle(
+                                  fontFamily: "PoppinsMedium",
+                                  fontSize: 11,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
+
+                      /// ================= DETAILS =================
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+
+                            /// ADDRESS
+                            Text(
+                              b.rentedAddress.isEmpty
+                                  ? "No Address"
+                                  : b.rentedAddress,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontFamily: "PoppinsBold",
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            /// OWNER / TENANT
+                            Text(
+                              "Owner: ${b.ownerName}  •  Tenant: ${b.tenantName}",
+                              style: TextStyle(
+                                fontFamily: "Poppins",
+                                fontSize: 13,
+                                color: subText,
+                              ),
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            /// MODERN INFO CHIPS
+                            Row(
+                              children: [
+                                _modernChip(Icons.home, b.bhk, subText),
+                                _modernChip(Icons.layers, b.floor, subText),
+                                _modernChip(Icons.local_parking, b.parking, subText),
+                              ],
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            /// MOBILE
+                            Text(
+                              "Owner: ${b.ownerMobile}",
+                              style: TextStyle(
+                                fontFamily: "PoppinsMedium",
+                                fontSize: 13,
+                                color: subText,
+                              ),
+                            ),
+
+                            const SizedBox(height: 4),
+
+                            Text(
+                              "Tenant: ${b.tenantMobile}",
+                              style: TextStyle(
+                                fontFamily: "PoppinsMedium",
+                                fontSize: 13,
+                                color: subText,
+                              ),
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            /// FIELD WORKER
+                            Text(
+                              "Field Worker: ${b.fieldWorkerName}",
+                              style: TextStyle(
+                                fontFamily: "Poppins",
+                                fontSize: 12,
+                                color: subText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
+
             },
           );
         },
       ),
     );
   }
+}
+
+Widget _modernChip(IconData icon, String text, Color color) {
+  if (text.isEmpty || text == '-') return const SizedBox();
+
+  return Container(
+    margin: const EdgeInsets.only(right: 10),
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    decoration: BoxDecoration(
+      color: color.withOpacity(.08),
+      borderRadius: BorderRadius.circular(14),
+    ),
+    child: Row(
+      children: [
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 4),
+        Text(
+          text,
+          style: TextStyle(
+            fontFamily: "PoppinsMedium",
+            fontSize: 12,
+            color: color,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 /// =======================

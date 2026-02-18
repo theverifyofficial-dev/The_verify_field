@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Custom_Widget/constant.dart';
 
@@ -270,114 +271,157 @@ class _MonthlyLiveBuyScreenState extends State<MonthlyLiveBuyScreen> {
             itemBuilder: (context, i) {
               final b = list[i];
 
-              return 
-                GestureDetector(
-                  onTap: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => LiveMonthlyBuyDetailScreen(p: b,)));
-                  },
-                    child: Container(
-                margin: const EdgeInsets.only(bottom: 14),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: theme.brightness == Brightness.dark
-                      ? []
-                      : [
-                    BoxShadow(
-                      blurRadius: 8,
-                      color: Colors.black.withOpacity(.08),
-                      offset: const Offset(0, 4),
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => LiveMonthlyBuyDetailScreen(p: b),
                     ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    /// IMAGE
-                    ClipRRect(
-                      borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(16)),
-                      child: Image.network(
-                        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${b.image}",
-                        height: 190,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 190,
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.image_not_supported),
-                        ),
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 18),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22),
+                    color: theme.cardColor,
+                    boxShadow: theme.brightness == Brightness.dark
+                        ? []
+                        : [
+                      BoxShadow(
+                        blurRadius: 12,
+                        color: Colors.black.withOpacity(.08),
+                        offset: const Offset(0, 6),
                       ),
-                    ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
 
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      /// 🔥 IMAGE + BADGE
+                      Stack(
                         children: [
 
-                          /// BUY TAG
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(.20),
-                              borderRadius: BorderRadius.circular(20),
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(22),
                             ),
-                            child: const Text(
-                              "Buy",
-                              style: TextStyle(
-                                color: Colors.green,
-                                fontWeight: FontWeight.w600,
+                            child: Image.network(
+                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${b.image}",
+                              height: 210,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                height: 210,
+                                color: Colors.grey,
                               ),
                             ),
                           ),
 
-                          const SizedBox(height: 8),
-
-                          /// PLACE
-                          Text(
-                            b.locations,
-                            style: theme.textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                          /// BUY BADGE 😎
+                          Positioned(
+                            top: 14,
+                            left: 14,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: const Text(
+                                "BUY",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                  letterSpacing: 1,
+                                ),
+                              ),
+                            ),
                           ),
 
-                          const SizedBox(height: 6),
-
-                          /// INFO ROW
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _InfoItem(Icons.home, b.bhk),
-                              _InfoItem(Icons.layers, b.floor),
-                              _InfoItem(Icons.local_parking, b.parking),
-                            ],
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          /// PRICE
-                          Text(
-                            "Price: ₹${b.locations}",
-                            style: theme.textTheme.bodySmall,
-                          ),
-
-                          const SizedBox(height: 6),
-
-                          /// FIELD WORKER
-                          Text(
-                            "Field Worker: ${b.fieldWorkerName}",
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.grey),
+                          /// PRICE BADGE 🔥
+                          Positioned(
+                            bottom: 14,
+                            right: 14,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(.75),
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              child: Text(
+                                "₹ "+b.showPrice,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+
+                      /// 🔥 CONTENT
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+
+                            /// LOCATION
+                            Text(
+                              "${b.locations} • ${b.localityList}",
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: Colors.grey,
+                              ),
+                            ),
+
+                            const SizedBox(height: 14),
+
+                            /// ICON ROW 😎
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _ModernInfo(Icons.home_outlined, b.bhk),
+                                _ModernInfo(Icons.layers_outlined, b.floor),
+                                _ModernInfo(Icons.local_parking_outlined, b.parking),
+                              ],
+                            ),
+
+                            const SizedBox(height: 14),
+
+                            /// OWNER
+                            Text(
+                              "Owner: ${b.ownerName} (${b.ownerNumber})",
+                              style: theme.textTheme.bodySmall,
+                            ),
+
+                            const SizedBox(height: 4),
+
+                            /// FIELD WORKER
+                            Text(
+                              "Field Worker: ${b.fieldWorkerName}",
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                    ),
               );
+
             },
           );
         },
@@ -385,25 +429,36 @@ class _MonthlyLiveBuyScreenState extends State<MonthlyLiveBuyScreen> {
     );
   }
 }
-
-/// =======================
-/// SMALL INFO WIDGET
-/// =======================
-class _InfoItem extends StatelessWidget {
+class _ModernInfo extends StatelessWidget {
   final IconData icon;
   final String text;
 
-  const _InfoItem(this.icon, this.text);
+  const _ModernInfo(this.icon, this.text);
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Row(
       children: [
-        Icon(icon, size: 16, color: theme.iconTheme.color),
-        const SizedBox(width: 4),
-        Text(text, style: theme.textTheme.bodySmall),
+        Icon(icon, size: 18),
+        const SizedBox(width: 6),
+        Text(
+          text.isEmpty ? "-" : text,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
       ],
     );
   }
 }
+
+String formatMoney(String value) {
+  if (value.isEmpty) return "₹0";
+
+  final number = double.tryParse(value) ?? 0;
+
+  return NumberFormat.currency(
+    locale: 'en_IN',
+    symbol: '₹',
+    decimalDigits: 0,
+  ).format(number);
+}
+

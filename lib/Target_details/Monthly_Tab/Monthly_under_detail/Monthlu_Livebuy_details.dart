@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 import '../Monthly_LiveBuy.dart';
 
@@ -43,100 +44,237 @@ class LiveMonthlyBuyDetailScreen extends StatelessWidget {
       ),
     );
   }
-
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final bgColor = isDark ? const Color(0xFF0F0F0F) : const Color(0xFFF5F7FA);
+    final cardColor = isDark ? const Color(0xFF1A1A1A) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final subText = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Live Buy Details")),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          children: [
+      backgroundColor: bgColor,
 
-            Image.network(
-              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${p.image}",
-              height: 230,
-              width: double.infinity,
-              fit: BoxFit.cover,
+      body: CustomScrollView(
+        slivers: [
+
+          /// 🔥 MODERN IMAGE HEADER
+          SliverAppBar(
+            expandedHeight: 280,
+            pinned: true,
+            backgroundColor: Colors.black,
+            leading: Container(
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black87,
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: const BackButton(color: Colors.white),
             ),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Image.network(
+                "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${p.image}",
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(color: Colors.grey),
+              ),
+            ),
+          ),
 
-            const SizedBox(height: 12),
+          /// 🔥 CONTENT
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
 
-            row("Property Name", p.apartmentName),
-            row("Property Address", p.apartmentAddress),
-            row("Locality", p.localityList),
-            row("Location", p.locations),
-            row("Flat No", p.flatNumber),
-            row("Type", p.typeOfProperty),
-            row("Buy / Rent", p.buyRent),
-            row("Residence / Commercial", p.residenceCommercial),
+                  /// 🔥 TITLE + PRICE
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
 
-            const Divider(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          ('₹ '+p.askingPrice),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
 
-            row("BHK", p.bhk),
-            row("Floor", p.floor),
-            row("Total Floor", p.totalFloor),
-            row("Balcony", p.balcony),
-            row("Square Fit", p.squareFit),
-            row("Age of Property", p.ageOfProperty),
+                  const SizedBox(height: 6),
 
-            const Divider(),
+                  Text(
+                    "${p.locations} • ${p.localityList}",
+                    style: TextStyle(fontSize: 13, color: subText),
+                  ),
 
-            row("Show Price", p.showPrice),
-            row("Last Price", p.lastPrice),
-            row("Asking Price", p.askingPrice),
-            row("Maintenance", p.maintaince),
-            row("Meter", p.meter),
+                  const SizedBox(height: 24),
 
-            const Divider(),
+                  /// ✅ BASIC INFO
+                  _section("Basic Info", [
+                    _row("Property Address", p.apartmentAddress),
+                    _row("Flat No", p.flatNumber),
+                    _row("Type", p.typeOfProperty),
+                    _row("Category", p.residenceCommercial),
+                    _row("Listing Type", p.buyRent),
+                  ], cardColor, textColor),
 
-            row("Parking", p.parking),
-            row("Facility", p.facility),
-            row("Furnished", p.furnishedUnfurnished),
+                  /// ✅ PROPERTY DETAILS
+                  _section("Property Details", [
+                    _row("BHK", p.bhk),
+                    _row("Floor", p.floor),
+                    _row("Total Floor", p.totalFloor),
+                    _row("Balcony", p.balcony),
+                    _row("Square Fit", p.squareFit),
+                    _row("Age", p.ageOfProperty),
+                    _row("Parking", p.parking),
+                  ], cardColor, textColor),
 
-            const Divider(),
+                  /// ✅ PRICING
+                  _section("Pricing", [
+                    _row("Show Price", ('₹ '+p.showPrice)),
+                    _row("Last Price", ('₹ '+p.lastPrice)),
+                    _row("Asking Price", ('₹ '+p.askingPrice)),
+                    _row("Maintenance", p.maintaince),
+                    _row("Meter", p.meter),
+                  ], cardColor, textColor),
 
-            row("Road Size", p.roadSize),
-            row("Metro Distance", p.metroDistance),
-            row("Highway Distance", p.highwayDistance),
-            row("Market Distance", p.mainMarketDistance),
+                  /// ✅ FACILITIES
+                  _section("Facilities", [
+                    _row("Facility", p.facility),
+                    _row("Furnished", p.furnishedUnfurnished),
+                  ], cardColor, textColor),
 
-            const Divider(),
+                  /// ✅ DISTANCES
+                  _section("Distances", [
+                    _row("Metro", p.metroDistance),
+                    _row("Highway", p.highwayDistance),
+                    _row("Market", p.mainMarketDistance),
+                    _row("Road Size", p.roadSize),
+                  ], cardColor, textColor),
 
-            row("Owner Name", p.ownerName),
-            row("Owner Mobile", p.ownerNumber),
-            row("Caretaker Name", p.caretakerName),
-            row("Caretaker Mobile", p.caretakerNumber),
+                  /// ✅ CONTACT
+                  _section("Contact", [
+                    _row("Owner", p.ownerName),
+                    _row("Owner Mobile", p.ownerNumber),
+                    _row("Caretaker", p.caretakerName),
+                    _row("Caretaker Mobile", p.caretakerNumber),
+                  ], cardColor, textColor),
 
-            const Divider(),
+                  /// ✅ LEGAL
+                  _section("Legal Details", [
+                    _row("Registry / GPA", p.registryAndGpa),
+                    _row("Loan", p.loan),
+                  ], cardColor, textColor),
 
-            row("Field Worker", p.fieldWorkerName),
-            row("Worker Number", p.fieldWorkerNumber),
-            row("Worker Address", p.fieldworkerAddress),
-            row("Live Status", p.liveUnlive),
+                  /// ✅ FIELD WORKER
+                  _section("Field Worker", [
+                    _row("Name", p.fieldWorkerName),
+                    _row("Number", p.fieldWorkerNumber),
+                    _row("Address", p.fieldworkerAddress),
+                    _row("Live Status", p.liveUnlive),
+                  ], cardColor, textColor),
 
-            const Divider(),
+                  /// ✅ LOCATION
+                  _section("Location", [
+                    _row("Latitude", p.latitude),
+                    _row("Longitude", p.longitude),
+                  ], cardColor, textColor),
 
-            row("Registry / GPA", p.registryAndGpa),
-            row("Loan", p.loan),
+                  /// ✅ OTHER
+                  _section("Other Details", [
+                    _row("Video Link", p.videoLink),
+                    _row("Current Date",formatDate( p.currentDates)),
+                    _row("Available Date", formatDate(p.availableDate)),
+                    _row("Target Date",formatDate( p.dateForTarget)),
+                    _row("Source ID", p.sourceId),
+                  ], cardColor, textColor),
 
-            const Divider(),
-
-            row("Longitude", p.longitude),
-            row("Latitude", p.latitude),
-            row("Video Link", p.videoLink),
-
-            const Divider(),
-
-            row("Current Date", p.currentDates),
-            row("Available Date", p.availableDate),
-            row("Target Date", p.dateForTarget),
-            row("Source ID", p.sourceId),
-
-          ],
-        ),
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
+  Widget _section(String title, List<Widget> children,
+      Color cardColor, Color textColor) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ...children,
+        ],
+      ),
+    );
+  }
+  String formatDate(String raw) {
+    if (raw.isEmpty) return "—";
+
+    try {
+      return DateFormat("dd MMM yyyy").format(DateTime.parse(raw));
+    } catch (e) {
+      return raw;
+    }
+  }
+
+  Widget _row(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Text(
+              title,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 4,
+            child: Text(
+              value.isEmpty ? "—" : value,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
 

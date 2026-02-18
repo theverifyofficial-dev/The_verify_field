@@ -247,113 +247,192 @@ class _MonthlyPoliceVerificationScreenState
             itemCount: list.length,
             itemBuilder: (context, i) {
               final v = list[i];
-
-              return
-              GestureDetector(
-                onTap: (){
+              return GestureDetector(
+                onTap: () {
                   Navigator.push(
-                      context, MaterialPageRoute(
-                      builder: (context) =>
-                          PoliceMonthlyDetailScreen(v: v,)));
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PoliceMonthlyDetailScreen(v: v),
+                    ),
+                  );
                 },
-                child:
-                Container(
-                margin: const EdgeInsets.only(bottom: 14),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: theme.brightness == Brightness.dark
-                      ? []
-                      : [
-                    BoxShadow(
-                      blurRadius: 8,
-                      color: Colors.black.withOpacity(.08),
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    /// IMAGE
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16)),
-                      child: Image.network(
-                        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/${v.tenantImage}",
-                        height: 190,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 190,
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.image_not_supported),
-                        ),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 18),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 10,
+                        color: Colors.black.withOpacity(.05),
+                        offset: const Offset(0, 4),
                       ),
-                    ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
 
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                      /// ✅ IMAGE + BADGE
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(18),
+                        ),
+                        child: Stack(
+                          children: [
 
-                          /// TAG
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(.20),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              v.agreementType,
-                              style: const TextStyle(
-                                color: Colors.red,
-                                fontWeight: FontWeight.w600,
+                            Image.network(
+                              "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/${v.tenantImage}",
+                              height: 190,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                height: 190,
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.image_not_supported),
                               ),
                             ),
-                          ),
 
-                          const SizedBox(height: 8),
-
-                          /// ADDRESS
-                          Text(
-                            v.rentedAddress,
-                            style: theme.textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-
-                          const SizedBox(height: 6),
-
-                          /// TENANT
-                          Text(
-                            "Tenant: ${v.tenantName}",
-                            style: theme.textTheme.bodySmall,
-                          ),
-
-                          const SizedBox(height: 6),
-
-                          /// FIELD WORKER
-                          Text(
-                            "Field Worker: ${v.fieldWorkerName}",
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.grey),
-                          ),
-                        ],
+                            /// ✅ BADGE (CONSISTENT WITH OTHER SCREENS)
+                            Positioned(
+                              top: 12,
+                              left: 12,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Color(0xFFF59E0B),
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: Text(
+                                  v.agreementType,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontFamily: "PoppinsMedium",
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+
+                      Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+
+                            /// ✅ ADDRESS (PRIMARY DATA)
+                            Text(
+                              v.rentedAddress,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontFamily: "PoppinsMedium",
+                                fontWeight: FontWeight.bold,
+                                color: theme.brightness == Brightness.dark
+                                    ? Colors.white
+                                    : Colors.black87,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            /// ✅ RENT SNAPSHOT
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Agreement Price",
+                                  style: TextStyle(
+                                    fontFamily: "PoppinsMedium",
+                                    fontSize: 12,
+                                    color: theme.brightness == Brightness.dark
+                                        ? Colors.white70
+                                        : Colors.grey.shade600,
+                                  ),
+                                ),
+                                Text(
+                                  "₹${v.agreementPrice}",
+                                  style: TextStyle(
+                                    fontFamily: "PoppinsMedium",
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFF59E0B),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+
+                            const SizedBox(height: 12),
+
+                            /// ✅ TENANT + WORKER (META DATA)
+                            Text(
+                              "Tenant: ${v.tenantName}",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontFamily: "PoppinsMedium",
+                                color: theme.brightness == Brightness.dark
+                                    ? Colors.white70
+                                    : Colors.grey.shade700,
+                              ),
+                            ),
+
+                            const SizedBox(height: 4),
+
+                            Row(
+                              children: [
+                                const Icon(Icons.person, size: 15, color: Colors.grey),
+                                const SizedBox(width: 6),
+                                Text(
+                                  "Field Worker: ${v.fieldWorkerName}",
+                                  style: const TextStyle(
+                                    fontFamily: "PoppinsMedium",
+                                    fontSize: 11,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
+
             },
           );
         },
       ),
     );
   }
+  Widget _iconInfo(IconData icon, String text) {
+    final safe = text.isEmpty ? "-" : text;
+
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: Color(0xFFF59E0B)),
+        const SizedBox(width: 4),
+        Text(
+          safe,
+          style: TextStyle(
+            fontSize: 11,
+            fontFamily: "PoppinsMedium",
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black87,
+          ),
+        ),
+      ],
+    );
+  }
+
 }

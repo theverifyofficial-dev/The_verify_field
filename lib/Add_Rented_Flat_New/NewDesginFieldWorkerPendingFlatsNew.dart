@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Administrator/All_Rented_Flat/AdministatorPropertyDetailPage.dart';
 import 'Show_Billing_Fieldworker_Pending_Page.dart';
@@ -55,6 +56,7 @@ class Property {
   final String statusForSecondPayment;
   final dynamic subid;
   final dynamic sourceId;
+  final String bookingDate;
 
   // ✅ New fields
   final String rent;
@@ -69,6 +71,7 @@ class Property {
 
   Property({
     required this.pId,
+    required this.bookingDate,
     required this.propertyPhoto,
     required this.locations,
     required this.flatNumber,
@@ -131,6 +134,7 @@ class Property {
   factory Property.fromJson(Map<String, dynamic> json) {
     return Property(
       pId: json["P_id"] ?? 0,
+      bookingDate: json["booking_date"] ?? "",
       propertyPhoto: json["property_photo"] ?? "",
       locations: json["locations"] ?? "",
       flatNumber: json["Flat_number"] ?? "",
@@ -834,6 +838,14 @@ Widget _transactionCard(BuildContext context, Property item, bool isDarkMode, Vo
 
               ],
             ),
+            const SizedBox(height: 12),
+
+            Text("Booking Date : "+formatBookingDate(item.bookingDate),
+              style: const TextStyle(
+                fontSize: 14,
+                fontFamily: "Poppins",
+                fontWeight: FontWeight.w600,
+              ),),
             SizedBox(height: 5,),
             SizedBox(
               width: double.infinity,
@@ -951,6 +963,15 @@ Widget _transactionCard(BuildContext context, Property item, bool isDarkMode, Vo
       ),
     ),
   );
+}
+String formatBookingDate(String rawDate) {
+  try {
+    final DateTime date = DateTime.parse(rawDate);
+    return DateFormat('dd MMM yyyy').format(date);
+    // Example output: 07 Feb 2026
+  } catch (e) {
+    return rawDate; // fallback if parsing fails
+  }
 }
 void _openAmountSheet(
     BuildContext context,

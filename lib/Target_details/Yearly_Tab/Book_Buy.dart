@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Custom_Widget/constant.dart';
 
@@ -281,118 +282,162 @@ class _YearlyBookBuyScreenState extends State<YearlyBookBuyScreen> {
             itemCount: list.length,
             itemBuilder: (context, i) {
               final b = list[i];
-
-              return
-              GestureDetector(
-                onTap: (){
+              return GestureDetector(
+                onTap: () {
                   Navigator.push(
-                      context, MaterialPageRoute(
-                      builder: (context) => YearlyBookDetailScreen(book: b)));
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => YearlyBookDetailScreen(book: b),
+                    ),
+                  );
                 },
-                  child:
-                Container(
-                margin: const EdgeInsets.only(bottom: 14),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: theme.brightness == Brightness.dark
-                      ? []
-                      : [
-                    BoxShadow(
-                      blurRadius: 8,
-                      color: Colors.black.withOpacity(.08),
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    /// IMAGE
-                    ClipRRect(
-                      borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(16)),
-                      child: Image.network(
-                        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${b.propertyPhoto}",
-                        height: 190,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 190,
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.image_not_supported),
-                        ),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor, // ✅ Auto day/dark safe
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: theme.brightness == Brightness.dark
+                        ? [] // ✅ No ugly glow in dark mode
+                        : [
+                      BoxShadow(
+                        blurRadius: 10,
+                        color: Colors.black.withOpacity(.08),
+                        offset: const Offset(0, 5),
                       ),
-                    ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
 
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-
-                          /// BUY TAG
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(.20),
-                              borderRadius: BorderRadius.circular(20),
+                      /// 🔥 IMAGE + BADGES
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(18),
+                        ),
+                        child: Stack(
+                          children: [
+                            Image.network(
+                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${b.propertyPhoto}",
+                              height: 190,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  Container(height: 190, color: Colors.grey),
                             ),
-                            child: const Text(
-                              "Buy",
-                              style: TextStyle(
-                                color: Colors.green,
-                                fontWeight: FontWeight.w600,
+
+                            /// ✅ BUY BADGE
+                            Positioned(
+                              top: 12,
+                              left: 12,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: Colors.green,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Text(
+                                  "BUY",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
 
-                          const SizedBox(height: 8),
-
-                          /// PROPERTY NAME
-                          Text(
-                            b.apartmentName,
-                            style: theme.textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-
-                          const SizedBox(height: 4),
-
-                          /// PLACE
-                          Text(
-                            b.locations,
-                            style: theme.textTheme.bodySmall,
-                          ),
-
-                          const SizedBox(height: 10),
-
-                          /// INFO ROW
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _InfoItem(Icons.train, b.highwayDistance),
-                              _InfoItem(Icons.apartment, b.totalFloor),
-                            ],
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          /// FACILITY
-                          Text(
-                            b.facility,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall,
-                          ),
-                        ],
+                            /// ✅ PRICE TAG
+                            Positioned(
+                              bottom: 12,
+                              right: 12,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(.75),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  formatMoney(b.askingPrice),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+
+                      /// 🔥 DETAILS
+                      Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+
+                            /// PROPERTY NAME
+                            Text(
+                              b.apartmentName,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+
+                            const SizedBox(height: 4),
+
+                            /// LOCATION
+                            Text(
+                              b.locations,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: Colors.grey,fontWeight: FontWeight.w700
+                              ),
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            /// INFO ROW
+                            Row(
+                              children: [
+                                _pill(context, Icons.home, b.bhk),
+                                const SizedBox(width: 6),
+                                _pill(context, Icons.layers, b.floor),
+                                const SizedBox(width: 6),
+                                _pill(context, Icons.local_parking, b.parking),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+
+
+                            /// PAYMENT SUMMARY
+                            Row(
+                              children: [
+                                Text(
+                                  "FieldWorker : ",
+                                  style: theme.textTheme.bodySmall,
+                                ),
+                                Text(
+                                b.fieldWorkerName  +" (${b.fieldWorkerNumber})",
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
               );
+
             },
           );
         },
@@ -400,21 +445,43 @@ class _YearlyBookBuyScreenState extends State<YearlyBookBuyScreen> {
     );
   }
 }
-class _InfoItem extends StatelessWidget {
-  final IconData icon;
-  final String text;
+Widget _pill(BuildContext context, IconData icon, String text) {
+  final theme = Theme.of(context);
 
-  const _InfoItem(this.icon, this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+    decoration: BoxDecoration(
+      color: theme.brightness == Brightness.dark
+          ? Colors.white10
+          : Colors.grey.shade200,
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Row(
       children: [
-        Icon(icon, size: 16, color: theme.iconTheme.color),
+        Icon(icon, size: 14),
         const SizedBox(width: 4),
-        Text(text, style: theme.textTheme.bodySmall),
+        Text(
+          text,
+          style: TextStyle(
+            color:
+            theme.brightness == Brightness.dark
+                ? Colors.white
+                : Colors.grey.shade900,
+          )
+        ),
       ],
-    );
-  }
+    ),
+  );
+}
+
+String formatMoney(String value) {
+  if (value.isEmpty) return "₹0";
+
+  final number = double.tryParse(value) ?? 0;
+
+  return NumberFormat.currency(
+    locale: 'en_IN',
+    symbol: '₹',
+    decimalDigits: 0,
+  ).format(number);
 }

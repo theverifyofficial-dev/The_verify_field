@@ -771,8 +771,7 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
           ? DateTime(date.year, date.month + 1, 9)
           : DateTime(date.year, date.month, 9);
 
-      final title =
-          "${DateFormat('MMM').format(start)}–${DateFormat('MMM yyyy').format(end)}";
+      final title = "${DateFormat('MMM').format(start)} – ${DateFormat('MMM yyyy').format(end)}";
 
       map.putIfAbsent(
         title,
@@ -785,8 +784,9 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
     // sort items inside group
     for (final g in map.values) {
       g.items.sort((a, b) =>
-          DateTime.parse(a.bookingDate)
-              .compareTo(DateTime.parse(b.bookingDate)));
+          DateTime.parse(b.bookingDate)
+              .compareTo(DateTime.parse(a.bookingDate)));
+
     }
 
     final groups = map.values.toList();

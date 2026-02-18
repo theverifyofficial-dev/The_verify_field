@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/Target_details/Monthly_Tab/Monthly_under_detail/Agreement_Monthly_Detail.dart';
 import '../../../Custom_Widget/constant.dart';
 import '../Book_Buy.dart';
 
@@ -28,144 +29,224 @@ class YearlyBookDetailScreen extends StatelessWidget {
 
   const YearlyBookDetailScreen({super.key, required this.book});
 
-  Widget row(String t, String v) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(width: 130, child: Text(t, style: const TextStyle(fontWeight: FontWeight.bold))),
-          Expanded(child: Text(v)),
-        ],
-      ),
-    );
-  }
+  static const Color accent = Color(0xFFA855F7);
+  static const String font = "PoppinsMedium";
+
+  Color getBg(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? Colors.black
+          : const Color(0xFFF5F5F7);
+
+  Color getCard(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? Colors.white10
+          : Colors.white;
+
+  Color getText(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? Colors.white
+          : Colors.black87;
+
+  Color getSub(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? Colors.white60
+          : Colors.black54;
+
+  String img(String path) =>
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/$path";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: getBg(context),
+
       appBar: AppBar(
         backgroundColor: Colors.black,
-          iconTheme: IconThemeData(color: Colors.white),
-          title:Image.asset(AppImages.transparent,height: 40,),
-      centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Image.asset(AppImages.transparent, height: 40),
+        centerTitle: true,
       ),
+
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
+
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
+            /// ✅ HERO IMAGE
             ClipRRect(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(24),
               child: Image.network(
-                "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${book.propertyPhoto}",
-                height: 220,
+                img(book.propertyPhoto),
+                height: 240,
                 width: double.infinity,
                 fit: BoxFit.cover,
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
-            row("Type", book.buyRent),
-            row("Commercial / Residential", book.residenceCommercial),
-            row("Property Name", book.apartmentName),
-            row("Address", book.apartmentAddress),
-            row("Location", book.locations),
-            row("Flat No.", book.flatNumber),
-            row("Property Type", book.typeOfProperty),
-            row("BHK", book.bhk),
-            row("Floor", book.floor),
-            row("Total Floor", book.totalFloor),
-            row("Balcony", book.balcony),
-            row("Square Fit", book.squareFit),
-            row("Age of Property", book.ageOfProperty),
-            row("Furnished", book.furnishedUnfurnished),
+            /// ✅ PROPERTY OVERVIEW
+            _label("PROPERTY OVERVIEW"),
+            _card(context, children: [
+              _row(context, "Type", book.buyRent, highlight: true),
+              _row(context, "Commercial / Residential", book.residenceCommercial),
+              _row(context, "Address", book.apartmentAddress),
+              _row(context, "Location", book.locations),
+              _row(context, "Flat No.", book.flatNumber),
+              _row(context, "Property Type", book.typeOfProperty),
+              _row(context, "BHK", book.bhk),
+              _row(context, "Registry / GPA", book.registryAndGpa, highlight: true),
+              _row(context, "Loan", book.loan),
+            ]),
 
-            const Divider(),
-            row("Parking", book.parking),
-            row("Meter", book.meter),
-            row("Maintenance", book.maintenance),
-            row("Facility", book.facility),
-            row("Kitchen", book.kitchen),
-            row("Bathroom", book.bathroom),
-            row("Lift", book.lift),
+            /// ✅ SPECIFICATIONS
+            _label("PROPERTY SPECIFICATIONS"),
+            _card(context, children: [
+              _row(context, "Floor", "${book.floor}/${book.totalFloor}"),
+              _row(context, "Balcony", book.balcony),
+              _row(context, "Square Fit", book.squareFit, isBold: true),
+              _row(context, "Age of Property", book.ageOfProperty),
+              _row(context, "Furnished", book.furnishedUnfurnished),
+            ]),
 
-            const Divider(),
-            row("Road Size", book.roadSize),
-            row("Metro Distance", book.metroDistance),
-            row("Highway Distance", book.highwayDistance),
-            row("Main Market", book.mainMarketDistance),
+            /// ✅ FEATURES
+            _label("Facilities & UTILITIES"),
+            _card(context, children: [
+              _row(context, "Furniture", book.apartmentName, highlight: true),
 
-            const Divider(),
-            row("Owner Name", book.ownerName),
-            row("Owner Mobile", book.ownerNumber),
-            row("Caretaker Name", book.careTakerName),
-            row("Caretaker Mobile", book.careTakerNumber),
+              _row(context, "Parking", book.parking),
+              _row(context, "Meter", book.meter),
+              _row(context, "Maintenance", book.maintenance),
+              _row(context, "Facility", book.facility,),
+              _row(context, "Kitchen", book.kitchen),
+              _row(context, "Bathroom", book.bathroom),
+              _row(context, "Lift", book.lift),
+              _row(context, "Road Size", book.roadSize),
+              _row(context, "Metro Distance", book.highwayDistance),
+              _row(context, "Main Market", book.mainMarketDistance),
+            ]),
 
-            const Divider(),
-            row("Show Price", "₹${book.showPrice}"),
-            row("Last Price", "₹${book.lastPrice}"),
-            row("Asking Price", "₹${book.askingPrice}"),
 
-            const Divider(),
-            row("Rent", "₹${book.rent}"),
-            row("Security", "₹${book.security}"),
-            row("Commission", "₹${book.commission}"),
-            row("Extra Expense", "₹${book.extraExpense}"),
-            row("Advance Payment", "₹${book.advancePayment}"),
-            row("Total Balance", "₹${book.totalBalance}"),
+            /// ✅ PRICING
+            _label("PRICING HISTORY"),
+            _card(context, children: [
+              _row(context, "Show Price", "₹${book.showPrice}"),
+              _row(context, "Last Price", "₹${book.lastPrice}"),
+              _row(context, "Asking Price", "₹${book.askingPrice}", highlight: true),
+            ]),
 
-            const Divider(),
-            row("Booking Date", book.bookingDate),
-            row("Booking Time", book.bookingTime),
-            row("Second Amount", book.secondAmount),
-            row("Final Amount", book.finalAmount),
-            row("Second Payment Status", book.statusSecondPayment ?? "-"),
-            row("Final Payment Status", book.statusFinalPayment ?? "-"),
-            row("Remaining Balance Key", book.remainingBalanceKey ?? "-"),
+            /// ✅ FINANCIALS
+            _label("BOOKING FINANCIALS"),
+            _card(context, children: [
+              _row(context, "Rent", "₹${book.rent}", highlight: true),
+              _row(context, "Security", "₹${book.security}"),
+              _row(context, "Commission", "₹${book.commission}"),
+              _row(context, "Extra Expense", "₹${book.extraExpense}"),
+              const Divider(height: 24),
+              _row(context, "Advance Payment", "₹${book.advancePayment}"),
+              _row(context, "Total Balance", "₹${book.totalBalance}", isBold: true),
+            ]),
 
-            const Divider(),
-            row("Registry / GPA", book.registryAndGpa),
-            row("Loan", book.loan),
+            /// ✅ TIMELINE
+            _label("BOOKING TIMELINE"),
+            _card(context, children: [
+              _row(context, "Booking Date", formatDate(book.bookingDate), highlight: true),
+              _row(context, "Booking Time", book.bookingTime),
+              _row(context, "Second Amount", book.secondAmount),
+              _row(context, "Final Amount", book.finalAmount),
+              _row(context, "Second Payment", book.statusSecondPayment ?? "-"),
+              _row(context, "Final Payment", book.statusFinalPayment ?? "-"),
+            ]),
 
-            const Divider(),
-            row("Field Worker Name", book.fieldWorkerName),
-            row("Field Worker Number", book.fieldWorkerNumber),
-            row("Field Worker Address", book.fieldWorkerAddress),
-            row("Current Location", book.fieldWorkerCurrentLocation),
+            /// ✅ STAKEHOLDERS
+            _label("STAKEHOLDERS"),
+            _card(context, children: [
+              _row(context, "Owner Name", book.ownerName, highlight: true),
+              _row(context, "Owner Mobile", book.ownerNumber),
+              const Divider(height: 24),
+              _row(context, "Caretaker Name", book.careTakerName),
+              _row(context, "Caretaker Mobile", book.careTakerNumber),
+            ]),
 
-            const Divider(),
-            row("Latitude", book.latitude),
-            row("Longitude", book.longitude),
-            row("Video Link", book.videoLink),
+            /// ✅ META DATA
+            _label("FIELD WORKER DETAIL"),
+            _card(context, children: [
 
-            const Divider(),
-            row("Sub ID", book.subId.toString()),
-            row("Source ID", book.sourceId),
+              _row(context, "Field Worker", book.fieldWorkerName),
+              _row(context, "Worker Number", book.fieldWorkerNumber),
+              const Divider(height: 24),
 
+              _row(context, "Source ID", book.sourceId),
+            ]),
+
+            const SizedBox(height: 40),
           ],
         ),
       ),
     );
   }
-}
-Widget row(String title, String value) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          flex: 4,
-          child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-        ),
-        Expanded(
-          flex: 6,
-          child: Text(value.isEmpty ? "-" : value),
-        ),
-      ],
-    ),
-  );
-}
 
+  /// ✅ CARD
+  Widget _card(BuildContext context, {required List<Widget> children}) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 18),
+      decoration: BoxDecoration(
+        color: getCard(context),
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Column(children: children),
+    );
+  }
+
+  /// ✅ ROW
+  Widget _row(BuildContext context, String t, String? v,
+      {bool highlight = false, bool isBold = false}) {
+
+    final value = (v == null || v.isEmpty || v == "null") ? "-" : v;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(t,
+              style: TextStyle(fontFamily: font, fontSize: 12, color: getSub(context))),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontFamily: font,
+                fontSize: 12,
+                fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                color: highlight ? accent : getText(context),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// ✅ LABEL
+  Widget _label(String t) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8, left: 4),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Text(
+          t,
+          style: const TextStyle(
+            fontFamily: font,
+            fontSize: 10,
+            letterSpacing: 1.2,
+            fontWeight: FontWeight.bold,
+            color: accent,
+          ),
+        ),
+      ),
+    );
+  }
+}

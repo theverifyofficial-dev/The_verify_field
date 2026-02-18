@@ -41,6 +41,7 @@ class TargetCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
+                    fontFamily: "PoppinsBold",
                       color: isDark ? Colors.white70 : Colors.black87,
                       fontWeight: FontWeight.w600)),
             ),

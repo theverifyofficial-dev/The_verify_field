@@ -1,8 +1,8 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
+import 'package:intl/intl.dart';
+import '../../../Administrator/imagepreviewscreen.dart';
 import '../Monthly_agreement_external.dart';
 
 Future<List<AgreementMonthlyModel>> fetchAgreementMonthly() async {
@@ -30,108 +30,281 @@ class AgreementMonthlyDetailScreen extends StatelessWidget {
 
   const AgreementMonthlyDetailScreen({super.key, required this.a});
 
-  Widget row(String t, String v) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-              flex: 4,
-              child: Text(t, style: const TextStyle(fontWeight: FontWeight.bold))),
-          Expanded(flex: 6, child: Text(v)),
-        ],
-      ),
-    );
-  }
-
   String img(String path) =>
       "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final bgColor = isDark ? const Color(0xFF0F0F0F) : const Color(0xFFF5F7FA);
+    final cardColor = isDark ? const Color(0xFF1A1A1A) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final subText = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+
     return Scaffold(
-      appBar: AppBar(title: const Text("Agreement Details")),
+      backgroundColor: bgColor,
+      appBar: AppBar(
+        // backgroundColor: Colors.black,
+        title: const Text("Agreement Details"),
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            /// TENANT IMAGE
-            Image.network(
-              img(a.tenantImage),
-              height: 220,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                height: 220,
-                color: Colors.grey[300],
-                child: const Icon(Icons.image_not_supported),
+            /// 🔥 TENANT IMAGE (HEADER STYLE)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(22),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ImagePreviewScreen(imageUrl:img(a.tenantImage)),
+                    ),
+                  );
+                },
+                child: Image.network(
+                  img(a.tenantImage),
+                  height: 240,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
 
-            row("Agreement Type", a.agreementType),
-            row("Tenant", a.tenantName),
-            row("Tenant Mobile", a.tenantMobile),
-            row("Owner", a.ownerName),
-            row("Owner Mobile", a.ownerMobile),
-
-            const Divider(),
-
-            row("Address", a.rentedAddress),
-            row("BHK", a.bhk),
-            row("Floor", a.floor),
-            row("Parking", a.parking),
-
-            const Divider(),
-
-            row("Monthly Rent", a.monthlyRent),
-            row("Security", a.security),
-            row("Maintenance", a.maintenance),
-            row("Meter", a.meter),
-
-            const Divider(),
-
-            row("Agreement Price", a.agreementPrice),
-            row("Notary Price", a.notaryPrice),
-            row("Shifting Date", a.shiftingDate),
-
-            const Divider(),
-
-            row("Field Worker", a.fieldWorkerName),
-
-            const SizedBox(height: 16),
-
-            /// AADHAR IMAGES
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text("Documents", style: TextStyle(fontWeight: FontWeight.bold)),
+            /// 🔥 ADDRESS + TYPE
+            Text(
+              a.rentedAddress,
+              style: TextStyle(
+                fontSize: 18,
+                fontFamily: "PoppinsBold",
+                color: textColor,
+              ),
             ),
 
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
 
-            Row(
-              children: [
-                Expanded(child: Image.network(img(a.ownerAadharFront))),
-                const SizedBox(width: 6),
-                Expanded(child: Image.network(img(a.ownerAadharBack))),
-              ],
+            Text(
+              a.agreementType,
+              style: TextStyle(
+                fontSize: 13,
+                fontFamily: "Poppins",
+                color: subText,
+              ),
             ),
 
-            const SizedBox(height: 6),
+            const SizedBox(height: 22),
 
-            Row(
-              children: [
-                Expanded(child: Image.network(img(a.tenantAadharFront))),
-                const SizedBox(width: 6),
-                Expanded(child: Image.network(img(a.tenantAadharBack))),
-              ],
+            /// 🔥 TENANT INFO
+            _section("Tenant Details", [
+              _row("Name", a.tenantName),
+              _row("Mobile", a.tenantMobile),
+            ], cardColor),
+
+            /// 🔥 OWNER INFO
+            _section("Owner Details", [
+              _row("Name", a.ownerName),
+              _row("Mobile", a.ownerMobile),
+            ], cardColor),
+
+            /// 🔥 PROPERTY INFO
+            _section("Property Info", [
+              _row("BHK", a.bhk),
+              _row("Floor", a.floor),
+              _row("Parking", a.parking),
+            ], cardColor),
+
+            /// 🔥 RENT INFO
+            _section("Rent Details", [
+              _row("Monthly Rent", "${indianCurrency(a.monthlyRent)}"),
+              _row("Security", "${indianCurrency(a.security)}"),
+              _row("Maintenance", a.maintenance),
+              _row("Meter", a.meter),
+            ], cardColor),
+
+            /// 🔥 AGREEMENT INFO
+            _section("Agreement Charges", [
+              _row("Agreement Price", "₹${a.agreementPrice}"),
+              _row("Notary Price", "₹${a.notaryPrice}"),
+              _row("Shifting Date", formatDate(a.shiftingDate)),
+            ], cardColor),
+
+            /// 🔥 FIELD WORKER
+            _section("Field Worker", [
+              _row("Name", a.fieldWorkerName),
+            ], cardColor),
+
+            /// 🔥 DOCUMENTS
+            _imageSection(
+              "Owner Aadhar",
+              a.ownerAadharFront,
+              a.ownerAadharBack,
+              cardColor,
+              context,
             ),
+
+            _imageSection(
+              "Tenant Aadhar",
+              a.tenantAadharFront,
+              a.tenantAadharBack,
+              cardColor,
+              context,
+            ),
+
+            const SizedBox(height: 40),
           ],
         ),
       ),
     );
   }
+
+  /// ✅ SECTION CARD
+  Widget _section(String title, List<Widget> children, Color cardColor) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontFamily: "PoppinsBold",
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  /// ✅ CLEAN ROW
+  Widget _row(String title, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                fontFamily: "PoppinsMedium",
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 4,
+            child: Text(
+              value.isEmpty ? "—" : value,
+              style: const TextStyle(
+                fontSize: 13.5,
+                fontFamily: "Poppins",
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// ✅ IMAGE SECTION
+  Widget _imageSection(
+      String title,
+      String front,
+      String back,
+      Color cardColor,
+      BuildContext context,
+      ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontFamily: "PoppinsBold")),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(child: _docImage(front, context)),
+              const SizedBox(width: 10),
+              Expanded(child: _docImage(back, context)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _docImage(String path, BuildContext context) {
+    if (path.isEmpty) {
+      return Container(
+        height: 120,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(12),
+        ),
+      );
+    }
+
+    final url =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ImagePreviewScreen(imageUrl: url),
+          ),
+        );
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.network(
+          url,
+          height: 120,
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
+  }
+}
+String formatDate(String rawDate) {
+  if (rawDate.isEmpty) return "";
+
+  try {
+    final date = DateTime.parse(rawDate);
+    return DateFormat("dd MMM yyyy").format(date);
+  } catch (e) {
+    return rawDate;
+  }
+}
+String indianCurrency(String value) {
+  final amount = int.tryParse(value) ?? 0;
+
+  final formatter = NumberFormat.currency(
+    locale: 'en_IN',
+    symbol: '₹',
+    decimalDigits: 0,
+  );
+
+  return formatter.format(amount);
 }

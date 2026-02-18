@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../Administrator/imagepreviewscreen.dart';
 import '../Agreement_External.dart'; // <-- apna model import
 
 class AgreementExternalDetail extends StatelessWidget {
@@ -44,10 +45,23 @@ class AgreementExternalDetail extends StatelessWidget {
               ),
             ),
             child: agreement.tenantImage.isNotEmpty
-                ? Image.network(
-              img(agreement.tenantImage),
-              fit: BoxFit.cover,
-            )
+                ? GestureDetector(
+                 onTap: (){
+                   Navigator.push(
+                     context,
+                     MaterialPageRoute(
+                       builder: (_) => ImagePreviewScreen(
+                         imageUrl: img(agreement.tenantImage),
+                       ),
+                     ),
+                   );
+                 },
+
+                  child: Image.network(
+                                img(agreement.tenantImage),
+                                fit: BoxFit.cover,
+                              ),
+                )
                 : const Center(
               child: Icon(Icons.picture_as_pdf,
                   size: 90, color: Colors.white70),

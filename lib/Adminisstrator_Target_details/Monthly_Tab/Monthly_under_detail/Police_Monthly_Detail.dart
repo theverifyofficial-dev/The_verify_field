@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
+import '../../../Administrator/imagepreviewscreen.dart';
 import '../Monthly_police_verification.dart';
 
 class PoliceMonthlyDetailScreen extends StatelessWidget {
@@ -7,172 +8,277 @@ class PoliceMonthlyDetailScreen extends StatelessWidget {
 
   const PoliceMonthlyDetailScreen({super.key, required this.v});
 
-  Widget row(String t, String? v) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
+  String img(String path) =>
+      "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final bgColor = isDark ? const Color(0xFF0F0F0F) : const Color(0xFFF5F7FA);
+    final cardColor = isDark ? const Color(0xFF1A1A1A) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final subText = isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+
+    return Scaffold(
+      backgroundColor: bgColor,
+      appBar: AppBar(
+        title: const Text("Police Verification Details"),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            /// 🔥 TENANT IMAGE HEADER
+            ClipRRect(
+              borderRadius: BorderRadius.circular(22),
+              child: Image.network(
+                img(v.tenantImage),
+                height: 240,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            /// 🔥 ADDRESS + TYPE
+            Text(
+              v.rentedAddress,
+              style: TextStyle(
+                fontSize: 18,
+                fontFamily: "PoppinsBold",
+                color: textColor,
+              ),
+            ),
+
+            const SizedBox(height: 4),
+
+            Text(
+              v.agreementType,
+              style: TextStyle(
+                fontSize: 13,
+                color: subText,
+              ),
+            ),
+
+            const SizedBox(height: 22),
+
+            /// 🔥 TENANT DETAILS
+            _section("Tenant Details", [
+              _row("Name", v.tenantName),
+              _row("Relation", v.tenantRelation),
+              _row("Relation Person", v.tenantRelationName),
+              _row("Address", v.tenantAddress),
+              _row("Mobile", v.tenantMobile),
+              _row("Aadhar", v.tenantAadhar),
+            ], cardColor),
+
+            /// 🔥 OWNER DETAILS
+            _section("Owner Details", [
+              _row("Name", v.ownerName),
+              _row("Relation", v.ownerRelation),
+              _row("Relation Person", v.ownerRelationName),
+              _row("Address", v.ownerAddress),
+              _row("Mobile", v.ownerMobile),
+              _row("Aadhar", v.ownerAadhar),
+            ], cardColor),
+
+            /// 🔥 PROPERTY DETAILS
+            _section("Property Info", [
+              _row("Rented Address", v.rentedAddress),
+              _row("BHK", v.bhk),
+              _row("Floor", v.floor),
+              _row("Parking", v.parking),
+              _row("Monthly Rent", "₹${v.monthlyRent}"),
+              _row("Security", "₹${v.security}"),
+              _row("Meter", v.meter),
+              _row("Maintenance", v.maintaince),
+              _row("Furniture", v.furniture),
+            ], cardColor),
+
+            /// 🔥 FIELD WORKER
+            _section("Field Worker", [
+              _row("Name", v.fieldWorkerName),
+              _row("Number", v.fieldWorkerNumber),
+            ], cardColor),
+
+            /// 🔥 COMPANY DETAILS
+            _section("Company Details", [
+              _row("Company Name", v.companyName),
+              _row("GST No", v.gstNo),
+              _row("PAN No", v.panNo),
+            ], cardColor),
+
+            /// 🔥 PAYMENT DETAILS
+            _section("Charges", [
+              _row("Agreement Price", "₹${v.agreementPrice}"),
+              _row("Notary Price", "₹${v.notaryPrice}"),
+            ], cardColor),
+
+            /// 🔥 REMINDER
+            _section("Reminder", [
+              _row(
+                "Reminder Sent",
+                v.renewalReminderSent == 1 ? "Yes" : "No",
+              ),
+              _row("Sent On", v.renewalReminderSentOn),
+            ], cardColor),
+
+            /// 🔥 DOCUMENTS
+            _imageSection(
+              "Owner Aadhar",
+              v.ownerAadharFront,
+              v.ownerAadharBack,
+              cardColor,
+              context,
+            ),
+
+            _imageSection(
+              "Tenant Aadhar",
+              v.tenantAadharFront,
+              v.tenantAadharBack,
+              cardColor,
+              context,
+            ),
+
+            /// 🔥 PDFs / Images
+            _section("Documents", [
+              _row("Police Verification PDF", v.policeVerificationPdf),
+              _row("Agreement PDF", v.agreementPdf),
+              _row("Notary Image", v.notaryImg),
+            ], cardColor),
+
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// ✅ SECTION CARD
+  Widget _section(String title, List<Widget> children, Color cardColor) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-              flex: 4,
-              child: Text(t,
-                  style: const TextStyle(fontWeight: FontWeight.bold))),
-          Expanded(flex: 6, child: Text(v == null || v.isEmpty ? "-" : v)),
+          Text(title,
+              style: const TextStyle(
+                fontFamily: "PoppinsBold",
+                fontSize: 14,
+              )),
+          const SizedBox(height: 10),
+          ...children,
         ],
       ),
     );
   }
 
-  String img(String path) =>
-      "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
+  /// ✅ CLEAN ROW
+  Widget _row(String title, String? value) {
+    final v = value == null || value.isEmpty ? "—" : value;
 
-  Widget docImg(String? path) {
-    if (path == null || path.isEmpty) {
-      return Container(
-        height: 120,
-        color: Colors.grey[300],
-        child: const Center(child: Text("No Image")),
-      );
-    }
-    return Image.network(
-      img(path),
-      height: 120,
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) => Container(
-        height: 120,
-        color: Colors.grey[300],
-        child: const Icon(Icons.image_not_supported),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 3,
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                fontFamily: "PoppinsMedium",
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 4,
+            child: Text(
+              v,
+              style: const TextStyle(
+                fontSize: 13.5,
+                fontFamily: "Poppins",
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: Image.asset(AppImages.transparent, height: 40),
-        centerTitle: true,
+  /// ✅ IMAGE SECTION
+  Widget _imageSection(
+      String title,
+      String? front,
+      String? back,
+      Color cardColor,
+      BuildContext context,
+      ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(20),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          children: [
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title,
+              style: const TextStyle(fontFamily: "PoppinsBold")),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(child: _docImage(front, context)),
+              const SizedBox(width: 10),
+              Expanded(child: _docImage(back, context)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
-            /// TENANT IMAGE
-            Image.network(
-              img(v.tenantImage),
-              height: 220,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                height: 220,
-                color: Colors.grey[300],
-                child: const Icon(Icons.image_not_supported),
-              ),
-            ),
+  Widget _docImage(String? path, BuildContext context) {
+    if (path == null || path.isEmpty) {
+      return Container(
+        height: 120,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade300,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(Icons.image_not_supported),
+      );
+    }
 
-            const SizedBox(height: 12),
+    final url =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
 
-            row("Agreement Type", v.agreementType),
-
-            const Divider(),
-
-            /// ===== TENANT DETAILS =====
-            row("Tenant Name", v.tenantName),
-            row("Tenant Relation", v.tenantRelation),
-            row("Relation Person", v.tenantRelationName),
-            row("Tenant Address", v.tenantAddress),
-            row("Tenant Mobile", v.tenantMobile),
-            row("Tenant Aadhar", v.tenantAadhar),
-
-            const Divider(),
-
-            /// ===== OWNER DETAILS =====
-            row("Owner Name", v.ownerName),
-            row("Owner Relation", v.ownerRelation),
-            row("Relation Person", v.ownerRelationName),
-            row("Owner Address", v.ownerAddress),
-            row("Owner Mobile", v.ownerMobile),
-            row("Owner Aadhar", v.ownerAadhar),
-
-            const Divider(),
-
-            /// ===== PROPERTY DETAILS =====
-            row("Rented Address", v.rentedAddress),
-            row("BHK", v.bhk),
-            row("Floor", v.floor),
-            row("Parking", v.parking),
-            row("Monthly Rent", v.monthlyRent),
-            row("Security", v.security),
-            row("Meter", v.meter),
-            row("Maintenance", v.maintaince),
-            row("Furniture", v.furniture),
-
-            const Divider(),
-
-            /// ===== FIELD WORKER =====
-            row("Field Worker Name", v.fieldWorkerName),
-            row("Field Worker Number", v.fieldWorkerNumber),
-
-            const Divider(),
-
-            /// ===== COMPANY DETAILS =====
-            row("Company Name", v.companyName),
-            row("GST No", v.gstNo),
-            row("PAN No", v.panNo),
-
-            const Divider(),
-
-            /// ===== PAYMENT DETAILS =====
-            row("Agreement Price", v.agreementPrice),
-            row("Notary Price", v.notaryPrice),
-
-            const Divider(),
-
-            /// ===== REMINDER =====
-            row("Renewal Reminder Sent",
-                v.renewalReminderSent == 1 ? "Yes" : "No"),
-            row("Reminder Sent On", v.renewalReminderSentOn),
-
-            const Divider(),
-
-            /// ===== DOCUMENTS =====
-            const Align(
-              alignment: Alignment.centerLeft,
-              child: Text("Documents",
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-
-            const SizedBox(height: 8),
-
-            Row(
-              children: [
-                Expanded(child: docImg(v.ownerAadharFront)),
-                const SizedBox(width: 6),
-                Expanded(child: docImg(v.ownerAadharBack)),
-              ],
-            ),
-
-            const SizedBox(height: 6),
-
-            Row(
-              children: [
-                Expanded(child: docImg(v.tenantAadharFront)),
-                const SizedBox(width: 6),
-                Expanded(child: docImg(v.tenantAadharBack)),
-              ],
-            ),
-
-            const SizedBox(height: 10),
-
-            row("Police Verification PDF", v.policeVerificationPdf),
-            row("Agreement PDF", v.agreementPdf),
-            row("Notary Image", v.notaryImg),
-
-            const SizedBox(height: 30),
-          ],
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ImagePreviewScreen(imageUrl: url),
+          ),
+        );
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Image.network(
+          url,
+          height: 120,
+          fit: BoxFit.cover,
         ),
       ),
     );

@@ -6,12 +6,41 @@ class BuildingDetailScreen extends StatelessWidget {
 
   const BuildingDetailScreen({super.key, required this.building});
 
-  static const bgDark = Color(0xFF0E1621);
-  static const cardDark = Color(0xFF121E2B);
-  static const primaryBlue = Color(0xFF2F80FF);
-  static const softBlue = Color(0xFF1E3A5F);
-  static const textLight = Color(0xFFEAF1FF);
-  static const textGrey = Color(0xFF9FB3C8);
+  static final Color primary = Color(0xFF22C55E);
+  static const String myFont = 'PoppinsMedium';
+
+  /// ================= SAFE VALUE =================
+  String safe(dynamic v, {String fallback = "-"}) {
+    if (v == null) return fallback;
+
+    final value = v.toString().trim();
+
+    if (value.isEmpty) return fallback;
+    if (value.toLowerCase() == "null") return fallback;
+
+    return value;
+  }
+
+  /// ================= THEME HELPERS =================
+  Color getBg(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? Colors.white10
+          : const Color(0xFFF2F2F7);
+
+  Color getCard(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? Colors.black87
+          : Colors.white;
+
+  Color getText(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? Colors.white
+          : const Color(0xFF1C1C1E);
+
+  Color getSub(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? Colors.white60
+          : Colors.black54;
 
   String img(String path) =>
       "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/$path";
@@ -19,173 +48,191 @@ class BuildingDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: bgDark,
-      body: Stack(
-        children: [
+      backgroundColor: getBg(context),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
 
-          /// IMAGE
-          SizedBox(
-            height: 320,
-            width: double.infinity,
-            child: Image.network(img(building.image), fit: BoxFit.cover),
-          ),
-
-          /// TOP BAR
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _circleBtn(Icons.arrow_back, () => Navigator.pop(context)),
-                  Row(
-                    children: [
-                      _circleBtn(Icons.share, () {}),
-                      const SizedBox(width: 8),
-                      _circleBtn(Icons.bookmark_border, () {}),
-                    ],
-                  )
-                ],
+          /// ================= APP BAR =================
+          SliverAppBar(
+            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                ? Colors.black
+                : Colors.white,
+            pinned: true,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.arrow_back_ios_new,
+                  color: primary, size: 20),
+              onPressed: () => Navigator.pop(context),
+            ),
+            centerTitle: true,
+            title: Text(
+              "COMMERCIAL PROPERTY REPORT",
+              style: TextStyle(
+                fontFamily: myFont,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+                color: primary,
               ),
             ),
           ),
 
-          /// DETAILS
-          DraggableScrollableSheet(
-            initialChildSize: 0.70,
-            minChildSize: 0.70,
-            maxChildSize: 0.95,
-            builder: (_, controller) {
-              return Container(
-                padding: const EdgeInsets.all(16),
-                decoration: const BoxDecoration(
-                  color: bgDark,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
-                ),
-                child: ListView(
-                  controller: controller,
-                  children: [
+          /// ================= CONTENT =================
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
 
-                    /// TAG
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: softBlue,
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: Text(
-                          "FOR ${building.buyRent.toUpperCase()}",
-                          style: const TextStyle(color: primaryBlue, fontWeight: FontWeight.w600),
-                        ),
+                  /// HERO IMAGE
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Image.network(
+                      img(safe(building.image, fallback: "")),
+                      height: 260,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 260,
+                        color: Colors.black12,
+                        child: const Icon(Icons.image_not_supported),
                       ),
                     ),
+                  ),
 
-                    const SizedBox(height: 10),
+                  const SizedBox(height: 24),
 
-                    /// TITLE
-                    Text(
-                      building.propertyName,
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textLight),
-                    ),
+                  /// ================= PROPERTY OVERVIEW =================
+                  _sectionLabel("PROPERTY OVERVIEW"),
+                  _card(context, [
+                    _dataRow(context, "Location", building.place,highlight: true),
+                    _dataRow(context, "Buy / Rent", building.buyRent),
+                    _dataRow(context, "Type", building.residenceCommercial),
+                    _dataRow(context, "Total Floors", building.totalFloor),
+                    _dataRow(context, "Age of Property", building.ageOfProperty),
+                  ]),
 
-                    const SizedBox(height: 4),
-                    Text(building.place, style: const TextStyle(color: textGrey)),
+                  /// ================= STRUCTURAL =================
+                  _sectionLabel("FACILITY"),
+                  _card(context, [
+                    _dataRow(context, "Lift", building.lift),
+                    _dataRow(context, "Parking", building.parking),
+                    _dataRow(context, "Facilities", building.facilities),
+                    _dataRow(context, "Road Size", building.roadSize),
+                    _dataRow(context, "Metro Name", building.metroName),
+                    _dataRow(context, "Metro Distance", building.metroDistance),
+                    _dataRow(context, "Market Distance", building.mainMarketDistance),
+                    _dataRow(context, "Locality", building.localityList),
+                    _dataRow(context, "Address", building.yourAddress),
+                  ]),
 
-                    const SizedBox(height: 14),
+                  /// ================= CONTACT =================
+                  _sectionLabel("CONTACT INFO"),
+                  _card(context, [
+                    _dataRow(context, "Owner Name", building.ownerName, highlight: true),
+                    _dataRow(context, "Owner Number", building.ownerNumber),
+                    _dataRow(context, "Vehicle Number", building.ownerVehicleNumber),
+                    const Divider(height: 22),
+                    _dataRow(context, "Caretaker Name", building.caretakerName),
+                    _dataRow(context, "Caretaker Number", building.caretakerNumber),
+                  ]),
 
-                    /// INFO
-                    Row(
-                      children: [
-                        _miniInfo(building.bhk, "BHK"),
-                        _miniInfo(building.totalFloor, "Floor"),
-                        _miniInfo(building.squareFeet, "Sqft"),
-                      ],
-                    ),
 
-                    const SizedBox(height: 18),
+                  /// ================= FIELD WORKER =================
+                  _sectionLabel("FIELD WORKER"),
+                  _card(context, [
+                    _dataRow(context, "Field Worker", building.fieldWorkerName, highlight: true),
+                    _dataRow(context, "Worker Number", building.fieldWorkerNumber),
+                    _dataRow(context, "Worker Address", building.fieldWorkerAddress),
+                  ]),
 
-                    _section("Property Details"),
-                    _row("Type", building.typeOfProperty),
-                    _row("Residential/Commercial", building.residenceCommercial),
-                    _row("Road Size", building.roadSize),
-                    _row("Age", building.ageOfProperty),
-                    _row("Lift", building.lift),
-                    _row("Parking", building.parking),
+                  /// ================= META =================
+                  _card(context, [
+                    _dataRow(context, "Source ID", building.id.toString()),
+                  ]),
 
-                    const Divider(),
-
-                    _section("Location"),
-                    _row("Metro", "${building.metroName} (${building.metroDistance})"),
-                    _row("Market", building.mainMarketDistance),
-                    _row("Locality", building.localityList),
-                    _row("Address", building.yourAddress),
-
-                    const Divider(),
-
-                    _section("Owner & Caretaker"),
-                    _row("Owner", building.ownerName),
-                    _row("Owner No", building.ownerNumber),
-                    _row("Caretaker", building.caretakerName),
-                    _row("Caretaker No", building.caretakerNumber),
-                    _row("Vehicle", building.ownerVehicleNumber),
-
-                    const Divider(),
-
-                    _section("Field Worker"),
-                    _row("Name", building.fieldWorkerName),
-                    _row("Number", building.fieldWorkerNumber),
-                    _row("Property Address", building.fieldWorkerAddress),
-
-                    const SizedBox(height: 80),
-                  ],
-                ),
-              );
-            },
+                  const SizedBox(height: 80),
+                ],
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  // ---------------- Widgets ----------------
-
-  Widget _circleBtn(IconData icon, VoidCallback onTap) {
-    return CircleAvatar(
-      backgroundColor: Colors.black45,
-      child: IconButton(icon: Icon(icon, color: Colors.white), onPressed: onTap),
-    );
-  }
-
-  Widget _miniInfo(String v, String t) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 16),
-      child: Column(
-        children: [
-          Text(v, style: const TextStyle(fontWeight: FontWeight.bold, color: textLight)),
-          Text(t, style: const TextStyle(fontSize: 12, color: textGrey)),
+  /// ================= CARD =================
+  Widget _card(BuildContext context, List<Widget> children) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 20),
+      decoration: BoxDecoration(
+        color: getCard(context),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          )
         ],
       ),
+      child: Column(children: children),
     );
   }
 
-  Widget _section(String t) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Text(t, style: const TextStyle(fontWeight: FontWeight.bold, color: textLight)),
-    );
-  }
+  /// ================= DATA ROW =================
+  Widget _dataRow(BuildContext context, String t, dynamic v,
+      {bool highlight = false}) {
+    final value = safe(v);
 
-  Widget _row(String t, String v) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(child: Text(t, style: const TextStyle(color: textGrey))),
-          Expanded(child: Text(v, style: const TextStyle(color: textLight))),
+          Expanded(
+            child: Text(
+              t,
+              style: TextStyle(
+                fontFamily: myFont,
+                fontSize: 12,
+                color: getSub(context),
+              ),
+            ),
+          ),
+          Expanded(
+            flex: 2,
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: TextStyle(
+                fontFamily: myFont,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: highlight ? primary : getText(context),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
+
+  /// ================= SECTION LABEL =================
+  Widget _sectionLabel(String t) => Padding(
+    padding: const EdgeInsets.only(left: 4, bottom: 10),
+    child: Text(
+      t,
+      style: TextStyle(
+        fontFamily: myFont,
+        fontSize: 10,
+        fontWeight: FontWeight.bold,
+        color: primary,
+        letterSpacing: 1.2,
+      ),
+    ),
+  );
 }

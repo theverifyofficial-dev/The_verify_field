@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 import 'Target_Under_Details_/Building_Details.dart';
@@ -184,127 +185,153 @@ class _YearlyBuildingScreenState extends State<YearlyBuildingScreen> {
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             itemCount: list.length,
             itemBuilder: (context, i) {
               final b = list[i];
+
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+
+              final cardBg = isDark ? const Color(0xFF171717) : Colors.white;
+              final subText = isDark ? Colors.grey.shade400 : Colors.grey.shade800;
+
+              final bool isBuy = b.buyRent == "Buy";
+
+              final Color tagColor = isBuy ? Colors.green : Colors.blue;
+
               return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,  
-                      MaterialPageRoute(
-                        builder: (_) => BuildingDetailScreen(building: b,),
-                      ),
-                    );
-                  },
-                  child:
-                  Container(
-                margin: const EdgeInsets.only(bottom: 14),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: theme.brightness == Brightness.dark
-                      ? []
-                      : [
-                    BoxShadow(
-                      blurRadius: 8,
-                      color: Colors.black.withOpacity(.08),
-                      offset: const Offset(0, 4),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BuildingDetailScreen(building: b),
                     ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    /// IMAGE
-                    ClipRRect(
-                      borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(16)),
-                      child: Image.network(
-                        "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${b.image}",
-                        height: 190,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 190,
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.image_not_supported),
-                        ),
-                      ),
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 18),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(
+                      color: isDark ? Colors.white10 : Colors.grey.shade200,
                     ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
 
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      /// ================= IMAGE =================
+                      Stack(
                         children: [
-
-                          /// BUY / RENT TAG
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: b.buyRent == "Buy"
-                                  ? Colors.green.withOpacity(.20)
-                                  : Colors.blue.withOpacity(.20),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              b.buyRent,
-                              style: TextStyle(
-                                color: b.buyRent == "Buy"
-                                    ? Colors.green
-                                    : Colors.blue,
-                                fontWeight: FontWeight.w600,
+                          ClipRRect(
+                            borderRadius:
+                            const BorderRadius.vertical(top: Radius.circular(22)),
+                            child: Image.network(
+                              "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${b.image}",
+                              height: 210,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                height: 210,
+                                color: Colors.grey.shade300,
+                                child: const Icon(Icons.image_not_supported),
                               ),
                             ),
                           ),
 
-                          const SizedBox(height: 8),
-
-                          /// PROPERTY NAME
-                          Text(
-                            b.propertyName,
-                            style: textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
+                          /// BUY / RENT TAG 🔥
+                          Positioned(
+                            top: 14,
+                            left: 14,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: tagColor.withOpacity(.95),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                b.buyRent,
+                                style: const TextStyle(
+                                  fontFamily: "PoppinsBold",
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
                             ),
-                          ),
-
-                          const SizedBox(height: 4),
-
-                          /// PLACE
-                          Text(
-                            b.place,
-                            style: textTheme.bodySmall,
-                          ),
-
-                          const SizedBox(height: 10),
-
-                          /// INFO ROW
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _InfoItem(Icons.train, b.metroName),
-                              _InfoItem(Icons.apartment, b.totalFloor),
-                            ],
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          /// FACILITY
-                          Text(
-                            b.facilities,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: textTheme.bodySmall,
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
+
+                      /// ================= DETAILS =================
+                      Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+
+                            /// PROPERTY NAME
+                            Text(
+                              b.propertyName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontFamily: "PoppinsBold",
+                                fontSize: 16,
+                              ),
+                            ),
+
+                            const SizedBox(height: 6),
+
+                            /// INFO ROW
+                            Row(
+                              children: [
+                                _chip(Icons.home, b.bhk, subText),
+                                _chip(Icons.layers, "${b.floorNumber}", subText),
+                                _chip(Icons.square_foot, "${b.squareFeet}", subText),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            /// METRO + TOTAL FLOOR
+                            Row(
+                              children: [
+                                _chip(Icons.train, b.metroName, subText),
+                                _chip(Icons.apartment, "${b.totalFloor}", subText),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            Text(
+                             b.fieldWorkerName,
+                              style: TextStyle(
+                                fontFamily: "PoppinsMedium",
+                                fontSize: 11,
+                                color: subText,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+
+                            /// DATE 🔥
+                            Text(
+                              formatDate(b.currentDate),
+                              style: TextStyle(
+                                fontFamily: "PoppinsMedium",
+                                fontSize: 11,
+                                color: subText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
+                ),
               );
             },
           );
@@ -314,22 +341,35 @@ class _YearlyBuildingScreenState extends State<YearlyBuildingScreen> {
   }
 }
 
-class _InfoItem extends StatelessWidget {
-  final IconData icon;
-  final String text;
+Widget _chip(IconData icon, String text, Color color) {
+  if (text.isEmpty) return const SizedBox();
 
-  const _InfoItem(this.icon, this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Row(
+  return Padding(
+    padding: const EdgeInsets.only(right: 14),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 16, color: theme.iconTheme.color),
+        Icon(icon, size: 14, color: color),
         const SizedBox(width: 4),
-        Text(text, style: theme.textTheme.bodySmall),
+        Text(
+          text,
+          style: TextStyle(
+            fontFamily: "PoppinsMedium",
+            fontSize: 12,
+            color: color,
+          ),
+        ),
       ],
-    );
+    ),
+  );
+}
+String formatDate(String rawDate) {
+  if (rawDate.isEmpty) return "";
+
+  try {
+    final date = DateTime.parse(rawDate);
+    return DateFormat("dd MMM yyyy").format(date);
+  } catch (e) {
+    return rawDate;
   }
 }

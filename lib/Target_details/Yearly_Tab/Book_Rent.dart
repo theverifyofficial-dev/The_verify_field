@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Custom_Widget/constant.dart';
 
@@ -265,124 +266,165 @@ class _YearlyBookrentScreenState extends State<YearlyBookrentScreen> {
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             itemCount: list.length,
             itemBuilder: (context, i) {
               final b = list[i];
 
-              return
-              GestureDetector(
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+
+              final cardBg = isDark ? const Color(0xFF171717) : Colors.white;
+              final subText = isDark ? Colors.grey.shade400 : Colors.grey.shade800;
+
+              return GestureDetector(
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => BookRentDetailScreen(b: b,),
+                      builder: (_) => BookRentDetailScreen(b: b),
                     ),
                   );
                 },
-                child:
-                Container(
-                margin: const EdgeInsets.only(bottom: 14),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: theme.brightness == Brightness.dark
-                      ? []
-                      : [
-                    BoxShadow(
-                      blurRadius: 8,
-                      color: Colors.black.withOpacity(.08),
-                      offset: const Offset(0, 4),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 18),
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(
+                      color: isDark ? Colors.white10 : Colors.grey.shade200,
                     ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
 
-                    /// IMAGE
-                    ClipRRect(
-                      borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(16)),
-                      child: Image.network(
-                        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${b.propertyPhoto}",
-                        height: 190,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 190,
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.image_not_supported),
-                        ),
-                      ),
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      /// ================= IMAGE =================
+                      Stack(
                         children: [
-
-                          /// BUY TAG
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(.20),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Text(
-                              "Rent",
-                              style: TextStyle(
-                                color: Colors.green,
-                                fontWeight: FontWeight.w600,
+                          ClipRRect(
+                            borderRadius:
+                            const BorderRadius.vertical(top: Radius.circular(22)),
+                            child: Image.network(
+                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${b.propertyPhoto}",
+                              height: 210,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                height: 210,
+                                color: Colors.grey.shade300,
+                                child: const Icon(Icons.image_not_supported),
                               ),
                             ),
                           ),
 
-                          const SizedBox(height: 8),
-
-                          /// PROPERTY NAME
-                          Text(
-                            b.apartmentName,
-                            style: theme.textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
+                          /// PRICE BADGE 🔥
+                          Positioned(
+                            top: 14,
+                            right: 14,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.green.withOpacity(.95),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                indianCurrency(
+                                    b.rent.isEmpty ? "0" : b.rent),
+                                style: const TextStyle(
+                                  fontFamily: "PoppinsBold",
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
                           ),
 
-                          const SizedBox(height: 4),
-
-                          /// PLACE
-                          Text(
-                            b.locations,
-                            style: theme.textTheme.bodySmall,
-                          ),
-
-                          const SizedBox(height: 10),
-
-                          /// INFO ROW
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _InfoItem(Icons.train, b.highwayDistance),
-                              _InfoItem(Icons.apartment, b.totalFloor),
-                            ],
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          /// FACILITY
-                          Text(
-                            b.facility,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall,
+                          /// RENT TAG
+                          Positioned(
+                            top: 14,
+                            left: 14,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(.9),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Text(
+                                "RENT",
+                                style: TextStyle(
+                                  fontFamily: "PoppinsBold",
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+
+                      /// ================= DETAILS =================
+                      Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+
+                            /// LOCATION
+                            Text(
+                              b.locations,
+                              style: TextStyle(
+                                fontFamily: "Poppins",
+                                fontSize: 13,
+                                color: subText,
+                              ),
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            /// INFO ROW
+                            Row(
+                              children: [
+                                _chip(Icons.layers, "${b.floor}", subText),
+                                _chip(Icons.apartment, "${b.totalFloor}", subText),
+                                _chip(Icons.local_parking, "${b.parking}", subText),
+                              ],
+                            ),
+
+
+
+                            const SizedBox(height: 8),
+
+                            /// BOOKING DATE 🔥
+                            Text(
+                              formatDate(b.bookingDate),
+                              style: TextStyle(
+                                fontFamily: "PoppinsMedium",
+                                fontSize: 11,
+                                color: subText,
+                              ),
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            /// FIELD WORKER
+                            Text(
+                              "Field Worker: ${b.fieldWorkerName}",
+                              style: TextStyle(
+                                fontFamily: "Poppins",
+                                fontSize: 12,
+                                color: subText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                    ),
               );
             },
           );
@@ -391,21 +433,43 @@ class _YearlyBookrentScreenState extends State<YearlyBookrentScreen> {
     );
   }
 }
-class _InfoItem extends StatelessWidget {
-  final IconData icon;
-  final String text;
+String formatDate(String rawDate) {
+  if (rawDate.isEmpty) return "";
 
-  const _InfoItem(this.icon, this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: theme.iconTheme.color),
-        const SizedBox(width: 4),
-        Text(text, style: theme.textTheme.bodySmall),
-      ],
-    );
+  try {
+    final date = DateTime.parse(rawDate);
+    return DateFormat("dd MMM yyyy").format(date);
+  } catch (e) {
+    return rawDate;
   }
+}
+String indianCurrency(String value) {
+  final amount = int.tryParse(value) ?? 0;
+
+  final formatter = NumberFormat.currency(
+    locale: 'en_IN',
+    symbol: '₹',
+    decimalDigits: 0,
+  );
+
+  return formatter.format(amount);
+}
+Widget _chip(IconData icon, String text, Color color) {
+  return Padding(
+    padding: const EdgeInsets.only(right: 14),
+    child: Row(
+      children: [
+        Icon(icon, size: 14, color: color),
+        const SizedBox(width: 4),
+        Text(
+          text,
+          style: TextStyle(
+            fontFamily: "PoppinsMedium",
+            fontSize: 12,
+            color: color,
+          ),
+        ),
+      ],
+    ),
+  );
 }

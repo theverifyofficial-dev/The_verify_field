@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Custom_Widget/constant.dart';
 
@@ -265,135 +266,121 @@ class _MonthlyCommercialScreenState extends State<MonthlyCommercialScreen> {
             itemBuilder: (context, i) {
               final b = list[i];
 
-              return
-              GestureDetector(
-                onTap: (){
+              return GestureDetector(
+                onTap: () {
                   Navigator.push(
-                      context, MaterialPageRoute(
-                      builder: (context) =>
-                          MonthluCommercialDetailScreen(c: b,)));
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MonthluCommercialDetailScreen(c: b),
+                    ),
+                  );
                 },
-                child:
-                Container(
-                margin: const EdgeInsets.only(bottom: 14),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: theme.brightness == Brightness.dark
-                      ? []
-                      : [
-                    BoxShadow(
-                      blurRadius: 8,
-                      color: Colors.black.withOpacity(.08),
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    /// IMAGE
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16)),
-                      child: Image.network(
-                        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${b.image}",
-                        height: 190,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 190,
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.image_not_supported),
-                        ),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 18),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: theme.brightness == Brightness.dark
+                        ? []
+                        : [
+                      BoxShadow(
+                        blurRadius: 12,
+                        color: Colors.black.withOpacity(.08),
+                        offset: const Offset(0, 6),
                       ),
-                    ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
 
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      /// 🔥 PROPERTY IMAGE + PRICE BADGE
+                      Stack(
                         children: [
-
-                          /// COMMERCIAL TAG
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.purple.withOpacity(.20),
-                              borderRadius: BorderRadius.circular(20),
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(22),
                             ),
-                            child: const Text(
-                              "Commercial",
-                              style: TextStyle(
-                                color: Colors.purple,
-                                fontWeight: FontWeight.w600,
+                            child: Image.network(
+                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${b.image}",
+                              height: 200,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                height: 200,
+                                color: Colors.grey,
                               ),
                             ),
                           ),
 
-                          const SizedBox(height: 8),
+                          /// PRICE BADGE
+                          Positioned(
+                            right: 12,
+                            top: 12,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.purple.withOpacity(.9),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: const Text(
+                                "Commercial",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
 
-                          /// PROPERTY NAME
-                          Text(
-                            b.apartmentName,
-                            style: theme.textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-
-                          const SizedBox(height: 4),
-
-                          /// PLACE + LOCALITY
-                          Text(
-                            "${b.locations} • ${b.localityList}",
-                            style: theme.textTheme.bodySmall,
-                          ),
-
-                          const SizedBox(height: 10),
-
-                          /// INFO ROW
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _InfoItem(Icons.home, b.bhk),
-                              _InfoItem(Icons.apartment, b.totalFloor),
-                              _InfoItem(Icons.local_parking, b.parking),
-                            ],
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          /// METER + TYPE
-                          Text(
-                            "Meter: ${b.meter} | ${b.buyRent}",
-                            style: theme.textTheme.bodySmall,
-                          ),
-
-                          const SizedBox(height: 6),
-
-                          /// OWNER
-                          Text(
-                            "Owner: ${b.ownerName} (${b.ownerNumber})",
-                            style: theme.textTheme.bodySmall,
-                          ),
-
-                          const SizedBox(height: 6),
-
-                          /// FACILITY
-                          Text(
-                            b.facility,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall,
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
+
+                      Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+
+
+                            /// LOCATION
+                            Text(
+                              "${b.locations} • ${b.localityList}",
+                              style: theme.textTheme.bodySmall,
+                            ),
+
+                            const SizedBox(height: 12),
+
+                            /// 🔥 PROPERTY INFO PILLS
+                            Row(
+                              children: [
+                                _pill(Icons.home, b.bhk),
+                                const SizedBox(width: 8),
+                                _pill(Icons.layers, "${b.floor}"),
+                                const SizedBox(width: 8),
+                                _pill(Icons.local_parking, b.parking),
+                              ],
+                            ),
+
+
+
+                            const SizedBox(height: 6),
+
+                            /// OWNER
+                            Text(
+                              "Owner: ${b.ownerName} (${b.ownerNumber})",
+                              style: theme.textTheme.bodySmall,
+                            ),
+
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
+
             },
           );
         },
@@ -401,25 +388,35 @@ class _MonthlyCommercialScreenState extends State<MonthlyCommercialScreen> {
     );
   }
 }
+String formatMoney(String value) {
+  if (value.isEmpty) return "₹0";
 
-/// =======================
-/// INFO ITEM
-/// =======================
-class _InfoItem extends StatelessWidget {
-  final IconData icon;
-  final String text;
+  final number = double.tryParse(value) ?? 0;
 
-  const _InfoItem(this.icon, this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: theme.iconTheme.color),
-        const SizedBox(width: 4),
-        Text(text, style: theme.textTheme.bodySmall),
-      ],
-    );
-  }
+  return NumberFormat.currency(
+    locale: 'en_IN',
+    symbol: '₹',
+    decimalDigits: 0,
+  ).format(number);
 }
+
+Widget _pill(IconData icon, String text) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+    decoration: BoxDecoration(
+      color: Colors.blue.withOpacity(.08),
+      borderRadius: BorderRadius.circular(30),
+    ),
+    child: Row(
+      children: [
+        Icon(icon, size: 14),
+        const SizedBox(width: 4),
+        Text(
+          text.isEmpty ? "-" : text,
+          style: const TextStyle(fontSize: 11),
+        ),
+      ],
+    ),
+  );
+}
+

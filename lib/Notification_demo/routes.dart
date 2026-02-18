@@ -16,6 +16,7 @@ import '../Administrator/SubAdmin/SubAdminAccountant_Home.dart';
 import '../Administrator/SubAdmin/sub_demand_details.dart';
 import '../Demand_2/Demand_detail.dart';
 import '../Demand_2/redemand_detailpage.dart';
+import '../Home_Screen_click/VideoEditingForField.dart';
 import '../Rent Agreement/details_agreement.dart';
 import '../Rent Agreement/history_tab.dart';
 import '../Web_query/web_query.dart';
@@ -25,6 +26,7 @@ class Routes {
 
   static const String administaterShowRealEstate = '/administater_show_realestate';
   static const String administaterShowFutureProperty = '/administaterShowFutureProperty';
+  static const String fieldVideo = '/fieldVideo';
   static const String administaterFuturePropertyDetails = '/administaterFuturePropertyDetails';
   static const String administaterWebQuery = '/administaterWebQuery';
   static const String fieldAgreementAccepted = '/fieldAgreementAccepted';
@@ -72,6 +74,14 @@ class Routes {
     },
 
     // 🔸 Admin Future Property List
+    fieldVideo: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+      return SubmitVideoForField(
+        key: ValueKey(args['buildingId']),
+        fromNotification: args['fromNotification'] ?? false,
+        buildingId: args['buildingId'],
+      );
+    },
     administaterShowFutureProperty: (context) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
       return ADministaterShow_FutureProperty(

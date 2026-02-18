@@ -6,6 +6,13 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Add_Rented_Flat_New/FieldWorker_Complete_Detail_Page.dart';
 import 'CompletePropertyCalculationPage.dart';
+class TenToTenGroup {
+  final DateTime start;
+  final String title;
+  final List<Property> items;
+
+  TenToTenGroup(this.start, this.title, this.items);
+}
 
 class Property {
   final int pId;
@@ -55,6 +62,7 @@ class Property {
   final String caretakerNumber;
   final String statusForFinalPayment;
   final String statusForSecondPayment;
+  final String bookingDate;
   final dynamic subid;
   final String? sourceId;
 
@@ -104,6 +112,7 @@ class Property {
     required this.kitchen,
     required this.bathroom,
     required this.lift,
+    required this.bookingDate,
     required this.facility,
     required this.furnishedUnfurnished,
     required this.fieldWorkerName,
@@ -165,6 +174,7 @@ class Property {
       currentDates: json["current_dates"] ?? "",
       availableDate: json["available_date"] ?? "",
       kitchen: json["kitchen"] ?? "",
+      bookingDate: json["booking_date"] ?? "",
       bathroom: json["bathroom"] ?? "",
       lift: json["lift"] ?? "",
       facility: json["Facility"] ?? "",
@@ -745,6 +755,47 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
       fetchBookingData();
     });
   }
+  List<TenToTenGroup> groupByTenToTen(List<Property> list) {
+    final Map<String, TenToTenGroup> map = {};
+
+    for (final item in list) {
+      final date = DateTime.parse(item.bookingDate);
+
+      final DateTime start =
+      date.day >= 10
+          ? DateTime(date.year, date.month, 10)
+          : DateTime(date.year, date.month - 1, 10);
+
+      final DateTime end =
+      date.day >= 10
+          ? DateTime(date.year, date.month + 1, 9)
+          : DateTime(date.year, date.month, 9);
+
+      final title = "${DateFormat('MMM').format(start)} – ${DateFormat('MMM yyyy').format(end)}";
+
+      map.putIfAbsent(
+        title,
+            () => TenToTenGroup(start, title, []),
+      );
+
+      map[title]!.items.add(item);
+    }
+
+    // sort items inside group
+    for (final g in map.values) {
+      g.items.sort((a, b) =>
+          DateTime.parse(b.bookingDate)
+              .compareTo(DateTime.parse(a.bookingDate)));
+
+    }
+
+    final groups = map.values.toList();
+
+    // sort groups
+    groups.sort((a, b) => b.start.compareTo(a.start));
+
+    return groups;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -770,16 +821,30 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
                 ),
               );
             }
-
             final bookingList = snapshot.data!;
+
+            final groups = groupByTenToTen(bookingList);
+
             return ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: bookingList.length,
+              itemCount: groups.length,
               itemBuilder: (context, index) {
-                final item = bookingList[index];
-                return _transactionCard(context, item);
+                final group = groups[index];
+
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+
+                      Text(group.title, style: const TextStyle(fontSize: 18, fontFamily: "PoppinsBold",fontWeight: FontWeight.bold)),
+                      ...group.items.map((item) => _transactionCard(context, item)),
+                    ],
+                  ),
+                );
               },
             );
+
+
           },
         ),
       ),
@@ -927,7 +992,13 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
               ),
 
               const SizedBox(height: 12),
-
+              Text("Booking Date : "+formatBookingDate(item.bookingDate),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontFamily: "Poppins",
+                  fontWeight: FontWeight.w600,
+                ),),
+              const SizedBox(height: 6),
               /// SHOW BILLING BUTTON
               SizedBox(
                 width: double.infinity,
@@ -1003,7 +1074,15 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
       ),
     );
   }
-
+  String formatBookingDate(String rawDate) {
+    try {
+      final DateTime date = DateTime.parse(rawDate);
+      return DateFormat('dd MMM yyyy').format(date);
+      // Example output: 07 Feb 2026
+    } catch (e) {
+      return rawDate; // fallback if parsing fails
+    }
+  }
   void _loaduserdata() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 

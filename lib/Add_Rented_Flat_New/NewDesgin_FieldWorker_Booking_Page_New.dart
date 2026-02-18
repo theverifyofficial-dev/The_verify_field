@@ -69,9 +69,11 @@ class Property {
   final String dates;
   final String tims;
   final String status_for_update_fields;
+  final String bookingDate;
 
   Property({
     required this.pId,
+    required this.bookingDate,
     required this.propertyPhoto,
     required this.locations,
     required this.flatNumber,
@@ -150,6 +152,7 @@ class Property {
       floor: json["Floor_"] ?? "",
       totalFloor: json["Total_floor"] ?? "",
       balcony: json["Balcony"] ?? "",
+      bookingDate: json["booking_date"] ?? "",
       squarefit: json["squarefit"] ?? "",
       maintance: json["maintance"] ?? "",
       parking: json["parking"] ?? "",
@@ -590,6 +593,13 @@ class _NewDesginFieldWorkerBookingPageNewState extends State<NewDesginFieldWorke
               ),
 
               const SizedBox(height: 12),
+              Text("Booking Date : "+formatBookingDate(item.bookingDate),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontFamily: "Poppins",
+                  fontWeight: FontWeight.w600,
+                ),),
+              const SizedBox(height: 6),
               const Divider(height: 1),
 
               const SizedBox(height: 10),
@@ -729,7 +739,15 @@ class _NewDesginFieldWorkerBookingPageNewState extends State<NewDesginFieldWorke
   num parseNum(String? value) {
     return num.tryParse(value ?? "0") ?? 0;
   }
-
+  String formatBookingDate(String rawDate) {
+    try {
+      final DateTime date = DateTime.parse(rawDate);
+      return DateFormat('dd MMM yyyy').format(date);
+      // Example output: 07 Feb 2026
+    } catch (e) {
+      return rawDate; // fallback if parsing fails
+    }
+  }
   double remainingAmount(Property p) {
     double toD(String v) =>
         double.tryParse(v.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0;

@@ -267,138 +267,283 @@ class _MonthlyBookRentState extends State<MonthlyBookRent> {
             itemBuilder: (context, i) {
               final b = list[i];
 
-              return
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                        context, MaterialPageRoute(
-                        builder: (context) =>
-                            MonthlyBookRentDetailScreen(b: b)));
-                  },
-                    child:
-                Container(
-                margin: const EdgeInsets.only(bottom: 14),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: theme.brightness == Brightness.dark
-                      ? []
-                      : [
-                    BoxShadow(
-                      blurRadius: 8,
-                      color: Colors.black.withOpacity(.08),
-                      offset: const Offset(0, 4),
+              return GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MonthlyBookRentDetailScreen(b: b),
                     ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    /// IMAGE
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16)),
-                      child: Image.network(
-                        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${b.propertyPhoto}",
-                        height: 190,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 190,
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.image_not_supported),
-                        ),
+                  );
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 22),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(
+                        color: theme.cardColor,
+                        offset: const Offset(0, 10),
                       ),
-                    ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
 
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                      /// ================= IMAGE =================
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(22),
+                        child: Stack(
+                          children: [
 
-                          /// RENT TAG
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.blue.withOpacity(.20),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Text(
-                              "Rent",
-                              style: TextStyle(
-                                color: Colors.blue,
-                                fontWeight: FontWeight.w600,
+                            Image.network(
+                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${b.propertyPhoto}",
+                              height: 210,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                height: 210,
+                                color: Colors.grey.shade300,
+                                child: const Icon(Icons.image_not_supported),
                               ),
                             ),
-                          ),
 
-                          const SizedBox(height: 8),
+                            /// Gradient Overlay
+                            Container(
+                              height: 210,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.black.withOpacity(.65),
+                                  ],
+                                ),
+                              ),
+                            ),
 
-                          /// PROPERTY NAME
-                          Text(
-                            b.apartmentName,
-                            style: theme.textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
+                            /// BOOKED BADGE 🔥
+                            Positioned(
+                              top: 14,
+                              left: 14,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Color(0xFF6366F1).withOpacity(.9),
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: const Text(
+                                  "BOOKED",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontFamily: "PoppinsBold",
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
 
-                          const SizedBox(height: 4),
+                            /// PRICE
+                            Positioned(
+                              bottom: 18,
+                              right: 18,
+                              child: Text(
+                                "₹${b.rent}",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontFamily: "PoppinsBold",
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
 
-                          /// PLACE
-                          Text(
-                            b.locations,
-                            style: theme.textTheme.bodySmall,
-                          ),
+                            /// PROPERTY TITLE
+                            Positioned(
+                              bottom: 18,
+                              left: 18,
+                              right: 100,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
 
-                          const SizedBox(height: 10),
+                                  Text(
+                                    b.furnishedUnfurnished,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontFamily: "PoppinsBold",
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
 
-                          /// INFO ROW
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _InfoItem(Icons.home, b.bhk),
-                              _InfoItem(Icons.apartment, b.totalFloor),
-                              _InfoItem(Icons.local_parking, b.parking),
-                            ],
-                          ),
+                                  const SizedBox(height: 4),
 
-                          const SizedBox(height: 8),
-
-                          /// RENT + SECURITY
-                          Text(
-                            "Rent: ₹${b.rent} | Security: ₹${b.security}",
-                            style: theme.textTheme.bodySmall,
-                          ),
-
-                          const SizedBox(height: 6),
-
-                          /// OWNER
-                          Text(
-                            "Owner: ${b.ownerName} (${b.ownerNumber})",
-                            style: theme.textTheme.bodySmall,
-                          ),
-
-                          const SizedBox(height: 6),
-
-                          /// FACILITY
-                          Text(
-                            b.facility,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: theme.textTheme.bodySmall,
-                          ),
-                        ],
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.location_on,
+                                          color: Colors.white70, size: 15),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          b.locations,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 12,
+                                            fontFamily: "PoppinsMedium",
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+
+                      const SizedBox(height: 14),
+
+                      /// ================= DETAILS =================
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+
+                            /// OWNER + SECURITY
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      b.ownerName,
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        fontFamily: "PoppinsMedium",
+                                      ),
+                                    ),
+                                    Text(
+                                      "(${b.ownerNumber})",
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        fontFamily: "PoppinsMedium",
+                                      ),
+                                    ),
+                                  ],
+                                ),
+
+                                Text(
+                                  "Security ₹${b.security}",
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    fontFamily: "PoppinsMedium",
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            /// CHIPS ROW
+                            Row(
+                              children: [
+                                _LuxuryChip(Icons.home, b.bhk),
+                                const SizedBox(width: 8),
+                                _LuxuryChip(Icons.layers, b.floor),
+                                const SizedBox(width: 8),
+                                _LuxuryChip(Icons.local_parking, b.parking),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            /// COMMISSION + BALANCE
+                            Text(
+                              "Commission ₹${b.commission}  |  Balance ₹${b.totalBalance}",
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: Colors.grey,
+                                fontFamily: "PoppinsMedium",
+                              ),
+                            ),
+
+                            const SizedBox(height: 6),
+
+                            /// FACILITIES
+                            if (b.facility.isNotEmpty)
+                              Text(
+                                b.facility,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: Colors.grey,
+                                  fontFamily: "PoppinsMedium",
+                                ),
+                              ),
+
+                            const SizedBox(height: 12),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                    ),
               );
+
             },
           );
         },
+      ),
+    );
+  }
+}
+class _LuxuryChip extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _LuxuryChip(this.icon, this.text);
+
+  String safe(String? v) {
+    if (v == null) return "-";
+    if (v.trim().isEmpty) return "-";
+    if (v.toLowerCase() == "null") return "-";
+    return v;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = const Color(0xFF6366F1);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey.shade800
+            : Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 15, color: primary.withOpacity(.9)),
+          const SizedBox(width: 4),
+          Text(
+            safe(text),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              fontFamily: "PoppinsMedium",
+            ),
+          ),
+        ],
       ),
     );
   }

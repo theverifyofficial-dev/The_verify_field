@@ -8,8 +8,32 @@ import 'Target_Under_Details_/Yearly_police_verification.dart';
 /// =======================
 /// MODEL
 /// =======================
+String safe(dynamic v) {
+  if (v == null) return "-";
+
+  final value = v.toString().trim();
+
+  if (value.isEmpty) return "-";
+  if (value.toLowerCase() == "null") return "-";
+
+  return value;
+}
+
+String safeDate(dynamic val) {
+  if (val == null) return "-";
+
+  if (val is String) return val;
+
+  if (val is Map && val['date'] != null) {
+    return val['date'].toString();
+  }
+
+  return "-";
+}
+
 class PoliceyearlyModel {
   final int id;
+
   // OWNER
   final String ownerName;
   final String ownerRelation;
@@ -40,10 +64,12 @@ class PoliceyearlyModel {
 
   // AGREEMENT
   final String agreementType;
+  final String agreementPrice;
   final String policeVerificationPdf;
 
   // DATES
   final String currentDate;
+  final String shiftingDate;
 
   // FIELD WORKER
   final String fieldWorkerName;
@@ -74,59 +100,62 @@ class PoliceyearlyModel {
     required this.parking,
     required this.furniture,
     required this.agreementType,
+    required this.agreementPrice,
     required this.policeVerificationPdf,
     required this.currentDate,
+    required this.shiftingDate,
     required this.fieldWorkerName,
     required this.fieldWorkerNumber,
   });
-
-  static String _parseDate(dynamic val) {
-    if (val == null) return '';
-    if (val is String) return val;
-    if (val is Map && val['date'] != null) return val['date'].toString();
-    return '';
-  }
 
   factory PoliceyearlyModel.fromJson(Map<String, dynamic> json) {
     return PoliceyearlyModel(
       id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
 
-      ownerName: json['owner_name']?.toString() ?? '',
-      ownerRelation: json['owner_relation']?.toString() ?? '',
-      ownerRelationPerson: json['relation_person_name_owner']?.toString() ?? '',
-      ownerAddress: json['parmanent_addresss_owner']?.toString() ?? '',
-      ownerMobile: json['owner_mobile_no']?.toString() ?? '',
-      ownerAadhar: json['owner_addhar_no']?.toString() ?? '',
-      ownerAadharFront: json['owner_aadhar_front']?.toString() ?? '',
-      ownerAadharBack: json['owner_aadhar_back']?.toString() ?? '',
-      tenantName: json['tenant_name']?.toString() ?? '',
-      tenantRelation: json['tenant_relation']?.toString() ?? '',
-      tenantRelationPerson: json['relation_person_name_tenant']?.toString() ?? '',
-      tenantAddress: json['permanent_address_tenant']?.toString() ?? '',
-      tenantMobile: json['tenant_mobile_no']?.toString() ?? '',
-      tenantAadhar: json['tenant_addhar_no']?.toString() ?? '',
-      tenantAadharFront: json['tenant_aadhar_front']?.toString() ?? '',
-      tenantAadharBack: json['tenant_aadhar_back']?.toString() ?? '',
-      tenantImage: json['tenant_image']?.toString() ?? '',
-      rentedAddress: json['rented_address']?.toString() ?? '',
-      bhk: json['Bhk']?.toString() ?? '-',
-      floor: json['floor']?.toString() ?? '-',
-      parking: json['parking']?.toString() ?? '-',
-      furniture: json['furniture']?.toString() ?? '',
+      // OWNER
+      ownerName: safe(json['owner_name']),
+      ownerRelation: safe(json['owner_relation']),
+      ownerRelationPerson: safe(json['relation_person_name_owner']),
+      ownerAddress: safe(json['parmanent_addresss_owner']),
+      ownerMobile: safe(json['owner_mobile_no']),
+      ownerAadhar: safe(json['owner_addhar_no']),
+      ownerAadharFront: safe(json['owner_aadhar_front']),
+      ownerAadharBack: safe(json['owner_aadhar_back']),
 
-      agreementType: json['agreement_type']?.toString() ?? 'Police Verification',
-      policeVerificationPdf: json['police_verification_pdf']?.toString() ?? '',
+      // TENANT
+      tenantName: safe(json['tenant_name']),
+      tenantRelation: safe(json['tenant_relation']),
+      tenantRelationPerson: safe(json['relation_person_name_tenant']),
+      tenantAddress: safe(json['permanent_address_tenant']),
+      tenantMobile: safe(json['tenant_mobile_no']),
+      tenantAadhar: safe(json['tenant_addhar_no']),
+      tenantAadharFront: safe(json['tenant_aadhar_front']),
+      tenantAadharBack: safe(json['tenant_aadhar_back']),
+      tenantImage: safe(json['tenant_image']),
 
-      currentDate: _parseDate(json['current_dates']),
+      // PROPERTY
+      rentedAddress: safe(json['rented_address']),
+      bhk: safe(json['Bhk']),
+      floor: safe(json['floor']),
+      parking: safe(json['parking']),
+      furniture: safe(json['furniture']),
 
-      fieldWorkerName: json['Fieldwarkarname']?.toString() ?? '',
-      fieldWorkerNumber: json['Fieldwarkarnumber']?.toString() ?? '',
+      // AGREEMENT
+      agreementType: safe(json['agreement_type']),
+      agreementPrice: safe(json['agreement_price']),
+      policeVerificationPdf: safe(json['police_verification_pdf']),
+
+      // DATES
+      currentDate: safeDate(json['current_dates']),
+      shiftingDate: safeDate(json['shifting_date']),
+
+      // FIELD WORKER
+      fieldWorkerName: safe(json['Fieldwarkarname']),
+      fieldWorkerNumber: safe(json['Fieldwarkarnumber']),
     );
   }
 }
-/// =======================
-/// API FETCH
-/// =======================
+
 Future<List<PoliceyearlyModel>> fetchPoliceYearly(String number) async {
   final url = Uri.parse(
     "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/police_verification_yearly.php?Fieldwarkarnumber=$number",
@@ -198,123 +227,161 @@ class _YearlyPoliceVerificationScreenState
             padding: const EdgeInsets.all(12),
             itemCount: list.length,
             itemBuilder: (context, i) {
-              final b = list[i];
+              final v = list[i];
 
               return
               GestureDetector(
                 onTap: (){
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => PoliceVerificationDetailScreen(p: b,)));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => PoliceVerificationDetailScreen(p: v,)));
                 },
-                  child:
-                Container(
-                margin: const EdgeInsets.only(bottom: 14),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: theme.brightness == Brightness.dark
-                      ? []
-                      : [
-                    BoxShadow(
-                      blurRadius: 8,
-                      color: Colors.black.withOpacity(.08),
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    /// IMAGE
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(16)),
-                      child: Image.network(
-                        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/${b.tenantImage}",
-                        height: 190,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Container(
-                          height: 190,
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.image_not_supported),
-                        ),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 18),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 10,
+                        color: Colors.black.withOpacity(.05),
+                        offset: const Offset(0, 4),
                       ),
-                    ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
 
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                      /// ✅ IMAGE + BADGE
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(18),
+                        ),
+                        child: Stack(
+                          children: [
 
-                          /// TAG
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(.20),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: const Text(
-                              "Police Verification",
-                              style: TextStyle(
-                                color: Colors.red,
-                                fontWeight: FontWeight.w600,
+                            Image.network(
+                              "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/${v.tenantImage}",
+                              height: 190,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                height: 190,
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.image_not_supported),
                               ),
                             ),
-                          ),
 
-                          const SizedBox(height: 8),
-
-                          /// ADDRESS
-                          Text(
-                            b.rentedAddress,
-                            style: theme.textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold),
-                          ),
-
-                          const SizedBox(height: 4),
-
-                          /// OWNER / TENANT
-                          Text(
-                            "Owner: ${b.ownerName} | Tenant: ${b.tenantName}",
-                            style: theme.textTheme.bodySmall,
-                          ),
-
-                          const SizedBox(height: 10),
-
-                          /// INFO ROW
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              _InfoItem(Icons.home, b.bhk),
-                              _InfoItem(Icons.layers, b.floor),
-                              _InfoItem(Icons.local_parking, b.parking),
-                            ],
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          /// MOBILE
-                          Text(
-                            "Owner: ${b.ownerMobile} | Tenant: ${b.tenantMobile}",
-                            style: theme.textTheme.bodySmall,
-                          ),
-
-                          const SizedBox(height: 6),
-
-                          /// FIELD WORKER
-                          Text(
-                            "Field Worker: ${b.fieldWorkerName}",
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.grey),
-                          ),
-                        ],
+                            /// ✅ BADGE (CONSISTENT WITH OTHER SCREENS)
+                            Positioned(
+                              top: 12,
+                              left: 12,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Color(0xFFF59E0B),
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: Text(
+                                  v.agreementType,
+                                  style: const TextStyle(
+                                    fontSize: 11,
+                                    fontFamily: "PoppinsMedium",
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+
+                      Padding(
+                        padding: const EdgeInsets.all(14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+
+                            /// ✅ ADDRESS (PRIMARY DATA)
+                            Text(
+                              v.rentedAddress,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontFamily: "PoppinsMedium",
+                                fontWeight: FontWeight.bold,
+                                color: theme.brightness == Brightness.dark
+                                    ? Colors.white
+                                    : Colors.black87,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            /// ✅ RENT SNAPSHOT
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Agreement Price",
+                                  style: TextStyle(
+                                    fontFamily: "PoppinsMedium",
+                                    fontSize: 12,
+                                    color: theme.brightness == Brightness.dark
+                                        ? Colors.white70
+                                        : Colors.grey.shade600,
+                                  ),
+                                ),
+                                Text(
+                                  "₹${v.agreementPrice}",
+                                  style: TextStyle(
+                                    fontFamily: "PoppinsMedium",
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFF59E0B),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+
+                            const SizedBox(height: 12),
+
+                            /// ✅ TENANT + WORKER (META DATA)
+                            Text(
+                              "Tenant: ${v.tenantName}",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontFamily: "PoppinsMedium",
+                                color: theme.brightness == Brightness.dark
+                                    ? Colors.white70
+                                    : Colors.grey.shade700,
+                              ),
+                            ),
+
+                            const SizedBox(height: 4),
+
+                            Row(
+                              children: [
+                                const Icon(Icons.person, size: 15, color: Colors.grey),
+                                const SizedBox(width: 6),
+                                Text(
+                                  "Field Worker: ${v.fieldWorkerName}",
+                                  style: const TextStyle(
+                                    fontFamily: "PoppinsMedium",
+                                    fontSize: 11,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },

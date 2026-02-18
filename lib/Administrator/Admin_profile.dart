@@ -35,8 +35,7 @@ class _ProfilePageState extends State<AdminProfile> {
       return;
     }
 
-    final String url =
-        'https://verifyserve.social/WebService3_ServiceWork.asmx/account_FeildWorkers_Register?num=$number';
+    final String url = 'https://verifyserve.social/WebService3_ServiceWork.asmx/account_FeildWorkers_Register?num=$number';
 
     try {
       final response = await http.get(Uri.parse(url));

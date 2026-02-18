@@ -109,6 +109,7 @@
     animated_analog_clock: ^0.2.0
     google_generative_ai: ^0.4.7  # Or check pub.dev for the latest 2026 version
     confetti: ^0.7.0
+    flutter_animate: ^4.5.2
 
 
   dev_dependencies:
@@ -129,25 +130,36 @@
     flutter_lints: ^2.0.0
 
   # The following section is specific to Flutter packages.
-  flutter:
+
 
     # The following line ensures that the Material Icons font is
     # included with your application, so that you can use the icons in
     # the material Icons class.
+  flutter:
     uses-material-design: true
+
     fonts:
-      - family: Poppins
+      - family: PoppinsLight
         fonts:
           - asset: assets/fonts/Poppins/Poppins-Light.ttf
-      - family: PoppinsBold
+
+      - family: PoppinsRegular
         fonts:
-          - asset: assets/fonts/Poppins/Poppins-Bold.ttf
+          - asset: assets/fonts/Poppins/Poppins-Regular.ttf
+
       - family: PoppinsMedium
         fonts:
           - asset: assets/fonts/Poppins/Poppins-Medium.ttf
+
+      - family: PoppinsBold
+        fonts:
+          - asset: assets/fonts/Poppins/Poppins-Bold.ttf
+
+
     assets:
       - assets/images/
       - assets/fonts/Poppins/
+
     # To add assets to your application, add an assets section, like this:
     # assets:
     #   - images/a_dot_burr.jpeg

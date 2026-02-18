@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/Target_details/Monthly_Tab/Monthly_under_detail/Agreement_Monthly_Detail.dart';
 import '../../../Custom_Widget/constant.dart';
 import '../Book_Buy.dart';
 
@@ -44,125 +45,271 @@ class YearlyBookDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-          iconTheme: IconThemeData(color: Colors.white),
-          title:Image.asset(AppImages.transparent,height: 40,),
-      centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: Image.network(
-                "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${book.propertyPhoto}",
-                height: 220,
-                width: double.infinity,
-                fit: BoxFit.cover,
+      body: CustomScrollView(
+        slivers: [
+
+          /// 🔥 IMAGE HEADER
+          SliverAppBar(
+            backgroundColor: Colors.black,
+            expandedHeight: 260,
+            pinned: true,
+            leading: Padding(
+              padding: const EdgeInsets.only(left: 10),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                child: Container(
+                  height: 38,
+                  width: 38,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 6,
+                        color: Colors.black.withOpacity(.25),
+                      )
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.chevron_left,
+                    color: Colors.black,
+                    size: 22,
+                  ),
+                ),
               ),
             ),
+            iconTheme: const IconThemeData(color: Colors.white),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Image.network(
+                "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${book.propertyPhoto}",
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(color: Colors.grey),
+              ),
+            ),
+          ),
 
-            const SizedBox(height: 16),
+          /// 🔥 CONTENT
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
 
-            row("Type", book.buyRent),
-            row("Commercial / Residential", book.residenceCommercial),
-            row("Property Name", book.apartmentName),
-            row("Address", book.apartmentAddress),
-            row("Location", book.locations),
-            row("Flat No.", book.flatNumber),
-            row("Property Type", book.typeOfProperty),
-            row("BHK", book.bhk),
-            row("Floor", book.floor),
-            row("Total Floor", book.totalFloor),
-            row("Balcony", book.balcony),
-            row("Square Fit", book.squareFit),
-            row("Age of Property", book.ageOfProperty),
-            row("Furnished", book.furnishedUnfurnished),
+                  /// ✅ TITLE + PRICE
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          book.apartmentName,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      Container(
+                        padding:
+                        const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.black,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          formatMoney(book.askingPrice),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
 
-            const Divider(),
-            row("Parking", book.parking),
-            row("Meter", book.meter),
-            row("Maintenance", book.maintenance),
-            row("Facility", book.facility),
-            row("Kitchen", book.kitchen),
-            row("Bathroom", book.bathroom),
-            row("Lift", book.lift),
+                  const SizedBox(height: 6),
 
-            const Divider(),
-            row("Road Size", book.roadSize),
-            row("Metro Distance", book.metroDistance),
-            row("Highway Distance", book.highwayDistance),
-            row("Main Market", book.mainMarketDistance),
+                  Text(
+                    book.locations,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
 
-            const Divider(),
-            row("Owner Name", book.ownerName),
-            row("Owner Mobile", book.ownerNumber),
-            row("Caretaker Name", book.careTakerName),
-            row("Caretaker Mobile", book.careTakerNumber),
+                  const SizedBox(height: 22),
 
-            const Divider(),
-            row("Show Price", "₹${book.showPrice}"),
-            row("Last Price", "₹${book.lastPrice}"),
-            row("Asking Price", "₹${book.askingPrice}"),
+                  /// 🔥 BASIC INFO
+                  _section(context, "Basic Info", [
+                    _row("Type", book.buyRent),
+                    _row("Commercial / Residential", book.residenceCommercial),
+                    _row("Property Type", book.typeOfProperty),
+                    _row("BHK", book.bhk),
+                    _row("Flat No.", book.flatNumber),
+                  ]),
 
-            const Divider(),
-            row("Rent", "₹${book.rent}"),
-            row("Security", "₹${book.security}"),
-            row("Commission", "₹${book.commission}"),
-            row("Extra Expense", "₹${book.extraExpense}"),
-            row("Advance Payment", "₹${book.advancePayment}"),
-            row("Total Balance", "₹${book.totalBalance}"),
+                  /// 🔥 PROPERTY DETAILS
+                  _section(context, "Property Details", [
+                    _row("Floor", book.floor),
+                    _row("Total Floor", book.totalFloor),
+                    _row("Balcony", book.balcony),
+                    _row("Square Fit", book.squareFit),
+                    _row("Age of Property", book.ageOfProperty),
+                    _row("Furnished", book.furnishedUnfurnished),
+                  ]),
 
-            const Divider(),
-            row("Booking Date", book.bookingDate),
-            row("Booking Time", book.bookingTime),
-            row("Second Amount", book.secondAmount),
-            row("Final Amount", book.finalAmount),
-            row("Second Payment Status", book.statusSecondPayment ?? "-"),
-            row("Final Payment Status", book.statusFinalPayment ?? "-"),
-            row("Remaining Balance Key", book.remainingBalanceKey ?? "-"),
+                  /// 🔥 FACILITIES
+                  _section(context, "Facilities", [
+                    _row("Parking", book.parking),
+                    _row("Meter", book.meter),
+                    _row("Maintenance",(book.maintenance)),
+                    _row("Facility", book.facility),
+                    _row("Kitchen", book.kitchen),
+                    _row("Bathroom", book.bathroom),
+                    _row("Lift", book.lift),
+                  ]),
 
-            const Divider(),
-            row("Registry / GPA", book.registryAndGpa),
-            row("Loan", book.loan),
+                  /// 🔥 DISTANCES
+                  _section(context, "Distances", [
+                    _row("Road Size", book.roadSize),
+                    _row("Metro Distance", book.metroDistance),
+                    _row("Highway Distance", book.highwayDistance),
+                    _row("Main Market", book.mainMarketDistance),
+                  ]),
 
-            const Divider(),
-            row("Field Worker Name", book.fieldWorkerName),
-            row("Field Worker Number", book.fieldWorkerNumber),
-            row("Field Worker Address", book.fieldWorkerAddress),
-            row("Current Location", book.fieldWorkerCurrentLocation),
+                  /// 🔥 PRICING
+                  _section(context, "Pricing", [
+                    _row("Show Price", formatMoney(book.showPrice)),
+                    _row("Last Price", formatMoney(book.lastPrice)),
+                    _row("Asking Price", formatMoney(book.askingPrice)),
+                  ]),
 
-            const Divider(),
-            row("Latitude", book.latitude),
-            row("Longitude", book.longitude),
-            row("Video Link", book.videoLink),
+                  /// 🔥 PAYMENT DETAILS
+                  _section(context, "Payment Details", [
+                    _row("Rent", formatMoney(book.rent)),
+                    _row("Security", formatMoney(book.security)),
+                    _row("Commission", formatMoney(book.commission)),
+                    _row("Extra Expense", formatMoney(book.extraExpense)),
+                    _row("Advance Payment", formatMoney(book.advancePayment)),
+                    _row("Total Balance", formatMoney(book.totalBalance)),
+                  ]),
 
-            const Divider(),
-            row("Sub ID", book.subId.toString()),
-            row("Source ID", book.sourceId),
+                  /// 🔥 BOOKING INFO
+                  _section(context, "Booking Info", [
+                    _row("Booking Date", formatDate(book.bookingDate)),
+                    _row("Booking Time", book.bookingTime),
+                    _row("Second Amount", formatMoney(book.secondAmount)),
+                    _row("Final Amount", formatMoney(book.finalAmount)),
+                    _row("Second Payment Status",
+                        book.statusSecondPayment ?? "-"),
+                    _row("Final Payment Status",
+                        book.statusFinalPayment ?? "-"),
+                    _row("Remaining Balance Key",
+                        book.remainingBalanceKey ?? "-"),
+                  ]),
 
-          ],
-        ),
+                  /// 🔥 CONTACT
+                  _section(context, "Contact", [
+                    _row("Owner Name", book.ownerName),
+                    _row("Owner Mobile", book.ownerNumber),
+                    _row("Caretaker Name", book.careTakerName),
+                    _row("Caretaker Mobile", book.careTakerNumber),
+                  ]),
+
+                  /// 🔥 LEGAL
+                  _section(context, "Legal Details", [
+                    _row("Registry / GPA", book.registryAndGpa),
+                    _row("Loan", book.loan),
+                  ]),
+
+                  /// 🔥 FIELD WORKER
+                  _section(context, "Field Worker", [
+                    _row("Name", book.fieldWorkerName),
+                    _row("Number", book.fieldWorkerNumber),
+                    _row("Address", book.fieldWorkerAddress),
+                    _row("Current Location",
+                        book.fieldWorkerCurrentLocation),
+                  ]),
+
+                  /// 🔥 LOCATION
+                  _section(context, "Location", [
+                    _row("Latitude", book.latitude),
+                    _row("Longitude", book.longitude),
+                    _row("Video Link", book.videoLink),
+                  ]),
+
+                  /// 🔥 META
+                  _section(context,"", [
+                    _row("Sub ID", book.subId.toString()),
+                    _row("Source ID", book.sourceId),
+                  ]),
+
+                  const SizedBox(height: 40),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 }
-Widget row(String title, String value) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
-    child: Row(
+Widget _section(BuildContext context, String title, List<Widget> children) {
+  final theme = Theme.of(context);
+
+  return Container(
+    margin: const EdgeInsets.only(bottom: 18),
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: theme.cardColor,
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: theme.brightness == Brightness.dark
+          ? []
+          : [
+        BoxShadow(
+          blurRadius: 8,
+          color: Colors.black.withOpacity(.06),
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 10),
+        ...children,
+      ],
+    ),
+  );
+}
+
+Widget _row(String title, String value) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 5),
+    child: Row(
       children: [
         Expanded(
           flex: 4,
-          child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          child: Text(
+            title,
+            style:  TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade500,
+            ),
+          ),
         ),
         Expanded(
           flex: 6,
-          child: Text(value.isEmpty ? "-" : value),
+          child: Text(
+            value.isEmpty ? "-" : value,
+            style: const TextStyle(fontSize: 13),
+          ),
         ),
       ],
     ),

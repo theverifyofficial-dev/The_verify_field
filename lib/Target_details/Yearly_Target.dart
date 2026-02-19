@@ -54,6 +54,7 @@ class _YearlyTargetScreenState extends State<YearlyTargetScreen> {
       _fetchBuildingYearly(),
       _fetchLiveYearly(),
       _fetchCommercialYearly(),
+      _fetchOverviewBuildingDetail(),
     ]);
 
     setState(() => loading = false);
@@ -205,7 +206,7 @@ class _YearlyTargetScreenState extends State<YearlyTargetScreen> {
           : ListView(
         padding: const EdgeInsets.all(16),
         children: [
-
+          _buildCalculatorButton(),
           _buildModernTargetCard(
             title: 'Book Rent',
             completed: bookRentDone,
@@ -275,6 +276,401 @@ class _YearlyTargetScreenState extends State<YearlyTargetScreen> {
       ),
     );
   }
+  Widget _buildCalculatorButton() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: _openBuildingCalculator,   // ✅ यही सही है
+      child: Container(
+        margin: const EdgeInsets.only(top: 6, bottom: 20),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          gradient: LinearGradient(
+            colors: [Color(0xFF135BEC), Color(0xFF0F3FD8)],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(.15),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            )
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(.18),
+              ),
+              child: const Icon(
+                Icons.calculate_outlined,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 14),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Building Target Achieve",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontFamily: "PoppinsBold",
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 3),
+                  Text(
+                    "Calculator & Pace Intelligence",
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontFamily: "PoppinsMedium",
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 16,
+              color: Colors.white,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  int totalBuildings = 0;
+  int buildingsWithFlat = 0;
+  int emptyBuildings = 0;
+
+  Future<void> _fetchOverviewBuildingDetail() async {
+
+    final uri = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/building_over_view.php?fieldworkarnumber=$fieldWorkerNumber",
+    );
+
+    final res = await http.get(uri);
+
+    if (res.statusCode != 200) return;
+
+    final decoded = jsonDecode(res.body);
+    final data = decoded["data"] ?? {};
+
+    totalBuildings =
+        int.tryParse(data["total_building"].toString()) ?? 0;
+
+    buildingsWithFlat =
+        int.tryParse(data["building_with_flat"].toString()) ?? 0;
+
+    emptyBuildings =
+        int.tryParse(data["building_without_flat"].toString()) ?? 0;
+  }
+
+  void _openBuildingCalculator() {
+    final int target = yearlyTargets["Building"]!;
+    final int done = buildingsWithFlat;   // 🔥 IMPORTANT FIX
+
+    final int remaining = (target - done).clamp(0, target);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,   // ✅ IMPORTANT
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+
+        return DraggableScrollableSheet(
+          initialChildSize: 0.55,
+          minChildSize: 0.40,
+          maxChildSize: 0.90,
+          builder: (context, controller) {
+            return Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF111827) : Colors.white,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(26),
+                ),
+              ),
+
+              /// ✅ SCROLL FIX
+              child: ListView(
+                controller: controller,
+                children: [
+
+                  /// HEADER
+                  Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.blue.withOpacity(.12),
+                        ),
+                        child: const Icon(
+                          Icons.calculate_outlined,
+                          color: Colors.blue,
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      const Text(
+                        "Building Target Intelligence",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: "PoppinsBold",
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      color: isDark
+                          ? Colors.white.withOpacity(.04)
+                          : Colors.grey.shade100,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(child: _miniStat("Total", totalBuildings)),
+                        Expanded(child: _miniStat("Without Flats", emptyBuildings)),
+                        Expanded(child: _miniStat("With Flats", buildingsWithFlat)),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 13),
+
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      gradient: LinearGradient(
+                        colors: isDark
+                            ? [
+                          const Color(0xFF1E3A8A), // deep blue
+                          const Color(0xFF2563EB),
+                        ]
+                            : [
+                          const Color(0xFF3B82F6),
+                          const Color(0xFF135BEC),
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withOpacity(0.25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+
+                        /// ICON BADGE
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(.18),
+                          ),
+                          child: const Icon(
+                            Icons.flag_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        /// TEXT
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+
+                              const Text(
+                                "YEARLY TARGET",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  letterSpacing: 1.2,
+                                  color: Colors.white70,
+                                  fontFamily: "PoppinsBold",
+                                ),
+                              ),
+
+                              const SizedBox(height: 2),
+
+                              Text(
+                                "$target Buildings",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontFamily: "PoppinsBold",
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        /// OPTIONAL KPI STYLE
+                        Text(
+                          "🎯",
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white.withOpacity(.9),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+
+                  const SizedBox(height: 13),
+                  _calcTile("Per Week", remaining, 52, done, target),
+                  _calcTile("Per Month", remaining, 12, done, target),
+                  _calcTile("3 Month Pace", remaining, 4, done, target),
+                  _calcTile("6 Month Pace", remaining, 2, done, target),
+                  _calcTile("8 Month Pace", remaining, 1.5, done, target),
+                  _calcTile("10 Month Pace", remaining, 1.2, done, target),
+
+                  const SizedBox(height: 30),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+  Widget _calcTile(
+      String label,
+      int remaining,
+      double divisor,
+      int done,
+      int target,
+      ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final double raw = remaining / divisor;
+    final int required = raw.ceil();
+
+    final Color accent = const Color(0xFF3B82F6);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: isDark
+            ? Colors.white.withOpacity(.05)
+            : Colors.grey.shade100,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          /// 🔝 HEADER
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontFamily: "PoppinsBold",
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              Text(
+                "$required Buildings",
+                style:  TextStyle(
+                  fontSize: 13,
+                  fontFamily: "PoppinsBold",
+                  color: accent,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+
+
+          /// ✅ SIMPLE INSTRUCTION
+          Text(
+            "Complete $required buildings every $label to reach your target.",
+            style: TextStyle(
+              fontSize: 11.5,
+              fontFamily: "PoppinsMedium",
+              color: isDark ? Colors.white60 : Colors.black54,
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          /// ✅ REMAINING
+          Text(
+            "Remaining: $remaining Buildings",
+            style: TextStyle(
+              fontSize: 11,
+              fontFamily: "PoppinsMedium",
+              color: isDark ? Colors.white70 : Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  Widget _miniStat(String label, int value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+
+        /// VALUE (Primary Focus)
+        Text(
+          value.toString(),
+          style: TextStyle(
+            fontSize: 18,
+            fontFamily: "PoppinsBold",
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+        ),
+
+        const SizedBox(height: 4),
+
+        /// LABEL (Secondary)
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10.5,
+            fontFamily: "PoppinsMedium",
+            color: isDark ? Colors.white54 : Colors.black54,
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _buildModernTargetCard({
     required String title,
@@ -340,6 +736,7 @@ class _YearlyTargetScreenState extends State<YearlyTargetScreen> {
                           title,
                           style: TextStyle(
                             fontSize: 18,
+                            fontFamily: "PoppinsMedium",
                             fontWeight: FontWeight.w800,
                             color:
                             isDark ? Colors.white : Colors.black87,

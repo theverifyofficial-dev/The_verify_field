@@ -61,44 +61,195 @@ class _TargetState extends State<Target> {
     {"name": "Sumit", "number": "9711775300", "location": "Sultanpur"},
     {"name": "Ravi Kumar", "number": "9711275300", "location": "Sultanpur"},
     {"name": "Faizan Khan", "number": "9971172204", "location": "Sultanpur"},
-    {"name": "avjit", "number": "11", "location": "Sultanpur"},
+    // {"name": "avjit", "number": "11", "location": "Sultanpur"},
     // {"name": "Manish", "number": "8130209217", "location": "Rajpur Khurd"},
     // {"name": "Abhay", "number": "9675383184", "location": "Rajpur Khurd"},
   ];
 
   List<Map<String, String>> users = []; // filtered list
-  void _openBuildingCalculator(String number) {
-    final d = userData[number]!;   // ✅ CORRECT MAP
-
+  void _openBuildingCalculator(UserCounts d) {
     final int target = yearlyTargets["Building"]!;
     final int done = d.ovBuildingWithFlat;
-
     final int remaining = (target - done).clamp(0, target);
+
+    final int totalBuildings = d.ovBuildingTotal;
+    final int emptyBuildings = d.ovBuildingWithoutFlat;
+    final int buildingsWithFlat = d.ovBuildingWithFlat;
 
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
+      isScrollControlled: true,   // ✅ IMPORTANT
+      backgroundColor: Colors.transparent,
       builder: (_) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                "Building Target Intelligence",
-                style: TextStyle(fontSize: 18),
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+
+        return DraggableScrollableSheet(
+          initialChildSize: 0.55,
+          minChildSize: 0.40,
+          maxChildSize: 0.90,
+          builder: (context, controller) {
+            return Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF111827) : Colors.white,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(26),
+                ),
               ),
-              const SizedBox(height: 20),
-              _calcTile("Per Week", remaining, 52, done, target),
-              _calcTile("Per Month", remaining, 12, done, target),
-              _calcTile("3 Month Pace", remaining, 4, done, target),
-              _calcTile("6 Month Pace", remaining, 2, done, target),
-            ],
-            //new code
-          ),
+
+              /// ✅ SCROLL FIX
+              child: ListView(
+                controller: controller,
+                children: [
+
+                  /// HEADER
+                  Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.blue.withOpacity(.12),
+                        ),
+                        child: const Icon(
+                          Icons.calculate_outlined,
+                          color: Colors.blue,
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      const Text(
+                        "Building Target Intelligence",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: "PoppinsBold",
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      color: isDark
+                          ? Colors.white.withOpacity(.04)
+                          : Colors.grey.shade100,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(child: _miniStat("Total", totalBuildings)),
+                        Expanded(child: _miniStat("Without Flats", emptyBuildings)),
+                        Expanded(child: _miniStat("With Flats", buildingsWithFlat)),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 13),
+
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      gradient: LinearGradient(
+                        colors: isDark
+                            ? [
+                          const Color(0xFF1E3A8A), // deep blue
+                          const Color(0xFF2563EB),
+                        ]
+                            : [
+                          const Color(0xFF3B82F6),
+                          const Color(0xFF135BEC),
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withOpacity(0.25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+
+                        /// ICON BADGE
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(.18),
+                          ),
+                          child: const Icon(
+                            Icons.flag_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        /// TEXT
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+
+                              const Text(
+                                "YEARLY TARGET",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  letterSpacing: 1.2,
+                                  color: Colors.white70,
+                                  fontFamily: "PoppinsBold",
+                                ),
+                              ),
+
+                              const SizedBox(height: 2),
+
+                              Text(
+                                "$target Buildings",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontFamily: "PoppinsBold",
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        /// OPTIONAL KPI STYLE
+                        Text(
+                          "🎯",
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white.withOpacity(.9),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+
+                  const SizedBox(height: 13),
+                  _calcTile("Per Week", remaining, 52, done, target),
+                  _calcTile("Per Month", remaining, 12, done, target),
+                  _calcTile("3 Month Pace", remaining, 4, done, target),
+                  _calcTile("6 Month Pace", remaining, 2, done, target),
+                  _calcTile("8 Month Pace", remaining, 1.5, done, target),
+                  _calcTile("10 Month Pace", remaining, 1.2, done, target),
+
+                  const SizedBox(height: 30),
+                ],
+              ),
+            );
+          },
         );
       },
     );
@@ -106,46 +257,48 @@ class _TargetState extends State<Target> {
   Widget _calcTile(
       String label,
       int remaining,
-      int divisor,
+      double divisor,
       int done,
       int target,
       ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final double raw = remaining / divisor;
     final int required = raw.ceil();
 
-    final int projected = (done + required).clamp(0, target);
+    final Color accent = const Color(0xFF3B82F6);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-        color: Colors.blue.withOpacity(0.06),
-        border: Border.all(
-          color: Colors.blue.withOpacity(0.15),
-        ),
+        color: isDark
+            ? Colors.white.withOpacity(.05)
+            : Colors.grey.shade100,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
 
-          /// HEADER
+          /// 🔝 HEADER
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
+                  fontSize: 14,
                   fontFamily: "PoppinsBold",
-                  fontSize: 13,
+                  color: isDark ? Colors.white : Colors.black87,
                 ),
               ),
               Text(
                 "$required Buildings",
-                style: const TextStyle(
-                  fontFamily: "PoppinsBold",
+                style:  TextStyle(
                   fontSize: 13,
-                  color: Colors.blue,
+                  fontFamily: "PoppinsBold",
+                  color: accent,
                 ),
               ),
             ],
@@ -153,35 +306,64 @@ class _TargetState extends State<Target> {
 
           const SizedBox(height: 10),
 
-          /// BODY TEXT (Human Friendly)
+
+
+          /// ✅ SIMPLE INSTRUCTION
           Text(
-            "You need approx $required buildings every $label to stay on target.",
+            "Complete $required buildings every $label to reach your target.",
+            style: TextStyle(
+              fontSize: 11.5,
+              fontFamily: "PoppinsMedium",
+              color: isDark ? Colors.white60 : Colors.black54,
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          /// ✅ REMAINING
+          Text(
+            "Remaining: $remaining Buildings",
             style: TextStyle(
               fontSize: 11,
-              color: Colors.grey.shade600,
               fontFamily: "PoppinsMedium",
-            ),
-          ),
-
-          const SizedBox(height: 6),
-
-          Text(
-            "Remaining Work: $remaining Buildings",
-            style: const TextStyle(
-              fontSize: 11,
-              fontFamily: "PoppinsMedium",
-            ),
-          ),
-
-          Text(
-            "If achieved → Progress: $projected / $target",
-            style: const TextStyle(
-              fontSize: 11,
-              fontFamily: "PoppinsMedium",
+              color: isDark ? Colors.white70 : Colors.black87,
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _miniStat(String label, int value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+
+        /// VALUE (Primary Focus)
+        Text(
+          value.toString(),
+          style: TextStyle(
+            fontSize: 18,
+            fontFamily: "PoppinsBold",
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+        ),
+
+        const SizedBox(height: 4),
+
+        /// LABEL (Secondary)
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10.5,
+            fontFamily: "PoppinsMedium",
+            color: isDark ? Colors.white54 : Colors.black54,
+          ),
+        ),
+      ],
     );
   }
 
@@ -214,6 +396,9 @@ class _TargetState extends State<Target> {
     super.initState();
     _loadUserAndFilter();
   }
+  int totalBuildings = 0;
+  int buildingsWithFlat = 0;
+  int emptyBuildings = 0;
   Future<void> _fetchOverviewBuildingDetail(String number) async {
     final uri = Uri.parse(
       "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/building_over_view.php?fieldworkarnumber=$number",
@@ -1007,7 +1192,7 @@ class _TargetState extends State<Target> {
       TargetsCard(
         "Building Calculation",
         d.ovBuildingWithFlat,
-        onTap: () => _openBuildingCalculator(number),
+        onTap: () => _openBuildingCalculator(d),
       ),
     ];
 

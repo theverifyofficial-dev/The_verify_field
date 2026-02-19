@@ -8,15 +8,16 @@ import 'package:flutter/scheduler.dart';
 
 class AllContact extends StatefulWidget {
   final String buildingId;
-  final String ownerName;
-  final String ownerNumber;
+  final String? ownerName;     // ✅ Nullable
+  final String? ownerNumber;   // ✅ Nullable
 
   const AllContact({
     super.key,
     required this.buildingId,
-    required this.ownerName,
-    required this.ownerNumber,
+    this.ownerName,            // ✅ Not required
+    this.ownerNumber,          // ✅ Not required
   });
+
 
   @override
   State<AllContact> createState() => _AllContactState();
@@ -477,11 +478,11 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
                 const Text("Owner Details",
                     style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 6),
-                _infoRow("Name", widget.ownerName, isDark),
+                _infoRow("Name", widget.ownerName??"Not Available", isDark),
                 const SizedBox(height: 6),
                 _contactButtons(
                   isDark: isDark,
-                  number: widget.ownerNumber,
+                  number: widget.ownerNumber??"Not Available",
                   id: widget.buildingId,
                   onLog: _logContact,
                 ),

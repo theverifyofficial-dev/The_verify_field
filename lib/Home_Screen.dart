@@ -536,7 +536,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
       },
       child: Container(
-        // margin:  EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,

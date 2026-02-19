@@ -9,7 +9,9 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../Administrator/Admin_future _property/Future_Property_Details.dart';
 import '../Demand_2/Demand_detail.dart';
+import '../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../Future_Property_OwnerDetails_section/New_Update/under_flats_infutureproperty.dart';
+import '../Future_Property_OwnerDetails_section/Owner_Call/All_contact.dart';
 import '../Home_Screen_click/View_All_Details.dart';
 import '../Rent Agreement/All_detailpage.dart';
 import '../Rent Agreement/details_agreement.dart';
@@ -1892,10 +1894,10 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) =>
-                Administater_Future_Property_details(
-                  buildingId: r.subId.toString(),
-                ),
+            builder: (_) => Future_Property_details(
+              idd: r.subId.toString(),
+
+            ),
           ),
         );
       },

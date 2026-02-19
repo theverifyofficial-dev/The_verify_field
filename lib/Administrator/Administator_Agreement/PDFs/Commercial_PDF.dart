@@ -158,7 +158,10 @@ Future<File> generateCommercialAgreementPdf(Map<String, dynamic> data) async {
   final propertyAddress = '${data['floor']}, ${data['rented_address']}';
 
   final monthlyRentRaw = data['monthly_rent']?.toString() ?? '';
+  final customMeterUnit = data['custom_meter_unit']?.toString().trim() ?? '';
   final securityRaw = data['securitys']?.toString() ?? '';
+
+
 
   final rawCompanyName = data['company_name']?.toString().trim() ?? '';
   final rawGstType = data['gst_type']?.toString().trim() ?? '';
@@ -172,6 +175,38 @@ Future<File> generateCommercialAgreementPdf(Map<String, dynamic> data) async {
   final String formattedDate =
   DateFormat('dd-MM-yyyy').format(fullDate);
   final DateTime endDate = add11Months(startDate);
+
+  pw.TextSpan getMeterClause(Map<String, dynamic>? data) {
+    final customMeterUnit =
+        data?["custom_meter_unit"]?.toString().trim() ?? '';
+
+    final String meterValue =
+    customMeterUnit.isNotEmpty
+        ? "${customMeterUnit} per unit"
+        : "commercial unit";
+
+    return pw.TextSpan(
+      children: [
+        pw.TextSpan(
+          text:
+          "The Director is solely responsible for the timely payment of all electricity, water, internet, and other service charges used on the premises. The electricity charges shall be payable at the rate of ",
+          style: pw.TextStyle(fontSize: 11),
+        ),
+        pw.TextSpan(
+          text: meterValue,
+          style: pw.TextStyle(
+            fontSize: 11,
+            fontWeight: pw.FontWeight.bold,
+          ),
+        ),
+        pw.TextSpan(
+          text: ", based on actual consumption.",
+          style: pw.TextStyle(fontSize: 11),
+        ),
+      ],
+    );
+  }
+
 
   List<Map<String, dynamic>> additionalTenants = [];
   try {
@@ -425,65 +460,79 @@ Future<File> generateCommercialAgreementPdf(Map<String, dynamic> data) async {
         ),
 
 
-        clause('4. MAINTENANCE OF PUBLIC ORDER:',
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: 8),
+          child: pw.RichText(
+            text: pw.TextSpan(
+              style: base,
+              children: [
+                pw.TextSpan(
+                  text: '4. UTILITY BILL RESPONSIBILITY: ',
+                  style: bold,
+                ),
+                getMeterClause(data),
+              ],
+            ),
+          ),
+        ),
+
+
+        clause('5. MAINTENANCE OF PUBLIC ORDER:',
             'The Director must ensure that their business operations do not cause any noise, environmental pollution, or physical obstruction to public paths. '
                 'The Director is responsible for ensuring that the trade does not cause any annoyance or danger to the neighbors or the general public.'),
 
         clause('Legal Note:',
             'Causing such disturbances is a "Public Nuisance" punishable under BNS Chapter XV (Sections 270 to 299).'),
 
-        clause('5. SAFETY & PERSONAL INJURY:',
+        clause('6. SAFETY & PERSONAL INJURY:',
             'The Landlord shall not be held liable for any injury, loss of life, or incidents of self-harm (including suicide or attempted suicide) that may occur on the property involving the Director, their staff, or their guests. '
                 'The Director is entirely responsible for the workplace safety and well-being of their own staff and customers.'),
 
-        clause('6. THEFT & FIRE DAMAGE REPAIRS:',
+        clause('7. THEFT & FIRE DAMAGE REPAIRS:',
             'The Landlord is not responsible for any items stolen from the premises or for fire damage to the Director\'s goods or cash. '
                 'In the event of a fire, any damage caused to the building structure or the Landlord\'s fixtures must be repaired and paid for by the Director at their own cost before they vacate the property.'),
 
-        clause('7. PROHIBITION OF ILLEGAL ACTIVITIES:',
+        clause('8. PROHIBITION OF ILLEGAL ACTIVITIES:',
             'The Director shall not use the property for any activity that is forbidden by law, nor shall they store any hazardous, explosive, or illegal substances on the premises.'),
 
         clause('Legal Note:',
             'Using a property for "Organized Crime" or illegal storage carries severe penalties under BNS Section 111.'),
 
-        clause('8. PROPERTY AS COLLATERAL:',
+        clause('9. PROPERTY AS COLLATERAL:',
             'The Director is strictly forbidden from using the leased property or this agreement as a guarantee/collateral to obtain a bank loan or any other financial assistance.'),
 
         clause('Legal Note:',
             'Pretending to be the property owner to gain financial benefits is "Cheating by Personation" under BNS Section 319.'),
 
-        clause('9. ENVIRONMENTAL LIABILITY & SEALING:',
+        clause('10. ENVIRONMENTAL LIABILITY & SEALING:',
             'The Director must not perform any act that harms the environment. If the Director\'s business breaks environmental laws, the Director is 100% responsible. '
                 'If the property is sealed due to the Director\'s actions, the Director must pay all costs to unseal it and cover the Landlord\'s losses.'),
 
         clause('Legal Note:',
             'Water and air pollution are criminal offenses under BNS Sections 279 and 280 respectively.'),
 
-        clause('10. LATE PAYMENT & BOUNCED CHEQUES:',
+        clause('11. LATE PAYMENT & BOUNCED CHEQUES:',
             'If rent is not paid by the due date, a 5% late fee will be applied to the outstanding amount. '
                 'Additionally, if a rent cheque bounces, the Director must pay a 5% daily penalty until the amount is fully cleared.'),
 
         clause('Legal Note:',
             'Bouncing a cheque is a crime under Section 138 of the NI Act. Fraudulent intent to occupy without paying is "Cheating" under BNS Section 318.'),
 
-        clause('11. BUSINESS LICENSES & WORKER CONDUCT:',
+        clause('12. BUSINESS LICENSES & WORKER CONDUCT:',
             'The Director is 100% responsible for obtaining all required government licenses and documents for their specific trade. '
                 'Any wrongdoing or illegal act by a worker will be the Director\'s responsibility, not the Owner\'s.'),
 
-        clause('12. PROHIBITION OF SUBLETTING:',
+        clause('13. PROHIBITION OF SUBLETTING:',
             'The Director is strictly prohibited from renting out any part of this property to another person (subletting) or transferring the lease to a third party without the Landlord\'s prior written permission.'),
 
         clause('Legal Note:',
             'Doing this without consent is "Criminal Breach of Trust" under BNS Section 316.'),
 
-        clause('13. STRUCTURAL CHANGES & PERMISSIONS:',
+        clause('14. STRUCTURAL CHANGES & PERMISSIONS:',
             'The Director is strictly forbidden from making any structural changes without prior written permission from the Owner.'),
 
         clause('Legal Note:',
             'Unauthorized alterations constitute "Mischief" under BNS Section 324.'),
-
-        clause('14. UTILITY BILL RESPONSIBILITY:',
-            'The Director is solely responsible for the timely payment of all electricity, water, internet, and other service charges used on the premises.'),
 
         clause('15. TAX & LOAN RESPONSIBILITY:',
             'The Director is solely responsible for managing and paying all business-related taxes, including GST and Income Tax.'),

@@ -23,6 +23,9 @@ class _AllAgreementState extends State<AllAgreement> {
   String? mobileNumber;
   final TextEditingController searchController = TextEditingController();
 
+  FieldWorkerPayment? monthlyPaymentSummary;
+  bool isMonthFiltered = false;
+
   FieldWorkerPayment? myPayment;
   bool isPaymentLoading = false;
 
@@ -89,6 +92,10 @@ class _AllAgreementState extends State<AllAgreement> {
 
   Future<void> _refreshAgreements() async {
     try {
+      monthlyPaymentSummary = null;
+      isMonthFiltered = false;
+      await fetchMyPayment(); // back to yearly
+
       setState(() => isLoading = true);
       await fetchAgreements();
     } catch (e) {
@@ -203,15 +210,35 @@ class _AllAgreementState extends State<AllAgreement> {
       final decoded = jsonDecode(response.body);
 
       if (decoded is Map && decoded['data'] is List) {
+
+        final summary = decoded['month_payment_summary'];
+
         setState(() {
           agreements = decoded['data']
-              .map<AdminAllAgreementModel>((e) => AdminAllAgreementModel.fromJson(e))
+              .map<AdminAllAgreementModel>((e) =>
+              AdminAllAgreementModel.fromJson(e))
               .toList();
+
           filteredAgreements = agreements;
+
+          // 🔥 STORE MONTHLY PAYMENT
+          monthlyPaymentSummary = FieldWorkerPayment(
+            number: mobileNumber ?? "",
+            name: "You",
+            totalAmount:
+            int.tryParse(summary['total_amount'].toString()) ?? 0,
+            paidAmount:
+            int.tryParse(summary['paid_amount'].toString()) ?? 0,
+            remainingAmount:
+            int.tryParse(summary['remaining_amount'].toString()) ?? 0,
+          );
+
+          isMonthFiltered = true;
         });
       }
     }
   }
+
 
 
   @override
@@ -219,6 +246,8 @@ class _AllAgreementState extends State<AllAgreement> {
     final isDark = Theme
         .of(context)
         .brightness == Brightness.dark;
+    final paymentData =
+    isMonthFiltered ? monthlyPaymentSummary : myPayment;
 
     return SafeArea(
       child: Scaffold(
@@ -309,7 +338,8 @@ class _AllAgreementState extends State<AllAgreement> {
                   ),
                 )
               else
-                if (myPayment != null)
+
+                if (paymentData != null)
                   SliverToBoxAdapter(
                     child: Container(
                       margin: const EdgeInsets.symmetric(
@@ -360,7 +390,7 @@ class _AllAgreementState extends State<AllAgreement> {
                             CrossAxisAlignment.start,
                             children: [
                               Text(
-                                myPayment!.remainingAmount > 0
+                                paymentData!.remainingAmount > 0
                                     ? "Your Pending Payment"
                                     : "All Payments Cleared",
                                 style: TextStyle(
@@ -378,7 +408,7 @@ class _AllAgreementState extends State<AllAgreement> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Total ₹${myPayment!.totalAmount}",
+                                    "Total ₹${paymentData!.totalAmount}",
                                     style: TextStyle(
                                       fontSize: 11,
                                       color: Theme.of(context)
@@ -392,7 +422,7 @@ class _AllAgreementState extends State<AllAgreement> {
 
                                   // ✅ PAID
                                   Text(
-                                    "Paid ₹${myPayment!.paidAmount}",
+                                    "Paid ₹${paymentData!.paidAmount}",
                                     style: const TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.w500,
@@ -404,7 +434,7 @@ class _AllAgreementState extends State<AllAgreement> {
 
                                   // ❗ REMAINING (MOST IMPORTANT)
                                   Text(
-                                    "Remaining ₹${myPayment!.remainingAmount}",
+                                    "Remaining ₹${paymentData!.remainingAmount}",
                                     style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,

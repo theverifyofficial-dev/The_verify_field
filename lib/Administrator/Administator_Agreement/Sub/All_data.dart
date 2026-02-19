@@ -49,6 +49,7 @@ class _AgreementDetailsState extends State<AllData> {
   bool isLoading = true;
   TextEditingController searchController = TextEditingController();
   late Future<List<FieldWorkerPayment>> _paymentsFuture;
+  FieldWorkerPayment? monthlyPaymentSummary;
 
   @override
   void initState() {
@@ -128,6 +129,8 @@ class _AgreementDetailsState extends State<AllData> {
     try {
       setState(() => isLoading = true);
       await fetchAgreements();
+      monthlyPaymentSummary = null;
+
     } catch (e) {
       debugPrint("❌ Error refreshing agreements: $e");
     } finally {
@@ -284,8 +287,10 @@ class _AgreementDetailsState extends State<AllData> {
 
     // 🔹 Compact Horizontal List
     SizedBox(
-    height: 96,
-    child: FutureBuilder<List<FieldWorkerPayment>>(
+    height: 120,
+    child: monthlyPaymentSummary != null
+        ? _buildMonthlySummaryCard(monthlyPaymentSummary!)
+        : FutureBuilder<List<FieldWorkerPayment>>(
     future: _paymentsFuture,
     builder: (context, snapshot) {
     if (snapshot.connectionState == ConnectionState.waiting) {
@@ -809,6 +814,50 @@ class _AgreementDetailsState extends State<AllData> {
   }
 
 
+  Widget _buildMonthlySummaryCard(FieldWorkerPayment summary) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.black.withOpacity(0.5)
+            : Colors.white.withOpacity(0.95),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? Colors.white12 : Colors.grey.shade300,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Monthly Payment Summary",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text("Total ₹${summary.totalAmount}"),
+          Text(
+            "Paid ₹${summary.paidAmount}",
+            style: const TextStyle(color: Colors.green),
+          ),
+          Text(
+            "Remaining ₹${summary.remainingAmount}",
+            style: const TextStyle(
+              color: Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
   Future<void> fetchAgreementsByMonth({
     required String month,
     String? fieldWorker, // nullable
@@ -818,6 +867,7 @@ class _AgreementDetailsState extends State<AllData> {
       "month": month,
     };
 
+    print(month);
     // ✅ ONLY pass fw if specific fieldworker selected
     if (fieldWorker != null && fieldWorker.isNotEmpty) {
       queryParams["fw"] = fieldWorker;
@@ -835,17 +885,32 @@ class _AgreementDetailsState extends State<AllData> {
       final decoded = jsonDecode(response.body);
 
       if (decoded['success'] == true && decoded['data'] is List) {
+        final summary = decoded['month_payment_summary'];
+
         setState(() {
           agreements = decoded['data']
               .map<AgreementModel>((e) => AgreementModel.fromJson(e))
               .toList();
           filteredAgreements = agreements;
+
+          monthlyPaymentSummary = FieldWorkerPayment(
+            number: "",
+            name: "Monthly Summary",
+            totalAmount:
+            int.tryParse(summary['total_amount'].toString()) ?? 0,
+            paidAmount:
+            int.tryParse(summary['paid_amount'].toString()) ?? 0,
+            remainingAmount:
+            int.tryParse(summary['remaining_amount'].toString()) ?? 0,
+          );
         });
       } else {
         debugPrint("⚠️ No data for selected filter");
         setState(() {
           agreements = [];
           filteredAgreements = [];
+          monthlyPaymentSummary = null;
+
         });
       }
     } else {
@@ -1128,6 +1193,8 @@ Widget _statusTick({
     ],
   );
 }
+
+
 
 
 

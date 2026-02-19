@@ -277,8 +277,11 @@ class _RedemandDetailPageState extends State<field_RedemandDetailPage> {
   void _openContactSheet(BuildContext context, Color accent, bool isDark) async {
     final number = _redemand?["Tnumber"] ?? "";
     final name = _redemand?["Tname"] ?? "";
+    final BuyRent = _redemand?["Buy_rent"] ?? "";
+    final location = _redemand?["Location"] ?? "Sultanpur";
+    final Bhk = _redemand?["Bhk"] ?? "";
     final id = _redemand?["id"].toString() ?? "";
-
+    final nextWord = Bhk.contains('commercial') ? 'Space' : 'Flat';
     List<dynamic> logs = await _fetchLogs(id);
 
     showModalBottomSheet(
@@ -358,8 +361,8 @@ class _RedemandDetailPageState extends State<field_RedemandDetailPage> {
                             final phone = normalizeWhatsAppNumber(number);
 
                             final text = Uri.encodeComponent(
-                                "Hello $name, I’m contacting regarding your request.");
-                            await launchUrl(
+                                "Hello $name, Looking for a ${Bhk} $nextWord for $BuyRent in $location? "
+                                    "Feel free to contact us for further details.\n\nRegards,\nVerify Properties");                            await launchUrl(
                               Uri.parse("https://wa.me/$phone?text=$text"),
                               mode: LaunchMode.externalApplication,
                             );

@@ -1212,8 +1212,11 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
   void _openContactSheet(BuildContext context, Color accent, bool isDark) async {
     final number = _demand?["Tnumber"] ?? "";
     final name = _demand?["Tname"] ?? "";
+    final BuyRent = _demand?["Buy_rent"] ?? "";
+    final location = _demand?["Location"] ?? "Sultanpur";
+    final Bhk = _demand?["Bhk"] ?? "";
     final id = _demand?["id"].toString() ?? "";
-
+    final nextWord = Bhk.contains('commercial') ? 'Space' : 'Flat';
     // FIRST LOAD LOGS
     List<dynamic> logs = [];
     await _fetchLogs(id).then((list) => logs = list);
@@ -1305,8 +1308,8 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
 
                             final phone = normalizeWhatsAppNumber(number);
                             final txt = Uri.encodeComponent(
-                                "Hello $name, I’m contacting regarding your request.");
-                            final url =
+                                "Hello $name, Looking for a ${Bhk} $nextWord for $BuyRent in $location? "
+                                    "Feel free to contact us for further details.\n\nRegards,\nVerify Properties");                            final url =
                             Uri.parse("https://wa.me/$phone?text=$txt");
 
                             await launchUrl(url,

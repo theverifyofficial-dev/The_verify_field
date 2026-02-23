@@ -479,112 +479,182 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
   }
 
   void _goNext() {
-    bool valid = false;
+    switch (_currentStep) {
 
-    if (_currentStep == 0) {
-      // ✅ OWNER STEP
-      valid = _ownerFormKey.currentState?.validate() == true &&
-          ((ownerAadhaarFront != null || ownerAadharFrontUrl != null) &&
-              (ownerAadhaarBack != null || ownerAadharBackUrl != null));
+      case 0:
+        _validateOwnerStep();
+        break;
 
-      if (!valid) {
-        Fluttertoast.showToast(msg: 'Please complete Owner details');
+      case 1:
+        _validateDirectorStep();
+        break;
+
+      case 2:
+        _validatePropertyStep();
+        break;
+
+      default:
+        _moveNext();
+    }
+  }
+
+  void _validateOwnerStep() {
+
+    if (!_ownerFormKey.currentState!.validate()) {
+      Fluttertoast.showToast(msg: "Please correct Owner form Fields");
+      return;
+    }
+
+    if (ownerAadhaarFront == null &&
+        (ownerAadharFrontUrl ?? '').isEmpty) {
+      Fluttertoast.showToast(msg: "Upload Owner Aadhaar front image");
+      return;
+    }
+
+    if (ownerAadhaarBack == null &&
+        (ownerAadharBackUrl ?? '').isEmpty) {
+      Fluttertoast.showToast(msg: "Upload Owner Aadhaar back image");
+      return;
+    }
+
+    _moveNext();
+  }
+
+  void _validateDirectorStep() {
+
+    if (directors.isEmpty) {
+      Fluttertoast.showToast(msg: "Add at least one Director");
+      return;
+    }
+
+    for (int i = 0; i < directors.length; i++) {
+
+      final d = directors[i];
+      final no = i + 1;
+
+      final name = d.name.text.trim();
+      final mobile = d.mobile.text.trim();
+      final aadhaar = d.aadhaar.text.trim();
+      final relationPerson = d.relationPerson.text.trim();
+      final address = d.address.text.trim();
+
+      // ---------- BASIC DETAILS ----------
+
+      if (name.isEmpty) {
+        Fluttertoast.showToast(msg: "Director $no full name is required");
         return;
       }
 
-    }
-    else if (_currentStep == 1) {
-      for (int i = 0; i < directors.length; i++) {
-        final d = directors[i];
-
-        final basicValid =
-            d.name.text.trim().isNotEmpty &&
-                d.mobile.text.trim().isNotEmpty &&
-                d.aadhaar.text.trim().isNotEmpty &&
-                d.address.text.trim().isNotEmpty &&
-                d.relationPerson.text.trim().isNotEmpty;
-
-        final aadhaarValid =
-            (d.aadhaarFront != null || (d.aadhaarFrontUrl ?? '').isNotEmpty) &&
-                (d.aadhaarBack != null || (d.aadhaarBackUrl ?? '').isNotEmpty);
-
-        final photoValid =
-        (d.photo != null || (d.photoUrl ?? '').isNotEmpty);
-
-        if (!basicValid) {
-          Fluttertoast.showToast(
-            msg: 'Please complete Director ${i + 1} details',
-          );
-          return;
-        }
-
-        if (!aadhaarValid) {
-          Fluttertoast.showToast(
-            msg: 'Upload Aadhaar front & back for Director ${i + 1}',
-          );
-          return;
-        }
-
-        if (!photoValid) {
-          Fluttertoast.showToast(
-            msg: 'Upload photo for Director ${i + 1}',
-          );
-          return;
-        }
-
-        // 🔥 FIRST DIRECTOR EXTRA VALIDATION
-        if (i == 0) {
-          final gstValid =
-          (d.gstPhoto != null || (d.gstPhotoUrl ?? '').isNotEmpty);
-
-          final panValid =
-          (d.panPhoto != null || (d.panPhotoUrl ?? '').isNotEmpty);
-
-          if (CompanyName.text.trim().isEmpty) {
-            Fluttertoast.showToast(msg: 'Enter Company Name');
-            return;
-          }
-
-          if (d.gstNo.text.trim().isEmpty) {
-            Fluttertoast.showToast(msg: 'Enter GST Number');
-            return;
-          }
-
-          if (d.panNo.text.trim().isEmpty) {
-            Fluttertoast.showToast(msg: 'Enter PAN Number');
-            return;
-          }
-
-          if (!gstValid) {
-            Fluttertoast.showToast(msg: 'Upload GST image');
-            return;
-          }
-
-          if (!panValid) {
-            Fluttertoast.showToast(msg: 'Upload PAN image');
-            return;
-          }
-        }
-      }
-
-      valid = true;
-    }
-
-    else if (_currentStep == 2) {
-      // ✅ PROPERTY STEP
-      valid =
-          _propertyFormKey.currentState?.validate() == true &&
-              shiftingDate != null;
-
-      if (!valid) {
-        Fluttertoast.showToast(msg: 'Please complete Property details');
+      if (!RegExp(r'^[6-9]\d{9}$').hasMatch(mobile)) {
+        Fluttertoast.showToast(msg: "Enter valid 10-digit mobile for Director $no");
         return;
       }
-    } else {
-      valid = true;
+
+      if (!RegExp(r'^\d{12}$').hasMatch(aadhaar) &&
+          !RegExp(r'^\d{16}$').hasMatch(aadhaar)) {
+        Fluttertoast.showToast(msg: "Enter valid Aadhaar/VID for Director $no");
+        return;
+      }
+
+      if (relationPerson.isEmpty) {
+        Fluttertoast.showToast(msg: "Relation person name required for Director $no");
+        return;
+      }
+
+      if (address.isEmpty) {
+        Fluttertoast.showToast(msg: "Permanent address required for Director $no");
+        return;
+      }
+
+      // ---------- AADHAAR FILES ----------
+
+      if (d.aadhaarFront == null &&
+          (d.aadhaarFrontUrl ?? '').isEmpty) {
+        Fluttertoast.showToast(msg: "Upload Aadhaar front for Director $no");
+        return;
+      }
+
+      if (d.aadhaarBack == null &&
+          (d.aadhaarBackUrl ?? '').isEmpty) {
+        Fluttertoast.showToast(msg: "Upload Aadhaar back for Director $no");
+        return;
+      }
+
+      // ---------- PHOTO ----------
+
+      if (d.photo == null &&
+          (d.photoUrl ?? '').isEmpty) {
+        Fluttertoast.showToast(msg: "Upload photo for Director $no");
+        return;
+      }
+
+      // ================= FIRST DIRECTOR (COMPANY VALIDATION) =================
+
+      if (i == 0) {
+
+        if (CompanyName.text.trim().isEmpty) {
+          Fluttertoast.showToast(msg: "Company name is required");
+          return;
+        }
+
+        final pan = d.panNo.text.trim().toUpperCase();
+
+        if (pan.isEmpty) {
+          Fluttertoast.showToast(msg: "PAN number is required");
+          return;
+        }
+
+
+        if (d.panPhoto == null &&
+            (d.panPhotoUrl ?? '').isEmpty) {
+          Fluttertoast.showToast(msg: "Upload PAN card image");
+          return;
+        }
+      }
     }
 
-    if (valid && _currentStep < 3) {
+    _moveNext();
+  }
+
+  void _validatePropertyStep() {
+
+    if (!_propertyFormKey.currentState!.validate()) {
+      Fluttertoast.showToast(msg: "Please correct Property form Fields");
+      return;
+    }
+
+    if (shiftingDate == null) {
+      Fluttertoast.showToast(msg: "Select shifting date");
+      return;
+    }
+
+    if (rentAmount.text.trim().isEmpty) {
+      Fluttertoast.showToast(msg: "Enter monthly rent amount");
+      return;
+    }
+
+    if (securityAmount.text.trim().isEmpty) {
+      Fluttertoast.showToast(msg: "Enter security deposit amount");
+      return;
+    }
+
+    if (meterInfo.startsWith("Custom") &&
+        customUnitAmount.text.trim().isEmpty) {
+      Fluttertoast.showToast(msg: "Enter custom meter unit amount");
+      return;
+    }
+
+    if (maintenance.startsWith("Excluding") &&
+        customMaintanceAmount.text.trim().isEmpty) {
+      Fluttertoast.showToast(msg: "Enter maintenance charge amount");
+      return;
+    }
+
+    _moveNext();
+  }
+
+  void _moveNext() {
+    if (_currentStep < 3) {
       setState(() => _currentStep++);
       _pageController.nextPage(
         duration: const Duration(milliseconds: 450),
@@ -2466,7 +2536,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Property Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
+            Text('Property Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
             Align(
               alignment: Alignment.centerRight,
               child: ElevatedButton.icon(
@@ -2849,7 +2919,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
           const SizedBox(height: 8),
           Row(
             children: [
-              Text('Aadhaar Images'),
+              Text('Aadhaar Images',style: TextStyle(color: Colors.black),),
             ],
           ),
           const SizedBox(height: 8),

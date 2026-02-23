@@ -13,8 +13,6 @@ class AllAgreement extends StatefulWidget {
   State<AllAgreement> createState() => _AllAgreementState();
 }
 
-
-
 class _AllAgreementState extends State<AllAgreement> {
 
   List<AdminAllAgreementModel> agreements = [];
@@ -239,8 +237,6 @@ class _AllAgreementState extends State<AllAgreement> {
     }
   }
 
-
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme
@@ -434,7 +430,7 @@ class _AllAgreementState extends State<AllAgreement> {
 
                                   // ❗ REMAINING (MOST IMPORTANT)
                                   Text(
-                                    "Remaining ₹${paymentData!.remainingAmount}",
+                                    "Remaining ₹${paymentData !.remainingAmount}",
                                     style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
@@ -823,8 +819,6 @@ class _AllAgreementState extends State<AllAgreement> {
     );
   }
 
-
-// 🔹 Info Row Widget
   Widget _InfoRow(
       {required String title, required String value, Color? valueColor}) {
     return Padding(

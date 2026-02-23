@@ -2461,7 +2461,7 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
           const SizedBox(height: 8),
           Row(
             children: [
-              Text('Aadhaar Images'),
+              Text('Aadhaar Images',style: TextStyle(color: Colors.black),),
             ],
           ),
           const SizedBox(height: 8),

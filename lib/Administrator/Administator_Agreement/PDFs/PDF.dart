@@ -94,6 +94,11 @@ String numberToWords(int number) {
   return parts.where((s) => s.trim().isNotEmpty).join(' ').trim();
 }
 
+const double kSmallSpace = 6;
+const double kNormalSpace = 10;
+const double kLargeSpace = 16;
+const double kSectionSpace = 22;
+
 /// Format amount as in your template: "Rs. 8000 /- (EIGHT THOUSAND RUPEES)"
 int parseIndianAmount(String input) {
   String value = input.toUpperCase().replaceAll(',', '').trim();
@@ -205,7 +210,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   final pdf = pw.Document();
 
   // dynamic-safe reads (use fallback with (static) if missing)
-  final ownerName = safeString(data, 'owner_name', 'PAWAN');
+  final ownerName = safeString(data, 'owner_name', 'DEMO OWNER');
   final ownerRelation = safeString(data, 'owner_relation', 'S/O');
   final ownerRelationPerson = safeString(data, 'relation_person_name_owner', 'QWERTY');
   final ownerAddress = safeString(data, 'parmanent_addresss_owner', 'DEMO ADDRESS');
@@ -221,10 +226,12 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   final address = data['rented_address'] ?? '';
   final agreement_type = data['agreement_type'] ?? '';
 
-  final fullAddress = '$bhk, $floor, $address'.replaceAll(RegExp(r', ,|,,| ,'), ',').trim();
-
-
-
+  final fullAddress = [
+    bhk,
+    floor,
+    address
+  ].where((e) => e != null && e.toString().trim().isNotEmpty)
+      .join(', ');
 
 
   final monthlyRentRaw = data['monthly_rent']?.toString() ?? '';
@@ -338,8 +345,8 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   final shiftingDateFormatted = '${shiftingDate.day.toString().padLeft(2, '0')}/${shiftingDate.month.toString().padLeft(2, '0')}/${shiftingDate.year}';
   final endDateFormatted = '${endDate.day.toString().padLeft(2, '0')}/${endDate.month.toString().padLeft(2, '0')}/${endDate.year}';
 
-  final baseStyle = pw.TextStyle(fontSize: 11);
-  final boldStyle = pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold);
+  final baseStyle = pw.TextStyle(fontSize: 11, height: 1.4);
+  final boldStyle = pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, height: 1.4);
   final titleStyle = pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold);
   final rentDueDay = getDayWithSuffix(shiftingDate.day);
 
@@ -352,7 +359,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   pdf.addPage(
     pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 20),
+      margin: const pw.EdgeInsets.symmetric(horizontal: 18, vertical: 18),
       footer: (context) {
         return pw.Container(
           alignment: pw.Alignment.center,
@@ -365,8 +372,12 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
       },
       build: (context) => [
         // PAGE 1 (title + intro + clauses 1-5)
-        pw.Center(child: pw.Text('Leave & License', style: titleStyle)),
-        pw.SizedBox(height: 10),
+        pw.Center(
+          child: pw.Padding(
+            padding: const pw.EdgeInsets.only(bottom: kSectionSpace),
+            child: pw.Text('Leave & License', style: titleStyle),
+          ),
+        ),
 
         pw.RichText(
           text: pw.TextSpan(
@@ -408,7 +419,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
 
           pw.Text(
             additionalTenants.asMap().entries.map((entry) {
-              final index = entry.key + 1;
+              final index = entry.key + 2;
               final t = entry.value;
 
               final name = t['tenant_name'] ?? '';
@@ -553,16 +564,14 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
         clause('6. Hybrid Work and Not for Commercial Use:', 'The Tenant may work from home for personal or professional purposes; however, the premises shall not be used for any commercial registration or business setup, including but not limited to GST registration, trade licenses, or office establishment, without the prior written consent of the Landlord. Any violation shall be treated as a breach of this Agreement. (IPC 420, 468, 471) (BNS 318, 326, 327(2))'),
         pw.SizedBox(height: 10),
         clause('7. Mandatory Police Verification & Visitor Compliance:', 'The Tenant shall complete mandatory Police Verification within 7 days from the date of possession.Failure to comply may result in legal action under Section 188 IPC. The First Party/Landlord may submit tenant information to the local police station as required by law. (IPC 188) (BNS 223(3))'),
-
       ],
     ),
   );
 
-  // PAGE 2 (clauses 6 - 13)
   pdf.addPage(
     pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 28),
+      margin: const pw.EdgeInsets.symmetric(horizontal: 18, vertical: 18),
       footer: (context) {
         return pw.Container(
           alignment: pw.Alignment.center,
@@ -599,7 +608,6 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
         pw.SizedBox(height: 12),
         clause('19. Loan & Credit Application:', 'The Second Party will not apply for any loan or credit card using the said address. If any loan is pending against the Second Party, the First Party will not be liable or responsible for the same. (IPC 420, 468, 471)  (BNS 318, 326, 327(2))'),
         pw.SizedBox(height: 12),
-        clause('20. Restriction on GST Registration:', 'The Tenant is strictly prohibited from registering for GST using the Property\'s address. In the event that the Tenant obtains GST registration at the Property\'s address, the Owner shall bear no responsibility for any liabilities, penalties, or legal consequences arising therefrom. The Tenant shall be solely liable for any disputes, claims, or regulatory actions related to such unauthorized use. (IPC 420, 468, 471) (BNS 318, 326, 327(2))'),
 
       ],
     ),
@@ -618,9 +626,11 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
         );
       },
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 28),
+      margin: const pw.EdgeInsets.symmetric(horizontal: 18, vertical: 18),
       build: (context) => [
         pw.SizedBox(height:20),
+        clause('20. Restriction on GST Registration:', 'The Tenant is strictly prohibited from registering for GST using the Property\'s address. In the event that the Tenant obtains GST registration at the Property\'s address, the Owner shall bear no responsibility for any liabilities, penalties, or legal consequences arising therefrom. The Tenant shall be solely liable for any disputes, claims, or regulatory actions related to such unauthorized use. (IPC 420, 468, 471) (BNS 318, 326, 327(2))'),
+        pw.SizedBox(height: 15),
         clause('21. Repair and Cleanliness:', 'The Tenant is responsible for minor, day-to-day repairs at their own expense. They must return the premises in the same condition as received and keep it clean and hygienic. (IPC 268) (BNS 280)'),
         pw.SizedBox(height: 15),
         clause('22. Liability for Death or Suicide:', 'In the event of any death, suicide, or injury occurring within the premises, the First Party/Landlord shall not be held responsible or liable for any claims arising therefrom.'),
@@ -659,7 +669,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
         );
       },
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 28),
+      margin: const pw.EdgeInsets.symmetric(horizontal: 18, vertical: 18),
       build: (context) => [
 
         pw.SizedBox(height: 30),
@@ -685,7 +695,9 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
             pw.Expanded(
               child: pw.Container(
                 padding: const pw.EdgeInsets.only(right: 10),
-                child: pw.Column(
+                child: pw.Padding(
+                  padding: const pw.EdgeInsets.only(top: kSectionSpace),
+                  child:  pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
                     pw.Text(
@@ -696,11 +708,12 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
                     pw.Text('Name: $ownerName', style: boldStyle),
                     pw.Text('${getIdLabel(ownerAadhaar)} $ownerAadhaar', style: boldStyle),
 
-                    pw.SizedBox(height: 40), // 🔥 Fixed signature spacing
+                    pw.SizedBox(height: kSectionSpace),
 
                     pw.Text('Signature: ____________________________', style: baseStyle),
                   ],
                 ),
+              ),
               ),
             ),
 
@@ -737,8 +750,10 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
                             crossAxisAlignment: pw.CrossAxisAlignment.start,
                             children: [
                               pw.Text('Name: $name', style: boldStyle),
-                              pw.Text('${getIdLabel(aadhaar)} $aadhaar', style: boldStyle),
-                              pw.SizedBox(height: 20),
+                              pw.Text(
+                                '${getIdLabel(rawAadhaar)} $aadhaar',
+                                style: boldStyle,
+                              ),                              pw.SizedBox(height: 20),
                               pw.Text('Signature: ____________________________', style: baseStyle),
                             ],
                           ),
@@ -769,13 +784,13 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
     ),
   );
 
-  // PAGE 4 - SHO letter (rent verification)
+  // PAGE 5 - SHO letter (rent verification)
   pdf.addPage(
     pw.MultiPage(
       footer: (context) {
         return pw.Container(
           alignment: pw.Alignment.center,
-          margin: const pw.EdgeInsets.only(top: 20),
+          margin: const pw.EdgeInsets.only(top: 8),
           child: pw.Text(
             'Page ${context.pageNumber} of ${context.pagesCount}',
             style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
@@ -783,7 +798,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
         );
       },
       pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 28),
+      margin: const pw.EdgeInsets.symmetric(horizontal: 18, vertical: 18),
       build: (context) => [
         pw.Text('To,', style: baseStyle),
         pw.Text('Respected SHO Sir,', style: baseStyle),
@@ -850,14 +865,15 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
               style: boldStyle),
           pw.SizedBox(height: 6),
           pw.Text('1. $tenantName - $tenantPermAddress',
-              style: baseStyle),
-
+              style: boldStyle),
+          pw.Text('Mobile Number: $tenantMobile', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 6),
           ...additionalTenants.asMap().entries.map((entry) {
             final index = entry.key + 2;
             final t = entry.value;
             return pw.Text(
               '$index. ${t['tenant_name']} - $tenantPermAddress',
-              style: baseStyle,
+              style: boldStyle,
             );
           }).toList(),
         ],
@@ -879,6 +895,9 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
         pw.Text('Sincerely,', style: baseStyle),
         pw.SizedBox(height: 6),
         pw.Text('Name: $tenantName', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+        pw.Text('${getIdLabel(tenantAadhaar)} $tenantAadhaar', style: boldStyle),
+
+
         if (additionalTenants.isNotEmpty)
           ...additionalTenants.map((t) {
             final name = t['tenant_name'] ?? '';
@@ -893,7 +912,10 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Text('Name: $name', style: boldStyle),
-                  pw.Text('${getIdLabel(aadhaar)} $aadhaar', style: boldStyle),
+                  pw.Text(
+                    '${getIdLabel(rawAadhaar)} $aadhaar',
+                    style: boldStyle,
+                  ),
                   pw.SizedBox(height: 20),
                   pw.Text('Signature: ____________________________',
                       style: baseStyle),
@@ -912,22 +934,25 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   return file;
 }
 
-
-pw.Widget clause(String heading, String body){
-  return pw.RichText(
-    text: pw.TextSpan(
-      children: [
-        pw.TextSpan(
-          text: '$heading ',
-          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+pw.Widget clause(String heading, String body) {
+  return pw.Column(
+    crossAxisAlignment: pw.CrossAxisAlignment.start,
+    children: [
+      pw.RichText(
+        text: pw.TextSpan(
+          style: pw.TextStyle(fontSize: 10.5, height: 1.2),
+          children: [
+            pw.TextSpan(
+              text: '$heading ',
+              style: pw.TextStyle(
+                fontWeight: pw.FontWeight.bold,
+                fontSize: 11,
+              ),
+            ),
+            pw.TextSpan(text: body),
+          ],
         ),
-        pw.TextSpan(
-          text: body,
-          style: pw.TextStyle(fontSize: 9),
-        ),
-      ],
-    ),
+      ),
+    ],
   );
 }
-
-

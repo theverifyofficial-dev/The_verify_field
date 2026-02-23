@@ -34,8 +34,6 @@ class FieldWorkerPayment {
   }
 }
 
-
-
 class AllData extends StatefulWidget {
   const AllData({super.key});
 
@@ -44,6 +42,7 @@ class AllData extends StatefulWidget {
 }
 
 class _AgreementDetailsState extends State<AllData> {
+
   List<AgreementModel> agreements = [];
   List<AgreementModel> filteredAgreements = [];
   bool isLoading = true;
@@ -73,12 +72,11 @@ class _AgreementDetailsState extends State<AllData> {
     {"number": "8130209217", "name": "Manish"},
   ];
 
-
-
   Future<FieldWorkerPayment> fetchPaymentForWorker({
     required String number,
     required String name,
-  }) async {
+  })
+  async {
     final res = await http.get(
       Uri.parse(
         'https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/payment_count_new_api.php?fieldworker=$number',
@@ -97,9 +95,6 @@ class _AgreementDetailsState extends State<AllData> {
     );
   }
 
-
-
-
   Future<List<FieldWorkerPayment>> fetchAllFieldWorkersPayments() async {
     return Future.wait(
       fieldWorkers.map(
@@ -110,9 +105,6 @@ class _AgreementDetailsState extends State<AllData> {
       ),
     );
   }
-
-
-
 
   void _onSearchChanged() {
     String query = searchController.text.toLowerCase();
@@ -645,7 +637,6 @@ class _AgreementDetailsState extends State<AllData> {
                                       ),
                                     ),
 
-
                                 Text(
                                   "cost: ₹${item.agreement_price}",
                                   style: const TextStyle(
@@ -699,7 +690,8 @@ class _AgreementDetailsState extends State<AllData> {
   Future<void> _confirmAndUpdateOfficeReceived({
     required BuildContext context,
     required String agreementId,
-  }) async {
+  })
+  async {
     bool isSubmitting = false;
 
     final bool? confirmed = await showDialog<bool>(
@@ -813,7 +805,6 @@ class _AgreementDetailsState extends State<AllData> {
     }
   }
 
-
   Widget _buildMonthlySummaryCard(FieldWorkerPayment summary) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -856,7 +847,6 @@ class _AgreementDetailsState extends State<AllData> {
       ),
     );
   }
-
 
   Future<void> fetchAgreementsByMonth({
     required String month,

@@ -18,6 +18,8 @@ import '../Dashboard_screen.dart';
 class TenantBlock {
   String? id; // 🔥 (for update case)
 
+  final formKey = GlobalKey<FormState>(); // 🔥 ADD THIS
+
   final name = TextEditingController();
   final relationPerson = TextEditingController();
   final address = TextEditingController();
@@ -420,63 +422,129 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
 
 
   void _goNext() {
-    bool valid = false;
+    switch (_currentStep) {
+      case 0:
+        _validateOwnerStep();
+        break;
 
-    if (_currentStep == 0) {
-      // Owner step: either file OR URL must exist
-      valid = _ownerFormKey.currentState?.validate() == true &&
-          ((ownerAadhaarFront != null || ownerAadharFrontUrl != null) &&
-              (ownerAadhaarBack != null || ownerAadharBackUrl != null));
+      case 1:
+        _validateTenantStep();
+        break;
 
-      if (!valid) {
-        Fluttertoast.showToast(msg: 'Please Check Again!');
-      }
+      case 2:
+        _validatePropertyStep();
+        break;
 
-    }
-    else if (_currentStep == 1) {
-
-      for (final t in tenants) {
-
-        if (t.name.text.trim().isEmpty ||
-            t.mobile.text.trim().isEmpty ||
-            t.aadhaar.text.trim().isEmpty ||
-            t.address.text.trim().isEmpty ||
-            t.relationPerson.text.trim().isEmpty) {
-
-          Fluttertoast.showToast(msg: 'Complete all tenant details');
-          return;
-        }
-
-        if ((t.aadhaarFront == null && (t.aadhaarFrontUrl == null || t.aadhaarFrontUrl!.isEmpty)) ||
-            (t.aadhaarBack == null && (t.aadhaarBackUrl == null || t.aadhaarBackUrl!.isEmpty)) ||
-            (t.photo == null && (t.photoUrl == null || t.photoUrl!.isEmpty))) {
-
-          Fluttertoast.showToast(msg: 'Upload all tenant documents');
-          return;
-        }
-      }
-
-      valid = true;
-    }
-
-
-    else if (_currentStep == 2) {
-      valid = _propertyFormKey.currentState?.validate() == true && shiftingDate != null;
-      if (!valid && shiftingDate == null) Fluttertoast.showToast(msg: 'Please select shifting date');
-    } else {
-      valid = true;
-    }
-
-    if (valid) {
-      if (_currentStep < 3) {
-        setState(() => _currentStep++);
-        _pageController.nextPage(duration: const Duration(milliseconds: 450), curve: Curves.easeInOut);
-      }
-    } else {
-      Fluttertoast.showToast(msg: 'Complete required fields');
+      default:
+        break;
     }
   }
 
+  void _validateOwnerStep() {
+    final isValid = _ownerFormKey.currentState?.validate() ?? false;
+    if (!isValid) return;
+
+    if (ownerAadhaarFront == null &&
+        (ownerAadharFrontUrl == null || ownerAadharFrontUrl!.isEmpty)) {
+      _showToast("Upload Owner Aadhaar Front");
+      return;
+    }
+
+    if (ownerAadhaarBack == null &&
+        (ownerAadharBackUrl == null || ownerAadharBackUrl!.isEmpty)) {
+      _showToast("Upload Owner Aadhaar Back");
+      return;
+    }
+
+    _moveNext();
+  }
+
+  void _validateTenantStep() {
+    if (tenants.isEmpty) {
+      _showToast("Add at least one tenant");
+      return;
+    }
+
+    for (int i = 0; i < tenants.length; i++) {
+      final tenant = tenants[i];
+
+      final isValid = tenant.formKey.currentState?.validate() ?? false;
+      if (!isValid) {
+        _showToast("Fix Fields in Tenant ${i + 1}");
+        return;
+      }
+
+      if (tenant.aadhaarFront == null &&
+          (tenant.aadhaarFrontUrl == null ||
+              tenant.aadhaarFrontUrl!.isEmpty)) {
+        _showToast("Upload Aadhaar Front for Tenant ${i + 1}");
+        return;
+      }
+
+      if (tenant.aadhaarBack == null &&
+          (tenant.aadhaarBackUrl == null ||
+              tenant.aadhaarBackUrl!.isEmpty)) {
+        _showToast("Upload Aadhaar Back for Tenant ${i + 1}");
+        return;
+      }
+
+      if (tenant.photo == null &&
+          (tenant.photoUrl == null ||
+              tenant.photoUrl!.isEmpty)) {
+        _showToast("Upload Photo for Tenant ${i + 1}");
+        return;
+      }
+    }
+
+    _moveNext();
+  }
+
+  void _validatePropertyStep() {
+
+    if (!_propertyFormKey.currentState!.validate()) {
+      Fluttertoast.showToast(msg: "Please correct Property form Fields");
+      return;
+    }
+
+    if (shiftingDate == null) {
+      Fluttertoast.showToast(msg: "Select shifting date");
+      return;
+    }
+
+    if (rentAmount.text.trim().isEmpty) {
+      Fluttertoast.showToast(msg: "Enter monthly rent amount");
+      return;
+    }
+
+    if (securityAmount.text.trim().isEmpty) {
+      Fluttertoast.showToast(msg: "Enter security deposit amount");
+      return;
+    }
+
+    if (meterInfo.startsWith("Custom") &&
+        customUnitAmount.text.trim().isEmpty) {
+      Fluttertoast.showToast(msg: "Enter custom meter unit amount");
+      return;
+    }
+
+    if (maintenance.startsWith("Excluding") &&
+        customMaintanceAmount.text.trim().isEmpty) {
+      Fluttertoast.showToast(msg: "Enter maintenance charge amount");
+      return;
+    }
+
+    _moveNext();
+  }
+
+  void _moveNext() {
+    if (_currentStep < 3) {
+      setState(() => _currentStep++);
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 450),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
 
   void _goPrevious() {
     if (_currentStep > 0) {
@@ -2047,7 +2115,10 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: _glassContainer(
-              child: Column(
+              child: Form(
+                key: tenants[index].formKey,
+                  autovalidateMode: AutovalidateMode.disabled,
+                  child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
 
@@ -2122,6 +2193,13 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                                 FilteringTextInputFormatter.digitsOnly,
                                 LengthLimitingTextInputFormatter(10),
                               ],
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) return 'Required';
+                                if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) {
+                                  return 'Enter valid 10-digit mobile';
+                                }
+                                return null;
+                              },
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -2134,6 +2212,14 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                                 FilteringTextInputFormatter.digitsOnly,
                                 LengthLimitingTextInputFormatter(16),
                               ],
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) return 'Required';
+                                if (!RegExp(r'^\d{12}$').hasMatch(v) &&
+                                    !RegExp(r'^\d{16}$').hasMatch(v)) {
+                                  return 'Enter valid Aadhaar / VID';
+                                }
+                                return null;
+                              },
                             ),
                           ),
                         ],
@@ -2144,6 +2230,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                       _glowTextField(
                         controller: tenants[index].name,
                         label: 'Tenant Full Name',
+                        validator: (v) =>
+                        (v == null || v.trim().isEmpty) ? 'Required' : null,
                       ),
 
                       const SizedBox(height: 12),
@@ -2194,6 +2282,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                               controller:
                               tenants[index].relationPerson,
                               label: 'Person Name',
+                              validator: (v) =>
+                              (v == null || v.trim().isEmpty) ? 'Required' : null,
                             ),
                           ),
                         ],
@@ -2204,6 +2294,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                       _glowTextField(
                         controller: tenants[index].address,
                         label: 'Permanent Address',
+                        validator: (v) =>
+                        (v == null || v.trim().isEmpty) ? 'Required' : null,
                       ),
 
                       const SizedBox(height: 16),
@@ -2292,7 +2384,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                     ],
                   ),
                 ],
-              ),
+              )),
             ),
           ),
 
@@ -2723,7 +2815,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           const SizedBox(height: 8),
           Row(
             children: [
-              Text('Aadhaar Images'),
+              Text('Aadhaar Images',style: TextStyle(color: Colors.black),),
             ],
           ),
           const SizedBox(height: 8),
@@ -2816,7 +2908,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
 
                 const SizedBox(height: 10),
 
-                /// Photo
+                /// Poto
                 const Text('Tenant Photo',style: TextStyle(color: Colors.black),),
                 const SizedBox(height: 6),
                 _imageTile(

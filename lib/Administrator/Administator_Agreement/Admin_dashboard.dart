@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../Custom_Widget/constant.dart';
+import '../Administrator_HomeScreen.dart';
 import 'Sub/Admin_accepted.dart';
 import 'Sub/All_data.dart';
 import 'Sub/Admin_pending.dart';
@@ -38,9 +39,16 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
         backgroundColor: Colors.black,
         title: Image.asset(AppImages.verify, height: 75),
         leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
+            onTap: () {
+              if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              } else {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => AdministratorHome_Screen()),
+                );
+              }
+            },
           child: const Row(
             children: [
               SizedBox(width: 3),

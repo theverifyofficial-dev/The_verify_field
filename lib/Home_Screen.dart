@@ -954,7 +954,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         margin: const EdgeInsets.symmetric(horizontal: 4),
         child: Column(
           children: [
-            // Icon with gradient background
             Container(
               width: 30,
               height: 30,
@@ -1733,8 +1732,7 @@ class _TargetProgressCircle extends StatefulWidget {
   State<_TargetProgressCircle> createState() => _TargetProgressCircleState();
 }
 
-class _TargetProgressCircleState extends State<_TargetProgressCircle>
-    with SingleTickerProviderStateMixin {
+class _TargetProgressCircleState extends State<_TargetProgressCircle> with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 

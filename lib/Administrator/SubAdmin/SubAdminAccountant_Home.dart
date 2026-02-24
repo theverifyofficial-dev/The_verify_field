@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Z-Screen/Login_page.dart';
@@ -32,6 +35,8 @@ class SubAdminHomeScreen extends StatefulWidget {
 
 class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with TickerProviderStateMixin {
   int _currentIndex = 0;
+  int pendingCount = 0;
+  int BookCount = 0;
   String? userName;
   String? userNumber;
 
@@ -42,6 +47,8 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
   void initState() {
     super.initState();
     loadUserName();
+    fetchAgreementCount(); // must exist
+    fetchBookCount(); // must exist
     _shineController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
@@ -65,40 +72,51 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
     });
   }
 
-  void _logout() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Logout"),
-          content: const Text("Are you sure you want to logout?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () async {
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.remove('number');
-                Navigator.of(context).pop();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const Login_page()),
-                );
-              },
-              child: const Text("Logout"),
-            ),
-          ],
-        );
-      },
-    );
+  Future<void> fetchAgreementCount() async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/all_agreement_count.php',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+
+        if (decoded["status"] == true) {
+          final data = decoded["data"];
+
+          setState(() {
+            pendingCount = data[0][0]["PreviewCount"] ?? 0;
+
+          });
+        }
+      }
+    } catch (e) {
+    }
   }
 
-  _launchURL() async {
-    final Uri url = Uri.parse('https://theverify.in/');
-    if (!await launchUrl(url)) {
-      throw Exception('Could not launch $url');
+  Future<void> fetchBookCount() async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'https://verifyserve.social/Second%20PHP%20FILE/Payment/all_payment_count_for_admin.php',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+
+        if (decoded["status"] == true) {
+          final data = decoded["data"];
+
+          setState(() {
+            BookCount = data[0][0]["BookingCount"] ?? 0;
+
+          });
+        }
+      }
+    } catch (e) {
     }
   }
 
@@ -354,6 +372,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                               "onTap": () => Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (_) => const AdminDashboard())),
+                              "count": pendingCount,
                             },
                             {
                               "image": AppImages.calendar,
@@ -362,6 +381,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                   context,
                                   MaterialPageRoute(
                                       builder: (_) => const CalendarTaskPageForAdmin())),
+                              "count": 0,
                             },
                             {
                               "image": AppImages.propertysale,
@@ -370,6 +390,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                   context,
                                   MaterialPageRoute(
                                       builder: (_) => ADministaterShow_FutureProperty())),
+                              "count": 0,
                             },
                             {
                               "image": AppImages.demand_2,
@@ -377,6 +398,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                               "onTap": () => Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (_) => SubadminTabbar())),
+                              "count": 0,
                             },
                             {
                               "image": AppImages.realestatefeild,
@@ -384,6 +406,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                               "onTap": () => Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (_) => const AdminUpcoming())),
+                              "count": 0,
                             },
                             if (userNumber == "9711779003" || userNumber=="9315016461")
 
@@ -396,7 +419,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                     MaterialPageRoute(
                                         builder: (_) => const MainPage_TenandDemand()));
                               },
-
+                                "count": 0,
                             },
                             if (userNumber == "9711779003" || userNumber=="9315016461")
 
@@ -406,7 +429,8 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                               'onTap': () =>
                                   Navigator.push(context, MaterialPageRoute(
                                       builder: (context) => const AdministatorAddRentedFlatTabbar())),
-                            },
+                                "count": BookCount,
+                              },
                           ];
 
                           return GridView.builder(
@@ -426,6 +450,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                 imagePath: item['image'] as String,
                                 title: item['title'] as String,
                                 onTap: item['onTap'] as VoidCallback,
+                                count: item['count'] as int,
 
                                 shineAnimation: _shineAnimation,
                                 itemWidth: itemWidth,
@@ -722,6 +747,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
     required VoidCallback onTap,
     required Animation<double> shineAnimation,
     required double itemWidth,
+    int? count,
   }) {
     final isDarkMode = Theme
         .of(context)
@@ -770,6 +796,27 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
+
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: (count != null && count > 0)
+                          ? Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          count.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                          : const SizedBox(height: 10), // keep spacing consistent
+                    ),
                     Container(
                       height: imageSize,
                       width: imageSize,
@@ -788,6 +835,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                         fit: BoxFit.contain,
                       ),
                     ),
+                    SizedBox(height: 5,),
                     Flexible(
                       child: Text(
                         title,
@@ -804,6 +852,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                         maxLines: 2,
                       ),
                     ),
+                    SizedBox(height: 5,),
                     CircleAvatar(
                       radius: imageSize * 0.25,
                       backgroundColor: isDarkMode ? Colors.white10 : Colors.grey

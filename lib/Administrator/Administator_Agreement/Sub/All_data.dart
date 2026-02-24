@@ -462,8 +462,6 @@ class _AgreementDetailsState extends State<AllData> {
 
 
 
-
-            // 📋 List of agreements
             SliverList(
               delegate: SliverChildBuilderDelegate(
                     (context, index) {
@@ -1037,14 +1035,11 @@ class _AgreementDetailsState extends State<AllData> {
     );
   }
 
-
-  // ✅ Converts DateTime to "dd MMM yyyy"
   String _formatDate(DateTime? date) {
     if (date == null) return "--";
     return "${_twoDigits(date.day)} ${_monthName(date.month)} ${date.year}";
   }
 
-  // ✅ Calculates Renewal Date = shiftingDate + 10 months
   DateTime? _getRenewalDate(DateTime? shiftingDate) {
     if (shiftingDate == null) return null;
     try {

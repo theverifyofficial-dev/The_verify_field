@@ -1133,7 +1133,15 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                                 ),
                               ),
                           ],
-                        )
+                        ),
+
+                        SizedBox(height: 10,),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text('by : ${item.fieldWorkerName}',style: TextStyle(fontStyle: FontStyle.italic),),
+                          ],
+                        ),
 
                           ],
                     ),

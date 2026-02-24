@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../Custom_Widget/build_count.dart';
 import '../../Custom_Widget/constant.dart';
 import '../Administrator_HomeScreen.dart';
 import 'Sub/Admin_accepted.dart';
 import 'Sub/All_data.dart';
 import 'Sub/Admin_pending.dart';
 import 'customer_data.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 enum AppBarMenuOption {
   _launchURL,
@@ -22,6 +25,43 @@ class AdminDashboard extends StatefulWidget {
 
 class _parent_TenandDemandState extends State<AdminDashboard> {
 
+  @override
+  void initState() {
+    super.initState();
+    fetchAgreementCount();
+  }
+
+  Future<void> fetchAgreementCount() async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/all_agreement_count.php',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+
+        if (decoded["status"] == true) {
+          final data = decoded["data"];
+
+          setState(() {
+            pendingCount = data[0][0]["PreviewCount"] ?? 0;
+            acceptedCount = data[1][0]["AcceptCount"] ?? 0;
+            allCount = data[2][0]["AgreementCount"] ?? 0;
+            isLoadingCount = false;
+          });
+        }
+      }
+    } catch (e) {
+      isLoadingCount = false;
+    }
+  }
+
+  int allCount = 0;
+  int acceptedCount = 0;
+  int pendingCount = 0;
+  bool isLoadingCount = true;
 
   _launchURL() async {
     final Uri url = Uri.parse('https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/fetch_data.php');
@@ -29,7 +69,6 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
       throw Exception('Could not launch $url');
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -127,23 +166,25 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
                 labelStyle: TextStyle(fontWeight: FontWeight.bold),
                 unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
                 indicatorSize: TabBarIndicatorSize.tab, // Full width of tab
-                tabs: const [
-                  Tab(text: 'Pending'),
-                  Tab(text: 'Accepted'),
-                  Tab(text: 'All Agreement'),
+                tabs: [
+                  buildTab('Final', allCount),
+                  buildTab('Accepted', acceptedCount),
+                  buildTab('Pending', pendingCount),
                 ],
               ),
             ),
             Expanded(
               child: TabBarView(children: [
-                AdminPending(),
-                AdminAccepted(), // same Page for Admin & Field Worker.
                 AllData(),
-              ]),
+                AdminAccepted(),
+                AdminPending(),
+              ]
+              ),
             )
           ],
         ),
       ),
     );
   }
+
 }

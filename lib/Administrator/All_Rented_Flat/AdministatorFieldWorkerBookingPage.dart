@@ -667,6 +667,13 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
                     ],
                   ),
                   _amountRow("Owner Commission", parseNum(item.ownerCommission)),
+                  SizedBox(height: 10,),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text('by : ${item.fieldWorkerName}',style: TextStyle(fontStyle: FontStyle.italic),),
+                    ],
+                  ),
 
                 ],
               ),

@@ -10,7 +10,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:verify_feild_worker/constant.dart';
+import '../../Custom_Widget/constant.dart';
 import '../Plot_detail.dart';
 
 class EditPlotform extends StatefulWidget {

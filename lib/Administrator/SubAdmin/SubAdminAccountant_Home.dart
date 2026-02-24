@@ -445,9 +445,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                               mainAxisSpacing: 16,
                             ),
                             itemBuilder: (context, index) {
-<<<<<<< HEAD
                               final item = mainItems[index];
-=======
                               final List<Map<String, dynamic>> featureItems = [
                                 {
                                   "image": AppImages.agreement,
@@ -512,9 +510,6 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                 },
                               ];
 
-                              final item = featureItems[index];
-
->>>>>>> 5721484 (24 feb by lokesh)
                               return _buildFeatureCard(
                                 context: context,
                                 imagePath: item['image'] as String,

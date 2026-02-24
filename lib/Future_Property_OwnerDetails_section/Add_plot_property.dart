@@ -11,12 +11,9 @@ import 'package:http_parser/http_parser.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-<<<<<<< HEAD
-import 'package:verify_feild_worker/Custom_Widget/constant.dart';
-import 'plot_detail.dart'; // PlotPropertyData model
-=======
-import 'package:verify_feild_worker/constant.dart';
->>>>>>> 5721484 (24 feb by lokesh)
+
+import '../Custom_Widget/constant.dart';
+
 
 class PropertyListingPage extends StatefulWidget {
   const PropertyListingPage({super.key});

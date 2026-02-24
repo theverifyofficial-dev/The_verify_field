@@ -6,12 +6,298 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+<<<<<<< HEAD
 import '../model/future_property_model.dart';
+=======
+>>>>>>> 5721484 (24 feb by lokesh)
 import '../ui_decoration_tools/app_images.dart';
 import 'Add_futureProperty.dart';
+<<<<<<< HEAD
 import 'Future_property_details.dart';
 import 'package:intl/intl.dart';
 
+=======
+import 'Add_plot_property.dart';
+import 'Future_property_details.dart';
+import 'package:intl/intl.dart';
+import 'PlotShow.dart';
+import 'commercialShow.dart';
+
+class Catid {
+  final int id;
+  final String? images;
+  final String? ownerName;
+  final String? ownerNumber;
+  final String? caretakerName;
+  final String? caretakerNumber;
+  final String? place;
+  final String? buyRent;
+  final String? typeOfProperty;
+  final String? selectBhk;
+  final String? floorNumber;
+  final String? squareFeet;
+  final String? propertyNameAddress;
+  final String? buildingInformationFacilities;
+  final String? propertyAddressForFieldworker;
+  final String? ownerVehicleNumber;
+  final String? yourAddress;
+  final String? fieldWorkerName;
+  final String? fieldWorkerNumber;
+  final String? currentDate;
+  final String? longitude;
+  final String? latitude;
+  final String? roadSize;
+  final String? metroDistance;
+  final String? metroName;
+  final String? mainMarketDistance;
+  final String? ageOfProperty;
+  final String? lift;
+  final String? parking;
+  final String? totalFloor;
+  final String? residenceCommercial;
+  final String? facility;
+
+  Catid({
+    required this.id,
+    required this.images,
+    required this.ownerName,
+    required this.ownerNumber,
+    required this.caretakerName,
+    required this.caretakerNumber,
+    required this.place,
+    required this.buyRent,
+    required this.typeOfProperty,
+    required this.selectBhk,
+    required this.floorNumber,
+    required this.squareFeet,
+    required this.propertyNameAddress,
+    required this.buildingInformationFacilities,
+    required this.propertyAddressForFieldworker,
+    required this.ownerVehicleNumber,
+    required this.yourAddress,
+    required this.fieldWorkerName,
+    required this.fieldWorkerNumber,
+    required this.currentDate,
+    required this.longitude,
+    required this.latitude,
+    required this.roadSize,
+    required this.metroDistance,
+    required this.metroName,
+    required this.mainMarketDistance,
+    required this.ageOfProperty,
+    required this.lift,
+    required this.parking,
+    required this.totalFloor,
+    required this.residenceCommercial,
+    required this.facility,
+  });
+
+  factory Catid.FromJson(Map<String, dynamic> json) {
+    return Catid(
+      id: json['id'] ?? 0,
+      images: json['images'],
+      ownerName: json['ownername'],
+      ownerNumber: json['ownernumber'],
+      caretakerName: json['caretakername'],
+      caretakerNumber: json['caretakernumber'],
+      place: json['place'],
+      buyRent: json['buy_rent'],
+      typeOfProperty: json['typeofproperty'],
+      selectBhk: json['select_bhk'],
+      floorNumber: json['floor_number'],
+      squareFeet: json['sqyare_feet'],
+      propertyNameAddress: json['propertyname_address'],
+      buildingInformationFacilities: json['building_information_facilitys'],
+      propertyAddressForFieldworker: json['property_address_for_fieldworkar'],
+      ownerVehicleNumber: json['owner_vehical_number'],
+      yourAddress: json['your_address'],
+      fieldWorkerName: json['fieldworkarname'],
+      fieldWorkerNumber: json['fieldworkarnumber'],
+      currentDate: json['current_date_'],
+      longitude: json['longitude'],
+      latitude: json['latitude'],
+      roadSize: json['Road_Size'],
+      metroDistance: json['metro_distance'],
+      metroName: json['metro_name'],
+      mainMarketDistance: json['main_market_distance'],
+      ageOfProperty: json['age_of_property'],
+      lift: json['lift'],
+      parking: json['parking'],
+      totalFloor: json['total_floor'],
+      residenceCommercial: json['Residence_commercial'],
+      facility: json['facility'],
+    );
+  }
+}
+
+//✅ ADDED: PlotPropertyData class (with fromJson for API mapping - adjust keys if API response differs)
+// class PlotPropertyData {
+//   final int id;
+//   String? plotStatus;
+//   String? plotPrice;
+//   String? mainAddress;
+//   String? currentLocation;
+//   String? plotSize;
+//   String? roadSize;
+//   String? plotOpen;
+//   String? waterConnection;
+//   String? electricPrice;
+//   String? propertyChain;
+//   String? plotFrontSize;
+//   String? plotSideSize;
+//   String? ageOfProperty;
+//   String? propertyRent;
+//   String? fieldworkarName;
+//   String? fieldworkarNumber;
+//   XFile? singleImage;
+//   List<XFile> selectedImages = [];
+//
+//   PlotPropertyData({
+//     required this.id,
+//     this.plotStatus,
+//     this.plotPrice,
+//     this.mainAddress,
+//     this.currentLocation,
+//     this.plotSize,
+//     this.roadSize,
+//     this.plotOpen,
+//     this.waterConnection,
+//     this.electricPrice,
+//     this.propertyChain,
+//     this.plotFrontSize,
+//     this.plotSideSize,
+//     this.ageOfProperty,
+//     this.propertyRent,
+//     this.fieldworkarName,
+//     this.fieldworkarNumber,
+//     this.singleImage,
+//     List<XFile>? selectedImages,
+//   }) : selectedImages = selectedImages ?? [];
+//
+//   factory PlotPropertyData.fromJson(Map<String, dynamic> json) {
+//     // Map JSON keys to fields - adjust keys based on actual API response (e.g., check console logs)
+//     // Example: assuming keys like 'plot_status', 'plot_price', etc. Update as per your API.
+//     return PlotPropertyData(
+//       id: json['id'] ?? 0,
+//       plotStatus: json['plot_status'] ?? json['plotStatus'],
+//       plotPrice: json['plot_price'] ?? json['plotPrice'],
+//       mainAddress: json['main_address'] ?? json['mainAddress'],
+//       currentLocation: json['current_location'] ?? json['currentLocation'],
+//       plotSize: json['plot_size'] ?? json['plotSize'],
+//       roadSize: json['road_size'] ?? json['roadSize'],
+//       plotOpen: json['plot_open'] ?? json['plotOpen'],
+//       waterConnection: json['water_connection'] ?? json['waterConnection'],
+//       electricPrice: json['electric_price'] ?? json['electricPrice'],
+//       propertyChain: json['property_chain'] ?? json['propertyChain'],
+//       plotFrontSize: json['plot_front_size'] ?? json['plotFrontSize'],
+//       plotSideSize: json['plot_side_size'] ?? json['plotSideSize'],
+//       ageOfProperty: json['age_of_property'] ?? json['ageOfProperty'],
+//       propertyRent: json['property_rent'] ?? json['propertyRent'],
+//       fieldworkarName: json['fieldworkar_name'] ?? json['fieldworkarName'],
+//       fieldworkarNumber: json['fieldworkar_number'] ?? json['fieldworkarNumber'],
+//       // For images: If API returns URL strings, convert to XFile (or handle as String if needed)
+//       singleImage: json['single_image'] != null ? XFile(json['single_image']) : null,
+//       selectedImages: (json['selected_images'] as List<dynamic>?)?.map((img) => XFile(img.toString())).toList() ?? [],
+//     );
+//   }
+//
+//   Map<String, dynamic> toJson() {
+//     return {
+//       'id': id,
+//       'plot_status': plotStatus,
+//       'plot_price': plotPrice,
+//       'main_address': mainAddress,
+//       'current_location': currentLocation,
+//       'plot_size': plotSize,
+//       'road_size': roadSize,
+//       'plot_open': plotOpen,
+//       'water_connection': waterConnection,
+//       'electric_price': electricPrice,
+//       'property_chain': propertyChain,
+//       'plot_front_size': plotFrontSize,
+//       'plot_side_size': plotSideSize,
+//       'age_of_property': ageOfProperty,
+//       'property_rent': propertyRent,
+//       'fieldworkar_name': fieldworkarName,
+//       'fieldworkar_number': fieldworkarNumber,
+//       'single_image': singleImage?.path,
+//       'selected_images': selectedImages.map((img) => img.path).toList(),
+//     };
+//   }
+// }
+
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final ThemeData theme;
+  final Color Function(IconData, ThemeData) getIconColor;
+  final int maxLines;
+  final double? fontSize; // Added for responsive font sizing
+  final FontWeight? fontWeight; // Optional for value highlighting
+
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.theme,
+    required this.getIconColor,
+    this.maxLines = 1,
+    this.fontSize,
+    this.fontWeight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = theme.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10.0), // Increased bottom padding for more space between rows
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            size: 16,
+            color: getIconColor(icon, theme),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: RichText(
+              maxLines: maxLines,
+              overflow: TextOverflow.ellipsis,
+              text: TextSpan(
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  height: 1.2,
+                  color: cs.onSurface.withOpacity(0.70),
+                  fontSize: fontSize ?? 13,
+                ),
+                children: [
+                  if (label.isNotEmpty)
+                    TextSpan(
+                      text: '$label: ',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: cs.onSurface.withOpacity(0.8),
+                        fontSize: fontSize ?? 13,
+                      ),
+                    ),
+                  TextSpan(
+                    text: value,
+                    style: TextStyle(
+                      fontWeight: fontWeight ?? FontWeight.normal, // Apply fontWeight if provided
+                      color: cs.onSurface.withOpacity(0.9), // Slightly darker for value
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+>>>>>>> 5721484 (24 feb by lokesh)
 
 class FrontPage_FutureProperty extends StatefulWidget {
   const FrontPage_FutureProperty({super.key});
@@ -350,9 +636,30 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
               ],
             ),
           ),
+<<<<<<< HEAD
+=======
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(56),
+            child: Container(
+              color: Colors.black,
+              child: TabBar(
+                controller: _tabController,
+                indicatorColor: Colors.white,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white70,
+                tabs: const [
+                  Tab(text: 'Buildings'),
+                  Tab(text: 'Plots'),
+                  Tab(text: 'Commercial'),
+                ],
+              ),
+            ),
+          ),
+>>>>>>> 5721484 (24 feb by lokesh)
         ),
 
         body: _isLoading
+<<<<<<< HEAD
             ?  Center(child: Lottie.asset(AppImages.loadingHand, height: 400),)
             : Column(
           children: [
@@ -363,6 +670,78 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                 children: [
                   Material(
                     elevation: 4,
+=======
+            ? Center(
+          child: Lottie.asset(
+            AppImages.loadingHand,
+            height: screenHeight * 0.5,
+          ),
+        )
+            : TabBarView(
+          controller: _tabController,
+          children: [
+            // TAB 1: Buildings
+            _buildBuildingsTab(
+              isTablet: isTablet,
+              screenWidth: screenWidth,
+            ),
+
+            // TAB 2: Plots ✅
+            PlotListPage(
+              fieldworkerNumber: _number,
+            ),
+
+            // TAB 3: Commercial
+            CommercialListPage(
+              fieldWorkerNumber: _number,
+            ),
+          ],
+        ),
+
+
+        floatingActionButton: FloatingActionButton.extended(
+      onPressed: _showAddOptionsDialog,
+      icon: const Icon(Icons.add, color: Colors.white),
+      label: Text("Add Forms", style: TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.w600,
+        fontSize: isTablet ? 16 : 14,
+      )),
+      backgroundColor: Colors.blue,
+      elevation: 4,
+    ),
+
+    ),
+
+
+    );
+  }
+
+  // Buildings tab ke liye UI
+  Widget _buildBuildingsTab({
+    required bool isTablet,
+    required double screenWidth,
+  }) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final topPadding = isTablet ? 24.0 : 16.0;
+
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.all(topPadding),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Material(
+                elevation: 4,
+                borderRadius: BorderRadius.circular(12),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  decoration: BoxDecoration(
+>>>>>>> 5721484 (24 feb by lokesh)
                     borderRadius: BorderRadius.circular(12),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 300),
@@ -1146,6 +1525,72 @@ class PropertyCard extends StatelessWidget {
                             fontFamily: "Poppins",
                           ),
                         ),
+<<<<<<< HEAD
+=======
+                        SizedBox(height: isTablet ? 12 : 8),
+                        _buildOptionTile(
+                          icon: Icons.landscape,
+                          title: 'Add Plot',
+                          subtitle: 'Add a new plot record',
+                          onTap: () async {
+                            Navigator.of(context).pop();
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>  PropertyListingPage(),
+                              ),
+                            );
+                            if (result != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text(
+                                        'Plot added',
+                                        style: TextStyle(fontSize: isTablet ? 16 : 14)
+                                    ),
+                                    backgroundColor: Colors.green
+                                ),
+                              );
+                            }
+                          },
+                          isTablet: isTablet,
+                        ),
+                        SizedBox(height: isTablet ? 12 : 8),
+                        _buildOptionTile(
+                          icon: Icons.storefront,
+                          title: 'Add Commercial',
+                          subtitle: 'Add a commercial property',
+                          onTap: () async {
+                            Navigator.of(context).pop();
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>  CommercialPropertyForm()
+                              ),
+                            );
+                            if (result != null) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                    content: Text(
+                                        'Commercial added',
+                                        style: TextStyle(fontSize: isTablet ? 16 : 14)
+                                    ),
+                                    backgroundColor: Colors.green
+                                ),
+                              );
+                            }
+                          },
+                          isTablet: isTablet,
+                        ),
+                        SizedBox(height: isTablet ? 16 : 12),
+                        ElevatedButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: Text(
+                              'Cancel',
+                              style: TextStyle(
+                                fontSize: isTablet ? 16 : 14,
+                              ),
+                            ),)
+>>>>>>> 5721484 (24 feb by lokesh)
                       ],
                     ),
                   ),
@@ -1179,6 +1624,7 @@ class PropertyCard extends StatelessWidget {
     );
 
   }
+<<<<<<< HEAD
 
 }
 Widget _buildCompactDetailItem(String title, String value,BuildContext context) {
@@ -1278,4 +1724,6 @@ Widget _buildInfoChip({
       ),
     ),
   );
+=======
+>>>>>>> 5721484 (24 feb by lokesh)
 }

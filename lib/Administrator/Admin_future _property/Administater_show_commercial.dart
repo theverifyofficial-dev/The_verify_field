@@ -1,23 +1,25 @@
-// PlotListPage (Responsive: Matched building tab UI exactly - search bar, filter buttons (All, Sale, Rent, Open), stats row (plot count only), cards with images (no live badge), title (mainAddress), detail rows (Location, Plot Size, Price, Status, Address) using _DetailRow with bold values, Plot ID at bottom right, count no badge, missing fields; dynamic sizing via MediaQuery/clamp; left column: image only (no total), right: title + details; ensured no overflow)
 import 'dart:async';
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'Plot_detail.dart';
+import 'package:verify_feild_worker/Administrator/Admin_future%20_property/Administater_under_commercial.dart';
+import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 
 
-class PlotListPage extends StatefulWidget {
-  const PlotListPage({super.key, this.fieldworkerNumber = '11'});
-  final String fieldworkerNumber;
+class Administater_Commercial extends StatefulWidget {
+  final String number;
+  const Administater_Commercial({
+    super.key, required this.number});
+
   @override
-  State<PlotListPage> createState() => _PlotListPageState();
+  State<Administater_Commercial> createState() => Administater_CommercialState();
 }
 
-class _PlotListPageState extends State<PlotListPage> {
-  List<PlotPropertyData> _allPlots = [];
-  List<PlotPropertyData> _filteredPlots = [];
+class Administater_CommercialState extends State<Administater_Commercial> {
+  List<CommercialPropertyData> _allProperties = [];
+  List<CommercialPropertyData> _filteredProperties = [];
   bool _isLoading = true;
   TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
@@ -28,7 +30,7 @@ class _PlotListPageState extends State<PlotListPage> {
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
-    _loadPlots();
+    _loadProperties();
   }
 
   @override
@@ -38,17 +40,16 @@ class _PlotListPageState extends State<PlotListPage> {
     super.dispose();
   }
 
-  Future<void> _loadPlots() async {
+  Future<void> _loadProperties() async {
     setState(() {
       _isLoading = true;
     });
     try {
-      final plots = await PlotPropertyApi.fetchForFieldworker(
-          widget.fieldworkerNumber);
+      final properties = await CommercialApi.fetch(widget.number);
       setState(() {
-        _allPlots = plots;
-        _filteredPlots = plots;
-        propertyCount = plots.length;
+        _allProperties = properties;
+        _filteredProperties = properties;
+        propertyCount = properties.length;
         _isLoading = false;
       });
     } catch (e) {
@@ -57,47 +58,58 @@ class _PlotListPageState extends State<PlotListPage> {
       });
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading plots: $e')),
+          SnackBar(content: Text('Error loading commercial properties: $e')),
         );
       }
     }
   }
 
-  Future<void> _refreshData() async {
-    await _loadPlots();
+  Future<void> _refreshProperties() async {
+    await _loadProperties();
   }
 
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
+
     _debounce = Timer(const Duration(milliseconds: 400), () {
       String query = _searchController.text.toLowerCase().trim();
-      List<PlotPropertyData> searchOn = selectedLabel.isEmpty
-          ? _allPlots
-          : _filteredPlots;
-      List<PlotPropertyData> filtered;
+
+      List<CommercialPropertyData> searchOn =
+      selectedLabel.isEmpty ? _allProperties : _filteredProperties;
+
+      List<CommercialPropertyData> filtered;
+
       if (query.isEmpty) {
         filtered = List.from(searchOn);
       } else {
         filtered = searchOn.where((item) {
-          return (item.id?.toString() ?? '').toLowerCase().contains(query) ||
-              (item.plotStatus ?? '').toLowerCase().contains(query) ||
-              (item.mainAddress ?? '').toLowerCase().contains(query) ||
-              (item.currentLocation ?? '').toLowerCase().contains(query) ||
-              (item.plotSize ?? '').toLowerCase().contains(query) ||
-              (item.plotPrice ?? '').toLowerCase().contains(query) ||
-              (item.fieldAddress ?? '').toLowerCase().contains(query) ||
-              (item.roadSize ?? '').toLowerCase().contains(query) ||
-              (item.propertyRent ?? '').toLowerCase().contains(query) ||
-              (item.fieldworkarName ?? '').toLowerCase().contains(query) ||
-              (item.fieldworkarNumber ?? '').toLowerCase().contains(query);
+          return
+            (item.listing_type ?? '').toLowerCase().contains(query) ||
+                (item.location_ ?? '').toLowerCase().contains(query) ||
+                (item.current_location ?? '').toLowerCase().contains(query) ||
+                (item.property_type ?? '').toLowerCase().contains(query) ||
+                (item.build_up_area ?? '').toLowerCase().contains(query) ||
+                (item.carpet_area ?? '').toLowerCase().contains(query) ||
+                (item.price ?? '').toLowerCase().contains(query) ||
+                (item.total_floor ?? '').toLowerCase().contains(query) ||
+                (item.parking_faciltiy ?? '').toLowerCase().contains(query) ||
+                (item.amenites_.join(', ').toLowerCase().contains(query)) ||
+                (item.field_workar_name ?? '').toLowerCase().contains(query) ||
+                (item.field_workar_number ?? '').toLowerCase().contains(
+                    query) ||
+                (item.Description ?? '').toLowerCase().contains(query) ||
+                (item.width_ ?? '').toLowerCase().contains(query) ||
+                (item.height_ ?? '').toLowerCase().contains(query);
         }).toList();
       }
+
       setState(() {
-        _filteredPlots = filtered;
+        _filteredProperties = filtered;
         propertyCount = filtered.length;
       });
     });
   }
+
 
   Color _getIconColor(IconData icon, ThemeData theme) {
     final cs = theme.colorScheme;
@@ -108,12 +120,14 @@ class _PlotListPageState extends State<PlotListPage> {
         return Colors.orange;
       case Icons.attach_money:
         return Colors.green;
-      case Icons.info:
-        return Colors.indigo;
-      case Icons.home:
-        return Colors.brown;
-      case Icons.badge:
+      case Icons.apartment:
+        return Colors.blue;
+      case Icons.layers:
+        return Colors.teal;
+      case Icons.numbers:
         return Colors.cyan;
+      case Icons.handshake_outlined:
+        return Colors.orangeAccent;
       default:
         return cs.primary;
     }
@@ -131,19 +145,25 @@ class _PlotListPageState extends State<PlotListPage> {
         .width;
     final isTablet = screenWidth > 600;
     return RefreshIndicator(
-      onRefresh: _refreshData,
+      onRefresh: _refreshProperties,
       child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          iconTheme: IconThemeData(color: Colors.white),
+          title: Image.asset(
+            AppImages.transparent,height: 40,),
+          centerTitle: true,),
         body: _isLoading
-            ? Center(child: CircularProgressIndicator())
-            : _buildPlotsTab(isTablet: isTablet,
+            ? const Center(child: CircularProgressIndicator())
+            : _buildCommercialTab(isTablet: isTablet,
             screenWidth: screenWidth,
             screenHeight: screenHeight),
       ),
     );
   }
 
-  // Plots tab ke liye UI (matched to buildings tab structure)
-  Widget _buildPlotsTab({
+  // Commercial tab ke liye UI (matched to buildings tab structure)
+  Widget _buildCommercialTab({
     required bool isTablet,
     required double screenWidth,
     required double screenHeight,
@@ -190,7 +210,7 @@ class _PlotListPageState extends State<PlotListPage> {
                       fontWeight: FontWeight.w500,
                     ),
                     decoration: InputDecoration(
-                      hintText: 'Search plots...',
+                      hintText: 'Search commercial properties...',
                       hintStyle: TextStyle(
                           color: Colors.grey.shade600,
                           fontSize: isTablet ? 18 : 16
@@ -216,8 +236,8 @@ class _PlotListPageState extends State<PlotListPage> {
                           onPressed: () {
                             _searchController.clear();
                             selectedLabel = '';
-                            _filteredPlots = _allPlots;
-                            propertyCount = _allPlots.length;
+                            _filteredProperties = _allProperties;
+                            propertyCount = _allProperties.length;
                             setState(() {});
                           },
                         )
@@ -261,9 +281,12 @@ class _PlotListPageState extends State<PlotListPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     'All',
-                    'Sale',
                     'Rent',
-                    'Open',
+                    'Sell',
+                    'Office',
+                    'Retail shop',
+                    'Warehouse',
+                    'Plot',
                   ]
                       .map((label) {
                     final isSelected = label == selectedLabel;
@@ -280,28 +303,26 @@ class _PlotListPageState extends State<PlotListPage> {
                           _searchController.clear();
                           _debounce?.cancel();
 
-                          List<PlotPropertyData> filtered = [];
+                          List<CommercialPropertyData> filtered = [];
 
                           if (label == 'All') {
-                            filtered = List.from(_allPlots);
-                          } else if (label == 'Sale' || label == 'Rent') {
-                            filtered = _allPlots.where((item) {
-                              final status = (item.plotStatus ?? '')
+                            filtered = List.from(_allProperties);
+                          } else if (label == 'Rent' || label == 'Sell') {
+                            filtered = _allProperties.where((item) {
+                              final value = (item.listing_type ?? '')
                                   .toLowerCase();
-                              final rent = (item.propertyRent ?? '')
-                                  .toLowerCase();
-                              return status.contains(label.toLowerCase()) ||
-                                  rent.contains(label.toLowerCase());
+                              return value == label.toLowerCase();
                             }).toList();
-                          } else if (label == 'Open') {
-                            filtered = _allPlots.where((item) {
-                              final open = (item.plotOpen ?? '').toLowerCase();
-                              return open.contains('open');
+                          } else {
+                            filtered = _allProperties.where((item) {
+                              final value = (item.property_type ?? '')
+                                  .toLowerCase();
+                              return value == label.toLowerCase();
                             }).toList();
                           }
 
                           setState(() {
-                            _filteredPlots = filtered;
+                            _filteredProperties = filtered;
                             propertyCount = filtered.length;
                           });
                         },
@@ -342,7 +363,7 @@ class _PlotListPageState extends State<PlotListPage> {
                               color: isDark ? Colors.transparent : Colors.grey,
                               width: 1.5
                           ),
-                          color: Colors.white,
+                          color: isDark ? Colors.grey[800] : Colors.white,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
@@ -352,11 +373,11 @@ class _PlotListPageState extends State<PlotListPage> {
                                 color: Colors.green),
                             SizedBox(width: isTablet ? 8 : 6),
                             Text(
-                              "$propertyCount plots found",
+                              "$propertyCount commercial properties found",
                               style: TextStyle(
                                   fontWeight: FontWeight.w500,
                                   fontSize: isTablet ? 16 : 14,
-                                  color: Colors.black),
+                                  color: isDark ? Colors.white : Colors.black),
                             ),
                             SizedBox(width: isTablet ? 8 : 6),
                             GestureDetector(
@@ -364,8 +385,8 @@ class _PlotListPageState extends State<PlotListPage> {
                                 setState(() {
                                   _searchController.clear();
                                   selectedLabel = '';
-                                  _filteredPlots = _allPlots;
-                                  propertyCount = _allPlots.length;
+                                  _filteredProperties = _allProperties;
+                                  propertyCount = _allProperties.length;
                                 });
                               },
                               child: Icon(
@@ -385,7 +406,7 @@ class _PlotListPageState extends State<PlotListPage> {
             ],
           ),
         ),
-        if (_filteredPlots.isEmpty)
+        if (_filteredProperties.isEmpty)
           Expanded(
             child: Center(
               child: Column(
@@ -398,7 +419,7 @@ class _PlotListPageState extends State<PlotListPage> {
                   ),
                   SizedBox(height: isTablet ? 20 : 16),
                   Text(
-                    "No plots found",
+                    "No commercial properties found",
                     style: TextStyle(
                       fontSize: isTablet ? 22 : 18,
                       color: Colors.grey[600],
@@ -421,10 +442,10 @@ class _PlotListPageState extends State<PlotListPage> {
           Expanded(
             child: ListView.builder(
               padding: EdgeInsets.symmetric(horizontal: isTablet ? 24 : 16),
-              itemCount: _filteredPlots.length,
+              itemCount: _filteredProperties.length,
               itemBuilder: (context, index) {
-                final property = _filteredPlots[index];
-                final displayIndex = _filteredPlots.length - index;
+                final property = _filteredProperties[index];
+                final displayIndex = _filteredProperties.length - index;
                 final theme = Theme.of(context);
                 final cs = theme.colorScheme;
                 final isDark = theme.brightness == Brightness.dark;
@@ -436,9 +457,8 @@ class _PlotListPageState extends State<PlotListPage> {
                     .of(context)
                     .size
                     .width;
-                final isSmallScreen = screenWidth < 400;
 
-                final images = _buildMultipleImages(property);
+                final List<String> images = _buildMultipleImages(property);
 
                 final double cardPadding = (screenWidth * 0.03).clamp(
                     8.0, 20.0);
@@ -449,52 +469,10 @@ class _PlotListPageState extends State<PlotListPage> {
                 final double imageH = (screenHeight * 0.29).clamp(150.0, 250.0);
                 final double multiH = imageH * 0.8;
 
-                // Calculate missing fields
-                bool _isNullOrEmpty(String? value) =>
-                    value == null || value
-                        .trim()
-                        .isEmpty;
-
-                final Map<String, dynamic> fields = {
-                  "Plot Size": property.plotSize,
-                  "Plot Front Size": property.plotFrontSize,
-                  "Plot Side Size": property.plotSideSize,
-                  "Road Size": property.roadSize,
-                  "Plot Open": property.plotOpen,
-                  "Age of Property": property.ageOfProperty,
-                  "Water Connection": property.waterConnection,
-                  "Electric Price": property.electricPrice,
-                  "Plot Price": property.plotPrice,
-                  "Plot Status": property.plotStatus,
-                  "Property Chain": property.propertyChain,
-                  "Field Address": property.fieldAddress,
-                  "Main Address": property.mainAddress,
-                  "Current Location": property.currentLocation,
-                  "Longitude": property.longitude,
-                  "Latitude": property.latitude,
-                  "Fieldworker Name": property.fieldworkarName,
-                  "Fieldworker Number": property.fieldworkarNumber,
-                  "Property Rent": property.propertyRent,
-                };
-
-                final missingFields = fields.entries
-                    .where((entry) {
-                  final value = entry.value;
-                  if (value == null) return true;
-                  if (value is String && value
-                      .trim()
-                      .isEmpty) return true;
-                  return false;
-                })
-                    .map((entry) => entry.key)
-                    .toList();
-
-                final hasMissingFields = missingFields.isNotEmpty;
-
-                final Widget plotDetail = _DetailRow(
-                  icon: Icons.badge,
-                  label: 'Plot ID',
-                  value: property.id.toString() ?? 'N/A',
+                final Widget commercialDetail = _DetailRow(
+                  icon: Icons.numbers,
+                  label: 'Commercial ID',
+                  value: property.id?.toString() ?? 'N/A',
                   theme: theme,
                   getIconColor: _getIconColor,
                   maxLines: 1,
@@ -511,57 +489,64 @@ class _PlotListPageState extends State<PlotListPage> {
                   isTablet: isTablet,
                 );
 
-                // Priority detail rows: location, plot size, price, status, address (no buy/rent/residence/age/date for plots)
+                // Priority detail rows: location, listing type, property type, area, rent, floors
                 final List<Widget> detailRows = [];
-                if ((property.currentLocation ?? '').isNotEmpty) {
+                if ((property.location_ ?? '').isNotEmpty) {
                   detailRows.add(_DetailRow(
                     icon: Icons.location_on,
                     label: 'Location',
-                    value: property.currentLocation!,
+                    value: property.location_!,
                     theme: theme,
                     getIconColor: _getIconColor,
                     fontSize: detailFontSize,
                     fontWeight: FontWeight.bold,
                   ));
                 }
-                if ((property.plotSize ?? '').isNotEmpty) {
+                detailRows.add(_DetailRow(
+                  icon: Icons.handshake_outlined,
+                  label: '',
+                  value: property.listing_type ?? 'N/A',
+                  theme: theme,
+                  getIconColor: _getIconColor,
+                  fontSize: detailFontSize,
+                  fontWeight: FontWeight.bold,
+                ));
+                detailRows.add(_DetailRow(
+                  icon: Icons.apartment,
+                  label: '',
+                  value: property.property_type ?? 'N/A',
+                  theme: theme,
+                  getIconColor: _getIconColor,
+                  fontSize: detailFontSize,
+                  fontWeight: FontWeight.bold,
+                ));
+                if ((property.build_up_area ?? '').isNotEmpty) {
                   detailRows.add(_DetailRow(
                     icon: Icons.square_foot,
-                    label: 'Plot Size',
-                    value: property.plotSize!,
+                    label: 'Area',
+                    value: property.build_up_area!,
                     theme: theme,
                     getIconColor: _getIconColor,
                     fontSize: detailFontSize,
                     fontWeight: FontWeight.bold,
                   ));
                 }
-                if ((property.plotPrice ?? '').isNotEmpty) {
+                if ((property.price ?? '').isNotEmpty) {
                   detailRows.add(_DetailRow(
                     icon: Icons.attach_money,
-                    label: 'Price',
-                    value: property.plotPrice!,
+                    label: 'Rent',
+                    value: property.price!,
                     theme: theme,
                     getIconColor: _getIconColor,
                     fontSize: detailFontSize,
                     fontWeight: FontWeight.bold,
                   ));
                 }
-                if ((property.plotStatus ?? '').isNotEmpty) {
+                if ((property.total_floor ?? '').isNotEmpty) {
                   detailRows.add(_DetailRow(
-                    icon: Icons.info,
-                    label: 'Status',
-                    value: property.plotStatus!,
-                    theme: theme,
-                    getIconColor: _getIconColor,
-                    fontSize: detailFontSize,
-                    fontWeight: FontWeight.bold,
-                  ));
-                }
-                if ((property.fieldAddress ?? '').isNotEmpty) {
-                  detailRows.add(_DetailRow(
-                    icon: Icons.home,
-                    label: 'Address',
-                    value: property.fieldAddress!,
+                    icon: Icons.layers,
+                    label: 'Floors',
+                    value: property.total_floor!,
                     theme: theme,
                     getIconColor: _getIconColor,
                     fontSize: detailFontSize,
@@ -573,7 +558,6 @@ class _PlotListPageState extends State<PlotListPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     imageSection,
-                    // No total flats for plots, so empty space or omit
                   ],
                 );
 
@@ -583,8 +567,8 @@ class _PlotListPageState extends State<PlotListPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        property.mainAddress ?? property.fieldAddress ??
-                            property.currentLocation ?? 'No Title',
+                        property.location_ ?? property.current_location ??
+                            'No Title',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           fontSize: titleFontSize,
@@ -596,12 +580,12 @@ class _PlotListPageState extends State<PlotListPage> {
                       // Render detail rows
                       ...detailRows,
                       const Spacer(),
-                      // Shift Plot ID to the right
+                      // Shift Commercial ID to the right
                       Align(
                         alignment: Alignment.centerRight,
                         child: SizedBox(
                           width: double.infinity,
-                          child: plotDetail,
+                          child: commercialDetail,
                         ),
                       ),
                     ],
@@ -610,38 +594,48 @@ class _PlotListPageState extends State<PlotListPage> {
 
                 return GestureDetector(
                   onTap: () {
-                    final data = PlotPropertyData(
-                      id: property.id,
-                      plotSize: property.plotSize,
-                      plotPrice: property.plotPrice,
-                      fieldAddress: property.fieldAddress,
-                      mainAddress: property.mainAddress,
-                      plotFrontSize: property.plotFrontSize,
-                      plotSideSize: property.plotSideSize,
-                      roadSize: property.roadSize,
-                      plotOpen: property.plotOpen,
-                      ageOfProperty: property.ageOfProperty,
-                      waterConnection: property.waterConnection,
-                      electricPrice: property.electricPrice,
-                      plotStatus: property.plotStatus,
-                      propertyChain: property.propertyChain,
-                      currentLocation: property.currentLocation,
-                      longitude: property.longitude,
-                      latitude: property.latitude,
-                      fieldworkarNumber: property.fieldworkarNumber,
-                      fieldworkarName: property.fieldworkarName,
-                      propertyRent: property.propertyRent,
-                      singleImageUrl: property.singleImageUrl,
-                      imageUrls: property.imageUrls,
-                      Description: property.Description,
+                    final imagesList = _buildMultipleImages(property);
+
+                    final data = CommercialPropertyData(
+                      listing_type: property.listing_type,
+                      property_type: property.property_type,
+                      parking_faciltiy: property.parking_faciltiy,
+                      total_floor: property.total_floor,
+                      location_: property.location_ ?? '',
+                      current_location: property.current_location ?? '',
+                      avaible_date: property.avaible_date ?? '',
+                      build_up_area: property.build_up_area ?? '',
+                      carpet_area: property.carpet_area ?? '',
+                      dimmensions_: property.dimmensions_ ?? '',
+                      height_: property.height_ ?? '',
+                      width_: property.width_ ?? '',
+                      price: property.price ?? '',
+                      Description: property.Description ?? '',
+
+                      field_workar_name: property.field_workar_name ?? '',
+                      field_workar_number: property.field_workar_number ?? '',
+
+                      /// ✅ SAFE AMENITIES FIX
+                      amenites_: property.amenites_,
+
+                      /// ✅ IMAGE FIX
+                      image_: imagesList.isNotEmpty ? imagesList.first : null,
+                      images: imagesList,
+                      id: 0,
+                      latitude: '',
+                      longitude: '',
                     );
+
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) =>
-                            PlotPropertyDisplayPage(propertyData: data),
+                        Administater_CommercialUnderProperty(
+                          property: property,
+                            ),
                       ),
                     );
                   },
+
                   child: Card(
                     margin: EdgeInsets.symmetric(
                         horizontal: horizontalMargin,
@@ -675,31 +669,6 @@ class _PlotListPageState extends State<PlotListPage> {
                                   ],
                                 ),
                               ),
-                              if (hasMissingFields)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 8.0),
-                                  child: Container(
-                                    width: double.infinity,
-                                    padding: EdgeInsets.all(isTablet ? 8 : 6),
-                                    decoration: BoxDecoration(
-                                      color: cs.errorContainer,
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(color: cs.error),
-                                    ),
-                                    child: Text(
-                                      "⚠ Missing: ${missingFields.join(', ')}",
-                                      textAlign: TextAlign.center,
-                                      style: theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                        color: cs.error,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: detailFontSize,
-                                      ),
-                                      maxLines: 5,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ),
                             ],
                           ),
                         ),
@@ -752,7 +721,7 @@ class _PlotListPageState extends State<PlotListPage> {
           borderRadius: BorderRadius.circular(12),
         ),
         child: const Icon(
-          Icons.landscape,
+          Icons.storefront,
           size: 90,
           color: Colors.grey,
         ),
@@ -761,22 +730,20 @@ class _PlotListPageState extends State<PlotListPage> {
       imageWidget = ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: SizedBox(
-          height: imageHeight,
-          width: double.infinity,
-          child: CachedNetworkImage(
-            imageUrl: images.first,
-            fit: BoxFit.cover,
-            placeholder: (_, __) =>
-            const Center(
-              child: SizedBox(
-                height: 50,
-                width: 50,
-                child: CircularProgressIndicator(strokeWidth: 2),
+            height: imageHeight,
+            width: double.infinity,
+            child:
+            CachedNetworkImage(
+              imageUrl: images.first,
+              fit: BoxFit.cover,
+              placeholder: (_, __) =>
+              const Center(
+                child: CircularProgressIndicator(),
               ),
-            ),
-            errorWidget: (_, __, ___) =>
-                Icon(Icons.broken_image, color: cs.error, size: 90),
-          ),
+              errorWidget: (_, __, ___) =>
+                  Icon(Icons.broken_image, color: cs.error, size: 70),
+            )
+
         ),
       );
     } else {
@@ -873,30 +840,27 @@ class _PlotListPageState extends State<PlotListPage> {
     return Stack(
       children: [
         imageWidget,
-        // No live badge for plots
+        // No live badge for commercial
       ],
     );
   }
 
-  // Fallback logic: use `images` array if API provides; else fallback to single_image
-  List<String> _buildMultipleImages(PlotPropertyData p) {
+  // Fallback logic: use single image
+  List<String> _buildMultipleImages(CommercialPropertyData p) {
     final List<String> imgs = [];
 
-    // ✅ Add single image first
-    if (p.singleImageUrl != null &&
-        p.singleImageUrl!.isNotEmpty) {
-      imgs.add(p.singleImageUrl!);
+    if (p.image_ != null && p.image_!.trim().isNotEmpty) {
+      imgs.add(p.image_!);
     }
 
-    // ✅ Add multiple images
-    if (p.imageUrls.isNotEmpty) {
-      imgs.addAll(p.imageUrls);
+    if (p.images.isNotEmpty) {
+      imgs.addAll(p.images);
     }
 
     return imgs;
   }
-
 }
+
 
 class _DetailRow extends StatelessWidget {
   final IconData icon;
@@ -969,24 +933,21 @@ class _DetailRow extends StatelessWidget {
     );
   }
 }
-
-
-class PlotPropertyApi {
-  static Uri endpointForFieldworker(String fieldworkerNumber) {
-    final base =
-        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/plot_form_show_api_for_feildworkar.php';
+class CommercialApi {
+  static Uri endpoint(String fieldWorkerNumber) {
+    final base = 'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_api_commercial_property.php';
     return Uri.parse(base).replace(
-      queryParameters: {'fieldworkar_number': fieldworkerNumber},
+      queryParameters: {'field_workar_number': fieldWorkerNumber},
     );
   }
 
-  static Future<List<PlotPropertyData>> fetchForFieldworker(
-      String fieldworkerNumber, {
+  static Future<List<CommercialPropertyData>> fetch(
+      String fieldWorkerNumber, {
         Duration timeout = const Duration(seconds: 30),
       }) async {
-    final uri = endpointForFieldworker(fieldworkerNumber);
-    final response =
-    await http.get(uri, headers: {'accept': 'application/json'}).timeout(timeout);
+    final uri = endpoint(fieldWorkerNumber);
+    final response = await http.get(uri, headers: {'accept': 'application/json'}).timeout(timeout);
+
     if (response.statusCode != 200) {
       final preview = response.body.length > 200
           ? '${response.body.substring(0, 200)}...'
@@ -996,11 +957,12 @@ class PlotPropertyApi {
         uri: uri,
       );
     }
+
     final decoded = json.decode(response.body);
     if (decoded is Map && decoded['success'] == true && decoded['data'] is List) {
       final List list = decoded['data'];
       return list
-          .map((e) => PlotPropertyData.fromJson(e as Map<String, dynamic>))
+          .map((e) => CommercialPropertyData.fromJson(e as Map<String, dynamic>))
           .toList()
           .reversed
           .toList();
@@ -1013,26 +975,6 @@ class HttpException implements Exception {
   final String message;
   final Uri? uri;
   HttpException(this.message, {this.uri});
-
   @override
   String toString() => message;
-}
-
-/// NOTE: ThemeSwitcher is provided from your MyApp (InheritedWidget).
-class ThemeSwitcher extends InheritedWidget {
-  final ThemeMode themeMode;
-  final VoidCallback toggleTheme;
-  const ThemeSwitcher({
-    required this.themeMode,
-    required this.toggleTheme,
-    required Widget child,
-    super.key,
-  }) : super(child: child);
-
-  static ThemeSwitcher? of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<ThemeSwitcher>();
-
-  @override
-  bool updateShouldNotify(covariant ThemeSwitcher oldWidget) =>
-      oldWidget.themeMode != themeMode;
 }

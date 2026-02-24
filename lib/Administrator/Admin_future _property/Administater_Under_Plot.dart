@@ -1,267 +1,396 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:photo_view/photo_view_gallery.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:pdfx/pdfx.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'New_Update/Edit_commercial.dart';
-import 'New_Update/Edit_commercial_images.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
-class CommercialPropertyData {
+class PlotPropertyData {
   final int id;
-  final String? listing_type;
-  final String? property_type;
-  final String? parking_faciltiy;
-  final String? total_floor;
-  final String location_;
-  final String current_location;
-  final String avaible_date;
-  final String build_up_area;
-  final String carpet_area;
-  final String dimmensions_;
-  final String height_;
-  final String width_;
-  final String price;
-  final String Description;
+  final String plotSize;
+  final String plotFrontSize;
+  final String plotSideSize;
+  final String roadSize;
+  final String plotOpen;
+  final String ageOfProperty;
+  final String waterConnection;
+  final String electricPrice;
+  final String plotPrice;
+  final String plotStatus;
+  final String propertyChain;
+  final String fieldAddress;
+  final String mainAddress;
+  final String currentLocation;
   final String longitude;
   final String latitude;
-  final String field_workar_name;
-  final String field_workar_number;
-  final List<String> amenites_;
-  final String? image_;
-  final List<String> images;
+  final String fieldworkarName;
+  final String fieldworkarNumber;
+  final String propertyRent;
+  final String Description;
 
-  CommercialPropertyData({
+  // 🔹 Upload ke liye
+  final XFile? singleImage;
+  final List<XFile> selectedImages;
+
+  // 🔹 Display ke liye
+  final String? singleImageUrl;
+  final List<String> imageUrls;
+
+  PlotPropertyData({
     required this.id,
-    required this.latitude,
+    required this.plotSize,
+    required this.plotFrontSize,
+    required this.plotSideSize,
+    required this.roadSize,
+    required this.plotOpen,
+    required this.ageOfProperty,
+    required this.waterConnection,
+    required this.electricPrice,
+    required this.plotPrice,
+    required this.plotStatus,
+    required this.propertyChain,
+    required this.fieldAddress,
+    required this.mainAddress,
+    required this.currentLocation,
     required this.longitude,
-    this.listing_type,
-    this.property_type,
-    this.parking_faciltiy,
-    this.total_floor,
-    required this.location_,
-    required this.current_location,
-    required this.avaible_date,
-    required this.build_up_area,
-    required this.carpet_area,
-    required this.dimmensions_,
-    required this.height_,
-    required this.width_,
-    required this.price,
+    required this.latitude,
+    required this.fieldworkarName,
+    required this.fieldworkarNumber,
+    required this.propertyRent,
     required this.Description,
-    required this.field_workar_name,
-    required this.field_workar_number,
-    required this.amenites_,
-    this.image_,
-    required this.images,
+    this.singleImage,
+    this.selectedImages = const [],
+    this.singleImageUrl,
+    this.imageUrls = const [],
   });
 
-  factory CommercialPropertyData.fromJson(Map<String, dynamic> json) {
+  // ================= FROM JSON (FETCH) =================
+
+  factory PlotPropertyData.fromJson(Map<String, dynamic> json) {
     const baseUrl =
         "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/";
 
-    return CommercialPropertyData(
-      id: json['id'],
-      listing_type: json['listing_type'],
-      property_type: json['property_type'],
-      parking_faciltiy: json['parking_faciltiy'],
-      total_floor: json['total_floor'],
-      location_: json['location_'] ?? '',
-      current_location: json['current_location'] ?? '',
-      avaible_date: json['avaible_date'] ?? '',
-      build_up_area: json['build_up_area'] ?? '',
-      carpet_area: json['carpet_area'] ?? '',
-      dimmensions_: json['dimmensions_'] ?? '',
-      height_: json['height_'] ?? '',
-      width_: json['width_'] ?? '',
-      price: json['price'] ?? '',
-      Description: json['Description'] ?? '',
-      longitude: json['longitude'] ?? '',
-      latitude: json['latitude'] ?? '',
-      field_workar_name: json['field_workar_name'] ?? '',
-      field_workar_number: json['field_workar_number'] ?? '',
+    return PlotPropertyData(
+      id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
 
-      amenites_: json['amenites_'] == null
+      plotSize: json['plot_size']?.toString() ?? '',
+      plotFrontSize: json['plot_front_size']?.toString() ?? '',
+      plotSideSize: json['plot_side_size']?.toString() ?? '',
+      roadSize: json['road_size']?.toString() ?? '',
+      plotOpen: json['plot_open']?.toString() ?? '',
+      ageOfProperty: json['age_of_property']?.toString() ?? '',
+      waterConnection: json['water_connection']?.toString() ?? '',
+      electricPrice: json['electric_price']?.toString() ?? '',
+      plotPrice: json['plot_price']?.toString() ?? '',
+      plotStatus: json['plot_status']?.toString() ?? '',
+      propertyChain: json['property_chain']?.toString() ?? '',
+      fieldAddress: json['field_address']?.toString() ?? '',
+      mainAddress: json['main_address']?.toString() ?? '',
+      currentLocation: json['current_location']?.toString() ?? '',
+      longitude: json['longitude']?.toString() ?? '',
+      latitude: json['latitude']?.toString() ?? '',
+      fieldworkarName: json['fieldworkar_name']?.toString() ?? '',
+      fieldworkarNumber: json['fieldworkar_number']?.toString() ?? '',
+      propertyRent: json['property_rent']?.toString() ?? '',
+      Description: json['Description']?.toString() ?? '',
+
+      // ✅ Single Image
+      singleImageUrl: json['single_image'] != null &&
+          json['single_image']
+              .toString()
+              .isNotEmpty
+          ? baseUrl + json['single_image']
+          : null,
+
+      // ✅ Multiple Images
+      imageUrls: json['images'] == null
           ? []
-          : json['amenites_'].toString().split(','),
-
-      /// 🔥 SINGLE IMAGE FIX
-      image_: json['image_'] != null && json['image_']
+          : json['images'] is List
+          ? (json['images'] as List)
+          .where((e) =>
+      e != null && e
+          .toString()
+          .isNotEmpty)
+          .map((e) => baseUrl + e.toString().trim())
+          .toList()
+          : json['images']
           .toString()
           .isNotEmpty
-          ? (json['image_'].toString().startsWith("http")
-          ? json['image_']
-          : baseUrl + json['image_'])
-          : null,
-      images: [],
+          ? json['images']
+          .toString()
+          .split(RegExp(r'[;,]'))
+          .where((e) => e.isNotEmpty)
+          .map((e) => baseUrl + e.trim())
+          .toList()
+          : [],
     );
   }
 
-  Map<String, dynamic> toMap() {
+  // ================= TO MAP (OPTIONAL) =================
+
+  Map<String, String> toFieldsMap() {
     return {
-      "id": id,
-      "listing_type": listing_type,
-      "property_type": property_type,
-      "parking_faciltiy": parking_faciltiy,
-      "total_floor": total_floor,
-      "location_": location_,
-      "current_location": current_location,
-      "avaible_date": avaible_date,
-      "build_up_area": build_up_area,
-      "carpet_area": carpet_area,
-      "dimmensions_": dimmensions_,
-      "height_": height_,
-      "width_": width_,
-      "price": price,
-      "Description": Description,
-      "longitude": longitude,
-      "latitude": latitude,
-      "field_workar_name": field_workar_name,
-      "field_workar_number": field_workar_number,
-      "amenites_": amenites_.join(","),
+      'plot_size': plotSize,
+      'plot_front_size': plotFrontSize,
+      'plot_side_size': plotSideSize,
+      'road_size': roadSize,
+      'plot_open': plotOpen,
+      'age_of_property': ageOfProperty,
+      'water_connection': waterConnection,
+      'electric_price': electricPrice,
+      'plot_price': plotPrice,
+      'plot_status': plotStatus,
+      'property_chain': propertyChain,
+      'field_address': fieldAddress,
+      'main_address': mainAddress,
+      'current_location': currentLocation,
+      'longitude': longitude,
+      'latitude': latitude,
+      'fieldworkar_name': fieldworkarName,
+      'fieldworkar_number': fieldworkarNumber,
+      'property_rent': propertyRent,
+      'Description': Description,
     };
   }
+}
 
-  /// copyWith to update multiple images later
-  CommercialPropertyData copyWith({List<String>? images}) {
-    return CommercialPropertyData(
-      id: id,
-      listing_type: listing_type,
-      property_type: property_type,
-      parking_faciltiy: parking_faciltiy,
-      total_floor: total_floor,
-      location_: location_,
-      current_location: current_location,
-      avaible_date: avaible_date,
-      build_up_area: build_up_area,
-      carpet_area: carpet_area,
-      dimmensions_: dimmensions_,
-      height_: height_,
-      width_: width_,
-      price: price,
-      Description: Description,
-      longitude: longitude,
-      latitude: latitude,
-      field_workar_name: field_workar_name,
-      field_workar_number: field_workar_number,
-      amenites_: amenites_,
-      image_: image_,
-      images: images ?? this.images,
+// ------------------ SERVICE ------------------
+class PropertyService {
+  static const String _host = 'verifyserve.social';
+  static const String _path =
+      'Second PHP FILE/main_realestate/plot_form_show_api_for_feildworkar.php';
+
+  static Future<List<PlotPropertyData>> fetchPlotsForFieldworker(
+      String fieldworkarNumber) async {
+    final clean = fieldworkarNumber.replaceAll(RegExp(r'[^0-9]'), '');
+    if (clean.isEmpty) {
+      throw Exception('Fieldworker number is empty');
+    }
+
+    // Safe URI: spaces in "Second PHP FILE" will be %20 encoded automatically
+    final uri = Uri.https(
+      _host,
+      _path,
+      {'fieldworkar_number': clean}, // <-- correct param name
     );
+
+    late http.Response resp;
+    try {
+      resp = await http
+          .get(
+        uri,
+        headers: {
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache',
+        },
+      )
+          .timeout(const Duration(seconds: 20));
+    } on SocketException {
+      throw Exception('No internet connection');
+    } on TimeoutException {
+      throw Exception('Request timed out');
+    } on HttpException catch (e) {
+      throw Exception('HTTP exception: $e');
+    }
+
+    if (resp.statusCode != 200) {
+      final body = resp.body;
+      final preview = body.substring(0, body.length < 400 ? body.length : 400);
+      throw Exception('Server error ${resp.statusCode}. URL: $uri\n$preview');
+    }
+
+    Map<String, dynamic> jsonResponse;
+    try {
+      jsonResponse = json.decode(resp.body.trim()) as Map<String, dynamic>;
+    } catch (e) {
+      final body = resp.body;
+      final preview = body.substring(0, body.length < 400 ? body.length : 400);
+      throw Exception('Invalid JSON from server. URL: $uri\nError: $e\nBody (first 400): $preview');
+    }
+
+    if (jsonResponse['success'] != true) {
+      final msg = (jsonResponse['message'] ?? 'Unknown server message').toString();
+      throw Exception('API success=false. Message: $msg');
+    }
+
+    final data = jsonResponse['data'];
+    if (data is! List) {
+      throw Exception('API returned unexpected shape for "data".');
+    }
+
+    return data
+        .map<PlotPropertyData>(
+            (e) => PlotPropertyData.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }
 
+// ------------------ DISPLAY PAGE ------------------
+class Administater_Under_Plot extends StatefulWidget {
+  final PlotPropertyData? propertyData;
+  final String? fieldworkarNumber;
 
-class CommercialUnderProperty extends StatefulWidget {
-  final CommercialPropertyData property;
-
-  CommercialUnderProperty({required this.property});
+  const Administater_Under_Plot({
+    Key? key,
+    this.propertyData,
+    this.fieldworkarNumber,
+  }) : super(key: key);
 
   @override
-  _CommercialUnderPropertyState createState() =>
-      _CommercialUnderPropertyState();
+  State<Administater_Under_Plot> createState() =>
+      Administater_Under_PlotState();
 }
-class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
-  List<String> images = [];
 
-  late CommercialPropertyData property;
+class Administater_Under_PlotState
+    extends State<Administater_Under_Plot> {
+
+  List<String> _multipleImages = [];
+  bool _isImageLoading = true;
+  bool _isExpanded = false;
   bool isExpandedDesc = false;
 
-
-  final String  baseUrl =
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/commercial_mulitple_image/";
-
+  PlotPropertyData? _currentData;
+  bool _isLoading = false;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    property = widget.property;   // ⭐ local state copy
-    fetchMultipleImages(widget.property.id);
+    _currentData = widget.propertyData;
+    _fetchMultipleImages();
   }
 
-  Future<void> fetchMultipleImages(int id) async {
+
+  Future<void> _fetchMultipleImages() async {
+    if (_currentData == null || _currentData!.id == 0) {
+      setState(() {
+        _isImageLoading = false;
+      });
+      return;
+    }
+
     final url =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_commercial_multiple_image.php?sub_id=$id&t=${DateTime.now().millisecondsSinceEpoch}";
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_plot_multiple_image.php?sub_id=${_currentData!.id}";
 
-    final response = await http.get(Uri.parse(url));
+    try {
+      final response = await http.get(Uri.parse(url));
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
 
-      if (data['success'] == true && data['data'] != null) {
-        List imgs = data['data'];
+        if (jsonData['success'] == true) {
 
-        const baseUrl =
-            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/";
+          List imagesData = jsonData['data'] ?? [];
 
-        List<String> imageUrls = [];
+          List<String> images = imagesData.map<String>((e) {
+            return "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${e['p_image']}";
+          }).toList();
 
-        for (var item in imgs) {
-          if (item['img'] != null && item['img'].toString().isNotEmpty) {
-            imageUrls.add(baseUrl + item['img']);
-          }
+          setState(() {
+            _multipleImages = images;
+            _isImageLoading = false;
+          });
+
+        } else {
+          setState(() {
+            _isImageLoading = false;
+          });
         }
-
+      } else {
         setState(() {
-          images = List<String>.from(imageUrls);
+          _isImageLoading = false;
         });
       }
+    } catch (e) {
+      setState(() {
+        _isImageLoading = false;
+      });
     }
   }
 
   Future<void> _refreshProperty() async {
     try {
-      var uri = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/get_single_commercial.php?id=${property.id}&t=${DateTime.now().millisecondsSinceEpoch}");
+      setState(() {
+        _isLoading = true;
+      });
 
-      var response = await http.get(uri);
+      final data = await PropertyService.fetchPlotsForFieldworker(
+        _currentData!.fieldworkarNumber,
+      );
 
-      if (response.statusCode == 200) {
-        var res = jsonDecode(response.body);
+      final updated = data.firstWhere(
+            (e) => e.id == _currentData!.id,
+        orElse: () => _currentData!,
+      );
 
-        if (res["status"] == "success") {
-          final updated = CommercialPropertyData.fromJson(res["data"]);
+      setState(() {
+        _currentData = updated;
+        _isLoading = false;
+      });
 
-          setState(() {
-            property = updated;
-            images = [];
-          });
-
-          await fetchMultipleImages(updated.id);
-
-          setState(() {});
-        }
-      }
+      _fetchMultipleImages();
     } catch (e) {
-      _showSnack("$e");
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
-  void _showSnack(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg)),
+  List<String> get _allImages {
+    final imgs = <String>[];
+
+    if (_currentData!.singleImageUrl != null &&
+        _currentData!.singleImageUrl!.isNotEmpty) {
+      imgs.add(_currentData!.singleImageUrl!);
+    }
+
+    imgs.addAll(_multipleImages); // ⭐ IMPORTANT FIX
+    return imgs;
+  }
+
+  void _showSingleImage(String imageUrl) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: Colors.black,
+          body: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Center(
+              child: InteractiveViewer(
+                minScale: 1,
+                maxScale: 4,
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.contain,
+                  errorWidget: (_, __, ___) => Icon(
+                    Icons.broken_image,
+                    color: Colors.white,
+                    size: 50,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
-
-  String formatPrice(String price) {
-    final p = double.tryParse(price) ?? 0;
-    if (p >= 10000000) return "₹ ${(p / 10000000).toStringAsFixed(2)} Cr";
-    if (p >= 100000) return "₹ ${(p / 100000).toStringAsFixed(2)} L";
-    return "₹ $price";
-  }
-
   openMap() async {
-    final lat = property.latitude;
-    final lng = property.longitude;
+    final lat = _currentData!.latitude;
+    final lng = _currentData!.longitude;
     final url = "https://www.google.com/maps/search/?api=1&query=$lat,$lng";
     await launchUrl(Uri.parse(url));
   }
 
   openWhatsapp() async {
-    final phone = property.field_workar_number;
+    final phone = _currentData!.fieldworkarNumber;
     await launchUrl(Uri.parse("https://wa.me/$phone"));
   }
 
@@ -271,7 +400,7 @@ class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
     String last = number.substring(number.length - 4);
     return "$first****$last";
   }
-  
+
   /// ⭐ FIXED FULLSCREEN GALLERY
   openGallery(List<String> allImages, int index) {
     Navigator.push(
@@ -292,6 +421,7 @@ class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
       ),
     );
   }
+
 
 
   @override
@@ -316,12 +446,14 @@ class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
     final fontScale =
     isSmallScreen ? 0.9 : (isTablet ? 1.1 : 1.0);
 
-    final p = property;
+    if (_currentData == null) {
+      return const Scaffold(
+        body: Center(child: Text("No Data")),
+      );
+    }
+    final images = _allImages;
 
-    final allImages = [
-      if (p.image_ != null && p.image_!.isNotEmpty) p.image_!,
-      ...images,
-    ];
+
     Widget buildResponsiveInfoGrid(
         List<Widget> infoRows) {
       return LayoutBuilder(
@@ -622,8 +754,8 @@ class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
     }
 
     Future<void> openMap() async {
-      final lat = double.tryParse(property.latitude);
-      final lng = double.tryParse(property.longitude);
+      final lat = double.tryParse(_currentData!.latitude);
+      final lng = double.tryParse(_currentData!.longitude);
 
       if (lat == null || lng == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -647,10 +779,10 @@ class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
 
     Widget buildLocationCard(String currentLocation) {
       final mapUrlText =
-          "https://maps.google.com/?q=${p.latitude},${p.longitude}";
+          "https://maps.google.com/?q=${_currentData!.latitude},${_currentData!.longitude}";
 
-      final lat = double.tryParse(p.latitude);
-      final lng = double.tryParse(p.longitude);
+      final lat = double.tryParse(_currentData!.latitude);
+      final lng = double.tryParse(_currentData!.longitude);
       final bool hasMap = lat != null && lng != null && lat != 0 && lng != 0;
 
       return Container(
@@ -687,12 +819,6 @@ class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
                       color: Colors.black87,
                     ),
                   ),
-                  const SizedBox(height: 3),
-
-                  // /// ⭐ LOCATION NAME
-                  // Text(currentLocation,
-                  //     style: const TextStyle(color: Colors.black87)),
-
                   const SizedBox(height: 3),
 
                   /// ⭐ URL LINK
@@ -874,8 +1000,8 @@ class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
             const SizedBox(height: 10),
             buildContactCard(
               "FIELD WORKER",
-              property.field_workar_name,
-              property.field_workar_number,
+              _currentData!.fieldworkarName,
+              _currentData!.fieldworkarNumber,
               bgColor: Colors.blue,
             ),
           ],
@@ -900,217 +1026,148 @@ class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
     }
 
     final infoRows = [
-      buildInfoRow(Icons.business, Colors.green, "Property Type", p.property_type ?? "-"),
-      buildInfoRow(Icons.square_foot, Colors.teal, "Build Area", p.build_up_area),
-      buildInfoRow(Icons.crop_square, Colors.indigo, "Carpet Area", p.carpet_area),
-      buildInfoRow(Icons.straighten, Colors.brown, "Dimensions", p.dimmensions_),
-      buildInfoRow(Icons.height, Colors.red, "Height", p.height_),
-      buildInfoRow(Icons.width_full, Colors.deepPurple, "Width", p.width_),
-      buildInfoRow(Icons.local_parking, Colors.pink, "Parking", p.parking_faciltiy ?? "-"),
-      buildInfoRow(Icons.layers, Colors.green, "Floor", p.total_floor ?? "-"),
+      buildInfoRow(Icons.square_foot, Colors.teal, "Plot Size", _currentData!.plotSize),
+      buildInfoRow(Icons.open_with, Colors.indigo, "Front Size", _currentData!.plotFrontSize),
+      buildInfoRow(Icons.swap_horiz, Colors.indigo, "Side Size", _currentData!.plotSideSize),
+      buildInfoRow(Icons.alt_route, Colors.brown, "Road Size", _currentData!.roadSize),
+      buildInfoRow(Icons.water_drop, Colors.blue, "Water Connection", _currentData!.waterConnection),
+      buildInfoRow(Icons.wb_sunny, Colors.orange, "Plot Open", _currentData!.plotOpen),
+      buildInfoRow(Icons.electric_bolt, Colors.purple, "Electric", _currentData!.electricPrice),
+      buildInfoRow(Icons.calendar_today, Colors.black54, "Age Of Property", _currentData!.ageOfProperty),
+      buildInfoRow(Icons.scatter_plot, Colors.black54, "Plot Status", _currentData!.plotStatus),
     ];
 
+    String formatIndianPrice(String price) {
+      if (price.isEmpty) return "";
+
+      final num? value = num.tryParse(price.replaceAll(",", ""));
+      if (value == null) return price;
+
+      if (value >= 10000000) {
+        return "${(value / 10000000).toStringAsFixed(2)} Cr";
+      } else if (value >= 100000) {
+        return "${(value / 100000).toStringAsFixed(2)} Lakh";
+      } else if (value >= 1000) {
+        return "${(value / 1000).toStringAsFixed(2)} K";
+      } else {
+        return value.toString();
+      }
+    }
+
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: RefreshIndicator(
-        onRefresh: _refreshProperty,
-        child:CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-            SliverToBoxAdapter(
-            child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /// ⭐ HEADER IMAGE WITH BUTTONS
-              Stack(
-                children: [
-                  if (p.image_ != null && p.image_!.isNotEmpty)
-                    GestureDetector(
-                      onTap: () => openGallery([p.image_!], 0), // ⭐ FIX
-                      child: CachedNetworkImage(
-                        imageUrl: "${p.image_}?v=${DateTime.now().millisecondsSinceEpoch}",
-                        height: 260,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) {
-                          print("BROKEN HEADER IMAGE => ${p.image_}");
-                          return Container(
-                            height: 260,
-                            color: Colors.grey,
-                            child: Icon(Icons.image_not_supported),
-                          );
-                        },
-                      ),
-                    ),
-                  /// back button
-                  Positioned(
-                    top: 40,
-                    left: 10,
-                    child: CircleAvatar(
-                      backgroundColor: Colors.black54,
-                      child: IconButton(
-                        icon: Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ),
-                  ),
-
-                  /// popup menu
-                  Positioned(
-                    top: MediaQuery.of(context).padding.top + (isSmallScreen ? 4.0 : 8.0),
-                    right: horizontalPadding,
-                    child: CircleAvatar(
-                      radius: isSmallScreen ? 20 : 22,
-                      backgroundColor: Colors.black.withOpacity(0.6),
-                      child:
-                      PopupMenuButton<String>(
-                        splashRadius: 22,
-                        offset: const Offset(0, 45),
-                        onSelected: (value) async {
-                          if (value == 'Edit Commercial') {
-                            if (p != null) {
-
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => EditCommercialForm(
-                                    propertyId: p.id,
-                                    propertyData: p,
-                                  ),
-                                ),
-                              );
-
-                              if (result == true) {
-                                await _refreshProperty();
-                              }
-                            }
-                          }
-
-                          if (value == 'Add Commercial Images') {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => EditCommercialImage(
-                                  sub_id: p.id.toString(),
-                                ),
-                              ),
-                            ).then((value) async {
-                              if (value == true) {
-                                await _refreshProperty();
-                              }
-                            });
-                          }
-                        },
-                        itemBuilder: (context) => const [
-                          PopupMenuItem(
-                            value: 'Edit Commercial',
-                            child: Text('Edit Commercial'),
-                          ),
-                          PopupMenuItem(
-                            value: 'Add Commercial Images',
-                            child: Text('Add Commercial Images'),
-                          ),
-                        ],
-                        icon: Icon(
-                          Icons.more_vert,
-                          color: Colors.white,
-                          size: isSmallScreen ? 22 : 26,
+        onRefresh: _refreshProperty, // ⭐ refresh function
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(), // ⭐ IMPORTANTSingleChildScrollView(
+          child: Column(
+              children: [
+                Stack(
+                  children: [
+                    if (_currentData!.singleImageUrl != null && _currentData!.singleImageUrl!.isNotEmpty)
+                      GestureDetector(
+                        onTap: () => _showSingleImage(_currentData!.singleImageUrl!),
+                        child: CachedNetworkImage(
+                          imageUrl: "${_currentData!.singleImageUrl}?v=${DateTime.now().millisecondsSinceEpoch}",
+                          height: 260,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorWidget: (_, __, ___) {
+                            print("BROKEN HEADER IMAGE => ${_currentData!.singleImageUrl}");
+                            return Container(
+                              height: 260,
+                              color: Colors.grey,
+                              child: Icon(Icons.image_not_supported),
+                            );
+                          },
                         ),
                       ),
-
-                    ),
-                  ),
-
-                  /// listing badge
-                  Positioned(
-                    bottom: 10,
-                    right: 10,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        p.listing_type ?? "",
-                        style: TextStyle(color: Colors.white),
+                    Positioned(
+                      top: 40,
+                      left: 16,
+                      child: CircleAvatar(
+                        backgroundColor: Colors.black.withOpacity(0.6),
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back),
+                          onPressed: () => Navigator.pop(context),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
 
-              /// ⭐ PRICE + LOCATION
-              Padding(
-                padding: EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(formatPrice(p.price),
-                        style:
-                        TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 4),
-                    Text(p.location_, style: TextStyle(color: Colors.grey)),
+                    Positioned(
+                      bottom: 10,
+                      right: 10,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          _currentData!.propertyRent ?? "",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-              ),
 
-              /// ⭐ MULTIPLE IMAGE GALLERY
-              if (images.isEmpty)
-              Text("No Images Found")
-                  else
-                SizedBox(
-                  height: 100,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: images.length,
-                    itemBuilder: (context, i) {
-                      return GestureDetector(
-                        onTap: () => openGallery(allImages, i + (p.image_ != null ? 1 : 0)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(6),
-                          child: CachedNetworkImage(
-                            imageUrl: "${images[i]}?v=${DateTime.now().millisecondsSinceEpoch}",
-                            width: 100,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      );
-                    },
+                Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "₹ ${formatIndianPrice(_currentData!.plotPrice)}",
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                      SizedBox(height: 4),
+                      Text(_currentData!.currentLocation, style: TextStyle(color: Colors.grey)),
+                    ],
                   ),
                 ),
-              const SizedBox(height: 10),
 
-              /// ⭐ 2 COLUMN INFO
-              buildTwoColumnInfo(infoRows),
+                /// ⭐ MULTIPLE IMAGE GALLERY
+                if (_multipleImages.isEmpty)
+                  const Text("No Images Found")
+                else
+                  SizedBox(
+                    height: 100,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _multipleImages.length,
+                      itemBuilder: (context, i) {
+                        return GestureDetector(
+                          onTap: () => openGallery(
+                            _allImages,
+                            i + (_currentData!.singleImageUrl != null ? 1 : 0),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(6),
+                            child: CachedNetworkImage(
+                              imageUrl:
+                              "${_multipleImages[i]}?v=${DateTime.now().millisecondsSinceEpoch}",
+                              width: 100,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                const SizedBox(height: 20),
 
-              /// ⭐ DESCRIPTION
-              buildDescriptionCard(p.Description),
+                buildTwoColumnInfo(infoRows),
 
-              /// ⭐ AMENITIES
-              buildAmenitiesCard(p.amenites_),
+                buildDescriptionCard(_currentData!.Description),
 
-              ///LOCATION
-              buildLocationCard(p.current_location),
+                buildLocationCard(_currentData!.currentLocation),
 
-              /// ⭐ CONTACT
-              buildContactSection(),
-            ],
-          ),
+                buildContactSection(),
+
+                const SizedBox(height: 20),
+
+              ]),
         ),
-      ]),
-      ),
-    );
-  }
-
-
-  Widget info(String t, String v) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        children: [
-          Text("$t : ", style: TextStyle(fontWeight: FontWeight.bold)),
-          Expanded(child: Text(v)),
-        ],
       ),
     );
   }

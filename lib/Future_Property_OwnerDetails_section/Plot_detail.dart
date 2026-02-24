@@ -2,18 +2,19 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:pdfx/pdfx.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/New_Update/Edit_plot_image.dart';
+import 'New_Update/Edit_Plot.dart';
 
-// ------------------ MODEL ------------------
 class PlotPropertyData {
+  final int id;
   final String plotSize;
-  final String plotPrice;
-  final String fieldAddress;
-  final String mainAddress;
   final String plotFrontSize;
   final String plotSideSize;
   final String roadSize;
@@ -21,22 +22,30 @@ class PlotPropertyData {
   final String ageOfProperty;
   final String waterConnection;
   final String electricPrice;
+  final String plotPrice;
   final String plotStatus;
   final String propertyChain;
+  final String fieldAddress;
+  final String mainAddress;
   final String currentLocation;
   final String longitude;
   final String latitude;
   final String fieldworkarName;
   final String fieldworkarNumber;
   final String propertyRent;
+  final String Description;
+
+  // 🔹 Upload ke liye
   final XFile? singleImage;
   final List<XFile> selectedImages;
 
+  // 🔹 Display ke liye
+  final String? singleImageUrl;
+  final List<String> imageUrls;
+
   PlotPropertyData({
+    required this.id,
     required this.plotSize,
-    required this.plotPrice,
-    required this.fieldAddress,
-    required this.mainAddress,
     required this.plotFrontSize,
     required this.plotSideSize,
     required this.roadSize,
@@ -44,24 +53,91 @@ class PlotPropertyData {
     required this.ageOfProperty,
     required this.waterConnection,
     required this.electricPrice,
+    required this.plotPrice,
     required this.plotStatus,
     required this.propertyChain,
+    required this.fieldAddress,
+    required this.mainAddress,
     required this.currentLocation,
     required this.longitude,
     required this.latitude,
     required this.fieldworkarName,
     required this.fieldworkarNumber,
     required this.propertyRent,
+    required this.Description,
     this.singleImage,
-    required this.selectedImages,
+    this.selectedImages = const [],
+    this.singleImageUrl,
+    this.imageUrls = const [],
   });
 
-  Map<String, dynamic> toJson() {
+  // ================= FROM JSON (FETCH) =================
+
+  factory PlotPropertyData.fromJson(Map<String, dynamic> json) {
+    const baseUrl =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/";
+
+    return PlotPropertyData(
+      id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
+
+      plotSize: json['plot_size']?.toString() ?? '',
+      plotFrontSize: json['plot_front_size']?.toString() ?? '',
+      plotSideSize: json['plot_side_size']?.toString() ?? '',
+      roadSize: json['road_size']?.toString() ?? '',
+      plotOpen: json['plot_open']?.toString() ?? '',
+      ageOfProperty: json['age_of_property']?.toString() ?? '',
+      waterConnection: json['water_connection']?.toString() ?? '',
+      electricPrice: json['electric_price']?.toString() ?? '',
+      plotPrice: json['plot_price']?.toString() ?? '',
+      plotStatus: json['plot_status']?.toString() ?? '',
+      propertyChain: json['property_chain']?.toString() ?? '',
+      fieldAddress: json['field_address']?.toString() ?? '',
+      mainAddress: json['main_address']?.toString() ?? '',
+      currentLocation: json['current_location']?.toString() ?? '',
+      longitude: json['longitude']?.toString() ?? '',
+      latitude: json['latitude']?.toString() ?? '',
+      fieldworkarName: json['fieldworkar_name']?.toString() ?? '',
+      fieldworkarNumber: json['fieldworkar_number']?.toString() ?? '',
+      propertyRent: json['property_rent']?.toString() ?? '',
+      Description: json['Description']?.toString() ?? '',
+
+      // ✅ Single Image
+      singleImageUrl: json['single_image'] != null &&
+          json['single_image']
+              .toString()
+              .isNotEmpty
+          ? baseUrl + json['single_image']
+          : null,
+
+      // ✅ Multiple Images
+      imageUrls: json['images'] == null
+          ? []
+          : json['images'] is List
+          ? (json['images'] as List)
+          .where((e) =>
+      e != null && e
+          .toString()
+          .isNotEmpty)
+          .map((e) => baseUrl + e.toString().trim())
+          .toList()
+          : json['images']
+          .toString()
+          .isNotEmpty
+          ? json['images']
+          .toString()
+          .split(RegExp(r'[;,]'))
+          .where((e) => e.isNotEmpty)
+          .map((e) => baseUrl + e.trim())
+          .toList()
+          : [],
+    );
+  }
+
+        // ================= TO MAP (OPTIONAL) =================
+
+  Map<String, String> toFieldsMap() {
     return {
       'plot_size': plotSize,
-      'plot_price': plotPrice,
-      'field_address': fieldAddress,
-      'main_address': mainAddress,
       'plot_front_size': plotFrontSize,
       'plot_side_size': plotSideSize,
       'road_size': roadSize,
@@ -69,58 +145,19 @@ class PlotPropertyData {
       'age_of_property': ageOfProperty,
       'water_connection': waterConnection,
       'electric_price': electricPrice,
+      'plot_price': plotPrice,
       'plot_status': plotStatus,
       'property_chain': propertyChain,
+      'field_address': fieldAddress,
+      'main_address': mainAddress,
       'current_location': currentLocation,
       'longitude': longitude,
       'latitude': latitude,
       'fieldworkar_name': fieldworkarName,
       'fieldworkar_number': fieldworkarNumber,
       'property_rent': propertyRent,
-      'single_image_path': singleImage?.path,
-      'selected_images_paths': selectedImages.map((img) => img.path).toList(),
+      'Description': Description,
     };
-  }
-
-  factory PlotPropertyData.fromJson(Map<String, dynamic> json) {
-    const String baseImageUrl = 'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/';
-
-    String? singlePath;
-    if (json['single_image_path'] != null) {
-      singlePath = json['single_image_path'];
-    } else if (json['single_image'] != null) {
-      singlePath = baseImageUrl + json['single_image'];
-    }
-
-    List<XFile> selectedImgs = [];
-    if (json['selected_images_paths'] != null) {
-      final paths = (json['selected_images_paths'] as List).cast<dynamic>();
-      selectedImgs = paths.map((p) => XFile(p as String)).toList();
-    }
-
-    return PlotPropertyData(
-      plotSize: (json['plot_size'] ?? '').toString(),
-      plotPrice: (json['plot_price'] ?? '').toString(),
-      fieldAddress: (json['field_address'] ?? '').toString(),
-      mainAddress: (json['main_address'] ?? '').toString(),
-      plotFrontSize: (json['plot_front_size'] ?? '').toString(),
-      plotSideSize: (json['plot_side_size'] ?? '').toString(),
-      roadSize: (json['road_size'] ?? '').toString(),
-      plotOpen: (json['plot_open'] ?? '').toString(),
-      ageOfProperty: (json['age_of_property'] ?? '').toString(),
-      waterConnection: (json['water_connection'] ?? '').toString(),
-      electricPrice: (json['electric_price'] ?? '').toString(),
-      plotStatus: (json['plot_status'] ?? '').toString(),
-      propertyChain: (json['property_chain'] ?? '').toString(),
-      currentLocation: (json['current_location'] ?? '').toString(),
-      longitude: (json['longitude'] ?? '').toString(),
-      latitude: (json['latitude'] ?? '').toString(),
-      fieldworkarName: (json['fieldworkar_name'] ?? '').toString(),
-      fieldworkarNumber: (json['fieldworkar_number'] ?? '').toString(),
-      propertyRent: (json['property_rent'] ?? '').toString(),
-      singleImage: singlePath != null ? XFile(singlePath) : null,
-      selectedImages: selectedImgs,
-    );
   }
 }
 
@@ -195,391 +232,1007 @@ class PropertyService {
   }
 }
 
-
-
 // ------------------ DISPLAY PAGE ------------------
 class PlotPropertyDisplayPage extends StatefulWidget {
   final PlotPropertyData? propertyData;
   final String? fieldworkarNumber;
 
-  const PlotPropertyDisplayPage({Key? key, this.propertyData, this.fieldworkarNumber}) : super(key: key);
+  const PlotPropertyDisplayPage({
+    Key? key,
+    this.propertyData,
+    this.fieldworkarNumber,
+  }) : super(key: key);
 
   @override
-  State<PlotPropertyDisplayPage> createState() => _PlotPropertyDisplayPageState();
+  State<PlotPropertyDisplayPage> createState() =>
+      _PlotPropertyDisplayPageState();
 }
 
-class _PlotPropertyDisplayPageState extends State<PlotPropertyDisplayPage> with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
+class _PlotPropertyDisplayPageState
+    extends State<PlotPropertyDisplayPage> {
 
-  int _mainImageIndex = 0;
-  bool _isFavorite = false;
-  bool _isLoading = false;
-  String? _error;
+  List<String> _multipleImages = [];
+  bool _isImageLoading = true;
+  bool _isExpanded = false;
+  bool isExpandedDesc = false;
 
   PlotPropertyData? _currentData;
-  List<PlotPropertyData> _allPlots = [];
-  String? _fieldworkarNumber;
+  bool _isLoading = false;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(vsync: this, duration: const Duration(milliseconds: 360));
-    _fadeAnimation = CurvedAnimation(parent: _animationController, curve: Curves.easeInOut);
-    _animationController.forward();
-
-    _loadUserNumber().then((_) {
-      if (widget.propertyData == null && _fieldworkarNumber != null && _fieldworkarNumber!.isNotEmpty) {
-        _loadData();
-      } else {
-        _currentData = widget.propertyData;
-        if (mounted) setState(() {});
-      }
-    });
+    _currentData = widget.propertyData;
+    _fetchMultipleImages();
   }
 
-  Future<void> _loadUserNumber() async {
-    final prefs = await SharedPreferences.getInstance();
-    final number = prefs.getString('number') ?? '';
-    setState(() {
-      _fieldworkarNumber = widget.fieldworkarNumber ?? number;
-    });
-  }
 
-  Future<void> _loadData() async {
-    if (_fieldworkarNumber == null || _fieldworkarNumber!.isEmpty) {
+  Future<void> _fetchMultipleImages() async {
+    if (_currentData == null || _currentData!.id == 0) {
       setState(() {
-        _isLoading = false;
-        _error = 'No fieldworkar number available';
+        _isImageLoading = false;
       });
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+    final url =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_plot_multiple_image.php?sub_id=${_currentData!.id}";
 
     try {
-      _allPlots = await PropertyService.fetchPlotsForFieldworker(_fieldworkarNumber!);
-      if (_allPlots.isNotEmpty) {
-        _currentData = _allPlots.first;
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
+
+        if (jsonData['success'] == true) {
+
+          List imagesData = jsonData['data'] ?? [];
+
+          List<String> images = imagesData.map<String>((e) {
+            return "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${e['p_image']}";
+          }).toList();
+
+          setState(() {
+            _multipleImages = images;
+            _isImageLoading = false;
+          });
+
+        } else {
+          setState(() {
+            _isImageLoading = false;
+          });
+        }
       } else {
-        _error = 'No plots found for your number';
+        setState(() {
+          _isImageLoading = false;
+        });
       }
     } catch (e) {
-      _error = e.toString();
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+      setState(() {
+        _isImageLoading = false;
+      });
     }
   }
 
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
+  Future<void> _refreshProperty() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final data = await PropertyService.fetchPlotsForFieldworker(
+        _currentData!.fieldworkarNumber,
+      );
+
+      final updated = data.firstWhere(
+            (e) => e.id == _currentData!.id,
+        orElse: () => _currentData!,
+      );
+
+      setState(() {
+        _currentData = updated;
+        _isLoading = false;
+      });
+
+      _fetchMultipleImages();
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
-  Future<void> _makePhoneCall(String phoneNumber) async {
-    if (phoneNumber.isEmpty) return;
-    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
-    if (await canLaunchUrl(launchUri)) await launchUrl(launchUri);
-  }
+  List<String> get _allImages {
+    final imgs = <String>[];
 
-  Future<void> _openWhatsApp(String phoneNumber) async {
-    if (phoneNumber.isEmpty) return;
-    final sanitized = phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
-    final Uri wa = Uri.parse('https://wa.me/$sanitized');
-    if (await canLaunchUrl(wa)) await launchUrl(wa);
-  }
+    if (_currentData!.singleImageUrl != null &&
+        _currentData!.singleImageUrl!.isNotEmpty) {
+      imgs.add(_currentData!.singleImageUrl!);
+    }
 
-  List<XFile> get _allImages {
-    final imgs = <XFile>[];
-    if (_currentData?.singleImage != null) imgs.add(_currentData!.singleImage!);
-    imgs.addAll(_currentData?.selectedImages ?? []);
+    imgs.addAll(_multipleImages); // ⭐ IMPORTANT FIX
     return imgs;
   }
 
-  Widget _imageWidget(XFile? file, {BoxFit fit = BoxFit.cover}) {
-    if (file == null) {
-      return Container(color: Colors.grey[200], child: const Icon(Icons.landscape, size: 50, color: Colors.grey));
-    }
-    final p = file.path;
-    if (p.startsWith('http')) {
-      return CachedNetworkImage(imageUrl: p, fit: fit, placeholder: (_, __) => const Center(child: CircularProgressIndicator()), errorWidget: (_, __, ___) => Container(color: Colors.grey[200]));
-    }
-    return Image.file(File(p), fit: fit, errorBuilder: (_, __, ___) => Container(color: Colors.grey[200]));
+  void _showSingleImage(String imageUrl) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: Colors.black,
+          body: GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Center(
+              child: InteractiveViewer(
+                minScale: 1,
+                maxScale: 4,
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.contain,
+                  errorWidget: (_, __, ___) => Icon(
+                    Icons.broken_image,
+                    color: Colors.white,
+                    size: 50,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
+
+  openMap() async {
+    final lat = _currentData!.latitude;
+    final lng = _currentData!.longitude;
+    final url = "https://www.google.com/maps/search/?api=1&query=$lat,$lng";
+    await launchUrl(Uri.parse(url));
+  }
+
+  openWhatsapp() async {
+    final phone = _currentData!.fieldworkarNumber;
+    await launchUrl(Uri.parse("https://wa.me/$phone"));
+  }
+
+  String maskPhoneNumber(String number) {
+    if (number.length < 10) return number;
+    String first = number.substring(0, 3);
+    String last = number.substring(number.length - 4);
+    return "$first****$last";
+  }
+
+  /// ⭐ FIXED FULLSCREEN GALLERY
+  openGallery(List<String> allImages, int index) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: Colors.black,
+          body: PhotoViewGallery.builder(
+            itemCount: allImages.length,
+            pageController: PageController(initialPage: index),
+            builder: (context, i) {
+              return PhotoViewGalleryPageOptions(
+                imageProvider: NetworkImage(allImages[i]), // ⭐ fix
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isSmallScreen = screenWidth < 360;
+    final isTablet = screenWidth > 600;
+    final bool isDarkMode =
+        Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDarkMode ? Colors.black : Colors.white;
+    final cardColor = isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
+    final horizontalPadding =
+    isSmallScreen ? 8.0 : (isTablet ? 24.0 : 12.0);
+    final verticalPadding =
+    isSmallScreen ? 4.0 : (isTablet ? 12.0 : 8.0);
+    final imageHeight =
+        screenHeight * (isTablet ? 0.35 : 0.3);
+    final carouselHeight =
+        screenHeight * (isTablet ? 0.3 : 0.25);
+    final chipSpacing = isSmallScreen ? 4.0 : 6.0;
+    final fontScale =
+    isSmallScreen ? 0.9 : (isTablet ? 1.1 : 1.0);
+
+    if (_currentData == null) {
+      return const Scaffold(
+        body: Center(child: Text("No Data")),
+      );
     }
-    if (_error != null || _currentData == null) {
-      return Scaffold(
-        body: Center(
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
-            const SizedBox(height: 16),
-            Text(_error ?? 'No data available', style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: _loadData, child: const Text('Retry Fetch')),
-          ]),
+    final images = _allImages;
+
+
+    Widget buildResponsiveInfoGrid(
+        List<Widget> infoRows) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final screenWidth = constraints.maxWidth;
+          if (screenWidth > 350) {
+            final half = (infoRows.length / 2).ceil();
+            final leftColumn = infoRows.sublist(0, half);
+            final rightColumn =
+            infoRows.length > half ? infoRows.sublist(half) : <Widget>[];
+            return Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                    children: leftColumn,
+                  ),
+                ),
+                SizedBox(
+                    width:
+                    MediaQuery.of(context).size.width < 360
+                        ? 8.0
+                        : 12.0),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment:
+                    CrossAxisAlignment.start,
+                    children: rightColumn,
+                  ),
+                ),
+              ],
+            );
+          } else {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: infoRows,
+            );
+          }
+        },
+      );
+    }
+
+    Widget buildInfoRow(IconData icon, Color iconColor, String title,
+        String value) {
+      if (value.isEmpty || value == "null" || value == "0") {
+        return const SizedBox.shrink();
+      }
+
+      final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+      final screenWidth = MediaQuery.of(context).size.width;
+      final isSmallScreen = screenWidth < 360;
+
+      final Color cardColor = Colors.white;
+      final Color borderColor =
+      isDarkMode ? Colors.grey.shade700.withOpacity(0.2) : Colors.grey.shade200;
+      final Color titleColor =
+      isDarkMode ? Colors.black87 : Colors.grey.shade700;
+      final Color valueColor = isDarkMode ? Colors.black87 : Colors.black87;
+      final Color iconBg = iconColor.withOpacity(0.10);
+
+      return Container(
+        margin: EdgeInsets.symmetric(vertical: isSmallScreen ? 2.0 : 4.0),
+        padding: EdgeInsets.symmetric(
+            horizontal: 12, vertical: isSmallScreen ? 6.0 : 8.0),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: borderColor),
+          boxShadow: isDarkMode
+              ? [const BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2))]
+              : null,
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: EdgeInsets.all(isSmallScreen ? 4.0 : 6.0),
+              decoration: BoxDecoration(
+                color: iconBg,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Icon(icon,
+                  size: isSmallScreen ? 16.0 : 18.0, color: iconColor),
+            ),
+            SizedBox(width: isSmallScreen ? 6.0 : 8.0),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: isSmallScreen ? 10.0 : 11.0,
+                      fontWeight: FontWeight.w600,
+                      color: titleColor,
+                    ),
+                  ),
+                  SizedBox(height: isSmallScreen ? 1.0 : 2.0),
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: isSmallScreen ? 11.0 : 12.0,
+                      fontWeight: FontWeight.w500,
+                      color: valueColor,
+                    ),
+                    softWrap: true,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       );
     }
 
-    final images = _allImages;
-    if (_mainImageIndex >= images.length && images.isNotEmpty) _mainImageIndex = 0;
+    void showCallConfirmationDialog(
+        String role, String name, String number) {
+      bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      body: FadeTransition(
-        opacity: _fadeAnimation,
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverAppBar(
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-              pinned: true,
-              expandedHeight: 380,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Stack(fit: StackFit.expand, children: [
-                  if (images.isNotEmpty) _imageWidget(images[_mainImageIndex]) else Container(color: Colors.grey[200], child: const Icon(Icons.landscape, size: 80, color: Colors.grey)),
-                  Container(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.center, colors: [Colors.black.withOpacity(0.8), Colors.transparent]))),
-                  Positioned(
-                    top: MediaQuery.of(context).padding.top + 8, left: 16, right: 16,
-                    child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      _circleIcon(Icons.arrow_back, onTap: () => Navigator.of(context).maybePop()),
-                      Row(children: [
-                        _circleIcon(_isFavorite ? Icons.favorite : Icons.favorite_border, onTap: () => setState(() => _isFavorite = !_isFavorite)),
-                        const SizedBox(width: 8),
-                        _circleIcon(Icons.refresh, onTap: _loadData),
-                        const SizedBox(width: 8),
-                        _circleIcon(Icons.more_vert, onTap: () {}),
-                      ])
-                    ]),
-                  ),
-                  Positioned(
-                    left: 20, right: 20, bottom: 24,
-                    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                        Text('₹${_currentData!.plotPrice}', style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold, shadows: [Shadow(color: Colors.black54, blurRadius: 8)])),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                          decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF2A4B8D), Color(0xFF6C5CE7)]), borderRadius: BorderRadius.circular(20), boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 4))]),
-                          child: const Text('PLOT', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, letterSpacing: 1)),
-                        ),
-                      ]),
-                      const SizedBox(height: 8),
-                      Text(_currentData!.mainAddress, style: TextStyle(color: Colors.white.withOpacity(0.95), fontSize: 16, fontWeight: FontWeight.w600, shadows: const [Shadow(color: Colors.black54, blurRadius: 8)]), maxLines: 2, overflow: TextOverflow.ellipsis),
-                    ]),
-                  ),
-                ]),
-              ),
+      showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Call $role',
+              style: TextStyle(
+                  color: isDarkMode ? Colors.white : Colors.black)),
+          content: Text(
+              'Do you really want to call ${name.isNotEmpty ? name : role}?',
+              style: TextStyle(
+                  color: isDarkMode ? Colors.white : Colors.black)),
+          backgroundColor:
+          isDarkMode ? Colors.grey[800] : Colors.white,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16)),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('No',
+                  style: TextStyle(color: Colors.grey)),
             ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(context).pop(true);
+                await FlutterPhoneDirectCaller.callNumber(number);
+              },
+              child: const Text('Yes'),
+            ),
+          ],
+        ),
+      );
+    }
 
-            SliverToBoxAdapter(
-              child: Column(children: [
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 92,
-                  child: ListView.separated(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    scrollDirection: Axis.horizontal,
-                    itemCount: images.isEmpty ? 1 : images.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 12),
-                    itemBuilder: (context, index) {
-                      final isAvailable = images.isNotEmpty && index < images.length;
-                      final file = isAvailable ? images[index] : null;
-                      final selected = index == _mainImageIndex;
-                      return GestureDetector(
-                        onTap: isAvailable ? () => setState(() => _mainImageIndex = index) : null,
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 180),
-                          width: selected ? 120 : 100,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: selected ? const Color(0xFF2A4B8D) : Colors.grey.shade200, width: selected ? 2 : 1),
-                            boxShadow: [if (selected) const BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 4))],
-                          ),
-                          child: ClipRRect(borderRadius: BorderRadius.circular(10), child: isAvailable ? _imageWidget(file) : Container(color: Colors.grey[200], child: const Icon(Icons.landscape, size: 30, color: Colors.grey))),
-                        ),
-                      );
-                    },
+    Widget buildContactCard(String role, String name, String number,
+        {Color? bgColor}) {
+      final screenWidth = MediaQuery.of(context).size.width;
+      final isSmallScreen = screenWidth < 360;
+      final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+      Color cardColor = bgColor ?? Colors.blue;
+      String maskedNumber = maskPhoneNumber(number);
+
+      return Container(
+        margin: EdgeInsets.symmetric(vertical: isSmallScreen ? 2.0 : 4.0),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: cardColor.withOpacity(0.3)),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(isSmallScreen ? 10.0 : 12.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: isSmallScreen ? 32.0 : 36.0,
+                    height: isSmallScreen ? 32.0 : 36.0,
+                    decoration: BoxDecoration(
+                      color: cardColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      role == "OWNER"
+                          ? Icons.person
+                          : role == "CARETAKER"
+                          ? Icons.support_agent
+                          : role == "FIELD WORKER"
+                          ? Icons.engineering
+                          : role == "TENANT"
+                          ? Icons.people
+                          : Icons.person,
+                      color: Colors.white,
+                      size: isSmallScreen ? 16.0 : 18.0,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 14),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)), elevation: 6,
-                    child: Padding(
-                      padding: const EdgeInsets.all(14.0),
-                      child: Row(children: [
-                        Expanded(
-                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text('Plot Price', style: TextStyle(color: Colors.grey[700], fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 6),
-                            Text('₹${_currentData!.plotPrice}', style: const TextStyle(color: Color(0xFF2A4B8D), fontSize: 20, fontWeight: FontWeight.w900)),
-                            const SizedBox(height: 8),
-                            Text('Size: ${_currentData!.plotSize} gaj', style: TextStyle(color: Colors.grey[600], fontSize: 14)),
-                          ]),
+                  SizedBox(width: isSmallScreen ? 6.0 : 8.0),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          role,
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 10.0 : 11.0,
+                            fontWeight: FontWeight.w600,
+                            color: cardColor,
+                          ),
                         ),
-                      ]),
+                        SizedBox(height: isSmallScreen ? 1.0 : 2.0),
+                        Text(
+                          name.isNotEmpty ? name : "Not Available",
+                          style: TextStyle(
+                            fontSize: isSmallScreen ? 13.0 : 14.0,
+                            fontWeight: FontWeight.w500,
+                            color: isDarkMode ? Colors.black : Colors.black87,
+                          ),
+                          softWrap: true,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: isSmallScreen ? 6.0 : 8.0),
+              if (number.isNotEmpty)
+                GestureDetector(
+                  onTap: () =>
+                      showCallConfirmationDialog(role, name, number),
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: isSmallScreen ? 6.0 : 8.0),
+                    decoration: BoxDecoration(
+                      color: cardColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: cardColor.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            maskedNumber,
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 18.0 : 18.0,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            GestureDetector(
+                              onTap: () => openWhatsapp(),
+                              child: Icon(PhosphorIcons.whatsapp_logo_bold,
+                                  color: Colors.green,
+                                  size: isSmallScreen ? 20.0 : 24.0),
+                            ),
+                            SizedBox(
+                                width: isSmallScreen ? 12.0 : 16.0),
+                            Icon(Icons.call,
+                                color: cardColor,
+                                size: isSmallScreen ? 20.0 : 24.0),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: isSmallScreen ? 6.0 : 8.0),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Center(
+                    child: Text(
+                      "Not Available",
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 11.0 : 12.0,
+                        color: Colors.grey,
+                      ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
-              ]),
-            ),
+            ],
+          ),
+        ),
+      );
+    }
 
-            _sectionSliver(
-              title: 'Plot Details',
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Wrap(spacing: 12, runSpacing: 12, children: [
-                  _miniInfoTile(Icons.aspect_ratio, 'Plot Size', '${_currentData!.plotSize} gaj'),
-                  _miniInfoTile(Icons.width_wide, 'Front Size', '${_currentData!.plotFrontSize} ft'),
-                  _miniInfoTile(Icons.height, 'Side Size', '${_currentData!.plotSideSize} ft'),
-                  _miniInfoTile(Icons.aod, 'Road Size', '${_currentData!.roadSize} ft'),
-                ]),
-                const SizedBox(height: 12),
-                Text('${_currentData!.plotOpen} open plot located in ${_currentData!.mainAddress}.', style: TextStyle(color: Colors.grey[700])),
-              ]),
-            ),
+    Future<void> openMap() async {
+      final lat = double.tryParse(_currentData!.latitude);
+      final lng = double.tryParse(_currentData!.longitude);
 
-            _sectionSliver(
-              title: 'Property Information',
-              child: GridView.count(
-                crossAxisCount: 2, shrinkWrap: true, physics: const NeverScrollableScrollPhysics(), crossAxisSpacing: 12, mainAxisSpacing: 12, childAspectRatio: 2.5,
+      if (lat == null || lng == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Invalid location")),
+        );
+        return;
+      }
+
+      final Uri mapUrl =
+      Uri.parse("https://www.google.com/maps/search/?api=1&query=$lat,$lng");
+
+      if (!await launchUrl(
+        mapUrl,
+        mode: LaunchMode.externalApplication,
+      )) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Could not open map")),
+        );
+      }
+    }
+
+    Widget buildLocationCard(String currentLocation) {
+      final mapUrlText =
+          "https://maps.google.com/?q=${_currentData!.latitude},${_currentData!.longitude}";
+
+      final lat = double.tryParse(_currentData!.latitude);
+      final lng = double.tryParse(_currentData!.longitude);
+      final bool hasMap = lat != null && lng != null && lat != 0 && lng != 0;
+
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.orange.withOpacity(0.3)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            )
+          ],
+        ),
+        child: Row(
+          children: [
+            const CircleAvatar(
+              backgroundColor: Colors.orange,
+              child: Icon(Icons.location_on, color: Colors.white),
+            ),
+            const SizedBox(width: 10),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _smallStat('Age', _currentData!.ageOfProperty),
-                  _smallStat('Water', _currentData!.waterConnection),
-                  _smallStat('Electric', _currentData!.electricPrice),
-                  _smallStat('Status', _currentData!.plotStatus),
+                  Text(
+                    "CURRENT LOCATION",
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+
+                  /// ⭐ URL LINK
+                  GestureDetector(
+                    onTap: openMap,
+                    child: Text(
+                      mapUrlText,
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        decoration: TextDecoration.underline,
+                        decorationColor: Colors.black,
+                        decorationThickness: 2, // ⭐ better underline
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
 
-            _sectionSliver(
-              title: 'Location Details',
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                _detailItem('Field Address', _currentData!.fieldAddress),
-                const SizedBox(height: 8),
-                _detailItem('Current Location', _currentData!.currentLocation),
-                const SizedBox(height: 8),
-                if (_currentData!.latitude.isNotEmpty && _currentData!.longitude.isNotEmpty)
-                  _detailItem('Coordinates', '${_currentData!.latitude}, ${_currentData!.longitude}'),
-              ]),
-            ),
-
-            _sectionSliver(
-              title: 'Fieldworker',
-              child: Row(children: [
-                CircleAvatar(
-                  radius: 32, backgroundColor: const Color(0xFF2A4B8D),
-                  child: Text(_currentData!.fieldworkarName.isNotEmpty ? _currentData!.fieldworkarName[0].toUpperCase() : 'A', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text(_currentData!.fieldworkarName, style: const TextStyle(fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 6),
-                    Text(_currentData!.fieldworkarNumber),
-                    const SizedBox(height: 8),
-                    const Row(children: [Icon(Icons.verified, color: Colors.green, size: 16), SizedBox(width: 6), Text('Verified', style: TextStyle(color: Colors.green))]),
-                  ]),
-                ),
-                ElevatedButton(onPressed: () => _makePhoneCall(_currentData!.fieldworkarNumber), child: const Text('Contact')),
-              ]),
-            ),
-
-            const SliverToBoxAdapter(child: SizedBox(height: 96)),
+            Icon(
+              Icons.link,
+              size: 16,
+              color: hasMap ? Colors.black : Colors.grey,
+            )
           ],
         ),
-      ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(color: Colors.white, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 10, offset: const Offset(0, -6))]),
-        child: Row(children: [
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () => _makePhoneCall(_currentData!.fieldworkarNumber),
-              icon: const Icon(Icons.phone), label: const Text('Call Agent'),
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2A4B8D), padding: const EdgeInsets.symmetric(vertical: 14)),
+      );
+    }
+
+
+    Widget buildDescriptionCard(String desc) {
+      if (desc.isEmpty) return const SizedBox.shrink();
+
+      return Container(
+        margin: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.blue.withOpacity(0.2)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.description, color: Colors.blue),
+                const SizedBox(width: 8),
+                Text(
+                  "DESCRIPTION",
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            /// ⭐ DESCRIPTION TEXT
+            Text(
+              desc,
+              maxLines: isExpandedDesc ? null : 2, // ⭐ IMPORTANT
+              overflow: isExpandedDesc
+                  ? TextOverflow.visible
+                  : TextOverflow.ellipsis, // ⭐ IMPORTANT
+              style: const TextStyle(color: Colors.black87),
+            ),
+
+            /// ⭐ READ MORE BUTTON
+            if (desc.length > 80)
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    isExpandedDesc = !isExpandedDesc;
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    isExpandedDesc ? "Read less" : "Read more",
+                    style: const TextStyle(
+                      color: Colors.blue,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
+    Widget buildAmenitiesCard(List<String> amenities) {
+      if (amenities.isEmpty) return const SizedBox.shrink();
+
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white, // ⭐ ALWAYS WHITE
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.green.withOpacity(0.2)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.green),
+                const SizedBox(width: 8),
+                Text(
+                  "AMENITIES",
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87, // ⭐ FIX
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            /// ⭐ CHIPS
+            Wrap(
+              spacing: 8,
+              runSpacing: 6,
+              children: amenities
+                  .map(
+                    (e) => Chip(
+                  label: Text(
+                    e.trim(),
+                    style: TextStyle(
+                      color: isDarkMode ? Colors.white : Colors.black87,
+                    ),// ⭐ FIX
+                  ),
+                  backgroundColor: Colors.green.withOpacity(0.1), // ⭐ FIX
+                  side: BorderSide(color: Colors.green.withOpacity(0.3)),
+                ),
+              )
+                  .toList(),
+            ),
+          ],
+        ),
+      );
+    }
+
+    Widget buildContactSection() {
+      return Container(
+        margin: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.blue.withOpacity(0.2)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.contact_phone, color: Colors.blue),
+                const SizedBox(width: 8),
+                Text(
+                  "CONTACT",
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87, // ⭐ FIX
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            buildContactCard(
+              "FIELD WORKER",
+              _currentData!.fieldworkarName,
+              _currentData!.fieldworkarNumber,
+              bgColor: Colors.blue,
+            ),
+          ],
+        ),
+      );
+    }
+
+    Widget buildTwoColumnInfo(List<Widget> rows)  {
+      final half = (rows.length / 2).ceil();
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: Column(children: rows.sublist(0, half))),
+            const SizedBox(width: 10),
+            Expanded(child: Column(children: rows.sublist(half))),
+          ],
+        ),
+      );
+    }
+
+    final infoRows = [
+      buildInfoRow(Icons.square_foot, Colors.teal, "Plot Size", _currentData!.plotSize),
+      buildInfoRow(Icons.open_with, Colors.indigo, "Front Size", _currentData!.plotFrontSize),
+      buildInfoRow(Icons.swap_horiz, Colors.indigo, "Side Size", _currentData!.plotSideSize),
+      buildInfoRow(Icons.alt_route, Colors.brown, "Road Size", _currentData!.roadSize),
+      buildInfoRow(Icons.water_drop, Colors.blue, "Water Connection", _currentData!.waterConnection),
+      buildInfoRow(Icons.wb_sunny, Colors.orange, "Plot Open", _currentData!.plotOpen),
+      buildInfoRow(Icons.electric_bolt, Colors.purple, "Electric", _currentData!.electricPrice),
+      buildInfoRow(Icons.calendar_today, Colors.black54, "Age Of Property", _currentData!.ageOfProperty),
+      buildInfoRow(Icons.scatter_plot, Colors.black54, "Plot Status", _currentData!.plotStatus),
+    ];
+
+    String formatIndianPrice(String price) {
+      if (price.isEmpty) return "";
+
+      final num? value = num.tryParse(price.replaceAll(",", ""));
+      if (value == null) return price;
+
+      if (value >= 10000000) {
+        return "${(value / 10000000).toStringAsFixed(2)} Cr";
+      } else if (value >= 100000) {
+        return "${(value / 100000).toStringAsFixed(2)} Lakh";
+      } else if (value >= 1000) {
+        return "${(value / 1000).toStringAsFixed(2)} K";
+      } else {
+        return value.toString();
+      }
+    }
+
+    return Scaffold(
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        body: RefreshIndicator(
+          onRefresh: _refreshProperty, // ⭐ refresh function
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(), // ⭐ IMPORTANTSingleChildScrollView(
+        child: Column(
+          children: [
+            Stack(
+              children: [
+                if (_currentData!.singleImageUrl != null && _currentData!.singleImageUrl!.isNotEmpty)
+                  GestureDetector(
+                    onTap: () => _showSingleImage(_currentData!.singleImageUrl!),
+                    child: CachedNetworkImage(
+                      imageUrl: "${_currentData!.singleImageUrl}?v=${DateTime.now().millisecondsSinceEpoch}",
+                      height: 260,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) {
+                        print("BROKEN HEADER IMAGE => ${_currentData!.singleImageUrl}");
+                        return Container(
+                          height: 260,
+                          color: Colors.grey,
+                          child: Icon(Icons.image_not_supported),
+                        );
+                      },
+                    ),
+                  ),
+                Positioned(
+                  top: 40,
+                  left: 16,
+                  child: CircleAvatar(
+                    backgroundColor: Colors.black.withOpacity(0.6),
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + (isSmallScreen ? 4.0 : 8.0),
+                  right: horizontalPadding,
+                  child: CircleAvatar(
+                    radius: isSmallScreen ? 20 : 22,
+                    backgroundColor: Colors.black.withOpacity(0.6),
+                    child:
+                    PopupMenuButton<String>(
+                      splashRadius: 22,
+                      offset: const Offset(0, 45),
+                      onSelected: (value) async {
+                        if (value == 'Edit Plot') {
+                          if (_currentData != null) {
+
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EditPlotform(
+                                  propertyId: _currentData!.id,
+                                  propertyData: _currentData!,
+                                ),
+                              ),
+                            );
+
+                            if (result == true) {
+                              await _refreshProperty();   // 🔥 refresh after update
+                            }
+                          }
+                        }
+
+                              if (value == 'Add Plot Images') {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => EditPlotImage(
+                                sub_id: _currentData!.id.toString(),
+                              ),
+                            ),
+                         ).then((value) async {
+                            if (value == true) {
+                              await _refreshProperty();
+                            }
+                          });
+                        }
+                      },
+                      itemBuilder: (context) => const [
+                        PopupMenuItem(
+                          value: 'Edit Plot',
+                          child: Text('Edit Plot'),
+                        ),
+                        PopupMenuItem(
+                          value: 'Add Plot Images',
+                          child: Text('Add Plot Images'),
+                        ),
+                      ],
+                      icon: Icon(
+                        Icons.more_vert,
+                        color: Colors.white,
+                        size: isSmallScreen ? 22 : 26,
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  bottom: 10,
+                  right: 10,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      _currentData!.propertyRent ?? "",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            Padding(
+              padding: EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                  "₹ ${formatIndianPrice(_currentData!.plotPrice)}",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                  SizedBox(height: 4),
+                  Text(_currentData!.currentLocation, style: TextStyle(color: Colors.grey)),
+                ],
+              ),
+            ),
+
+            /// ⭐ MULTIPLE IMAGE GALLERY
+        if (_multipleImages.isEmpty)
+          const Text("No Images Found")
+        else
+          SizedBox(
+            height: 100,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: _multipleImages.length,
+              itemBuilder: (context, i) {
+                return GestureDetector(
+                  onTap: () => openGallery(
+                    _allImages,
+                    i + (_currentData!.singleImageUrl != null ? 1 : 0),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: CachedNetworkImage(
+                      imageUrl:
+                      "${_multipleImages[i]}?v=${DateTime.now().millisecondsSinceEpoch}",
+                      width: 100,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                );
+              },
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: OutlinedButton.icon(
-              onPressed: () => _openWhatsApp(_currentData!.fieldworkarNumber),
-              icon: const Icon(Icons.chat), label: const Text('WhatsApp'),
-              style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14), side: const BorderSide(color: Colors.green)),
-            ),
-          ),
+            const SizedBox(height: 20),
+
+            buildTwoColumnInfo(infoRows),
+
+            buildDescriptionCard(_currentData!.Description),
+
+            buildLocationCard(_currentData!.currentLocation),
+
+            buildContactSection(),
+
+            const SizedBox(height: 20),
+
         ]),
       ),
+        ),
     );
-  }
-
-  Widget _circleIcon(IconData icon, {VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 40, height: 40,
-        decoration: BoxDecoration(color: Colors.white.withOpacity(0.95), shape: BoxShape.circle, boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8)]),
-        child: Icon(icon, size: 18, color: Colors.black87),
-      ),
-    );
-  }
-
-  SliverToBoxAdapter _sectionSliver({required String title, required Widget child}) {
-    return SliverToBoxAdapter(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 8),
-          child,
-        ]),
-      ),
-    );
-  }
-
-  Widget _miniInfoTile(IconData icon, String label, String value) {
-    return Container(
-      width: 160, padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)]),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: const Color(0xFF2A4B8D).withOpacity(0.08), shape: BoxShape.circle), child: Icon(icon, size: 16, color: const Color(0xFF2A4B8D))),
-          const SizedBox(width: 8),
-          Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
-        ]),
-        const SizedBox(height: 8),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
-      ]),
-    );
-  }
-
-  Widget _smallStat(String title, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8)]),
-      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text(title, style: TextStyle(color: Colors.grey[700])),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
-      ]),
-    );
-  }
-
-  Widget _detailItem(String title, String value) {
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text(title, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.grey[700])),
-      const SizedBox(height: 4),
-      Text(value.isNotEmpty ? value : 'Not specified', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
-    ]);
   }
 }

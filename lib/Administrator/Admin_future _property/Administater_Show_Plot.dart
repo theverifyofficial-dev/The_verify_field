@@ -5,17 +5,20 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'Plot_detail.dart';
+import 'package:verify_feild_worker/Administrator/Admin_future%20_property/Administater_Under_Plot.dart';
+import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 
+class Administater_show_Plot extends StatefulWidget {
+  final String number;
+  const Administater_show_Plot({
+    super.key,
+  required this.number});
 
-class PlotListPage extends StatefulWidget {
-  const PlotListPage({super.key, this.fieldworkerNumber = '11'});
-  final String fieldworkerNumber;
   @override
-  State<PlotListPage> createState() => _PlotListPageState();
+  State<Administater_show_Plot> createState() => Administater_show_PlotState();
 }
 
-class _PlotListPageState extends State<PlotListPage> {
+class Administater_show_PlotState extends State<Administater_show_Plot> {
   List<PlotPropertyData> _allPlots = [];
   List<PlotPropertyData> _filteredPlots = [];
   bool _isLoading = true;
@@ -44,7 +47,7 @@ class _PlotListPageState extends State<PlotListPage> {
     });
     try {
       final plots = await PlotPropertyApi.fetchForFieldworker(
-          widget.fieldworkerNumber);
+          widget.number);
       setState(() {
         _allPlots = plots;
         _filteredPlots = plots;
@@ -133,6 +136,12 @@ class _PlotListPageState extends State<PlotListPage> {
     return RefreshIndicator(
       onRefresh: _refreshData,
       child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          title: Image.asset(
+            AppImages.transparent,height: 40,),
+          iconTheme: IconThemeData(color: Colors.white),
+          centerTitle:true,),
         body: _isLoading
             ? Center(child: CircularProgressIndicator())
             : _buildPlotsTab(isTablet: isTablet,
@@ -638,7 +647,7 @@ class _PlotListPageState extends State<PlotListPage> {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) =>
-                            PlotPropertyDisplayPage(propertyData: data),
+                            Administater_Under_Plot(propertyData: data),
                       ),
                     );
                   },
@@ -972,11 +981,15 @@ class _DetailRow extends StatelessWidget {
 
 
 class PlotPropertyApi {
+
   static Uri endpointForFieldworker(String fieldworkerNumber) {
     final base =
         'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/plot_form_show_api_for_feildworkar.php';
+
     return Uri.parse(base).replace(
-      queryParameters: {'fieldworkar_number': fieldworkerNumber},
+      queryParameters: {
+        'fieldworkar_number': fieldworkerNumber,  // ✅ correct key
+      },
     );
   }
 
@@ -984,27 +997,39 @@ class PlotPropertyApi {
       String fieldworkerNumber, {
         Duration timeout = const Duration(seconds: 30),
       }) async {
-    final uri = endpointForFieldworker(fieldworkerNumber);
-    final response =
-    await http.get(uri, headers: {'accept': 'application/json'}).timeout(timeout);
+
+    final uri = endpointForFieldworker(fieldworkerNumber); // ✅ pass parameter
+
+    final response = await http
+        .get(uri, headers: {'accept': 'application/json'})
+        .timeout(timeout);
+
     if (response.statusCode != 200) {
       final preview = response.body.length > 200
           ? '${response.body.substring(0, 200)}...'
           : response.body;
+
       throw HttpException(
         'HTTP ${response.statusCode}: ${response.reasonPhrase}\n$preview',
         uri: uri,
       );
     }
+
     final decoded = json.decode(response.body);
-    if (decoded is Map && decoded['success'] == true && decoded['data'] is List) {
+
+    if (decoded is Map &&
+        decoded['success'] == true &&
+        decoded['data'] is List) {
+
       final List list = decoded['data'];
+
       return list
           .map((e) => PlotPropertyData.fromJson(e as Map<String, dynamic>))
           .toList()
           .reversed
           .toList();
     }
+
     return [];
   }
 }

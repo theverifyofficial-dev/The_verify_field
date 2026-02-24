@@ -11,8 +11,14 @@ import 'package:verify_feild_worker/provider/main_RealEstate_provider.dart';
 import 'package:verify_feild_worker/provider/multile_image_upload_provider.dart';
 import 'package:verify_feild_worker/provider/property_id_for_multipleimage_provider.dart';
 import 'package:verify_feild_worker/provider/real_Estate_Show_Data_provider.dart';
+<<<<<<< HEAD
 import 'package:verify_feild_worker/Notification_demo/routes.dart';
 import 'package:verify_feild_worker/Z-Screen/splash.dart';
+=======
+import 'package:verify_feild_worker/routes.dart';
+import 'package:verify_feild_worker/splash.dart';
+import 'Administrator/Admin_future _property/Administater_Future_Tabbar.dart';
+>>>>>>> 5721484 (24 feb by lokesh)
 import 'Administrator/Administrator_HomeScreen.dart';
 import 'Administrator/SubAdmin/SubAdminAccountant_Home.dart';
 import 'Home_Screen.dart';
@@ -143,6 +149,12 @@ class _MyAppState extends State<MyApp> {
       final redemandId = data["redemand_id"]?.toString();
       String? buildingId = data['building_id']?.toString();
       String? propertyId = data['P_id']?.toString();
+<<<<<<< HEAD
+=======
+      String? commercialId = data['commercial_id']?.toString();
+      String? plotId = data['plot_id']?.toString();
+      // 🔥 PAYMENT NOTIFICATION (ONLY p_id)
+>>>>>>> 5721484 (24 feb by lokesh)
 
       final String rawBody = message.notification?.body ?? "";
       final String body = rawBody
@@ -305,6 +317,35 @@ class _MyAppState extends State<MyApp> {
             arguments: {
               "fromNotification": true,
               "buildingId": buildingId
+            },
+          );
+        });
+        return;
+      }
+      //Commercial
+
+      if (type == "NEW_COMMERCIAL" && commercialId != null) {
+        Future.delayed(const Duration(milliseconds: 400), () {
+          navigatorKey.currentState?.pushNamed(
+            Routes.AdminFieldCommercial,
+            arguments: {
+              "fromNotification": true,
+              "commercialId": commercialId,
+              "tabIndex": 2,
+            },
+          );
+        });
+        return;
+      }
+        //Plot
+      if (type == "NEW_PLOT" && plotId != null) {
+        Future.delayed(const Duration(milliseconds: 400), () {
+          navigatorKey.currentState?.pushNamed(
+            Routes.AdminFieldPlot,   // same tabbar page
+            arguments: {
+              "fromNotification": true,
+              "plotId": plotId,
+              "tabIndex": 1,          // ✅ Plot tab index
             },
           );
         });
@@ -631,6 +672,9 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+
+
+
   void _initDynamicLinks() async {
     final PendingDynamicLinkData? initialLink =
     await FirebaseDynamicLinks.instance.getInitialLink();
@@ -649,15 +693,19 @@ class _MyAppState extends State<MyApp> {
       final flatId = deepLink.queryParameters['flatId'];
       final buildingId = deepLink.queryParameters['buildingId'];
 
+
       if (type == "BUILDING_UPDATE" && buildingId != null) {
         navigatorKey.currentState?.pushNamed(
-          Routes.administaterShowFutureProperty,
+          Routes.administaterShowFutureProperty,   // ✅ tabbar route
           arguments: {
             "fromNotification": true,
             "buildingId": buildingId,
+            "tabIndex": 0,          // ✅ building tab
           },
         );
+        return;
       }
+
       // ✅ Handle NEW_FLAT → Administater_Future_Property_details
       else if (
       (type == "NEW_FLAT" || type == "FLAT_UPDATE") &&

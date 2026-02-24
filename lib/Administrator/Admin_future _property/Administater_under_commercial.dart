@@ -6,8 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'New_Update/Edit_commercial.dart';
-import 'New_Update/Edit_commercial_images.dart';
 
 class CommercialPropertyData {
   final int id;
@@ -154,16 +152,16 @@ class CommercialPropertyData {
 }
 
 
-class CommercialUnderProperty extends StatefulWidget {
+class Administater_CommercialUnderProperty extends StatefulWidget {
   final CommercialPropertyData property;
 
-  CommercialUnderProperty({required this.property});
+  Administater_CommercialUnderProperty({required this.property});
 
   @override
-  _CommercialUnderPropertyState createState() =>
-      _CommercialUnderPropertyState();
+  Administater_CommercialUnderPropertyState createState() =>
+      Administater_CommercialUnderPropertyState();
 }
-class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
+class Administater_CommercialUnderPropertyState extends State<Administater_CommercialUnderProperty> {
   List<String> images = [];
 
   late CommercialPropertyData property;
@@ -271,7 +269,7 @@ class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
     String last = number.substring(number.length - 4);
     return "$first****$last";
   }
-  
+
   /// ⭐ FIXED FULLSCREEN GALLERY
   openGallery(List<String> allImages, int index) {
     Navigator.push(
@@ -914,190 +912,190 @@ class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
       body: RefreshIndicator(
         onRefresh: _refreshProperty,
         child:CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-            SliverToBoxAdapter(
-            child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /// ⭐ HEADER IMAGE WITH BUTTONS
-              Stack(
-                children: [
-                  if (p.image_ != null && p.image_!.isNotEmpty)
-                    GestureDetector(
-                      onTap: () => openGallery([p.image_!], 0), // ⭐ FIX
-                      child: CachedNetworkImage(
-                        imageUrl: "${p.image_}?v=${DateTime.now().millisecondsSinceEpoch}",
-                        height: 260,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) {
-                          print("BROKEN HEADER IMAGE => ${p.image_}");
-                          return Container(
-                            height: 260,
-                            color: Colors.grey,
-                            child: Icon(Icons.image_not_supported),
-                          );
-                        },
-                      ),
-                    ),
-                  /// back button
-                  Positioned(
-                    top: 40,
-                    left: 10,
-                    child: CircleAvatar(
-                      backgroundColor: Colors.black54,
-                      child: IconButton(
-                        icon: Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ),
-                  ),
-
-                  /// popup menu
-                  Positioned(
-                    top: MediaQuery.of(context).padding.top + (isSmallScreen ? 4.0 : 8.0),
-                    right: horizontalPadding,
-                    child: CircleAvatar(
-                      radius: isSmallScreen ? 20 : 22,
-                      backgroundColor: Colors.black.withOpacity(0.6),
-                      child:
-                      PopupMenuButton<String>(
-                        splashRadius: 22,
-                        offset: const Offset(0, 45),
-                        onSelected: (value) async {
-                          if (value == 'Edit Commercial') {
-                            if (p != null) {
-
-                              final result = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => EditCommercialForm(
-                                    propertyId: p.id,
-                                    propertyData: p,
-                                  ),
-                                ),
-                              );
-
-                              if (result == true) {
-                                await _refreshProperty();
-                              }
-                            }
-                          }
-
-                          if (value == 'Add Commercial Images') {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => EditCommercialImage(
-                                  sub_id: p.id.toString(),
-                                ),
-                              ),
-                            ).then((value) async {
-                              if (value == true) {
-                                await _refreshProperty();
-                              }
-                            });
-                          }
-                        },
-                        itemBuilder: (context) => const [
-                          PopupMenuItem(
-                            value: 'Edit Commercial',
-                            child: Text('Edit Commercial'),
-                          ),
-                          PopupMenuItem(
-                            value: 'Add Commercial Images',
-                            child: Text('Add Commercial Images'),
-                          ),
-                        ],
-                        icon: Icon(
-                          Icons.more_vert,
-                          color: Colors.white,
-                          size: isSmallScreen ? 22 : 26,
-                        ),
-                      ),
-
-                    ),
-                  ),
-
-                  /// listing badge
-                  Positioned(
-                    bottom: 10,
-                    right: 10,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: Text(
-                        p.listing_type ?? "",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              /// ⭐ PRICE + LOCATION
-              Padding(
-                padding: EdgeInsets.all(12),
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              SliverToBoxAdapter(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(formatPrice(p.price),
-                        style:
-                        TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 4),
-                    Text(p.location_, style: TextStyle(color: Colors.grey)),
+                    /// ⭐ HEADER IMAGE WITH BUTTONS
+                    Stack(
+                      children: [
+                        if (p.image_ != null && p.image_!.isNotEmpty)
+                          GestureDetector(
+                            onTap: () => openGallery([p.image_!], 0), // ⭐ FIX
+                            child: CachedNetworkImage(
+                              imageUrl: "${p.image_}?v=${DateTime.now().millisecondsSinceEpoch}",
+                              height: 260,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorWidget: (_, __, ___) {
+                                print("BROKEN HEADER IMAGE => ${p.image_}");
+                                return Container(
+                                  height: 260,
+                                  color: Colors.grey,
+                                  child: Icon(Icons.image_not_supported),
+                                );
+                              },
+                            ),
+                          ),
+                        /// back button
+                        Positioned(
+                          top: 40,
+                          left: 10,
+                          child: CircleAvatar(
+                            backgroundColor: Colors.black54,
+                            child: IconButton(
+                              icon: Icon(Icons.arrow_back, color: Colors.white),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ),
+                        ),
+
+                        /// popup menu
+                        // Positioned(
+                        //   top: MediaQuery.of(context).padding.top + (isSmallScreen ? 4.0 : 8.0),
+                        //   right: horizontalPadding,
+                        //   child: CircleAvatar(
+                        //     radius: isSmallScreen ? 20 : 22,
+                        //     backgroundColor: Colors.black.withOpacity(0.6),
+                        //     child:
+                        //     PopupMenuButton<String>(
+                        //       splashRadius: 22,
+                        //       offset: const Offset(0, 45),
+                        //       onSelected: (value) async {
+                        //         if (value == 'Edit Commercial') {
+                        //           if (p != null) {
+                        //
+                        //             final result = await Navigator.push(
+                        //               context,
+                        //               MaterialPageRoute(
+                        //                 builder: (context) => EditCommercialForm(
+                        //                   propertyId: p.id,
+                        //                   propertyData: p,
+                        //                 ),
+                        //               ),
+                        //             );
+                        //
+                        //             if (result == true) {
+                        //               await _refreshProperty();
+                        //             }
+                        //           }
+                        //         }
+                        //
+                        //         if (value == 'Add Commercial Images') {
+                        //           Navigator.push(
+                        //             context,
+                        //             MaterialPageRoute(
+                        //               builder: (context) => EditCommercialImage(
+                        //                 sub_id: p.id.toString(),
+                        //               ),
+                        //             ),
+                        //           ).then((value) async {
+                        //             if (value == true) {
+                        //               await _refreshProperty();
+                        //             }
+                        //           });
+                        //         }
+                        //       },
+                        //       itemBuilder: (context) => const [
+                        //         PopupMenuItem(
+                        //           value: 'Edit Commercial',
+                        //           child: Text('Edit Commercial'),
+                        //         ),
+                        //         PopupMenuItem(
+                        //           value: 'Add Commercial Images',
+                        //           child: Text('Add Commercial Images'),
+                        //         ),
+                        //       ],
+                        //       icon: Icon(
+                        //         Icons.more_vert,
+                        //         color: Colors.white,
+                        //         size: isSmallScreen ? 22 : 26,
+                        //       ),
+                        //     ),
+                        //
+                        //   ),
+                        // ),
+
+                        /// listing badge
+                        Positioned(
+                          bottom: 10,
+                          right: 10,
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              p.listing_type ?? "",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    /// ⭐ PRICE + LOCATION
+                    Padding(
+                      padding: EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(formatPrice(p.price),
+                              style:
+                              TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                          SizedBox(height: 4),
+                          Text(p.location_, style: TextStyle(color: Colors.grey)),
+                        ],
+                      ),
+                    ),
+
+                    /// ⭐ MULTIPLE IMAGE GALLERY
+                    if (images.isEmpty)
+                      Text("No Images Found")
+                    else
+                      SizedBox(
+                        height: 100,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: images.length,
+                          itemBuilder: (context, i) {
+                            return GestureDetector(
+                              onTap: () => openGallery(allImages, i + (p.image_ != null ? 1 : 0)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(6),
+                                child: CachedNetworkImage(
+                                  imageUrl: "${images[i]}?v=${DateTime.now().millisecondsSinceEpoch}",
+                                  width: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    const SizedBox(height: 10),
+
+                    /// ⭐ 2 COLUMN INFO
+                    buildTwoColumnInfo(infoRows),
+
+                    /// ⭐ DESCRIPTION
+                    buildDescriptionCard(p.Description),
+
+                    /// ⭐ AMENITIES
+                    buildAmenitiesCard(p.amenites_),
+
+                    ///LOCATION
+                    buildLocationCard(p.current_location),
+
+                    /// ⭐ CONTACT
+                    buildContactSection(),
                   ],
                 ),
               ),
-
-              /// ⭐ MULTIPLE IMAGE GALLERY
-              if (images.isEmpty)
-              Text("No Images Found")
-                  else
-                SizedBox(
-                  height: 100,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: images.length,
-                    itemBuilder: (context, i) {
-                      return GestureDetector(
-                        onTap: () => openGallery(allImages, i + (p.image_ != null ? 1 : 0)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(6),
-                          child: CachedNetworkImage(
-                            imageUrl: "${images[i]}?v=${DateTime.now().millisecondsSinceEpoch}",
-                            width: 100,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              const SizedBox(height: 10),
-
-              /// ⭐ 2 COLUMN INFO
-              buildTwoColumnInfo(infoRows),
-
-              /// ⭐ DESCRIPTION
-              buildDescriptionCard(p.Description),
-
-              /// ⭐ AMENITIES
-              buildAmenitiesCard(p.amenites_),
-
-              ///LOCATION
-              buildLocationCard(p.current_location),
-
-              /// ⭐ CONTACT
-              buildContactSection(),
-            ],
-          ),
-        ),
-      ]),
+            ]),
       ),
     );
   }

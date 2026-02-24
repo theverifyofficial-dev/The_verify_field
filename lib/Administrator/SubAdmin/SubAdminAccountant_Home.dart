@@ -19,6 +19,7 @@ import '../../Z-Screen/profile.dart';
 import '../../ui_decoration_tools/app_images.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../Admin_future _property/Administater_Future_Property.dart';
+import '../Admin_future _property/Administater_Future_Tabbar.dart';
 import '../Admin_upcoming.dart';
 import '../All_Rented_Flat/Administator_Add_Rented_Flat_Tabbar.dart';
 import 'SubAdmin_MainRealEstate_Tabbar.dart';
@@ -444,7 +445,76 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                               mainAxisSpacing: 16,
                             ),
                             itemBuilder: (context, index) {
+<<<<<<< HEAD
                               final item = mainItems[index];
+=======
+                              final List<Map<String, dynamic>> featureItems = [
+                                {
+                                  "image": AppImages.agreement,
+                                  "title": "Property \nAgreement",
+                                  "onTap": () async {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const AdminDashboard(),
+                                      ),
+                                    );
+                                  },
+                                },
+                                // {
+                                //   'image': AppImages.tenant,
+                                //   'title': "Tenant Demands",
+                                //   'onTap': () =>
+                                //       Navigator.push(context, MaterialPageRoute(
+                                //           builder: (
+                                //               context) => const Administater_parent_TenandDemand())),
+                                // },
+                                if (userNumber == "9711779003")
+
+                                  {
+                                  'image': AppImages.police,
+                                  'title': "All Rented \nFlat",
+                                  'onTap': () =>
+                                      Navigator.push(context, MaterialPageRoute(
+                                          builder: (context) => const AdministatorAddRentedFlatTabbar())),
+                                },
+                                {
+                                  'image': AppImages.propertysale,
+                                  'title': "Future\n Inventory/Property",
+                                  'onTap': () {
+                                    // Pass the buildingId you want to highlight
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => AdministaterPropertyTabPage(),
+                                      ),
+                                    );
+                                  },
+                                },
+
+                                {
+                                  'image': AppImages.demand_2,
+                                  'title': "Costumer Demands 2.O",
+                                  'onTap': () =>
+                                      Navigator.push(context, MaterialPageRoute(
+                                          builder: (
+                                              context) =>  SubadminTabbar())),
+                                },
+                                {
+                                  "image": AppImages.realestatefeild,
+                                  "title": "Upcoming\n Property",
+                                  "onTap": () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (_) => const AdminUpcoming()));
+                                  },
+                                },
+                              ];
+
+                              final item = featureItems[index];
+
+>>>>>>> 5721484 (24 feb by lokesh)
                               return _buildFeatureCard(
                                 context: context,
                                 imagePath: item['image'] as String,

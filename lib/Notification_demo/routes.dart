@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:verify_feild_worker/Home_Screen.dart';
+<<<<<<< HEAD:lib/Notification_demo/routes.dart
 import 'package:verify_feild_worker/Z-Screen/Login_page.dart';
 import 'package:verify_feild_worker/Z-Screen/splash.dart';
 import '../Add_Rented_Flat_New/Add_Rented_Flat_Tabbar_New.dart';
@@ -21,6 +22,29 @@ import '../Rent Agreement/details_agreement.dart';
 import '../Rent Agreement/history_tab.dart';
 import '../Web_query/web_query.dart';
 import '../Administrator/All_Rented_Flat/Administator_Add_Rented_Flat_Tabbar.dart';
+=======
+import 'package:verify_feild_worker/Login_page.dart';
+import 'package:verify_feild_worker/splash.dart';
+import 'Add_Rented_Flat_New/Add_Rented_Flat_Tabbar_New.dart';
+import 'Administrator/Admin_future _property/Administater_Future_Property.dart';
+import 'Administrator/Admin_future _property/Administater_Future_Tabbar.dart';
+import 'Administrator/Admin_future _property/Future_Property_Details.dart';
+import 'Administrator/Administator_Add_Rented_Flat_Tabbar.dart' hide AdministatorAddRentedFlatTabbar;
+import 'Administrator/Administator_Agreement/Admin_Agreement_details.dart';
+import 'Administrator/Administator_Realestate.dart';
+import 'Administrator/Administrator_HomeScreen.dart';
+import 'Administrator/New_TenandDemand/Admin_demand_detail.dart';
+import 'Administrator/New_TenandDemand/redemand_detailpage.dart';
+import 'Administrator/SubAdmin/Redemand_subadmin.dart';
+import 'Administrator/SubAdmin/SubAdminAccountant_Home.dart';
+import 'Administrator/SubAdmin/sub_demand_details.dart';
+import 'Demand_2/Demand_detail.dart';
+import 'Demand_2/redemand_detailpage.dart';
+import 'Rent Agreement/details_agreement.dart';
+import 'Rent Agreement/history_tab.dart';
+import 'Web_query/web_query.dart';
+import 'Administrator/All_Rented_Flat/Administator_Add_Rented_Flat_Tabbar.dart';
+>>>>>>> 5721484 (24 feb by lokesh):lib/routes.dart
 
 class Routes {
 
@@ -45,6 +69,10 @@ class Routes {
 // FIELDWORKER
   static const String FieldDemandDetail = "/fieldDemandDetail";
   static const String FieldRedemandDetail = "/fieldRedemandDetail";
+// Commercial
+  static const String AdminFieldCommercial = "/FieldCommercial";
+  static const String AdminFieldPlot = "/FieldPlot";
+
 
 
   static Map<String, WidgetBuilder> routes = {
@@ -84,12 +112,37 @@ class Routes {
     },
     administaterShowFutureProperty: (context) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
-      return ADministaterShow_FutureProperty(
+      return AdministaterPropertyTabPage(
         key: ValueKey(args['buildingId']),
         fromNotification: args['fromNotification'] ?? false,
         buildingId: args['buildingId'],
+        tabIndex: args["tabIndex"] ?? 0,
       );
     },
+
+    AdminFieldPlot: (context) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+
+      return AdministaterPropertyTabPage(
+        tabIndex: args["tabIndex"] ?? 1, // ✅ commercial tab
+        commercialId: args["commercialId"],
+        fromNotification: args["fromNotification"] ?? false,
+      );
+    },
+
+    AdminFieldCommercial: (context) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+
+      return AdministaterPropertyTabPage(
+        tabIndex: args["tabIndex"] ?? 2, // ✅ commercial tab
+        commercialId: args["commercialId"],
+        fromNotification: args["fromNotification"] ?? false,
+      );
+    },
+
+
 
     // 🔸 Admin Future Property Details
     administaterFuturePropertyDetails: (context) {
@@ -100,6 +153,7 @@ class Routes {
         flatId: args['flatId'],
       );
     },
+
 
     // 🔸 Field Worker - Accepted Agreements
     fieldAgreementAccepted: (context) {

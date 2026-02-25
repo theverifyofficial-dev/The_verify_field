@@ -144,7 +144,6 @@ class _MyAppState extends State<MyApp> {
       final redemandId = data["redemand_id"]?.toString();
       String? buildingId = data['building_id']?.toString();
       String? propertyId = data['P_id']?.toString();
-
       String? commercialId = data['commercial_id']?.toString();
       String? plotId = data['plot_id']?.toString();
       // 🔥 PAYMENT NOTIFICATION (ONLY p_id)
@@ -317,28 +316,34 @@ class _MyAppState extends State<MyApp> {
       }
       //Commercial
 
-      if (type == "NEW_COMMERCIAL" && commercialId != null) {
-        Future.delayed(const Duration(milliseconds: 400), () {
-          navigatorKey.currentState?.pushNamed(
-            Routes.AdminFieldCommercial,
-            arguments: {
-              "fromNotification": true,
-              "commercialId": commercialId,
-              "tabIndex": 2,
-            },
-          );
+      if (
+      (type == "NEW_COMMERCIAL" || type == "COMMERCIAL_UPDATED") &&
+          commercialId != null
+      ) {
+        Future.delayed(const Duration(milliseconds: 350), () {
+              navigatorKey.currentState?.pushNamedAndRemoveUntil(
+                Routes.AdminFieldCommercial,
+                    (route) => false,
+                arguments: {
+                  "fromNotification": true,
+                  "commercialId": commercialId,
+                  "tabIndex": 2,
+                },
+              );
         });
         return;
       }
-        //Plot
-      if (type == "NEW_PLOT" && plotId != null) {
-        Future.delayed(const Duration(milliseconds: 400), () {
-          navigatorKey.currentState?.pushNamed(
-            Routes.AdminFieldPlot,   // same tabbar page
+
+      // Plot
+      if ((type == "NEW_PLOT" || type == "PLOT_UPDATED") && plotId != null) {
+        Future.delayed(const Duration(milliseconds: 350), () {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            Routes.AdminFieldPlot,
+                (route) => false,  // tabbar route
             arguments: {
               "fromNotification": true,
               "plotId": plotId,
-              "tabIndex": 1,          // ✅ Plot tab index
+              "tabIndex": 1,   // ✅ plot tab
             },
           );
         });

@@ -35,16 +35,6 @@ class _AdminPendingState extends State<AdminPending> {
     }
   }
 
-  Future<void> _refreshAgreements() async {
-    try {
-      setState(() => isLoading = true);
-      await fetchAgreements();
-    } catch (e) {
-      print("❌ Error refreshing agreements: $e");
-    } finally {
-      if (mounted) setState(() => isLoading = false);
-    }
-  }
 
 
   Future<List<AgreementModel2>> fetchAgreements() async {

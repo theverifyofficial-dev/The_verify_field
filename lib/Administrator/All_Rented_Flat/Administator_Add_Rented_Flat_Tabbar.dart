@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:http/http.dart' as http;
+import '../../Custom_Widget/build_count.dart';
 import '../../Custom_Widget/constant.dart';
 import '../SubAdmin/SubAdminAccountant_Home.dart';
 import 'AdministatorFieldWorkerBookingPage.dart';
@@ -28,15 +32,18 @@ class _AdministatorAddRentedFlatTabbarState extends State<AdministatorAddRentedF
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _selectedIndex = 0;
+  int bookingCount = 0;
+  int pendingCount = 0;
+  int completeCount = 0;
 
-  final List<String> _tabs = ["Booking", "Pending", "Complete"];
 
   @override
   void initState() {
     super.initState();
 
-    _tabController = TabController(length: _tabs.length, vsync: this);
+    fetchPaymentCounts();
 
+    _tabController = TabController(length: 3, vsync: this);
     // 🔥 Set tab automatically if opened from notification
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _tabController.animateTo(widget.tabIndex);
@@ -53,6 +60,33 @@ class _AdministatorAddRentedFlatTabbarState extends State<AdministatorAddRentedF
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> fetchPaymentCounts() async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'https://verifyserve.social/Second%20PHP%20FILE/Payment/all_payment_count_for_admin.php',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+
+        if (decoded["status"] == true) {
+          final data = decoded["data"];
+
+          setState(() {
+            bookingCount = data[0][0]["BookingCount"] ?? 0;
+            pendingCount = data[1][0]["pendingCount"] ?? 0;
+            completeCount = data[2][0]["finalCount"] ?? 0;
+          });
+        }
+      }
+
+    } catch (e) {
+      print("Count error: $e");
+    }
   }
 
   @override
@@ -83,31 +117,42 @@ class _AdministatorAddRentedFlatTabbarState extends State<AdministatorAddRentedF
         ),
 
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(50),
-          child: Container(
-            margin: const EdgeInsets.only(left: 16, right: 16, top: 8),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade900,
-              borderRadius: const BorderRadius.only(
-                topLeft:  Radius.circular(25),
-                topRight: Radius.circular(25),
+          preferredSize: const Size.fromHeight(56),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+            child: Container(
+              height: 46,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade900,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.4),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicator: const BoxDecoration(color: Colors.white),
-              dividerColor: Colors.transparent,
-              labelColor: Colors.black,
-              unselectedLabelColor: Colors.white,
-              labelStyle: const TextStyle(
-                fontSize: 14, fontWeight: FontWeight.bold,
+              child: TabBar(
+                controller: _tabController,
+                dividerColor: Colors.transparent,
+                indicatorSize: TabBarIndicatorSize.tab,
+                indicator: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                labelColor: Colors.black,
+                unselectedLabelColor: Colors.white70,
+                labelStyle: const TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                ),
+                tabs: [
+                  buildTab("Booking", bookingCount),
+                  buildTab("Pending", pendingCount),
+                  buildTab("Complete", completeCount),
+                ],
               ),
-              tabs: _tabs
-                  .map((tab) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Tab(text: tab),
-              ))
-                  .toList(),
             ),
           ),
         ),

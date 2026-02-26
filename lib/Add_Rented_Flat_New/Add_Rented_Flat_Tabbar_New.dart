@@ -1,5 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import '../Custom_Widget/build_count.dart';
 import '../Custom_Widget/constant.dart';
 import 'NewDesginFieldWorkerPendingFlatsNew.dart';
 import 'NewDesgin_FieldWorker_Booking_Page_New.dart';
@@ -18,12 +23,18 @@ class AddRentedFlatTabbarNew extends StatefulWidget {
 class _AddRentedFlatTabbarNewState extends State<AddRentedFlatTabbarNew>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  int bookingCount = 0;
+  int pendingCount = 0;
+  int completeCount = 0;
+  String? mobileNumber;
 
   final List<String> _tabs = ["Booking", "Pending", "Complete"];
 
   @override
   void initState() {
     super.initState();
+    fetchPaymentCounts();
+    _loadMobileNumber();
     _tabController = TabController(
       length: _tabs.length,
       vsync: this,
@@ -45,6 +56,42 @@ class _AddRentedFlatTabbarNewState extends State<AddRentedFlatTabbarNew>
     _tabController.dispose();
     super.dispose();
   }
+
+  Future<void> _loadMobileNumber() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    mobileNumber = prefs.getString("number");
+    if (mobileNumber != null) {
+      fetchPaymentCounts();
+    }
+  }
+
+  Future<void> fetchPaymentCounts() async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'https://verifyserve.social/Second%20PHP%20FILE/Payment/all_payment_count_for_fieldworkar.php?field_workar_number=$mobileNumber',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+
+        if (decoded["status"] == true) {
+          final data = decoded["data"];
+
+          setState(() {
+            bookingCount = data[0][0]["BookingCount"] ?? 0;
+            pendingCount = data[1][0]["pendingCount"] ?? 0;
+            completeCount = data[2][0]["finalCount"] ?? 0;
+          });
+        }
+      }
+
+    } catch (e) {
+      print("Count error: $e");
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -72,29 +119,42 @@ class _AddRentedFlatTabbarNewState extends State<AddRentedFlatTabbarNew>
           ),
         ),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(50),
-          child: Container(
-            margin: const EdgeInsets.only(left: 16, right: 16, top: 8),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade900,
-              borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(25), topRight: Radius.circular(25)),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicator: BoxDecoration(
-                color: Colors.white,
+          preferredSize: const Size.fromHeight(56),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
+            child: Container(
+              height: 46,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade900,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.4),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              labelColor: Colors.black,
-              unselectedLabelColor: Colors.white,
-              labelStyle:
-              const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-              tabs: _tabs
-                  .map((tab) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Tab(text: tab),
-              ))
-                  .toList(),
+              child: TabBar(
+                controller: _tabController,
+                dividerColor: Colors.transparent,
+                indicatorSize: TabBarIndicatorSize.tab,
+                indicator: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                labelColor: Colors.black,
+                unselectedLabelColor: Colors.white70,
+                labelStyle: const TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                ),
+                tabs: [
+                  buildTab("Booking", bookingCount),
+                  buildTab("Pending", pendingCount),
+                  buildTab("Complete", completeCount),
+                ],
+              ),
             ),
           ),
         ),

@@ -35,6 +35,8 @@ class AdminAllAgreementModel {
   final String payment;
   final String recieved;
   final String? agreementType;
+  final String agreement_price;
+
 
   AdminAllAgreementModel( {
     required this.id,
@@ -50,6 +52,7 @@ class AdminAllAgreementModel {
     required this.permanentAddressTenant,
     required this.tenantMobileNo,
     required this.tenantAddharNo,
+    required this.agreement_price,
     required this.rentedAddress,
     required this.monthlyRent,
     required this.securitys,
@@ -122,6 +125,7 @@ class AdminAllAgreementModel {
       recieved: json['office_received']?.toString() ?? '0',
 
       agreementType: json['agreement_type'],
+      agreement_price: json['agreement_price'] ?? '0',
     );
   }
 

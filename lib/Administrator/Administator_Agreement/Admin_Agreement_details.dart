@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../../Custom_Widget/Custom_backbutton.dart';
+import '../../model/Additional_agreement_tenants.dart';
 import '../imagepreviewscreen.dart';
 import 'Admin_dashboard.dart';
 
@@ -15,16 +16,33 @@ class AdminAgreementDetails extends StatefulWidget {
 }
 
 class _AgreementDetailPageState extends State<AdminAgreementDetails> {
+
   Map<String, dynamic>? agreement;
   bool isLoading = true;
   File? pdfFile; // store generated PDF
+  List<AdditionalTenant> additionalTenants = [];
+  Widget? propertyCard;
 
   @override
   void initState() {
     super.initState();
-    _fetchAgreementDetail();
+    _loadAllData();
   }
 
+  Future<void> _loadAllData() async {
+    setState(() {
+      isLoading = true;
+    });
+
+    await Future.wait([
+      _fetchAgreementDetail(),
+      fetchAdditionalTenants(widget.agreementId),
+    ]);
+
+    setState(() {
+      isLoading = false;
+    });
+  }
 
   Future<void> _fetchAgreementDetail() async {
 
@@ -37,7 +55,6 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
         if (decoded["status"] == "success" && decoded["count"] > 0) {
           setState(() {
             agreement = decoded["data"][0];
-            isLoading = false;
           });
 
           fetchPropertyCard();
@@ -45,9 +62,30 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
       }
     } catch (e) {
       print("Error: $e");
-      setState(() => isLoading = false);
     }
   }
+
+  Future<void> fetchAdditionalTenants(String agreementId) async {
+    final url = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/show_api_for_addtional_tenant.php?agreement_id=$agreementId",
+    );
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+
+      if (decoded["success"] == true) {
+        final List list = decoded["data"];
+
+        setState(() {
+          additionalTenants =
+              list.map((e) => AdditionalTenant.fromJson(e)).toList();
+        });
+      }
+    }
+  }
+
 
   Widget _furnitureList(dynamic furnitureData) {
     if (furnitureData == null || furnitureData.toString().trim().isEmpty) {
@@ -404,211 +442,319 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     final withPolice= agreement?['is_Police']?.toString() == "true";
+
+
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (agreement == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text("No details found"),
+        ),
+      );
+    }
+
+    final D_or_T =
+    agreement?["agreement_type"] == "Commercial Agreement"
+        ? "Director"
+        : "Tenant";
 
     return Scaffold(
       appBar: AppBar(
         title: Text('${agreement?["agreement_type"] ?? "Agreement"} Details',style: TextStyle(fontSize: 18),),
         leading: SquareBackButton(),
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : agreement == null
-          ? const Center(child: Text("No details found"))
-          : SingleChildScrollView(
-        padding: const EdgeInsets.all(14),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
             if (propertyCard != null) propertyCard!,
 
-            SizedBox(height: 20,),
-            if (withPolice)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.redAccent),
-                ),
-                child: Row(
-                  children: const [
-                    Icon(Icons.info_outline, color: Colors.redAccent),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Note: Police verification must be created by Admin for this agreement.',
-                        style: TextStyle(
-                          color: Colors.redAccent,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            const SizedBox(height: 20),
 
-            SizedBox(height: 20,),
+            if (withPolice) _buildPoliceNotice(),
 
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
+            const SizedBox(height: 20),
+
+            _buildMainSections(D_or_T),
+
+            if (agreement!["agreement_type"] == "Police Verification")
+              _sectionCard(
+                title: "Property Residential Address",
                 children: [
-                  // Owner Details
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    child: _sectionCard(
-                      title: "Owner Details",
-                      children: [
-                        _kv("Owner Name", agreement!["owner_name"]),
-                        _kv("Relation", "${agreement!["owner_relation"]} ${agreement!["relation_person_name_owner"]}"),
-                        _kv("Address", agreement!["parmanent_addresss_owner"]),
-                        _kv("Mobile", agreement!["owner_mobile_no"]),
-                        _kv("Aadhar", agreement!["owner_addhar_no"]),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-
-                  // Tenant / Director
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    child: _sectionCard(
-                      title: agreement!["agreement_type"] == "Commercial Agreement"
-                          ? "Director Details"
-                          : "Tenant Details",
-                      children: [
-                        _kv(
-                          agreement!["agreement_type"] == "Commercial Agreement"
-                              ? "Director Name"
-                              : "Tenant Name",
-                          agreement!["tenant_name"],
-                        ),
-                        _kv("Relation", "${agreement!["tenant_relation"]} ${agreement!["relation_person_name_tenant"]}"),
-                        _kv("Address", agreement!["permanent_address_tenant"]),
-                        _kv("Mobile", agreement!["tenant_mobile_no"]),
-                        _kv("Aadhar", agreement!["tenant_addhar_no"]),
-
-                        // Commercial-only fields
-                        if (agreement!["agreement_type"] == "Commercial Agreement") ...[
-                          const Divider(),
-                          _kv("Company Name", agreement!["company_name"]),
-                          _kv("GST Number", agreement!["gst_no"]),
-                          _kv("PAN Number", agreement!["pan_no"]),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-          if (agreement!["agreement_type"] != "Police Verification")
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    child: _sectionCard(
-                      title: "Agreement Details",
-                      children: [
-                          _kv("Property", agreement?["property_id"] ?? ""),
-                        _kv("BHK", agreement?["Bhk"] ?? ""),
-                        _kv("Floor", agreement?["floor"] ?? ""),
-                        _kv("Rented Address", agreement!["rented_address"]),
-                        _kv("Monthly Rent", "₹${agreement!["monthly_rent"]}"),
-                        _kv("Security", "₹${agreement!["securitys"]}"),
-                        _kv("Installment Security", "₹${agreement!["installment_security_amount"]}"),
-                        _kv("Meter", agreement!["meter"]),
-                        _kv("Custom Unit", agreement!["custom_meter_unit"] ?? ""),
-                        _kv("Maintenance", agreement!["maintaince"]),
-                        if (agreement!["maintaince"] == "Excluding")
-                          _kv("Maintenance Amount", agreement?["custom_maintenance_charge"]),
-                        _kv("Parking", agreement!["parking"] ?? ""),
-                        _kv("Shifting Date", agreement!["shifting_date"].toString().split("T")[0]),
-                        _kv("Agreement Price", agreement?["agreement_price"] ?? 'Not Added'),
-                        _kv("Notary Amount", agreement?["notary_price"] ?? 'Not Added'),
-                        _furnitureList(agreement!['furniture']), // 👈 this line auto handles your furniture data
-
-                      ],
-                    ),
-                  ),
+                  _kv("Property Address", agreement!["rented_address"]),
                 ],
               ),
-            ),
 
-          if (agreement!["agreement_type"] == "Police Verification")
-            _sectionCard(title: "Property Residential Address ", children: [
-              _kv("Property Address", agreement!["rented_address"]),
-            ]),
+            _buildFieldWorkerSection(),
 
-
-      // 🔹 Fieldworker
-            _sectionCard(title: "Field Worker", children: [
-              _kv("Name", agreement!["Fieldwarkarname"]),
-              _kv("Number", agreement!["Fieldwarkarnumber"]),
-            ]),
-
-            _sectionCard(
-              title: "Documents",
-              children: [
-                _kvImage("Owner Aadhaar Front", agreement!["owner_aadhar_front"]),
-                _kvImage("Owner Aadhaar Back", agreement!["owner_aadhar_back"]),
-                _kvImage("Tenant Aadhaar Front", agreement!["tenant_aadhar_front"]),
-                _kvImage("Tenant Aadhaar Back", agreement!["tenant_aadhar_back"]),
-                _kvImage("Tenant Photo", agreement!["tenant_image"]),
-
-                if (agreement!["agreement_type"] == "Commercial Agreement") ...[
-                  const Divider(),
-                  _kvImage("GST Photo", agreement!["gst_photo"]),
-                  _kvImage("PAN Photo", agreement!["pan_photo"]),
-                ],
-              ],
-            ),
+            _buildDocumentsSection(),
 
             const SizedBox(height: 30),
 
-
-              Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    onPressed: () =>   _showRejectDialog(),
-
-          icon: const Icon(Icons.close, color: Colors.white),
-                    label: const Text("Reject", style: TextStyle(color: Colors.white)),
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                Expanded(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    onPressed: () => _updateAgreementStatus("Accept"),
-                    icon: const Icon(Icons.check, color: Colors.white),
-                    label: const Text("Accept", style: TextStyle(color: Colors.white)),
-                  ),
-                ),
-
-              ],
-            ),
+            _buildActionButtons(),
           ],
         ),
       ),
     );
   }
 
-  Widget? propertyCard;
+  Widget _buildMainSections(String D_or_T) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            children: [
+              SizedBox(width: 320, child: _buildOwnerSection()),
+              if (agreement!["agreement_type"] != "Police Verification") ...[
+                const SizedBox(height: 16),
+                SizedBox(width: 320, child: _buildAgreementSection()),
+              ],
+            ],
+          ),
+          const SizedBox(width: 16),
+          SizedBox(width: 320, child: _buildTenantSection(D_or_T)),
 
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOwnerSection() {
+    return _sectionCard(
+      title: "Owner Details",
+      children: [
+        _kv("Owner Name", agreement!["owner_name"]),
+        _kv("Relation",
+            "${agreement!["owner_relation"]} ${agreement!["relation_person_name_owner"]}"),
+        _kv("Address", agreement!["parmanent_addresss_owner"]),
+        _kv("Mobile", agreement!["owner_mobile_no"]),
+        _kv("Aadhar", agreement!["owner_addhar_no"]),
+      ],
+    );
+  }
+
+  Widget _buildTenantSection(String D_or_T) {
+    final bool isCommercial =
+        agreement?["agreement_type"] == "Commercial Agreement";
+    return _sectionCard(
+      title: "$D_or_T Details",
+      children: [
+
+        _kv("$D_or_T Name", agreement!["tenant_name"]),
+        _kv("Relation",
+            "${agreement!["tenant_relation"]} ${agreement!["relation_person_name_tenant"]}"),
+        _kv("Address", agreement!["permanent_address_tenant"]),
+        _kv("Mobile", agreement!["tenant_mobile_no"]),
+        _kv("Aadhar", agreement!["tenant_addhar_no"]),
+
+        /// 🔥 COMMERCIAL BLOCK (ONLY FOR MAIN TENANT)
+        if (isCommercial) ...[
+          const Divider(height: 30),
+
+          const Text(
+            "Company Details",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          _kv("Company Name", agreement?["company_name"]),
+          _kv("Document Type", agreement?["gst_type"]),
+          _kv("Document Number", agreement?["gst_no"]),
+          _kv("PAN Number", agreement?["pan_no"]),
+
+        ],
+
+        if (additionalTenants.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          Text(
+            "Additional $D_or_T",
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          ...List.generate(additionalTenants.length, (index) {
+            final t = additionalTenants[index];
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: _glassContainer(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "$D_or_T ${index + 2}",
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 10),
+
+                    _kv("Name", t.name),
+                    _kv("Relation",
+                        "${t.relation} ${t.relation_name}"),
+                    _kv("Address", t.address),
+                    _kv("Mobile", t.mobile),
+                    _kv("Aadhaar", t.aadhaar),
+
+                    const SizedBox(height: 8),
+
+                    _kvImage("Aadhaar Front", t.front),
+                    _kvImage("Aadhaar Back", t.back),
+                    _kvImage("Photo", t.photo),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildAgreementSection() {
+    final bool isCommercial = agreement?["agreement_type"] == "Commercial Agreement";
+    return _sectionCard(
+      title: "Agreement Details",
+      children: [
+        _kv("Property", agreement?["property_id"] ?? ""),
+        if(!isCommercial)
+          _kv("BHK", agreement?["Bhk"]),
+        if(isCommercial)
+          _kv("Sqft", agreement?["Sqft"]),
+        _kv("Floor", agreement?["floor"] ?? ""),
+        _kv("Rented Address", agreement!["rented_address"]),
+        _kv("Monthly Rent", "₹${agreement!["monthly_rent"]}"),
+        _kv("Security", "₹${agreement!["securitys"]}"),
+        _kv("Installment Security",
+            "₹${agreement!["installment_security_amount"]}"),
+        _kv("Meter", agreement!["meter"]),
+        _kv("Custom Unit", agreement?["custom_meter_unit"] ?? ""),
+        _kv("Maintenance", agreement!["maintaince"]),
+        if (agreement!["maintaince"] == "Excluding")
+          _kv("Maintenance Amount",
+              agreement?["custom_maintenance_charge"]),
+        _kv("Parking", agreement!["parking"] ?? ""),
+        _kv("Shifting Date",
+            agreement!["shifting_date"].toString().split("T")[0]),
+        _kv("Agreement Price",
+            agreement?["agreement_price"] ?? 'Not Added'),
+        _kv("Notary Amount",
+            agreement?["notary_price"] ?? 'Not Added'),
+        _furnitureList(agreement!['furniture']),
+      ],
+    );
+  }
+
+  Widget _buildFieldWorkerSection() {
+    return _sectionCard(
+      title: "Field Worker",
+      children: [
+        _kv("Name", agreement!["Fieldwarkarname"]),
+        _kv("Number", agreement!["Fieldwarkarnumber"]),
+      ],
+    );
+  }
+
+  Widget _buildDocumentsSection() {
+    return _sectionCard(
+      title: "Documents",
+      children: [
+        _kvImage("Owner Aadhaar Front",
+            agreement!["owner_aadhar_front"]),
+        _kvImage("Owner Aadhaar Back",
+            agreement!["owner_aadhar_back"]),
+        _kvImage("Tenant Aadhaar Front",
+            agreement!["tenant_aadhar_front"]),
+        _kvImage("Tenant Aadhaar Back",
+            agreement!["tenant_aadhar_back"]),
+        _kvImage("Tenant Photo",
+            agreement!["tenant_image"]),
+
+        if (agreement!["agreement_type"] ==
+            "Commercial Agreement") ...[
+          const Divider(),
+          _kvImage("GST Photo", agreement!["gst_photo"]),
+          _kvImage("PAN Photo", agreement!["pan_photo"]),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+            onPressed: _showRejectDialog,
+            icon: const Icon(Icons.close, color: Colors.white),
+            label: const Text("Reject",
+                style: TextStyle(color: Colors.white)),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+            onPressed: () => _updateAgreementStatus("Accept"),
+            icon: const Icon(Icons.check, color: Colors.white),
+            label: const Text("Accept",
+                style: TextStyle(color: Colors.white)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPoliceNotice() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.redAccent),
+      ),
+      child: Row(
+        children: const [
+          Icon(Icons.info_outline, color: Colors.redAccent),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Note: Police verification must be created by Admin for this agreement.',
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<void> fetchPropertyCard() async {
     final propertyId = agreement?["property_id"];
@@ -785,7 +931,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                       ),
                     ),
                     Text(
-                      "ID: ${data['property_id'] ?? "--"}",
+                      "ID: ${agreement?["property_id"] ?? "--"}",
                       style: TextStyle(
                         fontSize: 15,
                         color: textSecondary,

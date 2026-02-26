@@ -832,17 +832,6 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
     final bool hasAccess = workersToShow.isNotEmpty;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        title: Image.asset(AppImages.transparent, height: 40),
-        leading: IconButton(
-          icon: const Icon(PhosphorIcons.caret_left_bold),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.blue))
           : RefreshIndicator(

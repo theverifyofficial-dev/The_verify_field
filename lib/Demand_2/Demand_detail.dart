@@ -923,7 +923,6 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     }
   }
 
-
   String _fmtFamily(Map<String, dynamic> data) {
     final structure = data['family_structur'];
     final members = data['family_member'];
@@ -1011,11 +1010,6 @@ class _AdminDemandDetailState extends State<DemandDetail> {
       ),
     );
   }
-
-
-
-
-
 
   Widget _buildCompletionSection(bool isDark, Color accent) {
     final theme = Theme.of(context);
@@ -1384,7 +1378,11 @@ class _AdminDemandDetailState extends State<DemandDetail> {
   void _openContactSheet(BuildContext context, Color accent, bool isDark) async {
     final number = _demand?["Tnumber"] ?? "";
     final name = _demand?["Tname"] ?? "";
+    final BuyRent = _demand?["Buy_rent"] ?? "";
+    final location = _demand?["Location"] ?? "Sultanpur";
+    final Bhk = _demand?["Bhk"] ?? "";
     final id = _demand?["id"].toString() ?? "";
+    final nextWord = Bhk.contains('commercial') ? 'Space' : 'Flat';
 
     // FIRST LOAD LOGS
     List<dynamic> logs = [];
@@ -1478,7 +1476,8 @@ class _AdminDemandDetailState extends State<DemandDetail> {
 
                             final phone = normalizeWhatsAppNumber(number);
                             final txt = Uri.encodeComponent(
-                                "Hello $name, I’m contacting regarding your request.");
+                                "Hello $name, Looking for a ${Bhk} $nextWord for $BuyRent in $location? "
+                            "Feel free to contact us for further details.\n\nRegards,\nVerify Properties");
                             final url =
                             Uri.parse("https://wa.me/$phone?text=$txt");
 

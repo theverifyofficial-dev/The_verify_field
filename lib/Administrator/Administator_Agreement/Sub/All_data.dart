@@ -34,8 +34,6 @@ class FieldWorkerPayment {
   }
 }
 
-
-
 class AllData extends StatefulWidget {
   const AllData({super.key});
 
@@ -44,11 +42,13 @@ class AllData extends StatefulWidget {
 }
 
 class _AgreementDetailsState extends State<AllData> {
+
   List<AgreementModel> agreements = [];
   List<AgreementModel> filteredAgreements = [];
   bool isLoading = true;
   TextEditingController searchController = TextEditingController();
   late Future<List<FieldWorkerPayment>> _paymentsFuture;
+  FieldWorkerPayment? monthlyPaymentSummary;
 
   @override
   void initState() {
@@ -72,12 +72,11 @@ class _AgreementDetailsState extends State<AllData> {
     {"number": "8130209217", "name": "Manish"},
   ];
 
-
-
   Future<FieldWorkerPayment> fetchPaymentForWorker({
     required String number,
     required String name,
-  }) async {
+  })
+  async {
     final res = await http.get(
       Uri.parse(
         'https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/payment_count_new_api.php?fieldworker=$number',
@@ -96,9 +95,6 @@ class _AgreementDetailsState extends State<AllData> {
     );
   }
 
-
-
-
   Future<List<FieldWorkerPayment>> fetchAllFieldWorkersPayments() async {
     return Future.wait(
       fieldWorkers.map(
@@ -109,9 +105,6 @@ class _AgreementDetailsState extends State<AllData> {
       ),
     );
   }
-
-
-
 
   void _onSearchChanged() {
     String query = searchController.text.toLowerCase();
@@ -128,6 +121,8 @@ class _AgreementDetailsState extends State<AllData> {
     try {
       setState(() => isLoading = true);
       await fetchAgreements();
+      monthlyPaymentSummary = null;
+
     } catch (e) {
       debugPrint("❌ Error refreshing agreements: $e");
     } finally {
@@ -284,8 +279,10 @@ class _AgreementDetailsState extends State<AllData> {
 
     // 🔹 Compact Horizontal List
     SizedBox(
-    height: 96,
-    child: FutureBuilder<List<FieldWorkerPayment>>(
+    height: 120,
+    child: monthlyPaymentSummary != null
+        ? _buildMonthlySummaryCard(monthlyPaymentSummary!)
+        : FutureBuilder<List<FieldWorkerPayment>>(
     future: _paymentsFuture,
     builder: (context, snapshot) {
     if (snapshot.connectionState == ConnectionState.waiting) {
@@ -465,8 +462,6 @@ class _AgreementDetailsState extends State<AllData> {
 
 
 
-
-            // 📋 List of agreements
             SliverList(
               delegate: SliverChildBuilderDelegate(
                     (context, index) {
@@ -640,7 +635,6 @@ class _AgreementDetailsState extends State<AllData> {
                                       ),
                                     ),
 
-
                                 Text(
                                   "cost: ₹${item.agreement_price}",
                                   style: const TextStyle(
@@ -694,7 +688,8 @@ class _AgreementDetailsState extends State<AllData> {
   Future<void> _confirmAndUpdateOfficeReceived({
     required BuildContext context,
     required String agreementId,
-  }) async {
+  })
+  async {
     bool isSubmitting = false;
 
     final bool? confirmed = await showDialog<bool>(
@@ -808,6 +803,48 @@ class _AgreementDetailsState extends State<AllData> {
     }
   }
 
+  Widget _buildMonthlySummaryCard(FieldWorkerPayment summary) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.black.withOpacity(0.5)
+            : Colors.white.withOpacity(0.95),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark ? Colors.white12 : Colors.grey.shade300,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Monthly Payment Summary",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text("Total ₹${summary.totalAmount}"),
+          Text(
+            "Paid ₹${summary.paidAmount}",
+            style: const TextStyle(color: Colors.green),
+          ),
+          Text(
+            "Remaining ₹${summary.remainingAmount}",
+            style: const TextStyle(
+              color: Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Future<void> fetchAgreementsByMonth({
     required String month,
@@ -818,6 +855,7 @@ class _AgreementDetailsState extends State<AllData> {
       "month": month,
     };
 
+    print(month);
     // ✅ ONLY pass fw if specific fieldworker selected
     if (fieldWorker != null && fieldWorker.isNotEmpty) {
       queryParams["fw"] = fieldWorker;
@@ -835,17 +873,32 @@ class _AgreementDetailsState extends State<AllData> {
       final decoded = jsonDecode(response.body);
 
       if (decoded['success'] == true && decoded['data'] is List) {
+        final summary = decoded['month_payment_summary'];
+
         setState(() {
           agreements = decoded['data']
               .map<AgreementModel>((e) => AgreementModel.fromJson(e))
               .toList();
           filteredAgreements = agreements;
+
+          monthlyPaymentSummary = FieldWorkerPayment(
+            number: "",
+            name: "Monthly Summary",
+            totalAmount:
+            int.tryParse(summary['total_amount'].toString()) ?? 0,
+            paidAmount:
+            int.tryParse(summary['paid_amount'].toString()) ?? 0,
+            remainingAmount:
+            int.tryParse(summary['remaining_amount'].toString()) ?? 0,
+          );
         });
       } else {
         debugPrint("⚠️ No data for selected filter");
         setState(() {
           agreements = [];
           filteredAgreements = [];
+          monthlyPaymentSummary = null;
+
         });
       }
     } else {
@@ -982,14 +1035,11 @@ class _AgreementDetailsState extends State<AllData> {
     );
   }
 
-
-  // ✅ Converts DateTime to "dd MMM yyyy"
   String _formatDate(DateTime? date) {
     if (date == null) return "--";
     return "${_twoDigits(date.day)} ${_monthName(date.month)} ${date.year}";
   }
 
-  // ✅ Calculates Renewal Date = shiftingDate + 10 months
   DateTime? _getRenewalDate(DateTime? shiftingDate) {
     if (shiftingDate == null) return null;
     try {
@@ -1128,6 +1178,8 @@ Widget _statusTick({
     ],
   );
 }
+
+
 
 
 

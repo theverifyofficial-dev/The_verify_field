@@ -1,4 +1,3 @@
-// Add_commercial_property.dart - Full working code with proper submission
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
@@ -6,7 +5,10 @@ import 'package:image_picker/image_picker.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'Commercial_detail.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import '../Custom_Widget/constant.dart';
 
 class CommercialPropertyForm extends StatefulWidget {
   @override
@@ -17,13 +19,12 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
   final _formKey = GlobalKey<FormState>();
   final ImagePicker _imagePicker = ImagePicker();
 
-  String? _selectedListingType;
+  String? _selectedlisting_type;
   String? _selectedPropertyType;
   String? _selectedParkingType;
   String? _selectedWarehouseType;
-  String? _selectedRentMeterType;
+  String? _selecteddimmensions;
   String? _selectedTotalFloors;
-  String? _selectedLockInPeriod;
 
   TextEditingController _locationController = TextEditingController();
   TextEditingController _availableFromController = TextEditingController();
@@ -31,13 +32,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
   TextEditingController _carpetAreaController = TextEditingController();
   TextEditingController _sellingHeightController = TextEditingController();
   TextEditingController _sellingWidthController = TextEditingController();
-  TextEditingController _rentPriceController = TextEditingController();
-  TextEditingController _securityController = TextEditingController();
-  TextEditingController _rentIncomeController = TextEditingController();
-
-  // Field worker controllers
-  TextEditingController _fieldWorkerNameController = TextEditingController();
-  TextEditingController _fieldWorkerNumberController = TextEditingController();
+  TextEditingController _priceController = TextEditingController();
+  TextEditingController _DescriptionController = TextEditingController();
 
   List<String> _selectedAmenities = [];
 
@@ -51,15 +47,41 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
   double? _latitude;
   double? _longitude;
 
+
   // Dropdown options
   List<String> listingTypes = ['Rent', 'Sell'];
-  List<String> propertyTypes = ['Office', 'Retail Shop', 'Showroom', 'Plot', 'Warehouse', 'Other'];
+  List<String> propertyTypes = [
+    'Office',
+    'Retail Shop',
+    'Showroom',
+    'Plot',
+    'Warehouse',
+    'Other'
+  ];
   List<String> parkingTypes = ['Public', 'Private', 'Both', 'None'];
-  List<String> warehouseTypes = ['Small (<1000 sq ft)', 'Medium (1000-5000 sq ft)', 'Large (5000-10000 sq ft)', 'Very Large (>10000 sq ft)'];
-  List<String> rentMeterTypes = ['Per Sq Ft/Month', 'Per Sq Ft/Year', 'Total Monthly Rent', 'Total Yearly Rent'];
+  List<String> warehouseTypes = [
+    'Small (<1000 sq ft)',
+    'Medium (1000-5000 sq ft)',
+    'Large (5000-10000 sq ft)',
+    'Very Large (>10000 sq ft)'
+  ];
+  List<String> rentMeterTypes = [
+    'Per Sq Ft/Month',
+    'Per Sq Ft/Year',
+    'Total Monthly Rent',
+    'Total Yearly Rent'
+  ];
   List<String> totalFloors = ['Ground', '1', '2', '3', '4', '5', '6+'];
-  List<String> lockInPeriods = ['6 Months', '1 Year', '2 Years', '3 Years', '4 Years', '5 Years'];
-  List<String> amenities = ['Water Storage', 'Power Backup', 'Security', 'Parking', 'Lift', 'Air Conditioning', 'Fire Safety', 'Internet Ready'];
+  List<String> amenities = [
+    'Water Storage',
+    'Power Backup',
+    'Security',
+    'Parking',
+    'Lift',
+    'Air Conditioning',
+    'Fire Safety',
+    'Internet Ready'
+  ];
 
   // Premium Color Scheme
   final Color primaryColor = Color(0xFF2D5BFF);
@@ -68,23 +90,21 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final Color backgroundColor = isDarkMode ? Color(0xFF121212) : Color(0xFFF8FAFF);
+    final bool isDarkMode = Theme
+        .of(context)
+        .brightness == Brightness.dark;
+    final Color backgroundColor = isDarkMode ? Color(0xFF121212) : Color(
+        0xFFF8FAFF);
     final Color cardColor = isDarkMode ? Colors.white12 : Colors.white;
     final Color textColor = isDarkMode ? Colors.white : Color(0xFF2D3748);
-    final Color secondaryTextColor = isDarkMode ? Colors.white70 : Color(0xFF2D3748).withOpacity(0.6);
+    final Color secondaryTextColor = isDarkMode ? Colors.white70 : Color(
+        0xFF2D3748).withOpacity(0.6);
 
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: primaryColor,
-        title: Text(
-          'Commercial Property',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        backgroundColor: Colors.black,
+        title:Image.asset(AppImages.transparent,height: 40,),
         iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
       ),
@@ -100,31 +120,37 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                 SizedBox(height: 32),
                 _buildImageUploadSection(isDarkMode, cardColor, textColor),
                 SizedBox(height: 20),
-                _buildListingTypeSection(isDarkMode, cardColor, textColor, secondaryTextColor),
+                _buildpriceSection(
+                    isDarkMode, cardColor, textColor, secondaryTextColor),
                 SizedBox(height: 20),
-                _buildLocationSection(isDarkMode, cardColor, textColor, secondaryTextColor),
+                _buildListingTypeSection(
+                    isDarkMode, cardColor, textColor, secondaryTextColor),
                 SizedBox(height: 20),
-                _buildPropertyTypeSection(isDarkMode, cardColor, textColor, secondaryTextColor),
+                _buildLocationSection(
+                    isDarkMode, cardColor, textColor, secondaryTextColor),
                 SizedBox(height: 20),
-                _buildAvailableFromSection(isDarkMode, cardColor, textColor, secondaryTextColor),
+                _buildPropertyTypeSection(
+                    isDarkMode, cardColor, textColor, secondaryTextColor),
                 SizedBox(height: 20),
-                _buildAreaSection(isDarkMode, cardColor, textColor, secondaryTextColor),
+                _buildAvailableFromSection(
+                    isDarkMode, cardColor, textColor, secondaryTextColor),
                 SizedBox(height: 20),
-                _buildDimensionsSection(isDarkMode, cardColor, textColor, secondaryTextColor),
+                _buildAreaSection(
+                    isDarkMode, cardColor, textColor, secondaryTextColor),
                 SizedBox(height: 20),
-                _buildRentPriceSection(isDarkMode, cardColor, textColor, secondaryTextColor),
+                _buildDimensionsSection(
+                    isDarkMode, cardColor, textColor, secondaryTextColor),
                 SizedBox(height: 20),
-                _buildLockInPeriodSection(isDarkMode, cardColor, textColor, secondaryTextColor),
+                _buildFloorAndParkingSection(
+                    isDarkMode, cardColor, textColor, secondaryTextColor),
                 SizedBox(height: 20),
-                _buildRentIncomeSection(isDarkMode, cardColor, textColor, secondaryTextColor),
-                SizedBox(height: 20),
-                _buildFloorAndParkingSection(isDarkMode, cardColor, textColor, secondaryTextColor),
-                SizedBox(height: 20),
-                _buildWarehouseSection(isDarkMode, cardColor, textColor, secondaryTextColor),
+                _buildWarehouseSection(
+                    isDarkMode, cardColor, textColor, secondaryTextColor),
                 SizedBox(height: 20),
                 _buildAmenitiesSection(isDarkMode, cardColor, textColor),
                 SizedBox(height: 20),
-                _buildFieldWorkerSection(isDarkMode, cardColor, textColor, secondaryTextColor),
+                _buildDescriptionSection(
+                    isDarkMode, cardColor, textColor, secondaryTextColor),
                 SizedBox(height: 40),
                 _buildPremiumSubmitButton(),
                 SizedBox(height: 20),
@@ -136,27 +162,32 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
     );
   }
 
-  Widget _buildLocationSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
+  Widget _buildLocationSection(bool isDarkMode, Color cardColor,
+      Color textColor, Color secondaryTextColor) {
     return _buildPremiumCard(
       isDarkMode: isDarkMode,
       cardColor: cardColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Location Details', Icons.location_on_rounded, textColor),
+          _buildSectionHeader(
+              'Location Details', Icons.location_on_rounded, textColor),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: [
                 TextFormField(
                   controller: _locationController,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                      color: textColor, fontWeight: FontWeight.w500),
                   decoration: InputDecoration(
                     labelText: 'Property Location',
                     labelStyle: TextStyle(color: secondaryTextColor),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: isDarkMode ? Colors.grey[600]! : Colors.grey.withOpacity(0.2)),
+                      borderSide: BorderSide(
+                          color: isDarkMode ? Colors.grey[600]! : Colors.grey
+                              .withOpacity(0.2)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -164,7 +195,9 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: isDarkMode ? Colors.grey[600]! : Colors.grey.withOpacity(0.2)),
+                      borderSide: BorderSide(
+                          color: isDarkMode ? Colors.grey[600]! : Colors.grey
+                              .withOpacity(0.2)),
                     ),
                     prefixIcon: Icon(Icons.map_rounded, color: primaryColor),
                     hintText: 'Enter complete address',
@@ -180,7 +213,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                       ),
                     )
                         : IconButton(
-                      icon: Icon(Icons.my_location_rounded, color: primaryColor),
+                      icon: Icon(
+                          Icons.my_location_rounded, color: primaryColor),
                       onPressed: _getCurrentLocation,
                     ),
                     filled: true,
@@ -201,11 +235,13 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                     decoration: BoxDecoration(
                       color: accentColor.withOpacity(isDarkMode ? 0.2 : 0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: accentColor.withOpacity(isDarkMode ? 0.4 : 0.3)),
+                      border: Border.all(color: accentColor.withOpacity(
+                          isDarkMode ? 0.4 : 0.3)),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.check_circle_rounded, size: 16, color: accentColor),
+                        Icon(Icons.check_circle_rounded, size: 16,
+                            color: accentColor),
                         SizedBox(width: 8),
                         Expanded(
                           child: Column(
@@ -222,7 +258,9 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                                 ),
                               if (_latitude != null && _longitude != null)
                                 Text(
-                                  'Lat: ${_latitude!.toStringAsFixed(6)}, Lng: ${_longitude!.toStringAsFixed(6)}',
+                                  'Lat: ${_latitude!.toStringAsFixed(
+                                      6)}, Lng: ${_longitude!.toStringAsFixed(
+                                      6)}',
                                   style: TextStyle(
                                     color: accentColor.withOpacity(0.9),
                                     fontSize: 12,
@@ -240,7 +278,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                               _longitude = null;
                             });
                           },
-                          child: Icon(Icons.close_rounded, size: 16, color: accentColor),
+                          child: Icon(Icons.close_rounded, size: 16,
+                              color: accentColor),
                         ),
                       ],
                     ),
@@ -255,7 +294,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.info_outline_rounded, size: 14, color: Colors.blue),
+                      Icon(Icons.info_outline_rounded, size: 14,
+                          color: Colors.blue),
                       SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -289,7 +329,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          _showErrorDialog('Location permissions are denied. Please enable location services.');
+          _showErrorDialog(
+              'Location permissions are denied. Please enable location services.');
           setState(() {
             _isGettingLocation = false;
           });
@@ -298,7 +339,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
       }
 
       if (permission == LocationPermission.deniedForever) {
-        _showErrorDialog('Location permissions are permanently denied. Please enable them in app settings.');
+        _showErrorDialog(
+            'Location permissions are permanently denied. Please enable them in app settings.');
         setState(() {
           _isGettingLocation = false;
         });
@@ -340,16 +382,24 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
           _showSuccessSnackbar('Location detected successfully!');
         } else {
           setState(() {
-            _locationController.text = '${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}';
-            _currentAddress = 'Lat: ${position.latitude.toStringAsFixed(6)}, Lng: ${position.longitude.toStringAsFixed(6)}';
+            _locationController.text =
+            '${position.latitude.toStringAsFixed(6)}, ${position.longitude
+                .toStringAsFixed(6)}';
+            _currentAddress =
+            'Lat: ${position.latitude.toStringAsFixed(6)}, Lng: ${position
+                .longitude.toStringAsFixed(6)}';
             _isGettingLocation = false;
           });
           _showSuccessSnackbar('Location detected (coordinates).');
         }
       } catch (geocodingError) {
         setState(() {
-          _locationController.text = '${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}';
-          _currentAddress = 'Lat: ${position.latitude.toStringAsFixed(6)}, Lng: ${position.longitude.toStringAsFixed(6)}';
+          _locationController.text =
+          '${position.latitude.toStringAsFixed(6)}, ${position.longitude
+              .toStringAsFixed(6)}';
+          _currentAddress =
+          'Lat: ${position.latitude.toStringAsFixed(6)}, Lng: ${position
+              .longitude.toStringAsFixed(6)}';
           _isGettingLocation = false;
         });
         print('Geocoding error: $geocodingError');
@@ -360,11 +410,13 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
       setState(() {
         _isGettingLocation = false;
       });
-      _showErrorDialog('Failed to get location. Please check GPS, permissions, and internet.');
+      _showErrorDialog(
+          'Failed to get location. Please check GPS, permissions, and internet.');
     }
   }
 
-  Widget _buildImageUploadSection(bool isDarkMode, Color cardColor, Color textColor) {
+  Widget _buildImageUploadSection(bool isDarkMode, Color cardColor,
+      Color textColor) {
     return _buildPremiumCard(
       isDarkMode: isDarkMode,
       cardColor: cardColor,
@@ -379,11 +431,15 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                   padding: EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [primaryColor.withOpacity(0.1), secondaryColor.withOpacity(0.1)],
+                      colors: [
+                        primaryColor.withOpacity(0.1),
+                        secondaryColor.withOpacity(0.1)
+                      ],
                     ),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.photo_library_rounded, size: 18, color: primaryColor),
+                  child: Icon(Icons.photo_library_rounded, size: 18,
+                      color: primaryColor),
                 ),
                 SizedBox(width: 10),
                 Text(
@@ -428,23 +484,32 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                           height: 100,
                           decoration: BoxDecoration(
                             border: Border.all(
-                              color: _singleImage == null ? (isDarkMode ? Colors.grey[600]! : Colors.grey.withOpacity(0.3)) : primaryColor,
+                              color: _singleImage == null
+                                  ? (isDarkMode ? Colors.grey[600]! : Colors
+                                  .grey.withOpacity(0.3))
+                                  : primaryColor,
                               width: _singleImage == null ? 1 : 2,
                             ),
                             borderRadius: BorderRadius.circular(10),
-                            color: _singleImage == null ? (isDarkMode ? Color(0xFF2A2A2A) : Colors.grey.withOpacity(0.03)) : primaryColor.withOpacity(0.02),
+                            color: _singleImage == null
+                                ? (isDarkMode ? Color(0xFF2A2A2A) : Colors.grey
+                                .withOpacity(0.03))
+                                : primaryColor.withOpacity(0.02),
                           ),
                           child: _singleImage == null
                               ? Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.camera_alt_rounded, size: 24, color: isDarkMode ? Colors.grey[500] : Colors.grey),
+                              Icon(Icons.camera_alt_rounded, size: 24,
+                                  color: isDarkMode ? Colors.grey[500] : Colors
+                                      .grey),
                               SizedBox(height: 4),
                               Text(
                                 'Cover Photo',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: isDarkMode ? Colors.grey[400] : Colors.grey,
+                                  color: isDarkMode ? Colors.grey[400] : Colors
+                                      .grey,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -465,7 +530,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                                 bottom: 4,
                                 left: 4,
                                 child: Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: Colors.black.withOpacity(0.7),
                                     borderRadius: BorderRadius.circular(4),
@@ -494,20 +560,28 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                         child: Container(
                           height: 100,
                           decoration: BoxDecoration(
-                            border: Border.all(color: isDarkMode ? Colors.grey[600]! : Colors.grey.withOpacity(0.3), width: 1),
+                            border: Border.all(
+                                color: isDarkMode ? Colors.grey[600]! : Colors
+                                    .grey.withOpacity(0.3), width: 1),
                             borderRadius: BorderRadius.circular(10),
-                            color: isDarkMode ? Color(0xFF2A2A2A) : Colors.grey.withOpacity(0.02),
+                            color: isDarkMode ? Color(0xFF2A2A2A) : Colors.grey
+                                .withOpacity(0.02),
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.collections_rounded, size: 28, color: isDarkMode ? Colors.grey[500] : Colors.grey.withOpacity(0.6)),
+                              Icon(Icons.collections_rounded, size: 28,
+                                  color: isDarkMode ? Colors.grey[500] : Colors
+                                      .grey.withOpacity(0.6)),
                               SizedBox(height: 4),
                               Text(
-                                _selectedImages.isEmpty ? 'Add More' : '+${_selectedImages.length}',
+                                _selectedImages.isEmpty
+                                    ? 'Add More'
+                                    : '+${_selectedImages.length}',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: isDarkMode ? Colors.grey[400] : Colors.grey,
+                                  color: isDarkMode ? Colors.grey[400] : Colors
+                                      .grey,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -516,7 +590,9 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                                   'photos',
                                   style: TextStyle(
                                     fontSize: 10,
-                                    color: isDarkMode ? Colors.grey[500] : Colors.grey.withOpacity(0.6),
+                                    color: isDarkMode
+                                        ? Colors.grey[500]
+                                        : Colors.grey.withOpacity(0.6),
                                   ),
                                 ),
                             ],
@@ -623,10 +699,14 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
         child: Container(
           padding: EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isDanger ? Colors.red.withOpacity(isDarkMode ? 0.2 : 0.05) : primaryColor.withOpacity(isDarkMode ? 0.2 : 0.05),
+            color: isDanger
+                ? Colors.red.withOpacity(isDarkMode ? 0.2 : 0.05)
+                : primaryColor.withOpacity(isDarkMode ? 0.2 : 0.05),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isDanger ? Colors.red.withOpacity(isDarkMode ? 0.4 : 0.2) : primaryColor.withOpacity(isDarkMode ? 0.4 : 0.2),
+              color: isDanger
+                  ? Colors.red.withOpacity(isDarkMode ? 0.4 : 0.2)
+                  : primaryColor.withOpacity(isDarkMode ? 0.4 : 0.2),
             ),
           ),
           child: Column(
@@ -650,41 +730,30 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
     );
   }
 
-  Widget _buildFieldWorkerSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
+  Widget _buildDescriptionSection(bool isDarkMode, Color cardColor,
+      Color textColor, Color secondaryTextColor) {
     return _buildPremiumCard(
       isDarkMode: isDarkMode,
       cardColor: cardColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Field Worker', Icons.person_rounded, textColor),
+          _buildSectionHeader('Description', Icons.description_sharp, textColor),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: [
                 TextFormField(
-                  controller: _fieldWorkerNameController,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                  controller: _DescriptionController,
+                  maxLines: 3,
+                  style: TextStyle(color: textColor),
                   decoration: _buildInputDecoration(
                     isDarkMode: isDarkMode,
-                    label: 'Field Worker Name',
-                    icon: Icons.person_rounded,
+                    label: 'Description',
+                    icon: Icons.description,
                     textColor: textColor,
                     secondaryTextColor: secondaryTextColor,
                   ),
-                ),
-                SizedBox(height: 12),
-                TextFormField(
-                  controller: _fieldWorkerNumberController,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-                  decoration: _buildInputDecoration(
-                    isDarkMode: isDarkMode,
-                    label: 'Field Worker Number',
-                    icon: Icons.phone_rounded,
-                    textColor: textColor,
-                    secondaryTextColor: secondaryTextColor,
-                  ),
-                  keyboardType: TextInputType.phone,
                 ),
               ],
             ),
@@ -722,7 +791,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
               color: Colors.white.withOpacity(0.2),
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.business_center_rounded, size: 32, color: Colors.white),
+            child: Icon(
+                Icons.business_center_rounded, size: 32, color: Colors.white),
           ),
           SizedBox(width: 16),
           Expanded(
@@ -764,7 +834,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
     );
   }
 
-  Widget _buildPremiumCard({required bool isDarkMode, required Color cardColor, required Widget child}) {
+  Widget _buildPremiumCard(
+      {required bool isDarkMode, required Color cardColor, required Widget child}) {
     return Container(
       width: double.infinity,
       margin: EdgeInsets.only(bottom: 16),
@@ -793,7 +864,10 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
             padding: EdgeInsets.all(8),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [primaryColor.withOpacity(0.1), secondaryColor.withOpacity(0.1)],
+                colors: [
+                  primaryColor.withOpacity(0.1),
+                  secondaryColor.withOpacity(0.1)
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -829,7 +903,9 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
       labelStyle: TextStyle(color: secondaryTextColor),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: isDarkMode ? Colors.grey[600]! : Colors.grey.withOpacity(0.2)),
+        borderSide: BorderSide(
+            color: isDarkMode ? Colors.grey[600]! : Colors.grey.withOpacity(
+                0.2)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -837,7 +913,9 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: isDarkMode ? Colors.grey[600]! : Colors.grey.withOpacity(0.2)),
+        borderSide: BorderSide(
+            color: isDarkMode ? Colors.grey[600]! : Colors.grey.withOpacity(
+                0.2)),
       ),
       prefixIcon: Icon(icon, color: primaryColor),
       suffixText: suffixText,
@@ -872,8 +950,15 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
         maxHeight: 800,
         imageQuality: 80,
       );
+
       if (images.isNotEmpty) {
         setState(() {
+          if (_selectedImages.length + images.length > 10) {
+            _showErrorDialog("Maximum 10 images allowed");
+            return;
+          }
+
+          // 🔥 ADD IMAGES
           _selectedImages.addAll(images);
         });
       }
@@ -882,6 +967,7 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
       _showErrorDialog('Failed to pick images. Please try again.');
     }
   }
+
 
   Future<void> _takePhoto() async {
     try {
@@ -914,7 +1000,93 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
     });
   }
 
-  Widget _buildListingTypeSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
+  String formatIndianAmount(String value) {
+    if (value.isEmpty) return '';
+
+    double amount = double.tryParse(value.replaceAll(',', '')) ?? 0;
+
+    if (amount >= 10000000) {
+      return "${(amount / 10000000).toStringAsFixed(2)} Cr";
+    } else if (amount >= 100000) {
+      return "${(amount / 100000).toStringAsFixed(2)} Lakh";
+    } else if (amount >= 1000) {
+      return "${(amount / 1000).toStringAsFixed(2)} K";
+    } else {
+      return amount.toStringAsFixed(0);
+    }
+  }
+
+
+  Widget _buildpriceSection(bool isDarkMode,
+      Color cardColor,
+      Color textColor,
+      Color secondaryTextColor) {
+    return _buildPremiumCard(
+      isDarkMode: isDarkMode,
+      cardColor: cardColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader(
+              'Pricing Details', Icons.currency_rupee_rounded, textColor),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: _priceController,
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+
+                  onChanged: (val){
+                    setState(() {}); // live update
+                  },
+
+                  decoration: _buildInputDecoration(
+                    isDarkMode: isDarkMode,
+                    label: 'Price',
+                    icon: Icons.currency_rupee_rounded,
+                    textColor: textColor,
+                    secondaryTextColor: secondaryTextColor,
+                  ).copyWith(
+                    suffixIcon: Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: Center(
+                        widthFactor: 1,
+                        child: Text(
+                          formatIndianAmount(_priceController.text),
+                          style: TextStyle(
+                            color: Colors.green, // 🔥 GREEN COLOR
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter price';
+                    }
+                    return null;
+                  },
+                ),
+
+
+                SizedBox(height: 16),
+              ],
+            ),
+          ),
+          SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+
+  Widget _buildListingTypeSection(bool isDarkMode, Color cardColor,
+      Color textColor, Color secondaryTextColor) {
     return _buildPremiumCard(
       isDarkMode: isDarkMode,
       cardColor: cardColor,
@@ -927,16 +1099,20 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isDarkMode ? Colors.grey[600]! : Colors.grey.withOpacity(0.2)),
+                border: Border.all(
+                    color: isDarkMode ? Colors.grey[600]! : Colors.grey
+                        .withOpacity(0.2)),
               ),
               child: DropdownButtonFormField<String>(
-                value: _selectedListingType,
+                value: _selectedlisting_type,
                 decoration: InputDecoration(
                   labelText: 'Rent or Sell?',
                   labelStyle: TextStyle(color: secondaryTextColor),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  prefixIcon: Icon(Icons.business_center_rounded, color: primaryColor),
+                  contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 16),
+                  prefixIcon: Icon(
+                      Icons.business_center_rounded, color: primaryColor),
                   filled: true,
                   fillColor: isDarkMode ? Color(0xFF2A2A2A) : Colors.white,
                 ),
@@ -950,7 +1126,7 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                 }).toList(),
                 onChanged: (String? newValue) {
                   setState(() {
-                    _selectedListingType = newValue;
+                    _selectedlisting_type = newValue;
                   });
                 },
                 validator: (value) {
@@ -968,20 +1144,24 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
     );
   }
 
-  Widget _buildPropertyTypeSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
+  Widget _buildPropertyTypeSection(bool isDarkMode, Color cardColor,
+      Color textColor, Color secondaryTextColor) {
     return _buildPremiumCard(
       isDarkMode: isDarkMode,
       cardColor: cardColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Property Type', Icons.category_rounded, textColor),
+          _buildSectionHeader(
+              'Property Type', Icons.category_rounded, textColor),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 24),
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isDarkMode ? Colors.grey[600]! : Colors.grey.withOpacity(0.2)),
+                border: Border.all(
+                    color: isDarkMode ? Colors.grey[600]! : Colors.grey
+                        .withOpacity(0.2)),
               ),
               child: DropdownButtonFormField<String>(
                 value: _selectedPropertyType,
@@ -989,8 +1169,10 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                   labelText: 'Type of Property',
                   labelStyle: TextStyle(color: secondaryTextColor),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  prefixIcon: Icon(Icons.real_estate_agent_rounded, color: primaryColor),
+                  contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 16),
+                  prefixIcon: Icon(
+                      Icons.real_estate_agent_rounded, color: primaryColor),
                   filled: true,
                   fillColor: isDarkMode ? Color(0xFF2A2A2A) : Colors.white,
                 ),
@@ -1022,14 +1204,16 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
     );
   }
 
-  Widget _buildAvailableFromSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
+  Widget _buildAvailableFromSection(bool isDarkMode, Color cardColor,
+      Color textColor, Color secondaryTextColor) {
     return _buildPremiumCard(
       isDarkMode: isDarkMode,
       cardColor: cardColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Availability', Icons.calendar_month_rounded, textColor),
+          _buildSectionHeader(
+              'Availability', Icons.calendar_month_rounded, textColor),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 24),
             child: TextFormField(
@@ -1060,14 +1244,16 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
     );
   }
 
-  Widget _buildAreaSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
+  Widget _buildAreaSection(bool isDarkMode, Color cardColor, Color textColor,
+      Color secondaryTextColor) {
     return _buildPremiumCard(
       isDarkMode: isDarkMode,
       cardColor: cardColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Area Details', Icons.aspect_ratio_rounded, textColor),
+          _buildSectionHeader(
+              'Area Details', Icons.aspect_ratio_rounded, textColor),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 24),
             child: Row(
@@ -1075,7 +1261,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                 Expanded(
                   child: TextFormField(
                     controller: _builtupAreaController,
-                    style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        color: textColor, fontWeight: FontWeight.w500),
                     decoration: _buildInputDecoration(
                       isDarkMode: isDarkMode,
                       label: 'Built-up Area',
@@ -1091,7 +1278,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                 Expanded(
                   child: TextFormField(
                     controller: _carpetAreaController,
-                    style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        color: textColor, fontWeight: FontWeight.w500),
                     decoration: _buildInputDecoration(
                       isDarkMode: isDarkMode,
                       label: 'Carpet Area',
@@ -1112,14 +1300,16 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
     );
   }
 
-  Widget _buildDimensionsSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
+  Widget _buildDimensionsSection(bool isDarkMode, Color cardColor,
+      Color textColor, Color secondaryTextColor) {
     return _buildPremiumCard(
       isDarkMode: isDarkMode,
       cardColor: cardColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Dimensions', Icons.straighten_rounded, textColor),
+          _buildSectionHeader(
+              'Dimensions', Icons.straighten_rounded, textColor),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 24),
             child: Row(
@@ -1127,7 +1317,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                 Expanded(
                   child: TextFormField(
                     controller: _sellingHeightController,
-                    style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        color: textColor, fontWeight: FontWeight.w500),
                     decoration: _buildInputDecoration(
                       isDarkMode: isDarkMode,
                       label: 'Height',
@@ -1143,7 +1334,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                 Expanded(
                   child: TextFormField(
                     controller: _sellingWidthController,
-                    style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        color: textColor, fontWeight: FontWeight.w500),
                     decoration: _buildInputDecoration(
                       isDarkMode: isDarkMode,
                       label: 'Width',
@@ -1164,190 +1356,16 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
     );
   }
 
-  Widget _buildRentPriceSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
-    if (_selectedListingType != 'Rent') return SizedBox();
-
+  Widget _buildFloorAndParkingSection(bool isDarkMode, Color cardColor,
+      Color textColor, Color secondaryTextColor) {
     return _buildPremiumCard(
       isDarkMode: isDarkMode,
       cardColor: cardColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Rent Details', Icons.attach_money_rounded, textColor),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: _rentPriceController,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-                  decoration: _buildInputDecoration(
-                    isDarkMode: isDarkMode,
-                    label: 'Rent Price',
-                    icon: Icons.money_rounded,
-                    textColor: textColor,
-                    secondaryTextColor: secondaryTextColor,
-                    suffixText: 'INR',
-                  ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (_selectedListingType == 'Rent' && (value == null || value.isEmpty)) {
-                      return 'Please enter rent price';
-                    }
-                    return null;
-                  },
-                ),
-                SizedBox(height: 16),
-                TextFormField(
-                  controller: _securityController,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-                  decoration: _buildInputDecoration(
-                    isDarkMode: isDarkMode,
-                    label: 'Security Deposit',
-                    icon: Icons.security_rounded,
-                    textColor: textColor,
-                    secondaryTextColor: secondaryTextColor,
-                    suffixText: 'INR',
-                  ),
-                  keyboardType: TextInputType.number,
-                ),
-                SizedBox(height: 16),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: isDarkMode ? Colors.grey[600]! : Colors.grey.withOpacity(0.2)),
-                  ),
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedRentMeterType,
-                    decoration: InputDecoration(
-                      labelText: 'Rent Calculation',
-                      labelStyle: TextStyle(color: secondaryTextColor),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      prefixIcon: Icon(Icons.speed_rounded, color: primaryColor),
-                      filled: true,
-                      fillColor: isDarkMode ? Color(0xFF2A2A2A) : Colors.white,
-                    ),
-                    dropdownColor: isDarkMode ? Color(0xFF1E1E1E) : Colors.white,
-                    style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-                    items: rentMeterTypes.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value, style: TextStyle(color: textColor)),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedRentMeterType = newValue;
-                      });
-                    },
-                    validator: (value) {
-                      if (_selectedListingType == 'Rent' && (value == null || value.isEmpty)) {
-                        return 'Please select rent calculation';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLockInPeriodSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
-    if (_selectedListingType != 'Rent') return SizedBox();
-
-    return _buildPremiumCard(
-      isDarkMode: isDarkMode,
-      cardColor: cardColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader('Lock-in Period', Icons.lock_clock_rounded, textColor),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isDarkMode ? Colors.grey[600]! : Colors.grey.withOpacity(0.2)),
-              ),
-              child: DropdownButtonFormField<String>(
-                value: _selectedLockInPeriod,
-                decoration: InputDecoration(
-                  labelText: 'Select Lock-in Period',
-                  labelStyle: TextStyle(color: secondaryTextColor),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  prefixIcon: Icon(Icons.calendar_month_rounded, color: primaryColor),
-                  filled: true,
-                  fillColor: isDarkMode ? Color(0xFF2A2A2A) : Colors.white,
-                ),
-                dropdownColor: isDarkMode ? Color(0xFF1E1E1E) : Colors.white,
-                style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-                items: lockInPeriods.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value, style: TextStyle(color: textColor)),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedLockInPeriod = newValue;
-                  });
-                },
-              ),
-            ),
-          ),
-          SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRentIncomeSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
-    if (_selectedListingType != 'Rent') return SizedBox();
-
-    return _buildPremiumCard(
-      isDarkMode: isDarkMode,
-      cardColor: cardColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader('Expected Income', Icons.trending_up_rounded, textColor),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
-            child: TextFormField(
-              controller: _rentIncomeController,
-              style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-              decoration: _buildInputDecoration(
-                isDarkMode: isDarkMode,
-                label: 'Monthly Rent Income',
-                icon: Icons.currency_rupee_rounded,
-                textColor: textColor,
-                secondaryTextColor: secondaryTextColor,
-                suffixText: 'INR',
-              ),
-              keyboardType: TextInputType.number,
-            ),
-          ),
-          SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFloorAndParkingSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
-    return _buildPremiumCard(
-      isDarkMode: isDarkMode,
-      cardColor: cardColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader('Building Details', Icons.layers_rounded, textColor),
+          _buildSectionHeader(
+              'Building Details', Icons.layers_rounded, textColor),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 24),
             child: Column(
@@ -1355,7 +1373,9 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: isDarkMode ? Colors.grey[600]! : Colors.grey.withOpacity(0.2)),
+                    border: Border.all(
+                        color: isDarkMode ? Colors.grey[600]! : Colors.grey
+                            .withOpacity(0.2)),
                   ),
                   child: DropdownButtonFormField<String>(
                     value: _selectedTotalFloors,
@@ -1363,13 +1383,17 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                       labelText: 'Total Floors',
                       labelStyle: TextStyle(color: secondaryTextColor),
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      prefixIcon: Icon(Icons.stairs_rounded, color: primaryColor),
+                      contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 16),
+                      prefixIcon: Icon(
+                          Icons.stairs_rounded, color: primaryColor),
                       filled: true,
                       fillColor: isDarkMode ? Color(0xFF2A2A2A) : Colors.white,
                     ),
-                    dropdownColor: isDarkMode ? Color(0xFF1E1E1E) : Colors.white,
-                    style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                    dropdownColor: isDarkMode ? Color(0xFF1E1E1E) : Colors
+                        .white,
+                    style: TextStyle(
+                        color: textColor, fontWeight: FontWeight.w500),
                     items: totalFloors.map((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
@@ -1387,7 +1411,9 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: isDarkMode ? Colors.grey[600]! : Colors.grey.withOpacity(0.2)),
+                    border: Border.all(
+                        color: isDarkMode ? Colors.grey[600]! : Colors.grey
+                            .withOpacity(0.2)),
                   ),
                   child: DropdownButtonFormField<String>(
                     value: _selectedParkingType,
@@ -1395,13 +1421,17 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                       labelText: 'Parking Facility',
                       labelStyle: TextStyle(color: secondaryTextColor),
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      prefixIcon: Icon(Icons.local_parking_rounded, color: primaryColor),
+                      contentPadding: EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 16),
+                      prefixIcon: Icon(
+                          Icons.local_parking_rounded, color: primaryColor),
                       filled: true,
                       fillColor: isDarkMode ? Color(0xFF2A2A2A) : Colors.white,
                     ),
-                    dropdownColor: isDarkMode ? Color(0xFF1E1E1E) : Colors.white,
-                    style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                    dropdownColor: isDarkMode ? Color(0xFF1E1E1E) : Colors
+                        .white,
+                    style: TextStyle(
+                        color: textColor, fontWeight: FontWeight.w500),
                     items: parkingTypes.map((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
@@ -1424,7 +1454,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
     );
   }
 
-  Widget _buildWarehouseSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
+  Widget _buildWarehouseSection(bool isDarkMode, Color cardColor,
+      Color textColor, Color secondaryTextColor) {
     if (_selectedPropertyType != 'Warehouse') return SizedBox();
 
     return _buildPremiumCard(
@@ -1433,13 +1464,16 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Warehouse Details', Icons.warehouse_rounded, textColor),
+          _buildSectionHeader(
+              'Warehouse Details', Icons.warehouse_rounded, textColor),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 24),
             child: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isDarkMode ? Colors.grey[600]! : Colors.grey.withOpacity(0.2)),
+                border: Border.all(
+                    color: isDarkMode ? Colors.grey[600]! : Colors.grey
+                        .withOpacity(0.2)),
               ),
               child: DropdownButtonFormField<String>(
                 value: _selectedWarehouseType,
@@ -1447,8 +1481,10 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                   labelText: 'Warehouse Size Category',
                   labelStyle: TextStyle(color: secondaryTextColor),
                   border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                  prefixIcon: Icon(Icons.space_dashboard_rounded, color: primaryColor),
+                  contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 16),
+                  prefixIcon: Icon(
+                      Icons.space_dashboard_rounded, color: primaryColor),
                   filled: true,
                   fillColor: isDarkMode ? Color(0xFF2A2A2A) : Colors.white,
                 ),
@@ -1474,14 +1510,16 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
     );
   }
 
-  Widget _buildAmenitiesSection(bool isDarkMode, Color cardColor, Color textColor) {
+  Widget _buildAmenitiesSection(bool isDarkMode, Color cardColor,
+      Color textColor) {
     return _buildPremiumCard(
       isDarkMode: isDarkMode,
       cardColor: cardColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Amenities', Icons.emoji_transportation_rounded, textColor),
+          _buildSectionHeader(
+              'Amenities', Icons.emoji_transportation_rounded, textColor),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 24),
             child: Column(
@@ -1512,12 +1550,17 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                         });
                       },
                       child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
                         decoration: BoxDecoration(
-                          color: isSelected ? primaryColor.withOpacity(isDarkMode ? 0.2 : 0.1) : (isDarkMode ? Colors.grey[800]! : Colors.grey.withOpacity(0.1)),
+                          color: isSelected ? primaryColor.withOpacity(
+                              isDarkMode ? 0.2 : 0.1) : (isDarkMode ? Colors
+                              .grey[800]! : Colors.grey.withOpacity(0.1)),
                           borderRadius: BorderRadius.circular(25),
                           border: Border.all(
-                            color: isSelected ? primaryColor : (isDarkMode ? Colors.grey[600]! : Colors.grey.withOpacity(0.3)),
+                            color: isSelected ? primaryColor : (isDarkMode
+                                ? Colors.grey[600]!
+                                : Colors.grey.withOpacity(0.3)),
                             width: 1.5,
                           ),
                         ),
@@ -1525,15 +1568,19 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(
-                              isSelected ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                              isSelected ? Icons.check_circle_rounded : Icons
+                                  .radio_button_unchecked_rounded,
                               size: 16,
-                              color: isSelected ? primaryColor : (isDarkMode ? Colors.grey[400]! : Colors.grey),
+                              color: isSelected ? primaryColor : (isDarkMode
+                                  ? Colors.grey[400]!
+                                  : Colors.grey),
                             ),
                             SizedBox(width: 6),
                             Text(
                               amenity,
                               style: TextStyle(
-                                color: isSelected ? primaryColor : textColor.withOpacity(0.7),
+                                color: isSelected ? primaryColor : textColor
+                                    .withOpacity(0.7),
                                 fontWeight: FontWeight.w500,
                                 fontSize: 12,
                               ),
@@ -1578,14 +1625,15 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
           borderRadius: BorderRadius.circular(15),
           onTap: () async {
             if (_formKey.currentState!.validate()) {
-             await _submitForm();
+              await _submitForm();
             }
           },
           child: Center(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.rocket_launch_rounded, color: Colors.white, size: 20),
+                Icon(
+                    Icons.rocket_launch_rounded, color: Colors.white, size: 20),
                 SizedBox(width: 10),
                 Text(
                   'SUBMIT COMMERCIAL LISTING',
@@ -1611,7 +1659,9 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
       firstDate: DateTime.now(),
       lastDate: DateTime(2100),
       builder: (BuildContext context, Widget? child) {
-        final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+        final bool isDarkMode = Theme
+            .of(context)
+            .brightness == Brightness.dark;
         return Theme(
           data: ThemeData(
             colorScheme: ColorScheme.light(
@@ -1620,7 +1670,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
               surface: isDarkMode ? Color(0xFF1E1E1E) : Colors.white,
               onSurface: isDarkMode ? Colors.white : Colors.black,
             ),
-            dialogBackgroundColor: isDarkMode ? Color(0xFF1E1E1E) : Colors.white,
+            dialogBackgroundColor: isDarkMode ? Color(0xFF1E1E1E) : Colors
+                .white,
           ),
           child: child!,
         );
@@ -1629,7 +1680,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
 
     if (picked != null) {
       setState(() {
-        _availableFromController.text = DateFormat('MMMM dd, yyyy').format(picked);
+        _availableFromController.text =
+            DateFormat('MMMM dd, yyyy').format(picked);
       });
     }
   }
@@ -1637,110 +1689,104 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
   // UPDATED SUBMIT FORM METHOD
   Future<void> _submitForm() async {
     if (_singleImage == null) {
-      _showErrorDialog('Please add a main property image');
+      _showErrorDialog('Please add main image');
       return;
     }
 
     if (!_formKey.currentState!.validate()) return;
 
+    final prefs = await SharedPreferences.getInstance();
+    final savedName = prefs.getString('name') ?? '';
+    final savedNumber = prefs.getString('number') ?? '';
+
+    if (savedNumber.isEmpty) {
+      _showErrorDialog("Session expired. Login again.");
+      return;
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (_) => Center(child: CircularProgressIndicator()),
+      builder: (_) => const Center(child: CircularProgressIndicator()),
     );
 
+    try {
+      var uri = Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_commercial_property.php");
 
-    // Simulate processing
-    await Future.delayed(Duration(seconds: 2));
+      var request = http.MultipartRequest("POST", uri);
 
-    // Create property data
-    final propertyData = CommercialPropertyData(
-      listingType: _selectedListingType,
-      propertyType: _selectedPropertyType,
-      parkingType: _selectedParkingType,
-      warehouseType: _selectedWarehouseType,
-      rentMeterType: _selectedRentMeterType,
-      totalFloors: _selectedTotalFloors,
-      lockInPeriod: _selectedLockInPeriod,
-      location: _locationController.text.trim(),
-      availableFrom: _availableFromController.text.trim(),
-      builtupArea: _builtupAreaController.text.trim(),
-      carpetArea: _carpetAreaController.text.trim(),
-      sellingHeight: _sellingHeightController.text.trim(),
-      sellingWidth: _sellingWidthController.text.trim(),
-      rentPrice: _rentPriceController.text.trim(),
-      security: _securityController.text.trim(),
-      rentIncome: _rentIncomeController.text.trim(),
-      fieldWorkerName: _fieldWorkerNameController.text.trim(),
-      fieldWorkerNumber: _fieldWorkerNumberController.text.trim(),
-      amenities: _selectedAmenities,
-      currentAddress: _currentAddress,
-      latitude: _latitude,
-      longitude: _longitude,
-      singleImage: _singleImage,
-      selectedImages: _selectedImages,
-    );
+      // 🔥 TEXT FIELDS
+      request.fields['listing_type'] = _selectedlisting_type ?? '';
+      request.fields['location_'] = _locationController.text;
+      request.fields['current_location'] =
+      _currentAddress.isEmpty ? _locationController.text : _currentAddress;
+      request.fields['property_type'] = _selectedPropertyType ?? '';
+      request.fields['avaible_date'] = _availableFromController.text;
+      request.fields['build_up_area'] = _builtupAreaController.text;
+      request.fields['carpet_area'] = _carpetAreaController.text;
+      request.fields['dimmensions_'] =
+      "${_sellingHeightController.text}x${_sellingWidthController.text}";
+      request.fields['height_'] = _sellingHeightController.text;
+      request.fields['width_'] = _sellingWidthController.text;
+      request.fields['total_floor'] = _selectedTotalFloors ?? '';
+      request.fields['parking_faciltiy'] = _selectedParkingType ?? '';
+      request.fields['amenites_'] = _selectedAmenities.join(",");
+      request.fields['field_workar_name'] = savedName;
+      request.fields['field_workar_number'] = savedNumber;
+      request.fields['longitude'] = _longitude?.toString() ?? '';
+      request.fields['latitude'] = _latitude?.toString() ?? '';
+      request.fields['Description'] = _DescriptionController.text;
+      request.fields['price'] = _priceController.text;
 
-    Navigator.pop(context); // Close loading
+      // 🔥 MAIN IMAGE
+      request.files.add(await http.MultipartFile.fromPath(
+        'image_',
+        _singleImage!.path,
+        filename: _singleImage!.name,
+      ));
 
-    // Show success dialog and return data
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Row(children: [
-            Icon(Icons.check_circle, color: Colors.green),
-            SizedBox(width: 10),
-            Text('Success!', style: TextStyle(fontWeight: FontWeight.bold)),
-          ]),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Commercial property has been successfully listed!'),
-              SizedBox(height: 16),
-              Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.green[50],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info, color: Colors.green, size: 16),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Your property is now visible in commercial listings',
-                        style: TextStyle(fontSize: 12, color: Colors.green[800]),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                Navigator.of(context).pop(propertyData); // Return to previous screen with data
-              },
-              child: Text('View in List'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-                _resetForm(); // Reset form for new entry
-              },
-              child: Text('Add Another'),
-            ),
-          ],
-        );
-      },
-    );
+      // 🔥 MULTIPLE IMAGES
+      for (int i = 0; i < _selectedImages.length; i++) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'images[]',
+          _selectedImages[i].path,
+          filename: _selectedImages[i].name,
+        ));
+      }
+
+      // 🔥 SEND REQUEST
+      var response = await request.send();
+      var respStr = await response.stream.bytesToString();
+
+      if (!mounted) return;
+
+      // ✅ Loader close
+      Navigator.of(context, rootNavigator: true).pop();
+
+      var data = jsonDecode(respStr);
+
+      if (response.statusCode == 200 && data['status'] == 'success') {
+        _showSuccessSnackbar("Property uploaded successfully");
+
+        await Future.delayed(const Duration(milliseconds: 300));
+
+        if (!mounted) return;
+
+        Navigator.pop(context, true);
+      } else {
+        _showErrorDialog(data['message'] ?? "Upload failed");
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        _showErrorDialog("Upload error: $e");
+      }
+    }
   }
-  void _showSuccessSnackbar(String message) {
+
+
+      void _showSuccessSnackbar(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -1758,12 +1804,15 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
   }
 
   void _showErrorDialog(String message) {
-    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final bool isDarkMode = Theme
+        .of(context)
+        .brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20)),
           child: Container(
             padding: EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -1788,7 +1837,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                   message,
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: isDarkMode ? Colors.white70 : Color(0xFF2D3748).withOpacity(0.7),
+                    color: isDarkMode ? Colors.white70 : Color(0xFF2D3748)
+                        .withOpacity(0.7),
                   ),
                 ),
                 SizedBox(height: 20),
@@ -1823,13 +1873,11 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
   void _resetForm() {
     _formKey.currentState!.reset();
     setState(() {
-      _selectedListingType = null;
+      _selectedlisting_type = null;
       _selectedPropertyType = null;
       _selectedParkingType = null;
       _selectedWarehouseType = null;
-      _selectedRentMeterType = null;
       _selectedTotalFloors = null;
-      _selectedLockInPeriod = null;
       _selectedAmenities.clear();
       _locationController.clear();
       _availableFromController.clear();
@@ -1837,16 +1885,13 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
       _carpetAreaController.clear();
       _sellingHeightController.clear();
       _sellingWidthController.clear();
-      _rentPriceController.clear();
-      _securityController.clear();
-      _rentIncomeController.clear();
       _singleImage = null;
       _selectedImages.clear();
       _currentAddress = '';
       _latitude = null;
       _longitude = null;
-      _fieldWorkerNameController.clear();
-      _fieldWorkerNumberController.clear();
+      _priceController.clear();
+      _DescriptionController.clear();
     });
   }
 
@@ -1858,11 +1903,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
     _carpetAreaController.dispose();
     _sellingHeightController.dispose();
     _sellingWidthController.dispose();
-    _rentPriceController.dispose();
-    _securityController.dispose();
-    _rentIncomeController.dispose();
-    _fieldWorkerNameController.dispose();
-    _fieldWorkerNumberController.dispose();
+    _priceController.dispose();
+    _DescriptionController.dispose();
     super.dispose();
   }
 }

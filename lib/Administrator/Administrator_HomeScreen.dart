@@ -15,6 +15,7 @@ import '../ui_decoration_tools/app_images.dart';
 import 'AdminInsurance/AdminInsuranceListScreen.dart';
 import 'AdminRealEstateTabbar.dart';
 import 'Admin_future _property/Administater_Future_Property.dart';
+import 'Admin_future _property/Administater_Future_Tabbar.dart';
 import 'Admin_profile.dart';
 import 'Administater_Parent_TenantDemand.dart';
 import 'All_Rented_Flat/Administator_Add_Rented_Flat_Tabbar.dart';
@@ -431,7 +432,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => ADministaterShow_FutureProperty(),
+                                    builder: (context) => AdministaterPropertyTabPage(),
                                   ),
                                 );
                               },
@@ -507,6 +508,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                       builder: (
                                           context) => const AdminInsuranceListScreen())),
                               "count": 0,
+
                             },
                           ];
 

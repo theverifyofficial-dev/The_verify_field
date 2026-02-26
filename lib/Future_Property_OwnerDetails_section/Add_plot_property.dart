@@ -1,15 +1,19 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:verify_feild_worker/Custom_Widget/constant.dart';
-import 'plot_detail.dart'; // PlotPropertyData model
+
+import '../Custom_Widget/constant.dart';
+
 
 class PropertyListingPage extends StatefulWidget {
   const PropertyListingPage({super.key});
@@ -38,6 +42,9 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
   final TextEditingController _latitudeController = TextEditingController();
   final TextEditingController _fieldworkerNameController = TextEditingController();
   final TextEditingController _fieldworkerNumberController = TextEditingController();
+  final TextEditingController _DescriptionController = TextEditingController();
+
+
 
   @override
   void initState() {
@@ -55,6 +62,7 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
       _latitudeController,
       _fieldworkerNameController,
       _fieldworkerNumberController,
+      _DescriptionController, // ✅ ADD THIS
     ];
   }
 
@@ -71,18 +79,91 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
   String? _selectedWaterConnection;
   String? _selectedElectricMeter;
 
+
+  double? _plotGaj;
+  double? _plotSqft;
+  double? _frontValue;
+  double? _sideValue;
+
+  double? _pricePerGaj;
+  double? _pricePerSqft;
+
+  String _priceUnit = 'INR';
+
+  String formatIndianCurrency(double amount) {
+    final formatter = NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '',
+      decimalDigits: 0,
+    );
+    return formatter.format(amount).trim();
+  }
+
+  String formatShortIndian(double amount) {
+    if (amount >= 10000000) {
+      return "${(amount / 10000000).toStringAsFixed(2)} Cr";
+    } else if (amount >= 100000) {
+      return "${(amount / 100000).toStringAsFixed(2)} Lakh";
+    } else if (amount >= 1000) {
+      return "${(amount / 1000).toStringAsFixed(2)} Thousand";
+    } else {
+      return amount.toStringAsFixed(0);
+    }
+  }
+
+
+  void _calculatePriceDetails() {
+    final totalPrice = double.tryParse(_plotPriceController.text);
+    final gaj = double.tryParse(_currentPlotSizeValue ?? '');
+
+    if (gaj != null && gaj > 0) {
+      final sqft = gaj * 9;
+
+      setState(() {
+        _plotGaj = gaj;
+        _plotSqft = sqft;
+
+        if (totalPrice != null) {
+          _pricePerGaj = totalPrice / gaj;
+          _pricePerSqft = totalPrice / sqft;
+          _priceUnit = formatShortIndian(totalPrice);
+        }
+      });
+
+      // 🔥 IMPORTANT — recalc dimension if front already filled
+      _recalculateDimensions();
+    }
+  }
+
+  void _recalculateDimensions() {
+    if (_plotSqft == null || _plotSqft! <= 0) return;
+    if (_frontValue == null || _frontValue! <= 0) return;
+
+    final side = _plotSqft! / _frontValue!;
+
+    setState(() {
+      _sideValue = side;
+
+      // 🔥 AUTO FILL SIDE CONTROLLER
+      _sideSizeController.text = side.toStringAsFixed(2);
+
+      // 🔥 AUTO SELECT CUSTOM FOR SIDE
+      _selectedSideSize = 'Custom';
+    });
+  }
+
   // Images
-  XFile? _singleImage;
-  List<XFile> _selectedImages = [];
+  XFile? single_image;
+  List<XFile> images = [];
 
   // Constants
   static const List<double> _plotSizeValuesInGaj = [50, 100, 150, 200, 250, 300, 350, 400, 450, 500];
   static const List<String> _frontSizeOptions = [
     '20 ft', '25 ft', '30 ft', '35 ft', '40 ft', '45 ft', '50 ft', '60 ft', '70 ft', '80 ft', 'Custom'
   ];
-  static const List<String> _sideSizeOptions = [
-    '20 ft', '25 ft', '30 ft', '35 ft', '40 ft', '45 ft', '50 ft', '60 ft', '70 ft', '80 ft', 'Custom'
-  ];
+  // static const List<String> _sideSizeOptions = [
+  //   '20 ft', '25 ft', '30 ft', '35 ft', '40 ft', '45 ft', '50 ft', '60 ft', '70 ft', '80 ft', 'Custom'
+  // ];
   static const List<String> _roadSizeOptions = [
     '10 ft', '15 ft', '20 ft', '25 ft', '30 ft', '35 ft', '40 ft', '50 ft', '60 ft', '80 ft', '100 ft', 'Custom'
   ];
@@ -153,9 +234,10 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
       final placemark = placemarks.first;
       final address = [
         placemark.street,
+        placemark.subLocality,
         placemark.locality,
         placemark.administrativeArea,
-        placemark.country,
+        placemark.postalCode
       ].where((e) => (e ?? '').trim().isNotEmpty).join(', ');
       if (mounted) {
         setState(() {
@@ -172,125 +254,190 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
     }
   }
 
-  PlotPropertyData _buildLocalPropertyData() {
-    final onlyNum = _stripUnits;
-    return PlotPropertyData(
-      plotSize: _currentPlotSizeValue ?? '',
-      plotPrice: _plotPriceController.text.trim(),
-      fieldAddress: _fieldAddressController.text.trim(),
-      mainAddress: _mainAddressController.text.trim(),
-      plotFrontSize: onlyNum(_selectedFrontSize == 'Custom'
-          ? _frontSizeController.text
-          : (_selectedFrontSize ?? '')),
-      plotSideSize: onlyNum(_selectedSideSize == 'Custom'
-          ? _sideSizeController.text
-          : (_selectedSideSize ?? '')),
-      roadSize: onlyNum(_selectedRoadSize == 'Custom'
-          ? _roadSizeController.text
-          : (_selectedRoadSize ?? '')),
-      plotOpen: _selectedPlotOpen ?? '',
-      ageOfProperty: _selectedAge ?? '',
-      waterConnection: _selectedWaterConnection ?? '',
-      electricPrice: _selectedElectricMeter ?? '',
-      plotStatus: _selectedPlotStatus ?? '',
-      propertyChain: _selectedPropertyChain ?? '',
-      currentLocation: _currentLocationController.text.trim(),
-      longitude: _longitudeController.text.trim(),
-      latitude: _latitudeController.text.trim(),
-      fieldworkarName: _fieldworkerNameController.text.trim(),
-      fieldworkarNumber: _fieldworkerNumberController.text.trim(),
-      propertyRent: _selectedPropertyRent ?? '',
-      singleImage: _singleImage,
-      // ✅ Now supported as dynamic (XFile?)
-      selectedImages: _selectedImages, // List<XFile>
-    );
-  }
+  // PlotPropertyData _buildLocalPropertyData(String field) {
+  //   return PlotPropertyData(
+  //     id: 0,
+  //     plotSize: _currentPlotSizeValue ?? '',
+  //     plotFrontSize: _frontSizeController.text.trim(),
+  //     plotSideSize: _sideSizeController.text.trim(),
+  //     roadSize: _selectedRoadSize == 'Custom'
+  //         ? _roadSizeController.text.trim()
+  //         : (_selectedRoadSize ?? ''),
+  //     plotOpen: _selectedPlotOpen ?? '',
+  //     ageOfProperty: _selectedAge ?? '',
+  //     waterConnection: _selectedWaterConnection ?? '',
+  //     electricPrice: _selectedElectricMeter ?? '',
+  //     plotPrice: _plotPriceController.text.trim(),
+  //     plotStatus: _selectedPlotStatus ?? '',
+  //     fieldAddress: _fieldAddressController.text.trim(),
+  //     propertyChain: _selectedPropertyChain ?? '',
+  //     mainAddress: _mainAddressController.text.trim(),
+  //     currentLocation: _currentLocationController.text.trim(),
+  //     longitude: _longitudeController.text.trim(),
+  //     latitude: _latitudeController.text.trim(),
+  //     fieldworkarName: _fieldworkerNameController.text.trim(),
+  //     fieldworkarNumber: _fieldworkerNumberController.text.trim(),
+  //     propertyRent: _selectedPropertyRent ?? '',
+  //     Description: _DescriptionController.text.trim(),
+  //     // ✅ CORRECT IMAGE FIELDS
+  //     single_image: single_image,
+  //     selectedImages: images,
+  //   );
+  // }
 
   Future<void> _uploadProperty() async {
-    if (_singleImage == null && _selectedImages.isEmpty) {
-      _showSnackBar('Please add at least one image (main or additional).', Colors.red);
+    if (single_image == null && images.isEmpty) {
+      _showSnackBar('Please add at least one image.', Colors.red);
       return;
     }
+
     if (!_formKey.currentState!.validate()) {
       _showSnackBar('Please fill all required fields', Colors.red);
       return;
     }
 
-    _showLoadingDialog('Uploading Property...');
+    if (_isUploading) return;
+
     setState(() => _isUploading = true);
+    _showLoadingDialog('Uploading Property...');
+
     try {
-      final uri = Uri.parse(_apiUrl);
-      final request = http.MultipartRequest('POST', uri);
+      final prefs = await SharedPreferences.getInstance();
+      final savedName = prefs.getString('name') ?? '';
+      final savedNumber = prefs.getString('number') ?? '';
 
-      final plotFront = _selectedFrontSize == 'Custom' ? _frontSizeController.text.trim() : (_selectedFrontSize ?? '');
-      final plotSide = _selectedSideSize == 'Custom' ? _sideSizeController.text.trim() : (_selectedSideSize ?? '');
-      final road = _selectedRoadSize == 'Custom' ? _roadSizeController.text.trim() : (_selectedRoadSize ?? '');
+      if (savedNumber.isEmpty) {
+        throw Exception("User not logged in");
+      }
 
-      final requiredFields = <String, String>{
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse(_apiUrl),
+      );
+
+      // ================== FIELDS ==================
+
+      request.fields.addAll({
         'plot_size': _stripUnits(_currentPlotSizeValue),
-        'plot_price': _stripUnits(_plotPriceController.text.trim()),
-        'field_address': _fieldAddressController.text.trim(),
-        'main_address': _mainAddressController.text.trim(),
-      };
-
-      final optionalFields = <String, String>{
-        'plot_front_size': _stripUnits(plotFront),
-        'plot_side_size': _stripUnits(plotSide),
-        'road_size': _stripUnits(road),
+        'plot_front_size': _stripUnits(_frontSizeController.text),
+        'plot_side_size': _stripUnits(_sideSizeController.text),
+        'road_size': _stripUnits(
+          _selectedRoadSize == 'Custom'
+              ? _roadSizeController.text
+              : _selectedRoadSize,
+        ),
         'plot_open': _selectedPlotOpen ?? '',
         'age_of_property': _selectedAge ?? '',
         'water_connection': _selectedWaterConnection ?? '',
         'electric_price': _selectedElectricMeter ?? '',
-        'electric_meter': _selectedElectricMeter ?? '',
+        'plot_price': _stripUnits(_plotPriceController.text),
         'plot_status': _selectedPlotStatus ?? '',
         'property_chain': _selectedPropertyChain ?? '',
+        'field_address': _fieldAddressController.text.trim(),
+        'main_address': _mainAddressController.text.trim(),
         'current_location': _currentLocationController.text.trim(),
         'longitude': _longitudeController.text.trim(),
         'latitude': _latitudeController.text.trim(),
-        'fieldworkar_name': _fieldworkerNameController.text.trim(),
-        'fieldworkar_number': _fieldworkerNumberController.text.trim(),
+        'fieldworkar_name': savedName,
+        'fieldworkar_number': savedNumber,
         'property_rent': _selectedPropertyRent ?? '',
-      }..removeWhere((_, v) => v.trim().isEmpty);
+        'Description': _DescriptionController.text.trim(),
+      });
 
-      request.fields.addAll(requiredFields);
-      request.fields.addAll(optionalFields);
+      // ================== SINGLE IMAGE ==================
 
-      if (_singleImage != null) {
-        final multipartFile = await _createMultipartFile('single_image', _singleImage!.path);
-        request.files.add(multipartFile);
+      if (single_image != null) {
+        request.files.add(
+          await _createMultipartFile(
+            'single_image',
+            single_image!.path,
+          ),
+        );
       }
 
-      for (final image in _selectedImages) {
-        final multipartFile = await _createMultipartFile('images[]', image.path);
-        request.files.add(multipartFile);
+      // ================== MULTIPLE IMAGES ==================
+
+      for (var img in images) {
+        request.files.add(
+          await _createMultipartFile(
+            'images[]',
+            img.path,
+          ),
+        );
       }
 
-      final streamedResponse = await request.send().timeout(const Duration(seconds: 45));
+      // ================== SEND ==================
+
+      final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
-      if (!mounted) return;
       _hideLoadingDialog();
 
       if (response.statusCode == 200) {
-        _buildLocalPropertyData();
-        await _saveFieldworkerNumber();
-        if (mounted) {
-          Navigator.pop(context); // close the form screen
-          _showSnackBar('Property uploaded successfully!', Colors.green);
-          _fetchPlotProperties();
+        final data = jsonDecode(response.body);
+
+        if (data['status'] == 'success') {
+          _showSnackBar("Property uploaded successfully!", Colors.green);
+
+          _resetForm();
+
+          // 🔥 IMPORTANT — Return true to previous page to refresh list
+          if (mounted) {
+            Navigator.pop(context, true);
+          }
+        } else {
+          _showErrorDialog(
+            "Upload Failed",
+            data['message'] ?? 'Unknown server error',
+          );
         }
       } else {
-        _showErrorDialog('Upload Failed (${response.statusCode})', response.body.isNotEmpty ? response.body : 'No response body');
+        _showErrorDialog(
+          "Upload Failed",
+          "Server error: ${response.statusCode}",
+        );
       }
     } catch (e) {
-      if (mounted) {
-        _hideLoadingDialog();
-        _showSnackBar('Error uploading: $e', Colors.red);
-      }
-    } finally {
-      if (mounted) setState(() => _isUploading = false);
+      _hideLoadingDialog();
+      _showSnackBar("Upload error: $e", Colors.red);
+    }
+
+    if (mounted) {
+      setState(() => _isUploading = false);
     }
   }
+
+  void _resetForm() {
+    _formKey.currentState?.reset();
+
+    for (final c in _controllers) {
+      c.clear();
+    }
+
+    setState(() {
+      single_image = null;
+      images.clear();
+
+      _selectedPlotSize = null;
+      _selectedFrontSize = null;
+      _selectedSideSize = null;
+      _selectedRoadSize = null;
+      _selectedAge = null;
+      _selectedPlotStatus = null;
+      _selectedPropertyChain = null;
+      _selectedPropertyRent = null;
+      _selectedPlotOpen = null;
+      _selectedWaterConnection = null;
+      _selectedElectricMeter = null;
+
+      _plotGaj = null;
+      _plotSqft = null;
+      _pricePerGaj = null;
+      _pricePerSqft = null;
+    });
+  }
+
+
 
   Future<http.MultipartFile> _createMultipartFile(String fieldName, String filePath) async {
     final filename = path.basename(filePath);
@@ -368,20 +515,26 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
         maxHeight: 1200,
         imageQuality: 80,
       );
-      if (image != null && mounted) setState(() => _singleImage = image);
+      if (image != null && mounted) setState(() => single_image = image);
     } catch (_) {}
   }
 
   Future<void> _pickMultipleImages() async {
     try {
-      final images = await _imagePicker.pickMultiImage(
+      final pickedImages = await _imagePicker.pickMultiImage(
         maxWidth: 1200,
         maxHeight: 1200,
         imageQuality: 80,
       );
-      if (images.isNotEmpty && mounted) setState(() => _selectedImages.addAll(images));
+
+      if (pickedImages.isNotEmpty && mounted) {
+        setState(() {
+          images.addAll(pickedImages);
+        });
+      }
     } catch (_) {}
   }
+
 
   Future<void> _takePhoto() async {
     try {
@@ -391,21 +544,24 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
         maxHeight: 1200,
         imageQuality: 80,
       );
-      if (image != null && mounted) setState(() => _singleImage = image);
+      if (image != null && mounted) setState(() => single_image = image);
     } catch (_) {}
   }
 
   void _clearAllImages() {
     setState(() {
-      _selectedImages.clear();
+      images.clear();
+      single_image = null;
     });
   }
 
+
   void _removeImage(int index) {
     setState(() {
-      _selectedImages.removeAt(index);
+      images.removeAt(index);
     });
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -416,11 +572,11 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF8FAFF),
       appBar: AppBar(
-        backgroundColor: _primaryColor,
+        backgroundColor: Colors.black,
         title: Image.asset(AppImages.transparent,height: 40),
         elevation: 0,
         centerTitle: true,
-        iconTheme: IconThemeData(color: isDark ? Colors.white : _textColorConst),
+        iconTheme: IconThemeData(color:Colors.white),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -446,7 +602,9 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
                 const SizedBox(height: 20),
                 _buildPriceAndAddressSection(isDark),
                 const SizedBox(height: 20),
-                _buildLocationAndFieldworkerSection(isDark),
+                _buildDescriptionSection(isDark),
+                const SizedBox(height: 20),
+                _buildLocationSection(isDark),
                 const SizedBox(height: 20),
                 _buildPlotStatusSection(isDark),
                 const SizedBox(height: 20),
@@ -535,7 +693,10 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
     final textColor = isDark ? Colors.white : _textColorConst;
     final secondaryTextColor = isDark ? Colors.white70 : _textColorConst.withOpacity(0.6);
 
-    final int totalImages = (_singleImage != null ? 1 : 0) + _selectedImages.length;
+    final int totalImages =
+        (single_image != null ? 1 : 0) + images.length;
+
+
 
     return _sectionCard(
       isDark: isDark,
@@ -589,17 +750,17 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
                           height: 100,
                           decoration: BoxDecoration(
                             border: Border.all(
-                              color: _singleImage == null
+                              color: single_image == null
                                   ? (isDark ? Colors.grey[600]! : Colors.grey.withOpacity(0.3))
                                   : _primaryColor,
-                              width: _singleImage == null ? 1 : 2,
+                              width: single_image == null ? 1 : 2,
                             ),
                             borderRadius: BorderRadius.circular(10),
-                            color: _singleImage == null
+                            color: single_image == null
                                 ? (isDark ? const Color(0xFF2A2A2A) : Colors.grey.withOpacity(0.03))
                                 : _primaryColor.withOpacity(0.02),
                           ),
-                          child: _singleImage == null
+                          child: single_image == null
                               ? Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -621,7 +782,7 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: Image.file(
-                                  File(_singleImage!.path),
+                                  File(single_image!.path),
                                   width: double.infinity,
                                   height: 100,
                                   fit: BoxFit.cover,
@@ -672,14 +833,14 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
                                   size: 28, color: isDark ? Colors.grey[500] : Colors.grey.withOpacity(0.6)),
                               const SizedBox(height: 4),
                               Text(
-                                _selectedImages.isEmpty ? 'Add More' : '+${_selectedImages.length}',
+                                images.isEmpty ? 'Add More' : '+${images.length}',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: isDark ? Colors.grey[400] : Colors.grey,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              if (_selectedImages.isNotEmpty)
+                              if (images.isNotEmpty)
                                 Text(
                                   'photos',
                                   style: TextStyle(
@@ -711,7 +872,7 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
                       isDark: isDark,
                     ),
                     const SizedBox(width: 8),
-                    if (_selectedImages.isNotEmpty)
+                    if (images.isNotEmpty)
                       _buildImageActionButton(
                         icon: Icons.delete_outline_rounded,
                         label: 'Clear All',
@@ -721,13 +882,13 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
                       ),
                   ],
                 ),
-                if (_selectedImages.isNotEmpty) ...[
+                if (images.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   SizedBox(
                     height: 60,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: _selectedImages.length,
+                      itemCount: images.length,
                       itemBuilder: (context, index) {
                         return Container(
                           margin: const EdgeInsets.only(right: 6),
@@ -738,7 +899,7 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(6),
                                 child: Image.file(
-                                  File(_selectedImages[index].path),
+                                  File(images[index].path),
                                   width: 60,
                                   height: 60,
                                   fit: BoxFit.cover,
@@ -816,68 +977,87 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
       ),
     );
   }
-
   Widget _buildPlotSizeSection(bool isDark) {
     final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final textColor = isDark ? Colors.white : _textColorConst;
-    final secondaryTextColor = isDark ? Colors.white70 : _textColorConst.withOpacity(0.6);
+    final secondaryTextColor =
+    isDark ? Colors.white70 : _textColorConst.withOpacity(0.6);
+
+    final bool isCustom = _selectedPlotSize == 'Custom';
 
     return _sectionCard(
       isDark: isDark,
       cardColor: cardColor,
-      title: 'Plot Size (Gaj)',
+      title: 'Price & Plot Size (Gaj)',
       icon: Icons.aspect_ratio,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isDark
-                    ? [const Color(0xFF1E3A5F), const Color(0xFF2D5B8F)]
-                    : [const Color(0xFFE8F4FD), const Color(0xFFF0F9FF)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: _primaryColor.withOpacity(0.3)),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.info_outline, color: _primaryColor, size: 18),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Enter plot size in Gaj, it will be automatically converted to Sq Ft',
-                    style: TextStyle(
-                      color: _primaryColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ),
+
           const SizedBox(height: 12),
-          _CustomDropdown<String>(
+
+          /// PRICE
+          TextFormField(
+            controller: _plotPriceController,
+            decoration: _inputDecoration(
+              isDark: isDark,
+              label: 'Enter Plot Price',
+              icon: Icons.money,
+              suffixText: _priceUnit,
+              textColor: textColor,
+              secondaryTextColor: secondaryTextColor,
+            ),
+            keyboardType: TextInputType.number,
+            onChanged: (_) => _calculatePriceDetails(),
+            validator: (v) =>
+            v == null || v.isEmpty ? 'Please enter plot price' : null,
+          ),
+
+          const SizedBox(height: 12),
+
+          /// PLOT SIZE DROPDOWN
+          DropdownButtonFormField<String>(
             value: _selectedPlotSize,
             decoration: _inputDecoration(
               isDark: isDark,
               label: 'Select Plot Size (Gaj)',
               icon: Icons.space_dashboard,
               textColor: textColor,
-              secondaryTextColor: secondaryTextColor,
+              secondaryTextColor:
+              isCustom ? Colors.orange : secondaryTextColor,
+            ).copyWith(
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                    color: isCustom ? Colors.orange : _primaryColor,
+                    width: 2),
+              ),
             ),
             items: _plotSizeOptions
-                .map((v) => DropdownMenuItem(value: v, child: Text(v, style: TextStyle(color: textColor, fontSize: 14))))
+                .map((v) => DropdownMenuItem(
+              value: v,
+              child: Text(
+                v,
+                style: TextStyle(
+                  color: v == 'Custom'
+                      ? Colors.orange
+                      : textColor,
+                ),
+              ),
+            ))
                 .toList(),
-            onChanged: (v) => setState(() => _selectedPlotSize = v),
-            validator: (v) => v == null || v.isEmpty ? 'Please select plot size' : null,
+            onChanged: (v) {
+              setState(() {
+                _selectedPlotSize = v;
+              });
+              _calculatePriceDetails();
+            },
+            validator: (v) =>
+            v == null || v.isEmpty ? 'Please select plot size' : null,
           ),
-          if (_selectedPlotSize == 'Custom') ...[
+
+          /// CUSTOM SIZE
+          if (isCustom) ...[
             const SizedBox(height: 12),
             TextFormField(
               controller: _plotSizeController,
@@ -886,78 +1066,51 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
                 label: 'Enter Custom Size (Gaj)',
                 icon: Icons.edit,
                 textColor: textColor,
-                secondaryTextColor: secondaryTextColor,
+                secondaryTextColor: Colors.orange,
               ),
               keyboardType: TextInputType.number,
-              onChanged: (_) => setState(() {}),
-              validator: (value) => _selectedPlotSize == 'Custom' && (value == null || value.isEmpty)
+              onChanged: (_) => _calculatePriceDetails(),
+              validator: (value) =>
+              value == null || value.isEmpty
                   ? 'Please enter plot size'
                   : null,
             ),
           ],
-          if (_currentPlotSizeValue != null) ...[
+
+          /// AREA DISPLAY
+          if (_plotSqft != null) ...[
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: isDark
-                      ? [const Color(0xFF1B5E20), const Color(0xFF2E7D32)]
-                      : [const Color(0xFFE8F5E8), const Color(0xFFF0F9F0)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color: Colors.green.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: isDark ? Colors.green[700]! : Colors.green[100]!),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              child: Text(
+                "Total Area: ${_plotSqft!.toStringAsFixed(2)} Sqft",
+                style: const TextStyle(
+                  color: Colors.green,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+
+          /// PRICE BREAKDOWN
+          if (_pricePerGaj != null && _pricePerSqft != null) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.indigo.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    flex: 3,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Size in Sq Ft:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.green[300] : Colors.green[800],
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '1 Gaj = 9 Sq Ft',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: isDark ? Colors.green[200] : Colors.green[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.green[800] : Colors.green[50],
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: isDark ? Colors.green[600]! : Colors.green[200]!),
-                      ),
-                      child: Text(
-                        '$_convertedSqftValue sqft',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.green[100] : Colors.green[800],
-                          fontSize: 14,
-                        ),
-                        textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
+                  const SizedBox(height: 6),
+                  Text("₹ ${_pricePerGaj!.toStringAsFixed(0)} per Gaj"),
+                  Text("₹ ${_pricePerSqft!.toStringAsFixed(0)} per Sqft"),
                 ],
               ),
             ),
@@ -967,132 +1120,169 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
     );
   }
 
+
   Widget _buildDimensionsSection(bool isDark) {
     final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final textColor = isDark ? Colors.white : _textColorConst;
-    final secondaryTextColor = isDark ? Colors.white70 : _textColorConst.withOpacity(0.6);
+    final secondaryTextColor =
+    isDark ? Colors.white70 : _textColorConst.withOpacity(0.6);
 
     return _sectionCard(
       isDark: isDark,
       cardColor: cardColor,
       title: 'Plot Dimensions',
       icon: Icons.straighten,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxWidth < 400) {
-            return Column(
-              children: [
-                _buildDimensionField(
-                  isDark: isDark,
-                  textColor: textColor,
-                  secondaryTextColor: secondaryTextColor,
-                  label: 'Front Size',
-                  selectedValue: _selectedFrontSize,
-                  options: _frontSizeOptions,
-                  onChanged: (v) => setState(() => _selectedFrontSize = v),
-                  controller: _frontSizeController,
-                  validator: (v) => v == null || v.isEmpty ? 'Please select front size' : null,
-                ),
-                const SizedBox(height: 16),
-                _buildDimensionField(
-                  isDark: isDark,
-                  textColor: textColor,
-                  secondaryTextColor: secondaryTextColor,
-                  label: 'Side Size',
-                  selectedValue: _selectedSideSize,
-                  options: _sideSizeOptions,
-                  onChanged: (v) => setState(() => _selectedSideSize = v),
-                  controller: _sideSizeController,
-                  validator: (v) => v == null || v.isEmpty ? 'Please select side size' : null,
-                ),
-              ],
-            );
-          } else {
-            return Row(
-              children: [
-                Expanded(
-                  child: _buildDimensionField(
-                    isDark: isDark,
-                    textColor: textColor,
-                    secondaryTextColor: secondaryTextColor,
-                    label: 'Front Size',
-                    selectedValue: _selectedFrontSize,
-                    options: _frontSizeOptions,
-                    onChanged: (v) => setState(() => _selectedFrontSize = v),
-                    controller: _frontSizeController,
-                    validator: (v) => v == null || v.isEmpty ? 'Please select front size' : null,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildDimensionField(
-                    isDark: isDark,
-                    textColor: textColor,
-                    secondaryTextColor: secondaryTextColor,
-                    label: 'Side Size',
-                    selectedValue: _selectedSideSize,
-                    options: _sideSizeOptions,
-                    onChanged: (v) => setState(() => _selectedSideSize = v),
-                    controller: _sideSizeController,
-                    validator: (v) => v == null || v.isEmpty ? 'Please select side size' : null,
-                  ),
-                ),
-              ],
-            );
-          }
-        },
-      ),
-    );
-  }
+      child: Column(
+        children: [
 
-  Widget _buildDimensionField({
-    required bool isDark,
-    required Color textColor,
-    required Color secondaryTextColor,
-    required String label,
-    required String? selectedValue,
-    required List<String> options,
-    required void Function(String? v) onChanged,
-    required TextEditingController controller,
-    required String? Function(String?)? validator,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _CustomDropdown<String>(
-          value: selectedValue,
-          decoration: _inputDecoration(
-            isDark: isDark,
-            label: label,
-            icon: Icons.straighten,
-            textColor: textColor,
-            secondaryTextColor: secondaryTextColor,
-          ),
-          items: options
-              .map((v) => DropdownMenuItem(value: v, child: Text(v, style: TextStyle(color: textColor, fontSize: 14))))
-              .toList(),
-          onChanged: onChanged,
-          validator: validator,
-        ),
-        if (selectedValue == 'Custom') ...[
-          const SizedBox(height: 12),
+          /// 🔹 LENGTH (MANUAL ONLY)
           TextFormField(
-            controller: controller,
+            controller: _frontSizeController,
             decoration: _inputDecoration(
               isDark: isDark,
-              label: 'Custom ${label == 'Front Size' ? 'Front' : 'Side'} (ft)',
+              label: 'Length (Front) in ft',
+              icon: Icons.straighten,
               textColor: textColor,
               secondaryTextColor: secondaryTextColor,
             ),
             keyboardType: TextInputType.number,
-            validator: (value) => selectedValue == 'Custom' && (value == null || value.isEmpty)
-                ? 'Please enter ${label.toLowerCase()} size'
-                : null,
+            onChanged: (value) {
+              final val = double.tryParse(value);
+              if (val != null && val > 0) {
+                _frontValue = val;
+                _recalculateDimensions();
+              }
+            },
+            validator: (v) =>
+            v == null || v.isEmpty ? 'Please enter length' : null,
+          ),
+
+          const SizedBox(height: 16),
+
+          /// 🔹 BREADTH (AUTO + FIELD SHOW)
+          TextFormField(
+            controller: _sideSizeController,
+            readOnly: true,
+            decoration: _inputDecoration(
+              isDark: isDark,
+              label: 'Breadth (Auto Calculated)',
+              icon: Icons.square_foot,
+              textColor: textColor,
+              secondaryTextColor: Colors.orange,
+            ),
+          ),
+
+          /// 🔹 AREA DISPLAY
+          if (_frontValue != null &&
+              _sideValue != null &&
+              _plotSqft != null) ...[
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                "Total Area: ${_plotSqft!.toStringAsFixed(2)} Sqft\n"
+                    "(${_frontValue!.toStringAsFixed(2)} × ${_sideValue!.toStringAsFixed(2)})",
+                style: const TextStyle(
+                  color: Colors.green,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+
+  Widget _buildFrontField({
+    required bool isDark,
+    required Color textColor,
+    required Color secondaryTextColor,
+  }) {
+    final bool isCustom = _selectedFrontSize == 'Custom';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        DropdownButtonFormField<String>(
+          value: _selectedFrontSize,
+          decoration: _inputDecoration(
+            isDark: isDark,
+            label: 'Front Size',
+            icon: Icons.straighten,
+            textColor: textColor,
+            secondaryTextColor:
+            isCustom ? Colors.orange : secondaryTextColor,
+          ).copyWith(
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                  color: isCustom ? Colors.orange : _primaryColor,
+                  width: 2),
+            ),
+          ),
+          items: _frontSizeOptions
+              .map((v) => DropdownMenuItem(
+            value: v,
+            child: Text(
+              v,
+              style: TextStyle(
+                color: v == 'Custom'
+                    ? Colors.orange
+                    : textColor,
+              ),
+            ),
+          ))
+              .toList(),
+          onChanged: (v) {
+            setState(() {
+              _selectedFrontSize = v;
+
+              if (v != null && v != 'Custom') {
+                final val =
+                double.tryParse(v.replaceAll(' ft', '').trim());
+                if (val != null) {
+                  _frontValue = val;
+                  _recalculateDimensions();
+                }
+              }
+            });
+          },
+          validator: (v) =>
+          v == null || v.isEmpty ? 'Please select front size' : null,
+        ),
+
+        if (isCustom) ...[
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _frontSizeController,
+            decoration: _inputDecoration(
+              isDark: isDark,
+              label: 'Custom Front (ft)',
+              textColor: textColor,
+              secondaryTextColor: Colors.orange,
+            ),
+            keyboardType: TextInputType.number,
+            onChanged: (value) {
+              final val = double.tryParse(value);
+              if (val != null) {
+                _frontValue = val;
+                _recalculateDimensions();
+              }
+            },
           ),
         ],
       ],
     );
   }
+
+
 
   Widget _buildRoadAndOpenSection(bool isDark) {
     final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
@@ -1243,23 +1433,10 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
     return _sectionCard(
       isDark: isDark,
       cardColor: cardColor,
-      title: 'Price & Addresses',
+      title: 'Addresses',
       icon: Icons.attach_money,
       child: Column(
         children: [
-          TextFormField(
-            controller: _plotPriceController,
-            decoration: _inputDecoration(
-              isDark: isDark,
-              label: 'Enter Plot Price',
-              icon: Icons.money,
-              suffixText: 'INR',
-              textColor: textColor,
-              secondaryTextColor: secondaryTextColor,
-            ),
-            keyboardType: TextInputType.number,
-            validator: (v) => v == null || v.isEmpty ? 'Please enter plot price' : null,
-          ),
           const SizedBox(height: 12),
           TextFormField(
             controller: _fieldAddressController,
@@ -1293,7 +1470,37 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
     );
   }
 
-  Widget _buildLocationAndFieldworkerSection(bool isDark) {
+  Widget _buildDescriptionSection(bool isDark) {
+    final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
+    final textColor = isDark ? Colors.white : _textColorConst;
+    final secondaryTextColor =
+    isDark ? Colors.white70 : _textColorConst.withOpacity(0.6);
+
+    return _sectionCard(
+      isDark: isDark,
+      cardColor: cardColor,
+      title: 'Property Description',
+      icon: Icons.description,
+      child: TextFormField(
+        controller: _DescriptionController,
+        maxLines: 5,
+        decoration: _inputDecoration(
+          isDark: isDark,
+          label: 'Enter Property Description',
+          icon: Icons.edit_note,
+          textColor: textColor,
+          secondaryTextColor: secondaryTextColor,
+        ),
+        validator: (value) =>
+        value == null || value.isEmpty
+            ? 'Please enter property description'
+            : null,
+      ),
+    );
+  }
+
+
+  Widget _buildLocationSection(bool isDark) {
     final cardColor = isDark ? const Color(0xFF1E1E1E) : Colors.white;
     final textColor = isDark ? Colors.white : _textColorConst;
     final secondaryTextColor = isDark ? Colors.white70 : _textColorConst.withOpacity(0.6);
@@ -1301,7 +1508,7 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
     return _sectionCard(
       isDark: isDark,
       cardColor: cardColor,
-      title: 'Location & Fieldworker',
+      title: 'Location',
       icon: Icons.my_location,
       child: Column(
         children: [
@@ -1394,31 +1601,6 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
               }
             },
           ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _fieldworkerNameController,
-            decoration: _inputDecoration(
-              isDark: isDark,
-              label: 'Fieldworker Name',
-              icon: Icons.person,
-              textColor: textColor,
-              secondaryTextColor: secondaryTextColor,
-            ),
-            keyboardType: TextInputType.text,
-          ),
-          const SizedBox(height: 12),
-          TextFormField(
-            controller: _fieldworkerNumberController,
-            decoration: _inputDecoration(
-              isDark: isDark,
-              label: 'Fieldworker Number',
-              icon: Icons.phone,
-              textColor: textColor,
-              secondaryTextColor: secondaryTextColor,
-            ),
-            keyboardType: TextInputType.phone,
-            validator: (v) => v == null || v.trim().isEmpty ? 'Please enter fieldworker number' : null,
-          ),
         ],
       ),
     );
@@ -1504,7 +1686,6 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
       ),
     );
   }
-
   Widget _buildSubmitButton(bool isDark) {
     return Container(
       width: double.infinity,
@@ -1529,26 +1710,31 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
         child: InkWell(
           borderRadius: BorderRadius.circular(15),
           onTap: _isUploading ? null : _uploadProperty,
-          child: const Center(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.check_circle, size: 22, color: Colors.white),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Submit Property Listing',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
-                      color: Colors.white,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+
+              /// CENTER TEXT
+              const Text(
+                'Submit Property Listing',
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                  color: Colors.white,
                 ),
-              ],
-            ),
+              ),
+
+              /// RIGHT ICON
+              Positioned(
+                right: 20,
+                child: const Icon(
+                  Icons.touch_app,
+                  size: 22,
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ),
         ),
       ),

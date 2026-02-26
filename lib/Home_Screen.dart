@@ -621,7 +621,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                             Text(
                               weekNames[today.weekday - 1],
                               style: const TextStyle(
-                                fontFamily: "PoppinsMedium",
                                 color: Colors.white,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
@@ -716,7 +715,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                         totalToday == 0 ? "No Events Today" : "Today's Events",
                         style: const TextStyle(
                           fontSize: 16,
-                          fontFamily: "PoppinsMedium",
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.5,
                         ),
@@ -882,7 +880,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                                   child: Text(
                                     event.title,
                                     style: TextStyle(
-                                      fontFamily: "PoppinsMedium",
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -969,6 +966,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         margin: const EdgeInsets.symmetric(horizontal: 4),
         child: Column(
           children: [
+            // Icon with gradient background
             Container(
               width: 30,
               height: 30,
@@ -2013,8 +2011,6 @@ class _TargetProgressCircleState extends State<_TargetProgressCircle> with Singl
                       child: Text(
                         widget.title,
                         style: TextStyle(
-                          fontFamily: "PoppinsMedium",
-
                           color: Colors.white,
                           fontSize: titleSize,
                           fontWeight: FontWeight.w600,

@@ -36,8 +36,6 @@ class SubAdminHomeScreen extends StatefulWidget {
 
 class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with TickerProviderStateMixin {
   int _currentIndex = 0;
-  int pendingCount = 0;
-  int BookCount = 0;
   String? userName;
   String? userNumber;
 
@@ -824,7 +822,6 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
     required VoidCallback onTap,
     required Animation<double> shineAnimation,
     required double itemWidth,
-    int? count,
   }) {
     final isDarkMode = Theme
         .of(context)
@@ -873,27 +870,6 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: (count != null && count > 0)
-                          ? Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          count.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      )
-                          : const SizedBox(height: 10), // keep spacing consistent
-                    ),
                     Container(
                       height: imageSize,
                       width: imageSize,
@@ -912,7 +888,6 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                         fit: BoxFit.contain,
                       ),
                     ),
-                    SizedBox(height: 5,),
                     Flexible(
                       child: Text(
                         title,
@@ -929,7 +904,6 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                         maxLines: 2,
                       ),
                     ),
-                    SizedBox(height: 5,),
                     CircleAvatar(
                       radius: imageSize * 0.25,
                       backgroundColor: isDarkMode ? Colors.white10 : Colors.grey

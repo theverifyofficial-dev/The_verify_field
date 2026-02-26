@@ -2930,7 +2930,7 @@ class _MetroLocalitySheetState
               ),
             ),
             Text(
-              'Bottom Sheet',
+              'Nearby Localities',
               style: TextStyle(
                 fontSize: 26,
                 fontWeight: FontWeight.bold,

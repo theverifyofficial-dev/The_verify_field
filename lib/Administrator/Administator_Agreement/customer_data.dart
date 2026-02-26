@@ -172,6 +172,9 @@ class _AgreementCustomerState extends State<AgreementCustomer> {
                 padding: const EdgeInsets.all(12),
                 child: TextField(
                   onChanged: applyFilter,
+                  style: const TextStyle(
+                    color: Colors.black,   // 👈 Typing text color
+                  ),
                   decoration: InputDecoration(
                     hintText: "Search name, phone, ID…",
                     prefixIcon: const Icon(Icons.search),

@@ -5,6 +5,7 @@ import 'package:verify_feild_worker/Z-Screen/Login_page.dart';
 import 'package:verify_feild_worker/Z-Screen/splash.dart';
 import '../Add_Rented_Flat_New/Add_Rented_Flat_Tabbar_New.dart';
 import '../Administrator/Admin_future _property/Administater_Future_Property.dart';
+import '../Administrator/Admin_future _property/Administater_Future_Tabbar.dart';
 import '../Administrator/Admin_future _property/Future_Property_Details.dart';
 import '../Administrator/Administator_Agreement/Admin_Agreement_details.dart';
 import '../Administrator/Administator_Realestate.dart';
@@ -45,6 +46,10 @@ class Routes {
 // FIELDWORKER
   static const String FieldDemandDetail = "/fieldDemandDetail";
   static const String FieldRedemandDetail = "/fieldRedemandDetail";
+// Commercial
+  static const String AdminFieldCommercial = "/FieldCommercial";
+  static const String AdminFieldPlot = "/FieldPlot";
+
 
 
   static Map<String, WidgetBuilder> routes = {
@@ -84,12 +89,37 @@ class Routes {
     },
     administaterShowFutureProperty: (context) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
-      return ADministaterShow_FutureProperty(
+      return AdministaterPropertyTabPage(
         key: ValueKey(args['buildingId']),
         fromNotification: args['fromNotification'] ?? false,
         buildingId: args['buildingId'],
+        tabIndex: args["tabIndex"] ?? 0,
       );
     },
+
+    AdminFieldPlot: (context) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+
+      return AdministaterPropertyTabPage(
+        tabIndex: args["tabIndex"] ?? 1, // ✅ commercial tab
+        commercialId: args["commercialId"],
+        fromNotification: args["fromNotification"] ?? false,
+      );
+    },
+
+    AdminFieldCommercial: (context) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+
+      return AdministaterPropertyTabPage(
+        tabIndex: args["tabIndex"] ?? 2, // ✅ commercial tab
+        commercialId: args["commercialId"],
+        fromNotification: args["fromNotification"] ?? false,
+      );
+    },
+
+
 
     // 🔸 Admin Future Property Details
     administaterFuturePropertyDetails: (context) {
@@ -100,6 +130,7 @@ class Routes {
         flatId: args['flatId'],
       );
     },
+
 
     // 🔸 Field Worker - Accepted Agreements
     fieldAgreementAccepted: (context) {

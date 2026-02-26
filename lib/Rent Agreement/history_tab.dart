@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_agreement/All_agreement.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_agreement/request_agreement.dart';
 
+import '../Custom_Widget/build_count.dart';
 import '../Custom_Widget/constant.dart';
 import '../Custom_Widget/marquee_style.dart';
 import 'Dashboard_screen.dart';
@@ -26,19 +27,62 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
   RewardStatus? _rewardStatus;
   bool _loadingReward = true;
   static const int monthlyTarget = 20;
-  static const bool debugForceDiscount = false; // 🔥 TEMP ONLY
+  static const bool debugForceDiscount = false;
+  int allCount = 0;
+  int acceptedCount = 0;
+  int pendingCount = 0;
+  bool isLoadingCount = true;
+  String? mobileNumber;
 
   @override
   void initState() {
     super.initState();
+    _loadMobileNumber();
     _loadReward();
     _tabController = TabController(length: 3, vsync: this, initialIndex: widget.defaultTabIndex);
   }
+
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadMobileNumber() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    mobileNumber = prefs.getString("number");
+    if (mobileNumber != null) {
+      fetchAgreementCount();
+    }
+  }
+
+  Future<void> fetchAgreementCount() async {
+    print('$mobileNumber');
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/all_agreement_count_for_fieldworkar.php?Fieldwarkarnumber=$mobileNumber',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+
+        if (decoded["status"] == true) {
+          final data = decoded["data"];
+
+          setState(() {
+            pendingCount = data[0][0]["PreviewCount"] ?? 0;
+            acceptedCount = data[1][0]["AcceptCount"] ?? 0;
+            allCount = data[2][0]["AgreementCount"] ?? 0;
+            isLoadingCount = false;
+          });
+        }
+      }
+    } catch (e) {
+      isLoadingCount = false;
+    }
   }
 
   _launchURL() async {
@@ -77,7 +121,6 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
     return RewardStatus(totalAgreements: 0, isDiscounted: false);
   }
 
-
   Future<void> _loadReward() async {
     final reward = await fetchRewardStatus();
 
@@ -88,7 +131,6 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
       _loadingReward = false;
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -160,10 +202,10 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
                 labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                 unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
                 indicatorSize: TabBarIndicatorSize.tab,
-                tabs: const [
-                  Tab(text: 'Pending'),
-                  Tab(text: 'Accepted'),
-                  Tab(text: 'Agreement'),
+                tabs: [
+                  buildTab('Final', allCount),
+                  buildTab('Accepted', acceptedCount),
+                  buildTab('Pending', pendingCount),
                 ],
               ),
             ),
@@ -172,9 +214,9 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  RequestAgreementsPage(),
-                  AcceptAgreement(),
                   AllAgreement(),
+                  AcceptAgreement(),
+                  RequestAgreementsPage(),
                 ],
               ),
 
@@ -227,6 +269,8 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
       ),
     );
   }
+
+
 }
 
 class _RewardBanner extends StatelessWidget {

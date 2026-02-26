@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../Custom_Widget/Custom_backbutton.dart';
 import '../Administrator/imagepreviewscreen.dart';
+import '../model/Additional_agreement_tenants.dart';
 
 class AllDetailpage extends StatefulWidget {
   final String agreementId;
@@ -19,16 +20,49 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
   Map<String, dynamic>? agreement;
   bool isLoading = true;
   File? pdfFile;
+  List<AdditionalTenant> additionalTenants = [];
 
   @override
   void initState() {
     super.initState();
-    _fetchAgreementDetail();
+    _loadAllData();
   }
 
+  Future<void> _loadAllData() async {
+    setState(() {
+      isLoading = true;
+    });
 
+    await Future.wait([
+      _fetchAgreementDetail(),
+      fetchAdditionalTenants(widget.agreementId),
+    ]);
 
+    setState(() {
+      isLoading = false;
+    });
+  }
 
+  Future<void> fetchAdditionalTenants(String agreementId) async {
+    final url = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/show_api_for_addtional_tenant.php?agreement_id=$agreementId",
+    );
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+
+      if (decoded["success"] == true) {
+        final List list = decoded["data"];
+
+        setState(() {
+          additionalTenants =
+              list.map((e) => AdditionalTenant.fromJson(e)).toList();
+        });
+      }
+    }
+  }
 
   String? _formatDate(dynamic shiftingDate) {
     if (shiftingDate == null) return "";
@@ -223,17 +257,34 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
     final bool officeReceived =
         agreement?["office_received"]?.toString() == "1";
 
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (agreement == null) {
+      return const Scaffold(
+        body: Center(
+          child: Text("No details found"),
+        ),
+      );
+    }
+
+    final D_or_T =
+    agreement?["agreement_type"] == "Commercial Agreement"
+        ? "Director"
+        : "Tenant";
+
 
     return Scaffold(
       appBar: AppBar(
         title: Text('${agreement?["agreement_type"] ?? ""} Details'),
         leading: const SquareBackButton(),
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : agreement == null
-          ? const Center(child: Text("No details found"))
-          : SingleChildScrollView(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -362,16 +413,31 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
                   Column(
                       children: [
                         _buildCard(
-                          title: "Tenant Details",
+                          title: "$D_or_T Details",
                           children: [
-                            _kv("Tenant Name", agreement?["tenant_name"]),
-                            _kv("Relation", "${agreement?["tenant_relation"] ??
-                                ""} ${agreement?["relation_person_name_tenant"] ??
-                                ""}"),
-                            _kv("Address",
-                                agreement?["permanent_address_tenant"]),
+                            _kv("$D_or_T Name", agreement?["tenant_name"]),
+                            _kv("Relation", "${agreement?["tenant_relation"] ?? ""} ${agreement?["relation_person_name_tenant"] ?? ""}"),
+                            _kv("Address", agreement?["permanent_address_tenant"]),
                             _kv("Mobile", agreement?["tenant_mobile_no"]),
                             _kv("Aadhar", agreement?["tenant_addhar_no"]),
+
+                            if (agreement!["agreement_type"] == "Commercial Agreement") ...[
+                              const Divider(),
+                              _kv("Company Name", agreement!["company_name"]),
+                              _kv("DOC Type ", agreement!["gst_type"]),
+                              _kv("DOC Number", agreement!["gst_no"]),
+                              _kv("PAN Number", agreement!["pan_no"]),
+
+                              Row(
+                                children: [
+                                  _docImage(agreement?["gst_photo"]),
+                                  _docImage(agreement?["pan_photo"]),
+                                ],
+                              ),
+
+                            ],
+
+                            const SizedBox(height: 8),
 
                             Row(
                               children: [
@@ -390,8 +456,40 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
                             ),
                           ],
                         ),
+
                       ]
                   ),
+
+                  if (additionalTenants.isNotEmpty)
+                    Column(
+                      children: [
+                        _buildCard(
+                          title: "Additional $D_or_T",
+                          children: additionalTenants.map((t) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _kv("$D_or_T Name", t.name),
+                                _kv("Relation",
+                                    "${t.relation} ${t.relation_name}"),
+                                _kv("Address", agreement?["permanent_address_tenant"]),
+                                _kv("Mobile", t.mobile),
+                                _kv("Aadhar", t.aadhaar),
+                                const SizedBox(height: 6),
+                                Wrap(
+                                  children: [
+                                    _docImage(t.front),
+                                    _docImage(t.back),
+                                    _docImage(t.photo),
+                                  ],
+                                ),
+                                const Divider(),
+                              ],
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
 
                 ],
               ),

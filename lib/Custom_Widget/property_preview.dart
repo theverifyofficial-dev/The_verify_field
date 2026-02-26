@@ -20,7 +20,9 @@ class _PropertyPreviewState extends State<PropertyPreview> {
       ),
       body: Center(
         child: InteractiveViewer(
-          child: Image.network(widget.ImageUrl),
+          child: Image.network(widget.ImageUrl,
+            errorBuilder: (_, __, ___) =>
+             Icon(Icons.image_rounded, color:Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey,size: 40,),),
         ),
       ),
     );

@@ -13,6 +13,7 @@ import 'package:verify_feild_worker/provider/property_id_for_multipleimage_provi
 import 'package:verify_feild_worker/provider/real_Estate_Show_Data_provider.dart';
 import 'package:verify_feild_worker/Notification_demo/routes.dart';
 import 'package:verify_feild_worker/Z-Screen/splash.dart';
+import 'Administrator/AdminInsurance/AdminInsuranceListScreen.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
 import 'Administrator/SubAdmin/SubAdminAccountant_Home.dart';
 import 'Home_Screen.dart';
@@ -168,6 +169,27 @@ class _MyAppState extends State<MyApp> {
             "propertyId": pId,
           },
         );
+        return;
+      }
+
+      /// 🛡 NEW INSURANCE → ADMIN / SUBADMIN
+      if (type == "NEW_INSURANCE_ADMIN" || type == "NEW_INSURANCE_SUBADMIN") {
+
+        final insuranceId = data['insurance_id']?.toString();
+
+        if (insuranceId == null) {
+          print("⚠️ Missing insurance_id");
+          return;
+        }
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          navigatorKey.currentState?.push(
+            MaterialPageRoute(
+              builder: (_) => AdminInsuranceListScreen(),
+            ),
+          );
+        });
+
         return;
       }
 

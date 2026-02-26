@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
@@ -10,6 +12,7 @@ import '../Web_query/web_query.dart' hide SlideAnimation;
 import '../Z-Screen/Social_Media_links.dart';
 import '../main.dart';
 import '../ui_decoration_tools/app_images.dart';
+import 'AdminInsurance/AdminInsuranceListScreen.dart';
 import 'AdminRealEstateTabbar.dart';
 import 'Admin_future _property/Administater_Future_Property.dart';
 import 'Admin_profile.dart';
@@ -29,6 +32,8 @@ class AdministratorHome_Screen extends StatefulWidget {
 
 class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> with TickerProviderStateMixin {
   int _currentIndex = 0;
+  int pendingCount = 0;
+  int BookCount = 0;
   late AnimationController _shineController;
   late Animation<double> _shineAnimation;
 
@@ -37,6 +42,9 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
     super.initState();
     // Future.microtask(() => hitAgreementRenewalAPI());
     loadUserName();
+    fetchAgreementCount(); // must exist
+    fetchBookCount(); // must exist
+
     _shineController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
@@ -94,6 +102,53 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
         userNumber = storedNumber;
         userStoredFAadharCard = storedFAadharCard;
       });
+    }
+  }
+  Future<void> fetchAgreementCount() async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/all_agreement_count.php',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+
+        if (decoded["status"] == true) {
+          final data = decoded["data"];
+
+          setState(() {
+            pendingCount = data[0][0]["PreviewCount"] ?? 0;
+
+          });
+        }
+      }
+    } catch (e) {
+    }
+  }
+
+  Future<void> fetchBookCount() async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+          'https://verifyserve.social/Second%20PHP%20FILE/Payment/all_payment_count_for_admin.php',
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+
+        if (decoded["status"] == true) {
+          final data = decoded["data"];
+
+          setState(() {
+            BookCount = data[0][0]["BookingCount"] ?? 0;
+
+          });
+        }
+      }
+    } catch (e) {
     }
   }
 
@@ -182,7 +237,8 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                     const Text('🌐'),
                   ],
                 ),
-                const Text('Web',style: TextStyle(color: Colors.white),),
+                const Text('Web', style: TextStyle(
+                      fontFamily: "PoppinsMedium",color: Colors.white),),
               ],
             ),
           ),
@@ -337,7 +393,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 9,
+                        itemCount: 10,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
@@ -351,6 +407,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                   ),
                                 );
                               },
+                              "count": pendingCount, // 🔥 only here
                             },
                             {
                               "image": AppImages.dashboard,
@@ -363,6 +420,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                   ),
                                 );
                               },
+                              "count": 0,
                             },
 
                             {
@@ -377,6 +435,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                   ),
                                 );
                               },
+                              "count": 0,
                             },
                             {
                               'image': AppImages.tenant,
@@ -395,6 +454,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                     MaterialPageRoute(
                                         builder: (_) => const AdministatorAddRentedFlatTabbar()));
                               },
+                              "count": BookCount,
                             },
                             {
                               "image": AppImages.websiteIssue,
@@ -405,6 +465,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                     MaterialPageRoute(
                                         builder: (_) => const WebQueryPage()));
                               },
+                              "count": 0,
                             },
 
                             {
@@ -416,6 +477,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                     MaterialPageRoute(
                                         builder: (_) => const AdminUpcoming()));
                               },
+                              "count": 0,
                             },
                             {
                               "image": AppImages.calendar,
@@ -425,7 +487,8 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                     context, MaterialPageRoute(
                                     builder: (_) => const CalendarTaskPageForAdmin()));
                               },
-                           },
+                              "count": 0,
+                            },
                             {
                               'image': AppImages.demand_2,
                               'title': "Costumer Demands 2.O",
@@ -433,6 +496,17 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                   Navigator.push(context, MaterialPageRoute(
                                       builder: (
                                           context) => const AdminTabbar())),
+                              "count": 0,
+                            },
+
+                            {
+                              'image': AppImages.compliant,
+                              'title': "Insurance",
+                              'onTap': () =>
+                                  Navigator.push(context, MaterialPageRoute(
+                                      builder: (
+                                          context) => const AdminInsuranceListScreen())),
+                              "count": 0,
                             },
                           ];
 
@@ -445,6 +519,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                             onTap: item['onTap'],
                             shineAnimation: _shineAnimation,
                             itemWidth: itemWidth,
+                            count: item['count'],
                           );
                         },
                       );
@@ -478,8 +553,8 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
           borderRadius: BorderRadius.circular(20),
           gradient: LinearGradient(
             colors: isDark?
-                [Color(0xFF1E1E1E), Color(0xFF2C2C2C)]
-            :
+            [Color(0xFF1E1E1E), Color(0xFF2C2C2C)]
+                :
             [Colors.grey.shade100, Colors.white],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -538,7 +613,8 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                 children: [
                   Text(
                     "Target",
-                    style: TextStyle(
+                      style: TextStyle(
+                      fontFamily: "PoppinsMedium",
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: isDark ? Colors.white : Colors.black,
@@ -547,7 +623,8 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                   const SizedBox(height: 6),
                   Text(
                     "Tap to view progress",
-                    style: TextStyle(
+                      style: TextStyle(
+                      fontFamily: "PoppinsMedium",
                       fontSize: 13.5,
                       color: (isDark ? Colors.white : Colors.black).withOpacity(0.75),
                     ),
@@ -575,6 +652,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
     required VoidCallback onTap,
     required Animation<double> shineAnimation,
     required double itemWidth,
+    int? count,
   }) {
     final isDarkMode = Theme
         .of(context)
@@ -623,6 +701,28 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
+                    // 🔥 TOP ROW (BADGE CORNER)
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: (count != null && count > 0)
+                          ? Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          count.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                          : const SizedBox(height: 10), // keep spacing consistent
+                    ),
+
                     Container(
                       height: imageSize,
                       width: imageSize,
@@ -641,22 +741,23 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                         fit: BoxFit.contain,
                       ),
                     ),
+                    SizedBox(height: 5,),
                     Flexible(
                       child: Text(
                         title,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                          style: TextStyle(
+                      fontFamily: "PoppinsMedium",
                           fontSize: fontSize.clamp(12, 16),
-                          // Minimum 12, maximum 16
                           color: isDarkMode ? Colors.white : Colors.black87,
                           fontWeight: FontWeight.w600,
-                          fontFamily: 'Poppins',
                           height: 1.2,
                         ),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 2,
                       ),
-                    ),
+                    ) ,
+                    SizedBox(height: 5,),
                     CircleAvatar(
                       radius: imageSize * 0.25,
                       backgroundColor: isDarkMode ? Colors.white10 : Colors.grey

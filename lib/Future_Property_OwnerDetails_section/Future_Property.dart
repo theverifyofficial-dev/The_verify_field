@@ -392,7 +392,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                         ),
                         decoration: InputDecoration(
                           hintText: 'Search properties...',
-                          hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                          hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 16,fontFamily: "PoppinsMedium"),
                           prefixIcon: Padding(
                             padding: const EdgeInsets.all(12),
                             child: Icon(Icons.search_rounded, color: Colors.grey.shade700, size: 24),
@@ -621,6 +621,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                             child: Text(
                               label,
                               style: TextStyle(
+                                fontFamily: "PoppinsMedium",
                                 color: isSelected ? Colors.white : Colors.black87,
                                 fontWeight: FontWeight.w800,
                                 fontSize: 12,

@@ -20,6 +20,7 @@ import 'Calender/CalenderForFieldWorker.dart';
 import 'Demand_2/Tabbar.dart';
 import 'Demand_2/Demand_card.dart';
 import 'Future_Property_OwnerDetails_section/Future_Property.dart';
+import 'Insurance/InsuranceShowListPage.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
 import 'Rent Agreement/history_tab.dart';
 import 'Z-Screen/Social_Media_links.dart';
@@ -514,6 +515,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
               Text(
                 'Loading today\'s data...',
                 style: TextStyle(
+                  fontFamily: "PoppinsMedium",
                   color: isDark ? Colors.white70 : Colors.grey,
                   fontSize: 12,
                 ),
@@ -619,6 +621,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                             Text(
                               weekNames[today.weekday - 1],
                               style: const TextStyle(
+                                fontFamily: "PoppinsMedium",
                                 color: Colors.white,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
@@ -629,6 +632,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                             Text(
                               today.day.toString(),
                               style: const TextStyle(
+                                fontFamily: "PoppinsMedium",
                                 fontSize: 36,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
@@ -639,6 +643,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                             Text(
                               monthNames[today.month - 1],
                               style: TextStyle(
+                                fontFamily: "PoppinsMedium",
                                 color: Colors.white.withOpacity(0.9),
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -711,6 +716,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                         totalToday == 0 ? "No Events Today" : "Today's Events",
                         style: const TextStyle(
                           fontSize: 16,
+                          fontFamily: "PoppinsMedium",
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.5,
                         ),
@@ -729,6 +735,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                           child: Text(
                             "$totalToday total",
                             style: TextStyle(
+                              fontFamily: "PoppinsMedium",
                               fontSize: 13,
                               color:
                               Theme.of(context).brightness==Brightness.dark?
@@ -806,6 +813,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                       Text(
                         "Tomorrow",
                         style: const TextStyle(
+                          fontFamily: "PoppinsMedium",
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                         ),
@@ -820,6 +828,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                         child: Text(
                           "${weekNames[tomorrow.weekday - 1]}, ${tomorrow.day} ${monthNames[tomorrow.month - 1]}",
                           style: TextStyle(
+                            fontFamily: "PoppinsMedium",
                             color: Colors.blueAccent.shade200,
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
@@ -873,6 +882,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                                   child: Text(
                                     event.title,
                                     style: TextStyle(
+                                      fontFamily: "PoppinsMedium",
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -890,6 +900,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                                   child: Text(
                                     event.time,
                                     style: TextStyle(
+                                      fontFamily: "PoppinsMedium",
                                       color: Theme.of(context).brightness==Brightness.dark?Colors.blueAccent.shade200:Colors.white,
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
@@ -908,6 +919,8 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                         child: Text(
                           "View ${tomorrowEvents.length - 3} more →",
                           style: TextStyle(
+                            fontFamily: "PoppinsMedium",
+
                             color: Colors.blueAccent.shade200,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -920,6 +933,8 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                     Text(
                       "No events scheduled",
                       style: TextStyle(
+                        fontFamily: "PoppinsMedium",
+
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
                       ),
@@ -954,7 +969,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         margin: const EdgeInsets.symmetric(horizontal: 4),
         child: Column(
           children: [
-            // Icon with gradient background
             Container(
               width: 30,
               height: 30,
@@ -980,6 +994,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
               count.toString(),
               style: TextStyle(
                 fontSize: 22,
+                fontFamily: "PoppinsMedium",
                 fontWeight: FontWeight.bold,
                 foreground: Paint()
                   ..shader = gradient.createShader(
@@ -992,6 +1007,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
               title,
               style: TextStyle(
                 fontSize: 10,
+                fontFamily: "PoppinsMedium",
                 color: isDark ? Colors.white70 : Colors.grey.shade700,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
@@ -1522,6 +1538,18 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         },
         "gradient": cardGradients[7],
       },
+
+      {
+        "image": AppImages.compliant,
+        "title": "Insurance",
+        "onTap": () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) =>  InsuranceListScreen(fieldWorkerNumber: number,)));
+        },
+        "gradient": cardGradients[9],
+      },
     ];
 
     return Scaffold(
@@ -1653,6 +1681,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                     const SizedBox(height: 8),
 
                     customerDemand2CompactCard(
+                      context: context,
                       isDark: isDark,
                       loading: demandLoading,
                       newCount: newCount,
@@ -1714,41 +1743,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   }
 }
 
-class _GlassCircle extends StatelessWidget {
-  final Widget child;
-
-  const _GlassCircle({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [
-            Colors.white.withOpacity(0.15),
-            Colors.white.withOpacity(0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.2),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
-}
-
 class _TargetProgressCircle extends StatefulWidget {
   // final double progress;
   // final String percentage;
@@ -1768,8 +1762,7 @@ class _TargetProgressCircle extends StatefulWidget {
   State<_TargetProgressCircle> createState() => _TargetProgressCircleState();
 }
 
-class _TargetProgressCircleState extends State<_TargetProgressCircle>
-    with SingleTickerProviderStateMixin {
+class _TargetProgressCircleState extends State<_TargetProgressCircle> with SingleTickerProviderStateMixin {
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
@@ -1818,7 +1811,7 @@ class _TargetProgressCircleState extends State<_TargetProgressCircle>
     );
 
     return
-       GestureDetector(
+      GestureDetector(
         onTap: widget.onTap,
         child: AnimatedBuilder(
           animation: _pulseAnimation,
@@ -2020,6 +2013,8 @@ class _TargetProgressCircleState extends State<_TargetProgressCircle>
                       child: Text(
                         widget.title,
                         style: TextStyle(
+                          fontFamily: "PoppinsMedium",
+
                           color: Colors.white,
                           fontSize: titleSize,
                           fontWeight: FontWeight.w600,
@@ -2041,44 +2036,8 @@ class _TargetProgressCircleState extends State<_TargetProgressCircle>
             );
           },
         ),
-    );
+      );
   }
-}
-
-// Custom painter for gradient progress arc
-class _ProgressPainter extends CustomPainter {
-  final double progress;
-  final double strokeWidth;
-  final Gradient gradient;
-
-  _ProgressPainter({
-    required this.progress,
-    required this.strokeWidth,
-    required this.gradient,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..shader = gradient.createShader(Rect.fromLTWH(0, 0, size.width, size.height))
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
-
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -pi / 2,
-      2 * pi * progress,
-      false,
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
 class _PremiumFeatureCard extends StatefulWidget {
@@ -2176,6 +2135,7 @@ class _PremiumFeatureCardState extends State<_PremiumFeatureCard> {
                         child: Text(
                           widget.title,
                           style: TextStyle(
+                            fontFamily: "PoppinsMedium",
                             color: Colors.white,
                             fontSize: titleFontSize,
                             fontWeight: FontWeight.w900,
@@ -2335,5 +2295,3 @@ class _GradientBorderPainter extends CustomPainter {
   bool shouldRepaint(covariant _GradientBorderPainter oldDelegate) =>
       oldDelegate.angle != angle;
 }
-
-//hello

@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 import '../../Target_details/Monthly_Tab/Monthly_police_verification.dart';
+import '../Target_details/Monthly_Tab/Monthly_under_detail/Monthly_Building.dart';
 import '../Target_details/history_target.dart';
 import 'Monthly_Tab/Book_Rent.dart';
 import 'Monthly_Tab/Live_Commercial.dart';
@@ -43,6 +44,9 @@ class UserCounts {
   int ovBuildingWithFlat = 0;
   int ovBuildingWithoutFlat = 0;
   int ovBuildingTotal = 0;// 👈 NEW (optional)
+
+
+  int monthlyBuildings = 0;
 }
 
 /* ================= STATE ================= */
@@ -366,7 +370,24 @@ class _TargetState extends State<Target> {
       ],
     );
   }
+  Future<void> _fetchBuildingMonthly(String number) async {
+    final uri = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/builidng_monthly_data.php?fieldworkarnumber=$number",
+    );
 
+    final res = await http.get(uri);
+
+    if (res.statusCode != 200) return;
+
+    final decoded = jsonDecode(res.body);
+
+    final List list = decoded["data"] ?? [];
+
+    if (list.isNotEmpty) {
+      userData[number]!.monthlyBuildings =
+          int.tryParse(list[0]["total_monthly_buildings"].toString()) ?? 0;
+    }
+  }
 
 
   /// ===== TARGETS =====
@@ -377,6 +398,7 @@ class _TargetState extends State<Target> {
     "Agreement External": 20,
     "Police Verification": 20,
     "Commercial": 5,
+    "Building": 25,
   };
 
   final Map<String, int> yearlyTargets = {
@@ -480,6 +502,7 @@ class _TargetState extends State<Target> {
             _fetchPoliceMonthly(num),
             _fetchCommercialMonthly(num),
           ]);
+          allFutures.add(_fetchBuildingMonthly(num));
         } else if (activeTab == "Yearly") {
           allFutures.addAll([
             _fetchBookYearly(num),
@@ -1100,6 +1123,19 @@ class _TargetState extends State<Target> {
           ),
         ),
       ),
+      TargetMetricCard(
+        title: "Buildings",
+        done: d.monthlyBuildings,
+        total: monthlyTargets["Building"] ?? 25,
+        icon: metricIcon("Building"),
+        color: metricColor("Building"),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BuildingMonthlyListScreen(number: number,),
+          ),
+        ),
+      ),
     ];
   }
 
@@ -1230,7 +1266,7 @@ Color metricColor(String title) {
   if (t.contains("commercial")) return const Color(0xFF06B6D4);
   if (t.contains("buy")) return const Color(0xFFA855F7);
   if (t.contains("rent")) return const Color(0xFF22C55E);
-  if (t.contains("building")) return const Color(0xFF22C55E);
+  if (t.contains("building")) return const Color(0xFFD747FF);
 
   return const Color(0xFF135BEC);
 }

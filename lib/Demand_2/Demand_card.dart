@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:path/path.dart';
 
 class DemandColors {
   static const newDemand = Color(0xFF3B82F6);       // Blue
@@ -61,51 +62,68 @@ Future<List<Map<String, dynamic>>> fetchTodayDemands(String fieldworkerName,) as
 
 
 Widget animatedCount({
+  required BuildContext context,
   required int value,
-  required Color color,
   required String label,
 }) {
+
+  final isDark = Theme.of(context).brightness == Brightness.dark;
+
+  final backgroundColor =
+  isDark ? Colors.black : Colors.grey.shade50;
+
+  final primaryText =
+  isDark ? Colors.white : Colors.black87;
+
+  final secondaryText =
+  isDark ? Colors.white70 : Colors.grey;
+
+  final shadowColor =
+  isDark ? Colors.black.withOpacity(0.35)
+      : Colors.black.withOpacity(0.05);
+
   return Expanded(
     child: Container(
       padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
-        gradient: LinearGradient(
-          colors: [
-            color.withOpacity(0.9),
-            color.withOpacity(0.65),
-          ],
+        color: backgroundColor,
+        border: Border.all(
+          color: isDark ? Colors.white12 : Colors.grey.shade200,
         ),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.35),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: shadowColor,
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           )
         ],
       ),
       child: Column(
         children: [
+
           TweenAnimationBuilder<int>(
             tween: IntTween(begin: 0, end: value),
             duration: const Duration(milliseconds: 600),
             curve: Curves.easeOutCubic,
             builder: (_, v, __) => Text(
               "$v",
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
-                color: Colors.white,
+                color: primaryText,
               ),
             ),
           ),
+
           const SizedBox(height: 2),
+
           Text(
             label.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w700,
-              color: Colors.white70,
+              color: secondaryText,
               letterSpacing: 0.8,
             ),
           ),
@@ -114,7 +132,6 @@ Widget animatedCount({
     ),
   );
 }
-
 
 Widget demandShimmer(bool isDark) {
   return Container(
@@ -203,6 +220,8 @@ Widget todayDemandTile(Map<String, dynamic> d) {
 
 Widget customerDemand2CompactCard({
   required bool isDark,
+  required BuildContext context,
+
   required bool loading,
   required int newCount,
   required int progressing,
@@ -244,23 +263,15 @@ Widget customerDemand2CompactCard({
           /// HEADER (Calendar style)
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Colors.blueAccent, Colors.purpleAccent],
-                  ),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(Icons.groups_rounded,
-                    color: Colors.white, size: 20),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
+              SizedBox(width: 10,),
+               Expanded(
                 child: Text(
                   "Customer Demands 2.0",
                   style: TextStyle(
                     fontSize: 16,
+                      color:  Theme.of(context).brightness==Brightness.dark? Colors.white :const Color(0xFF0F3BBD),
+
+                  fontFamily: "PoppinsMedium",
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -269,13 +280,16 @@ Widget customerDemand2CompactCard({
                 padding:
                 const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.greenAccent.withOpacity(0.15),
+                  color:  Theme.of(context).brightness==Brightness.dark? Colors.white10 :const Color(0xFF0F3BBD).withOpacity(0.15),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   "$total total",
-                  style: const TextStyle(
+                  style:  TextStyle(
                     fontSize: 12,
+                    color:  Theme.of(context).brightness==Brightness.dark? Colors.white : Colors.black54,
+
+                    fontFamily: "PoppinsMedium",
                     fontWeight: FontWeight.w700,
                   ),
                 ),
@@ -288,32 +302,38 @@ Widget customerDemand2CompactCard({
           /// COUNTS
           Row(
             children: [
+
               animatedCount(
-                  value: newCount,
-                  color: DemandColors.newDemand,
-                  label: "New"),
-              const SizedBox(width: 8),
-              animatedCount(
-                  value: progressing,
-                  color: DemandColors.progressing,
-                  label: "Progress"),
-              const SizedBox(width: 8),
-              animatedCount(
-                  value: redemand,
-                  color: DemandColors.redemand,
-                  label: "Redemand"),
+                context: context,
+                value: newCount,
+                label: "New",
+              ),
+
               const SizedBox(width: 8),
 
               animatedCount(
-                        value: disclosed,
-                        color: DemandColors.disclosed,
-                        label: "Closed"),
+                context: context,
+                value: progressing,
+                label: "Progress",
+              ),
 
+              const SizedBox(width: 8),
 
+              animatedCount(
+                context: context,
+                value: redemand,
+                label: "Redemand",
+              ),
+
+              const SizedBox(width: 8),
+
+              animatedCount(
+                context: context,
+                value: disclosed,
+                label: "Closed",
+              ),
             ],
           ),
-          const SizedBox(height: 8),
-
 
             const SizedBox(height: 14),
             Row(
@@ -332,17 +352,20 @@ Widget customerDemand2CompactCard({
                 ),
                 const SizedBox(width: 6),
 
-                const Text(
+                 Text(
                   "Today’s New Demands",
                   style: TextStyle(
                     fontSize: 13,
+                    color:  Theme.of(context).brightness==Brightness.dark? Colors.white :const Color(0xFF0F3BBD),
+                    fontFamily: "PoppinsMedium",
+
                     fontWeight: FontWeight.w700,
                   ),
                 ),
 
                 Spacer(),
 
-                const Icon(Icons.arrow_forward_ios),
+                const Icon(Icons.arrow_forward_ios,size: 20,),
                 const SizedBox(width: 6),
               ],
             ),
@@ -359,6 +382,7 @@ Widget customerDemand2CompactCard({
                   "No new demands today",
                   style: TextStyle(
                     fontSize: 12,
+                    fontFamily: "PoppinsMedium",
                     fontWeight: FontWeight.w600,
                     color: Colors.grey,
                   ),

@@ -52,12 +52,12 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
   }
 
   Future<List<NewRealEstateShowDateModel>> fetchData(String number) async {
-    final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate_for_website/demo_check_ap_for_editor.php",
-    );
     // final url = Uri.parse(
-    //   "https://verifyserve.social/Second%20PHP%20FILE/main_realestate_for_website/show_api_main_realestate_all_data.php?all=1",
+    //   "https://verifyserve.social/Second%20PHP%20FILE/main_realestate_for_website/demo_check_ap_for_editor.php",
     // );
+    final url = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate_for_website/show_api_main_realestate_all_data.php?all=1",
+    );
 
     final response = await http.get(url);
 

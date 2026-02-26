@@ -36,6 +36,8 @@ class SubAdminHomeScreen extends StatefulWidget {
 
 class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with TickerProviderStateMixin {
   int _currentIndex = 0;
+  int pendingCount = 0;
+  int BookCount = 0;
   String? userName;
   String? userNumber;
 
@@ -407,8 +409,6 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                   MaterialPageRoute(builder: (_) => const AdminUpcoming())),
                               "count": 0,
                             },
-
-
                             if (userNumber == "9711779003" || userNumber=="9315016461")
 
                               {
@@ -456,70 +456,6 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                             ),
                             itemBuilder: (context, index) {
                               final item = mainItems[index];
-                              final List<Map<String, dynamic>> featureItems = [
-                                {
-                                  "image": AppImages.agreement,
-                                  "title": "Property \nAgreement",
-                                  "onTap": () async {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => const AdminDashboard(),
-                                      ),
-                                    );
-                                  },
-                                },
-                                // {
-                                //   'image': AppImages.tenant,
-                                //   'title': "Tenant Demands",
-                                //   'onTap': () =>
-                                //       Navigator.push(context, MaterialPageRoute(
-                                //           builder: (
-                                //               context) => const Administater_parent_TenandDemand())),
-                                // },
-                                if (userNumber == "9711779003")
-
-                                  {
-                                    'image': AppImages.police,
-                                    'title': "All Rented \nFlat",
-                                    'onTap': () =>
-                                        Navigator.push(context, MaterialPageRoute(
-                                            builder: (context) => const AdministatorAddRentedFlatTabbar())),
-                                  },
-                                {
-                                  'image': AppImages.propertysale,
-                                  'title': "Future\n Inventory/Property",
-                                  'onTap': () {
-                                    // Pass the buildingId you want to highlight
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ADministaterShow_FutureProperty(),
-                                      ),
-                                    );
-                                  },
-                                },
-
-                                {
-                                  'image': AppImages.demand_2,
-                                  'title': "Costumer Demands 2.O",
-                                  'onTap': () =>
-                                      Navigator.push(context, MaterialPageRoute(
-                                          builder: (
-                                              context) =>  SubadminTabbar())),
-                                },
-                                {
-                                  "image": AppImages.realestatefeild,
-                                  "title": "Upcoming\n Property",
-                                  "onTap": () {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) => const AdminUpcoming()));
-                                  },
-                                },
-                              ];
-
                               return _buildFeatureCard(
                                 context: context,
                                 imagePath: item['image'] as String,
@@ -822,6 +758,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
     required VoidCallback onTap,
     required Animation<double> shineAnimation,
     required double itemWidth,
+    int? count,
   }) {
     final isDarkMode = Theme
         .of(context)
@@ -870,6 +807,27 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
+
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: (count != null && count > 0)
+                          ? Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          count.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      )
+                          : const SizedBox(height: 10), // keep spacing consistent
+                    ),
                     Container(
                       height: imageSize,
                       width: imageSize,
@@ -888,6 +846,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                         fit: BoxFit.contain,
                       ),
                     ),
+                    SizedBox(height: 5,),
                     Flexible(
                       child: Text(
                         title,
@@ -904,6 +863,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                         maxLines: 2,
                       ),
                     ),
+                    SizedBox(height: 5,),
                     CircleAvatar(
                       radius: imageSize * 0.25,
                       backgroundColor: isDarkMode ? Colors.white10 : Colors.grey

@@ -479,18 +479,28 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     isDarkMode ? Colors.white : const Color(0xFF2D3748);
     final Color secondaryTextColor = textColor.withOpacity(0.6);
 
-    return Scaffold(
+    return
+      Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: backgroundColor,
       appBar: AppBar(
-        backgroundColor: isDarkMode ? Colors.black : primaryColor,
+        backgroundColor: Colors.black,
         title: Image.asset(AppImages.transparent, height: 40),
         iconTheme:
         IconThemeData(color: isDarkMode ? Colors.white : Colors.white),
         centerTitle: true,
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+
+            ),
           child: Form(
             key: _formKey,
             child: Column(
@@ -1239,45 +1249,42 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _buildTwoFieldRow(
+            SingleChildScrollView(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                  /// ⭐ METRO FIELD
                   TextFormField(
                     controller: metroController,
                     readOnly: true,
                     decoration: InputDecoration(
                       labelText: "Metro Station",
-                      labelStyle:
-                      TextStyle(color: secondaryTextColor),
-                      prefixIcon: Icon(Icons.train_rounded,
-                          color: primaryColor),
+                      prefixIcon: Icon(Icons.train_rounded, color: primaryColor),
                       hintText: "Select Metro Station",
-                      hintStyle:
-                      TextStyle(color: secondaryTextColor),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                        BorderSide(color: Colors.grey.withOpacity(0.2)),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                        BorderSide(color: Colors.grey.withOpacity(0.2)),
+                        borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: primaryColor),
                       ),
                       filled: true,
-                      fillColor: isDarkMode
-                          ? Colors.grey[850]
-                          : Colors.white,
+                      fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
                     ),
-                    style: TextStyle(
-                        color: textColor,
-                        fontWeight: FontWeight.w500),
+                    style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
                     onTap: () {
                       showMetroLocalityPicker(context, (metro, localities) {
                         setState(() {
                           metroController.text = metro;
+
                           final existing = localityController.text
                               .split(',')
                               .map((e) => e.trim())
@@ -1285,22 +1292,102 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                               .toList();
 
                           for (final loc in localities) {
-                            if (!existing.any(
-                                    (e) => e.toLowerCase() == loc.toLowerCase())) {
+                            if (!existing.any((e) => e.toLowerCase() == loc.toLowerCase())) {
                               existing.add(loc);
                             }
                           }
 
                           localityController.text = existing.join(', ');
-
                         });
                       });
                     },
-                    validator: (value) =>
-                    (value == null || value.isEmpty)
-                        ? 'Please select metro station'
-                        : null,
                   ),
+
+                  const SizedBox(height: 14),
+
+                  /// ⭐ LOCALITY LABEL
+                  Text(
+                    "Localities",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  /// ⭐ LOCALITY FIELD
+                  TextFormField(
+                    controller: localityController,
+                    maxLines: 2,
+                    decoration: InputDecoration(
+                      hintText: "Type or select localities",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      filled: true,
+                      fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                    ),
+                    style: TextStyle(color: textColor),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  /// ⭐ ANIMATED CHIPS (NO GLITCH)
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    child: localityController.text.trim().isNotEmpty
+                        ? Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: localityController.text
+                          .split(",")
+                          .map((loc) => loc.trim())
+                          .where((loc) => loc.isNotEmpty)
+                          .map(
+                            (loc) => Chip(
+                          label: Text(
+                            loc,
+                            style: const TextStyle(
+                              color: Colors.orange,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          backgroundColor: Colors.orange.withOpacity(0.15),
+                          side: const BorderSide(color: Colors.orange),
+                          deleteIcon: const Icon(Icons.close, size: 16, color: Colors.orange),
+                          onDeleted: () {
+                            final list = localityController.text
+                                .split(",")
+                                .map((e) => e.trim())
+                                .where((e) => e.isNotEmpty)
+                                .toList();
+
+                            list.removeWhere(
+                                    (e) => e.toLowerCase() == loc.toLowerCase());
+
+                            setState(() {
+                              localityController.text = list.join(", ");
+                            });
+                          },
+                        ),
+                      )
+                          .toList(),
+                    )
+                        : const SizedBox(),
+                  ),
+                ],
+              ),
+            ),
+                ],
+              ),
+            ),
+
+                  SizedBox(height: 10,),
+
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
@@ -1349,7 +1436,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                           : null,
                     ),
                   ),
-                ),
                 const SizedBox(height: 16),
                 _buildTwoFieldRow(
                   Container(
@@ -1499,94 +1585,9 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                         : null,
                   ),
                 ),
-                const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Localities",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: textColor,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: localityController,
-                  maxLines: 2,
-                  decoration: InputDecoration(
-                    hintText: "Type or select localities",
-                    hintStyle: TextStyle(color: secondaryTextColor),
-
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    filled: true,
-                    fillColor: isDarkMode
-                        ? Colors.grey[850]
-                        : Colors.white,
-                  ),
-                  style: TextStyle(color: textColor),
-                  onChanged: (_) {
-                    setState(() {}); // 🔥 refresh chips live
-                  },
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return "Please enter at least one locality";
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 8),
-                if (localityController.text.trim().isNotEmpty)
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: localityController.text
-                        .split(",")
-                        .map((loc) => loc.trim())
-                        .where((loc) => loc.isNotEmpty)
-                        .map(
-                          (loc) => Chip(
-                        label: Text(
-                          loc,
-                          style: TextStyle(
-                            color: Theme.of(context).brightness == Brightness.dark
-
-                                ? Colors.white
-                                : Colors.black,
-                            fontSize: 12,
-                          ),
-                        ),
-                        backgroundColor: Colors.grey.shade600,
-                        deleteIcon: const Icon(Icons.close, size: 16),
-                        onDeleted: () {
-                          final list = localityController.text
-                              .split(",")
-                              .map((e) => e.trim())
-                              .where((e) => e.isNotEmpty)
-                              .toList();
-
-                          list.removeWhere(
-                                  (e) => e.toLowerCase() == loc.toLowerCase());
-
-                          setState(() {
-                            localityController.text = list.join(", ");
-                          });
-                        },
-                      ),
-                    )
-                        .toList(),
-                  ),
-
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
+                SizedBox(height: 16),
+              ]),
+          );
   }
 
   Widget _buildFacilityField(
@@ -3024,6 +3025,7 @@ class _MetroLocalitySheetState
                       backgroundColor:
                       isDark ? Colors.white12 : Colors.grey.shade300,
                       deleteIcon: const Icon(Icons.close, size: 18),
+                      side: const BorderSide(color: Colors.orange),
                       onDeleted: () {
                         setState(() {
                           selectedLocalities.remove(loc);

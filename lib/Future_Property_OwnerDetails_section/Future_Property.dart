@@ -1778,13 +1778,20 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
                         ),
                         SizedBox(height: isTablet ? 16 : 12),
                         ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,   // button color
+                            foregroundColor: Colors.black,   // text color
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
                           onPressed: () => Navigator.of(context).pop(),
                           child: Text(
                             'Cancel',
-                            style: TextStyle(
-                              fontSize: isTablet ? 16 : 14,
-                            ),
-                          ),)
+                            style: TextStyle(fontSize: isTablet ? 16 : 14),
+                          ),
+                        )
                       ],
                     ),
                   ),
@@ -1805,6 +1812,10 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
     required bool isTablet,
   }) {
     return Card(
+      color: Theme
+          .of(context)
+          .brightness == Brightness.dark ? Colors.grey[800] : Colors
+          .white,
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(

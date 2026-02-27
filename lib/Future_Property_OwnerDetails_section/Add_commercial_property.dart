@@ -7,7 +7,6 @@ import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import '../Custom_Widget/constant.dart';
 
 class CommercialPropertyForm extends StatefulWidget {
@@ -88,6 +87,25 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
   final Color secondaryColor = Color(0xFF6C63FF);
   final Color accentColor = Color(0xFF00D4AA);
 
+  String calculateSqft() {
+    double h = double.tryParse(_sellingHeightController.text) ?? 0;
+    double w = double.tryParse(_sellingWidthController.text) ?? 0;
+
+    if (h == 0 || w == 0) return "";
+    return (h * w).toStringAsFixed(0);
+  }
+
+  String calculatePricePerSqft() {
+    double price =
+        double.tryParse(_priceController.text.replaceAll(',', '')) ?? 0;
+
+    double area = double.tryParse(calculateSqft()) ?? 0;
+
+    if (price == 0 || area == 0) return "";
+
+    return (price / area).toStringAsFixed(0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isDarkMode = Theme
@@ -135,12 +153,12 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                 _buildAvailableFromSection(
                     isDarkMode, cardColor, textColor, secondaryTextColor),
                 SizedBox(height: 20),
-                _buildAreaSection(
-                    isDarkMode, cardColor, textColor, secondaryTextColor),
-                SizedBox(height: 20),
-                _buildDimensionsSection(
-                    isDarkMode, cardColor, textColor, secondaryTextColor),
-                SizedBox(height: 20),
+                // _buildAreaSection(
+                //     isDarkMode, cardColor, textColor, secondaryTextColor),
+                // SizedBox(height: 20),
+                // _buildDimensionsSection(
+                //     isDarkMode, cardColor, textColor, secondaryTextColor),
+                // SizedBox(height: 20),
                 _buildFloorAndParkingSection(
                     isDarkMode, cardColor, textColor, secondaryTextColor),
                 SizedBox(height: 20),
@@ -228,65 +246,65 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
                     return null;
                   },
                 ),
-                SizedBox(height: 12),
-                if (_currentAddress.isNotEmpty || _latitude != null) ...[
-                  Container(
-                    padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: accentColor.withOpacity(isDarkMode ? 0.2 : 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: accentColor.withOpacity(
-                          isDarkMode ? 0.4 : 0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.check_circle_rounded, size: 16,
-                            color: accentColor),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (_currentAddress.isNotEmpty)
-                                Text(
-                                  'Detected: $_currentAddress',
-                                  style: TextStyle(
-                                    color: accentColor,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              if (_latitude != null && _longitude != null)
-                                Text(
-                                  'Lat: ${_latitude!.toStringAsFixed(
-                                      6)}, Lng: ${_longitude!.toStringAsFixed(
-                                      6)}',
-                                  style: TextStyle(
-                                    color: accentColor.withOpacity(0.9),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _currentAddress = '';
-                              _latitude = null;
-                              _longitude = null;
-                            });
-                          },
-                          child: Icon(Icons.close_rounded, size: 16,
-                              color: accentColor),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                ],
-                Container(
+                // SizedBox(height: 12),
+                // if (_currentAddress.isNotEmpty || _latitude != null) ...[
+                //   Container(
+                //     padding: EdgeInsets.all(12),
+                //     decoration: BoxDecoration(
+                //       color: accentColor.withOpacity(isDarkMode ? 0.2 : 0.1),
+                //       borderRadius: BorderRadius.circular(8),
+                //       border: Border.all(color: accentColor.withOpacity(
+                //           isDarkMode ? 0.4 : 0.3)),
+                //     ),
+                //     child: Row(
+                //       children: [
+                //         Icon(Icons.check_circle_rounded, size: 16,
+                //             color: accentColor),
+                //         SizedBox(width: 8),
+                //         Expanded(
+                //           child: Column(
+                //             crossAxisAlignment: CrossAxisAlignment.start,
+                //             children: [
+                //               if (_currentAddress.isNotEmpty)
+                //                 Text(
+                //                   'Detected: $_currentAddress',
+                //                   style: TextStyle(
+                //                     color: accentColor,
+                //                     fontSize: 12,
+                //                     fontWeight: FontWeight.w500,
+                //                   ),
+                //                 ),
+                //               if (_latitude != null && _longitude != null)
+                //                 Text(
+                //                   'Lat: ${_latitude!.toStringAsFixed(
+                //                       6)}, Lng: ${_longitude!.toStringAsFixed(
+                //                       6)}',
+                //                   style: TextStyle(
+                //                     color: accentColor.withOpacity(0.9),
+                //                     fontSize: 12,
+                //                     fontWeight: FontWeight.w500,
+                //                   ),
+                //                 ),
+                //             ],
+                //           ),
+                //         ),
+                //         GestureDetector(
+                //           onTap: () {
+                //             setState(() {
+                //               _currentAddress = '';
+                //               _latitude = null;
+                //               _longitude = null;
+                //             });
+                //           },
+                //           child: Icon(Icons.close_rounded, size: 16,
+                //               color: accentColor),
+                //         ),
+                //       ],
+                //     ),
+                //   ),
+                //   SizedBox(height: 8),
+                // ],
+                 Container(
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: Colors.blue.withOpacity(isDarkMode ? 0.2 : 0.05),
@@ -1016,73 +1034,34 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
     }
   }
 
+  void autoCalculateWidth() {
+    double length = double.tryParse(_sellingHeightController.text) ?? 0;
+    double builtup = double.tryParse(_builtupAreaController.text) ?? 0;
 
-  Widget _buildpriceSection(bool isDarkMode,
-      Color cardColor,
-      Color textColor,
-      Color secondaryTextColor) {
-    return _buildPremiumCard(
-      isDarkMode: isDarkMode,
-      cardColor: cardColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(
-              'Pricing Details', Icons.currency_rupee_rounded, textColor),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: _priceController,
-                  keyboardType: TextInputType.number,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-
-                  onChanged: (val){
-                    setState(() {}); // live update
-                  },
-
-                  decoration: _buildInputDecoration(
-                    isDarkMode: isDarkMode,
-                    label: 'Price',
-                    icon: Icons.currency_rupee_rounded,
-                    textColor: textColor,
-                    secondaryTextColor: secondaryTextColor,
-                  ).copyWith(
-                    suffixIcon: Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: Center(
-                        widthFactor: 1,
-                        child: Text(
-                          formatIndianAmount(_priceController.text),
-                          style: TextStyle(
-                            color: Colors.green, // 🔥 GREEN COLOR
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter price';
-                    }
-                    return null;
-                  },
-                ),
-
-
-                SizedBox(height: 16),
-              ],
-            ),
-          ),
-          SizedBox(height: 24),
-        ],
-      ),
-    );
+    if (length > 0 && builtup > 0) {
+      double width = builtup / length;
+      _sellingWidthController.text = width.toStringAsFixed(2);
+    } else {
+      _sellingWidthController.clear();
+    }
   }
+
+  // String calculateSqft() {
+  //   double length = double.tryParse(_sellingHeightController.text) ?? 0;
+  //   double width = double.tryParse(_sellingWidthController.text) ?? 0;
+  //
+  //   if (length > 0 && width > 0) {
+  //     return (length * width).toStringAsFixed(0);
+  //   }
+  //
+  //   double builtup = double.tryParse(_builtupAreaController.text) ?? 0;
+  //   if (builtup > 0) return builtup.toStringAsFixed(0);
+  //
+  //   double carpet = double.tryParse(_carpetAreaController.text) ?? 0;
+  //   if (carpet > 0) return carpet.toStringAsFixed(0);
+  //
+  //   return "";
+  // }
 
 
   Widget _buildListingTypeSection(bool isDarkMode, Color cardColor,
@@ -1243,9 +1222,69 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
       ),
     );
   }
+  //
+  // Widget _buildAreaSection(bool isDarkMode, Color cardColor, Color textColor,
+  //     Color secondaryTextColor) {
+  //   return _buildPremiumCard(
+  //     isDarkMode: isDarkMode,
+  //     cardColor: cardColor,
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         _buildSectionHeader(
+  //             'Area Details', Icons.aspect_ratio_rounded, textColor),
+  //         Padding(
+  //           padding: EdgeInsets.symmetric(horizontal: 24),
+  //           child: Row(
+  //             children: [
+  //               Expanded(
+  //                 child: TextFormField(
+  //                   controller: _builtupAreaController,
+  //                   style: TextStyle(
+  //                       color: textColor, fontWeight: FontWeight.w500),
+  //                   decoration: _buildInputDecoration(
+  //                     isDarkMode: isDarkMode,
+  //                     label: 'Built-up Area',
+  //                     icon: Icons.square_foot_rounded,
+  //                     textColor: textColor,
+  //                     secondaryTextColor: secondaryTextColor,
+  //                     suffixText: 'sq ft',
+  //                   ),
+  //                   keyboardType: TextInputType.number,
+  //                 ),
+  //               ),
+  //               SizedBox(width: 16),
+  //               Expanded(
+  //                 child: TextFormField(
+  //                   controller: _carpetAreaController,
+  //                   style: TextStyle(
+  //                       color: textColor, fontWeight: FontWeight.w500),
+  //                   decoration: _buildInputDecoration(
+  //                     isDarkMode: isDarkMode,
+  //                     label: 'Carpet Area',
+  //                     icon: Icons.carpenter_rounded,
+  //                     textColor: textColor,
+  //                     secondaryTextColor: secondaryTextColor,
+  //                     suffixText: 'sq ft',
+  //                   ),
+  //                   keyboardType: TextInputType.number,
+  //                 ),
+  //               ),
+  //             ],
+  //           ),
+  //         ),
+  //         SizedBox(height: 24),
+  //       ],
+  //     ),
+  //   );
+  // }
 
-  Widget _buildAreaSection(bool isDarkMode, Color cardColor, Color textColor,
+  Widget _buildpriceSection(
+      bool isDarkMode,
+      Color cardColor,
+      Color textColor,
       Color secondaryTextColor) {
+
     return _buildPremiumCard(
       isDarkMode: isDarkMode,
       cardColor: cardColor,
@@ -1253,108 +1292,242 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSectionHeader(
-              'Area Details', Icons.aspect_ratio_rounded, textColor),
+              'Pricing & Area Details', Icons.currency_rupee_rounded, textColor),
+
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
               children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _builtupAreaController,
-                    style: TextStyle(
-                        color: textColor, fontWeight: FontWeight.w500),
-                    decoration: _buildInputDecoration(
-                      isDarkMode: isDarkMode,
-                      label: 'Built-up Area',
-                      icon: Icons.square_foot_rounded,
-                      textColor: textColor,
-                      secondaryTextColor: secondaryTextColor,
-                      suffixText: 'sq ft',
+
+                /// ⭐ PRICE
+                TextFormField(
+                  controller: _priceController,
+                  keyboardType: TextInputType.number,
+                  onChanged: (_) => setState(() {}),
+                  decoration: _buildInputDecoration(
+                    isDarkMode: isDarkMode,
+                    label: 'Price',
+                    icon: Icons.currency_rupee_rounded,
+                    textColor: textColor,
+                    secondaryTextColor: secondaryTextColor,
+                  ).copyWith(
+                    suffixIcon: Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: Center(
+                        widthFactor: 1,
+                        child: Text(
+                          formatIndianAmount(_priceController.text),
+                          style: const TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
                     ),
-                    keyboardType: TextInputType.number,
                   ),
                 ),
-                SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _carpetAreaController,
-                    style: TextStyle(
-                        color: textColor, fontWeight: FontWeight.w500),
-                    decoration: _buildInputDecoration(
-                      isDarkMode: isDarkMode,
-                      label: 'Carpet Area',
-                      icon: Icons.carpenter_rounded,
-                      textColor: textColor,
-                      secondaryTextColor: secondaryTextColor,
-                      suffixText: 'sq ft',
-                    ),
-                    keyboardType: TextInputType.number,
+
+                const SizedBox(height: 16),
+
+                /// ⭐ BUILTUP
+                TextFormField(
+                  controller: _builtupAreaController,
+                  keyboardType: TextInputType.number,
+                  onChanged: (v){
+                    autoCalculateWidth();
+                    setState(() {});
+                  },
+                  decoration: _buildInputDecoration(
+                    isDarkMode: isDarkMode,
+                    label: 'Builtup Area',
+                    icon: Icons.square_foot,
+                    textColor: textColor,
+                    secondaryTextColor: secondaryTextColor,
+                    suffixText: 'sqft',
                   ),
                 ),
+
+                const SizedBox(height: 12),
+
+                /// ⭐ CARPET
+                TextFormField(
+                  controller: _carpetAreaController,
+                  keyboardType: TextInputType.number,
+                  onChanged: (_) => setState(() {}),
+                  decoration: _buildInputDecoration(
+                    isDarkMode: isDarkMode,
+                    label: 'Carpet Area',
+                    icon: Icons.square_foot,
+                    textColor: textColor,
+                    secondaryTextColor: secondaryTextColor,
+                    suffixText: 'sqft',
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                /// ⭐ LENGTH
+                TextFormField(
+                  controller: _sellingHeightController,
+                  keyboardType: TextInputType.number,
+                  onChanged: (v){
+                    autoCalculateWidth();
+                    setState(() {});
+                  },
+                  decoration: _buildInputDecoration(
+                    isDarkMode: isDarkMode,
+                    label: 'Length',
+                    icon: Icons.height,
+                    textColor: textColor,
+                    secondaryTextColor: secondaryTextColor,
+                    suffixText: 'ft',
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                /// ⭐ WIDTH AUTO
+                TextFormField(
+                  controller: _sellingWidthController,
+                  readOnly: true,
+                  decoration: _buildInputDecoration(
+                    isDarkMode: isDarkMode,
+                    label: 'Width (auto)',
+                    icon: Icons.width_full,
+                    textColor: textColor,
+                    secondaryTextColor: secondaryTextColor,
+                    suffixText: 'ft',
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+
+                /// ⭐ TOTAL SQFT
+                if (calculateSqft().isNotEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      "Total Area: ${calculateSqft()} sqft",
+                      style: const TextStyle(
+                          color: Colors.orange,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+
+                const SizedBox(height: 8),
+
+                /// ⭐ PRICE PER SQFT
+                if (calculatePricePerSqft().isNotEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      "Price per sqft: ₹ ${calculatePricePerSqft()}",
+                      style: const TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
               ],
             ),
           ),
-          SizedBox(height: 24),
+
+          const SizedBox(height: 24),
         ],
       ),
     );
   }
 
-  Widget _buildDimensionsSection(bool isDarkMode, Color cardColor,
-      Color textColor, Color secondaryTextColor) {
-    return _buildPremiumCard(
-      isDarkMode: isDarkMode,
-      cardColor: cardColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(
-              'Dimensions', Icons.straighten_rounded, textColor),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _sellingHeightController,
-                    style: TextStyle(
-                        color: textColor, fontWeight: FontWeight.w500),
-                    decoration: _buildInputDecoration(
-                      isDarkMode: isDarkMode,
-                      label: 'Height',
-                      icon: Icons.height_rounded,
-                      textColor: textColor,
-                      secondaryTextColor: secondaryTextColor,
-                      suffixText: 'ft',
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-                SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _sellingWidthController,
-                    style: TextStyle(
-                        color: textColor, fontWeight: FontWeight.w500),
-                    decoration: _buildInputDecoration(
-                      isDarkMode: isDarkMode,
-                      label: 'Width',
-                      icon: Icons.width_full_rounded,
-                      textColor: textColor,
-                      secondaryTextColor: secondaryTextColor,
-                      suffixText: 'ft',
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
+  // Widget _buildDimensionsSection(bool isDarkMode, Color cardColor,
+  //     Color textColor, Color secondaryTextColor) {
+  //   return _buildPremiumCard(
+  //     isDarkMode: isDarkMode,
+  //     cardColor: cardColor,
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         _buildSectionHeader('Dimensions', Icons.straighten_rounded, textColor),
+  //         Padding(
+  //           padding: EdgeInsets.symmetric(horizontal: 24),
+  //           child: Column(
+  //             children: [
+  //               Row(
+  //                 children: [
+  //                   Expanded(
+  //                     child: TextFormField(
+  //                       controller: _sellingHeightController,
+  //                       onChanged: (v) => setState(() {}), // ⭐ LIVE UPDATE
+  //                       style: TextStyle(
+  //                           color: textColor, fontWeight: FontWeight.w500),
+  //                       decoration: _buildInputDecoration(
+  //                         isDarkMode: isDarkMode,
+  //                         label: 'Height',
+  //                         icon: Icons.height_rounded,
+  //                         textColor: textColor,
+  //                         secondaryTextColor: secondaryTextColor,
+  //                         suffixText: 'ft',
+  //                       ),
+  //                       keyboardType: TextInputType.number,
+  //                     ),
+  //                   ),
+  //                   SizedBox(width: 16),
+  //                   Expanded(
+  //                     child:
+  //                     TextFormField(
+  //                       controller: _sellingWidthController,
+  //                       readOnly: true,
+  //                       decoration: _buildInputDecoration(
+  //                         isDarkMode: isDarkMode,
+  //                         label: 'Width (auto)',
+  //                         icon: Icons.width_full_rounded,
+  //                         textColor: textColor,
+  //                         secondaryTextColor: secondaryTextColor,
+  //                         suffixText: 'ft',
+  //                       ),
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //
+  //               SizedBox(height: 12),
+  //
+  //               // ⭐ AUTO SQFT SHOW
+  //               if (calculateSqft().isNotEmpty)
+  //                 Container(
+  //                   width: double.infinity,
+  //                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+  //                   decoration: BoxDecoration(
+  //                     color: Colors.orange.withOpacity(0.1),
+  //                     borderRadius: BorderRadius.circular(10),
+  //                   ),
+  //                   child: Text(
+  //                     "Total Area: ${calculateSqft()} sqft",
+  //                     style: TextStyle(
+  //                       color: Colors.orange,
+  //                       fontWeight: FontWeight.bold,
+  //                     ),
+  //                   ),
+  //                 ),
+  //             ],
+  //           ),
+  //         ),
+  //         SizedBox(height: 24),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildFloorAndParkingSection(bool isDarkMode, Color cardColor,
       Color textColor, Color secondaryTextColor) {

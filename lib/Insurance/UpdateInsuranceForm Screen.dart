@@ -675,7 +675,7 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
                   ),
 
                   buildImagePicker(
-                    "Car Photo",
+                    "Vehicle Photo",
                     carPhoto,
                         () => pickImage((f) => carPhoto = f),
                   ),

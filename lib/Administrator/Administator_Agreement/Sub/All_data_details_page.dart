@@ -32,11 +32,54 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
   File? pdfFile;
   List<AdditionalTenant> additionalTenants = [];
   bool pdfGenerated = false;
+  Widget? propertyCard;
+
+
 
   @override
   void initState() {
     super.initState();
     _loadAllData();
+  }
+
+
+
+  Future<void> fetchPropertyCard() async {
+    final propertyId = agreement?["property_id"];
+    if (propertyId == null || propertyId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Property ID not found")),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
+        body: {"P_id": propertyId},
+      );
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+
+        if (json['status'] == "success") {
+          final data = json['data'];
+
+          setState(() {
+            propertyCard = _propertyCard(data);
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(json['message'] ?? "Property not found")),
+          );
+        }
+      }
+    } catch (e) {
+      print("Error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to fetch property details")),
+      );
+    }
   }
 
   Future<void> _loadAllData() async {
@@ -111,7 +154,6 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
       setState(() => isLoading = false);
     }
   }
-
 
   Future<void> _pickAndUploadPoliceVerification() async {
     final result = await FilePicker.platform.pickFiles(
@@ -563,7 +605,6 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     final bool isPolice = agreement?["agreement_type"] == "Police Verification";
@@ -595,6 +636,10 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     agreement?["agreement_type"] == "Commercial Agreement"
         ? "Director"
         : "Tenant";
+
+    final String? agreementPdf = agreement?["agreement_pdf"];
+    final bool hasAgreementPdf =
+        agreementPdf != null && agreementPdf.toString().isNotEmpty;
 
 
     return Scaffold(
@@ -855,11 +900,19 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                 ElevatedButton(
                   onPressed: () {
                     final pdf = agreement?["police_verification_pdf"];
+
                     if (pdf == null || pdf.toString().isEmpty) {
                       _pickAndUploadPoliceVerification();
                     } else {
-                      _launchURL('https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$pdf');
-                    }
+                      _showDocumentActionSheet(
+                        title: "Police Verification",
+                        onView: () {
+                          _launchURL(
+                              'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$pdf'
+                          );
+                        },
+                        onUpdate: _pickAndUploadPoliceVerification,
+                      );                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: (agreement?["police_verification_pdf"] == null ||
@@ -884,14 +937,21 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                       if (notary == null || notary.toString().isEmpty) {
                         _pickAndUploadNotaryImage();
                       } else {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ImagePreviewScreen(
-                                imageUrl: 'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$notary'),
-                          ),
-                        );
-                      }
+                        _showDocumentActionSheet(
+                          title: "Notary Document",
+                          onView: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ImagePreviewScreen(
+                                  imageUrl:
+                                  'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$notary',
+                                ),
+                              ),
+                            );
+                          },
+                          onUpdate: _pickAndUploadNotaryImage,
+                        );                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: (agreement?["notry_img"] == null ||
@@ -1031,7 +1091,6 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     );
   }
 
-
   _launchURL(String pdf_url) async {
     final Uri url = Uri.parse(pdf_url);
     if (!await launchUrl(url)) {
@@ -1039,46 +1098,107 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     }
   }
 
+  void _showDocumentActionSheet({
+    required String title,
+    required VoidCallback onView,
+    required VoidCallback onUpdate,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
 
-  Widget? propertyCard;
+        return Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.grey[900] : Colors.white,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(24),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 20,
+                offset: const Offset(0, -4),
+              )
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
 
+              // Top drag indicator
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 18),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade500,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
 
-  Future<void> fetchPropertyCard() async {
-    final propertyId = agreement?["property_id"];
-    if (propertyId == null || propertyId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Property ID not found")),
-      );
-      return;
-    }
+              // Title
+              Row(
+                children: [
+                  const Icon(Icons.description, size: 26),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
 
-    try {
-      final response = await http.post(
-        Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
-        body: {"P_id": propertyId},
-      );
+              const SizedBox(height: 25),
 
-      if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
+              // Buttons Row
+              Row(
+                children: [
 
-        if (json['status'] == "success") {
-          final data = json['data'];
+                  // View
+                  Expanded(
+                    child: _actionButton(
+                      icon: Icons.visibility_outlined,
+                      label: "View",
+                      color: Colors.blue,
+                      onTap: () {
+                        Navigator.pop(context);
+                        onView();
+                      },
+                    ),
+                  ),
 
-          setState(() {
-            propertyCard = _propertyCard(data);
-          });
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(json['message'] ?? "Property not found")),
-          );
-        }
-      }
-    } catch (e) {
-      print("Error: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to fetch property details")),
-      );
-    }
+                  const SizedBox(width: 16),
+
+                  // Update
+                  Expanded(
+                    child: _actionButton(
+                      icon: Icons.edit_outlined,
+                      label: "Update",
+                      color: Colors.orange,
+                      onTap: () {
+                        Navigator.pop(context);
+                        onUpdate();
+                      },
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 15),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Widget _propertyCard(Map<String, dynamic> data) {
@@ -1243,7 +1363,8 @@ Widget _statusCard({
   required String value,
   required bool isPositive,
   String? dateTime, // 👈 NEW (ISO string from API)
-}) {
+})
+{
   String formattedTime = "";
 
   if (dateTime != null && dateTime.isNotEmpty) {
@@ -1301,6 +1422,39 @@ Widget _statusCard({
           ),
         ],
       ],
+    ),
+  );
+}
+
+Widget _actionButton({
+  required IconData icon,
+  required String label,
+  required Color color,
+  required VoidCallback onTap,
+}) {
+  return InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(14),
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: color.withOpacity(0.1),
+        border: Border.all(color: color, width: 1.5),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          )
+        ],
+      ),
     ),
   );
 }

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -69,98 +70,165 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
       var request = http.MultipartRequest(
         'POST',
         Uri.parse(
-            'https://verifyserve.social/PHP_Files/insurance_insert_api/insurance_details/insert.php'),
+          'https://verifyserve.social/PHP_Files/insurance_insert_api/insurance_details/insert.php',
+        ),
       );
 
-      request.fields['name_'] = nameController.text;
-      request.fields['number'] = numberController.text;
-      request.fields['vehicle_number'] = vehicleNumberController.text;
+      /// 🔹 FIELDS
+      request.fields['name_'] = nameController.text.trim();
+      request.fields['number'] = numberController.text.trim();
+      request.fields['vehicle_number'] = vehicleNumberController.text.trim();
       request.fields['fieldworkar_name'] = widget.fieldWorkerName;
       request.fields['fieldworkar_number'] = widget.fieldWorkerNumber;
-      request.fields['vehicle_type'] = vehicleTypeController.text;
-      request.fields['email_id'] = emailController.text;
-      request.fields['Nominie_name'] = nomineeNameController.text;
-      request.fields['Nominie_age'] = nomineeAgeController.text;
-      request.fields['Nominie_relation'] = nomineeRelationController.text;
+      request.fields['vehicle_type'] = vehicleTypeController.text.trim();
+      request.fields['email_id'] = emailController.text.trim();
+      request.fields['Nominie_name'] = nomineeNameController.text.trim();
+      request.fields['Nominie_age'] = nomineeAgeController.text.trim();
+      request.fields['Nominie_relation'] = nomineeRelationController.text.trim();
       request.fields['claim'] = claimStatus;
       request.fields['polution_yes_no'] = pollutionStatus;
+      request.fields['expiry_date'] = expiryDateController.text.trim();
 
-      request.fields['expiry_date'] = expiryDateController.text;
+      /// 🔹 Pollution validation
       if (pollutionStatus == "Yes" && pollutionPhoto == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Upload Pollution Photo')),
         );
+        setState(() => isLoading = false);
         return;
       }
+
+      /// 🔹 FILES (Optional)
       if (pollutionPhoto != null) {
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'polution_photo',
-            pollutionPhoto!.path,
-          ),
-        );
+        request.files.add(await http.MultipartFile.fromPath(
+          'polution_photo',
+          pollutionPhoto!.path,
+        ));
       }
+
       if (aadharFront != null) {
         request.files.add(await http.MultipartFile.fromPath(
-            'Aadhar_front', aadharFront!.path));
+          'Aadhar_front',
+          aadharFront!.path,
+        ));
       }
 
       if (aadharBack != null) {
         request.files.add(await http.MultipartFile.fromPath(
-            'Aadhar_back', aadharBack!.path));
+          'Aadhar_back',
+          aadharBack!.path,
+        ));
       }
 
       if (rcFront != null) {
         request.files.add(await http.MultipartFile.fromPath(
-            'Rc_front', rcFront!.path));
+          'Rc_front',
+          rcFront!.path,
+        ));
       }
 
       if (rcBack != null) {
         request.files.add(await http.MultipartFile.fromPath(
-            'Rc_back', rcBack!.path));
+          'Rc_back',
+          rcBack!.path,
+        ));
       }
 
       if (carPhoto != null) {
         request.files.add(await http.MultipartFile.fromPath(
-            'car_photo', carPhoto!.path));
+          'car_photo',
+          carPhoto!.path,
+        ));
       }
 
       if (oldPolicy != null) {
         request.files.add(await http.MultipartFile.fromPath(
-            'old_policy_docement', oldPolicy!.path));
+          'old_policy_docement',
+          oldPolicy!.path,
+        ));
       }
-      /// ✅ MULTIPLE CAR IMAGES
+
+      /// 🔹 MULTIPLE IMAGES
       for (var image in carMultipleImages) {
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'car_multiple_images[]',   // ✅ EXACT FIELD NAME
-            image.path,
-          ),
-        );
+        request.files.add(await http.MultipartFile.fromPath(
+          'car_multiple_images[]',
+          image.path,
+        ));
       }
+
+      /// 🔹 SEND REQUEST
       var response = await request.send();
       final responseBody = await response.stream.bytesToString();
 
       debugPrint("STATUS CODE: ${response.statusCode}");
       debugPrint("RESPONSE BODY: $responseBody");
+
       if (response.statusCode == 200) {
+        final decoded = jsonDecode(responseBody);
+
+        /// ✅ SUCCESS CASE
+        if (decoded["status"] == true) {
+
+          setState(() => isLoading = false);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Submitted Successfully')),
+          );
+
+          // Navigator.pop(context, true);
+        }
+
+        /// ❌ DUPLICATE VEHICLE CASE
+        else if (decoded["status"] == false &&
+            decoded["vehicle_number"] != null) {
+
+          setState(() => isLoading = false);
+
+          final vehicleNumber = decoded["vehicle_number"];
+          final addedByName = decoded["added_by_fieldworker_name"];
+          final addedByNumber = decoded["added_by_fieldworker_number"];
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                "Vehicle $vehicleNumber already exists\n"
+                    "Added by: $addedByName",
+                style: const TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.red,
+              behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+
+          vehicleNumberController.clear();
+        }
+
+        /// ⚠️ OTHER FAILURE
+        else {
+          setState(() => isLoading = false);
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(decoded["message"] ?? "Something went wrong"),
+            ),
+          );
+        }
+      } else {
+        setState(() => isLoading = false);
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Submitted Successfully')),
-        );
-        Navigator.pop(context);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed: ${response.statusCode}')),
+          SnackBar(content: Text('Server Error: ${response.statusCode}')),
         );
       }
+
     } catch (e) {
+      setState(() => isLoading = false);
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );
     }
-
-    setState(() => isLoading = false);
   }
 
   Future<void> pickMultipleImages() async {
@@ -565,7 +633,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
                           () => pickImage((f) => rcBack = f)),
 
                   buildImagePicker(
-                      "Car Photo", carPhoto,
+                      "Vehicle Photo", carPhoto,
                           () => pickImage((f) => carPhoto = f)),
 
                   buildImagePicker(

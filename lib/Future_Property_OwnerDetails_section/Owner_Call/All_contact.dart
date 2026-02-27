@@ -433,11 +433,6 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
     );
   }
 
-
-
-
-
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;

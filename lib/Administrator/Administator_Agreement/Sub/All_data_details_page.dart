@@ -866,7 +866,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
 
             SizedBox(height: 20,),
 
-            if (!isPolice && pdfFile != null && !hasAgreementPdf)
+            if (!isPolice && pdfFile != null)
               _glassContainer(
                 child: ListTile(
                   leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
@@ -889,7 +889,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
 
             SizedBox(height: 20,),
 
-            if (!isPolice && !hasAgreementPdf)
+            if (!isPolice)
               GenerateAgreementButton(onGenerate: _handleGeneratePdf),
 
             SizedBox(height: 20,),

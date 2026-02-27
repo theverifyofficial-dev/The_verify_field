@@ -27,7 +27,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
 
   List<dynamic> flats = [];
   bool isLoading = true;
-
+  Map<String, Map<String, dynamic>?> latestLogs = {};
   String call_done = "1";
 
   @override
@@ -46,8 +46,6 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      // Trigger full rebuild to refresh reminder cards & data
-      setState(() {});
       fetchFlats();
     }
   }
@@ -254,25 +252,36 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
 
   Future<void> fetchFlats() async {
     setState(() => isLoading = true);
+
     final apiUrl =
         "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_data_calling_both_of_flat.php?subid=${widget.buildingId}";
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
+
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
+
         if (jsonData["success"] == true) {
-          setState(() {
-            flats = jsonData["data"];
-          });
+          flats = jsonData["data"];
+
+          // Fetch building log
+          latestLogs[widget.buildingId] =
+          await _fetchLatestCallLog(widget.buildingId);
+
+          // Fetch each flat log
+          for (var flat in flats) {
+            final id = flat['P_id'].toString();
+            latestLogs[id] = await _fetchLatestCallLog(id);
+          }
+
+          setState(() {});
         }
       }
     } catch (e) {
       debugPrint("Error fetching flats: $e");
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
     }
   }
 
@@ -386,48 +395,41 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
     required bool isDark,
     required String id,
   }) {
-    return FutureBuilder<Map<String, dynamic>?>(
-      future: _fetchLatestCallLog(id),
-      builder: (context, snapshot) {
-        String msg;
+    String msg;
 
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          msg = "🔄 Checking next contact...";
-        } else if (!snapshot.hasData) {
-          msg = "❌ Never contacted this owner.";
-        } else {
-          msg = _reminderFromBackend(
-            snapshot.data!["next_calling_date"],
-          );
-        }
+    final log = latestLogs[id];
 
-        return Container(
-          margin: const EdgeInsets.only(top: 12),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.redAccent.withOpacity(0.3),
+    if (log == null) {
+      msg = "❌ Never contacted this owner.";
+    } else {
+      msg = _reminderFromBackend(log["next_calling_date"]);
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.redAccent.withOpacity(0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.notifications_active,
+              color: Colors.redAccent),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              msg,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.red,
+              ),
             ),
           ),
-          child: Row(
-            children: [
-              const Icon(Icons.notifications_active,
-                  color: Colors.redAccent),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  msg,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.red,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -747,6 +749,8 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
             label: const Text("Call"),
             onPressed: () async {
               await onLog(message: "Call made to $number", id: id);
+              latestLogs[id] = await _fetchLatestCallLog(id);
+              setState(() {});
               final Uri uri = Uri.parse("tel:$number");
               if (await canLaunchUrl(uri)) {
                 await launchUrl(uri);
@@ -772,6 +776,8 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
               final url = Uri.parse("https://wa.me/$phone?text=$msg");
               await onLog(
                   message: "WhatsApp message sent to $phone", id: id);
+              latestLogs[id] = await _fetchLatestCallLog(id);
+              setState(() {});
               if (await canLaunchUrl(url)) {
                 await launchUrl(url,
                     mode: LaunchMode.externalApplication);

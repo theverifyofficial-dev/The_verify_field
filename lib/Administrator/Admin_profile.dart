@@ -434,101 +434,199 @@ class _ProfilePageState extends State<AdminProfile> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      backgroundColor: Colors.transparent,
-      builder: (_) {
-        return Container(
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(28),
-            ),
-          ),
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 30),
+      barrierDismissible: true,
+      builder: (_) => Dialog(
+        backgroundColor: isDark ? Colors.grey[900] : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-
-              // Drag handle
               Container(
-                height: 5,
-                width: 45,
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade400,
-                  borderRadius: BorderRadius.circular(10),
+                  gradient: LinearGradient(colors: [Colors.redAccent.withOpacity(0.1), Colors.red.withOpacity(0.05)]),
+                  shape: BoxShape.circle,
                 ),
+                child: Icon(Icons.logout, color: Colors.redAccent, size: 40),
               ),
-
-              const SizedBox(height: 22),
-
-              const Icon(
-                Icons.power_settings_new_rounded,
-                size: 38,
-                color: Colors.redAccent,
-              ),
-
-              const SizedBox(height: 14),
-
-              Text(
-                "Sign Out",
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-
-              const SizedBox(height: 6),
-
-              Text(
-                "Select how you want to proceed",
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: isDark ? Colors.grey[400] : Colors.grey[600],
-                ),
-              ),
-
-              const SizedBox(height: 26),
-
-              // 🔹 This Device
-              _logoutOptionTile(
-                context,
-                icon: Icons.phone_android,
-                title: "Logout This Device",
-                subtitle: "You’ll stay logged in on other devices",
-                color: Colors.blueAccent,
-                onTap: () {
-                  Navigator.pop(context);
-                  _logout(context);
-                },
-              ),
-
               const SizedBox(height: 16),
-
-              // 🔴 All Devices
-              _logoutOptionTile(
-                context,
-                icon: Icons.devices_other,
-                title: "Logout From All Devices",
-                subtitle: "This will disconnect every active session",
-                color: Colors.redAccent,
-                isDanger: true,
-                onTap: () {
-                  Navigator.pop(context);
-                  _logoutFromAllDevices();
-                },
+              Text(
+                "Logout",
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontFamily: "PoppinsBold",
+                ),
               ),
-
-              const SizedBox(height: 18),
-
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("Cancel"),
+              const SizedBox(height: 8),
+              Text(
+                "Are you sure you want to logout?",
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontFamily: "Poppins",
+                  color: isDark ? Colors.grey[400] : const Color(0xFF6B7280),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        "Cancel",
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[400] : const Color(0xFF6B7280),
+                          fontFamily: "Poppins",
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _logout(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        "Logout",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontFamily: "PoppinsBold",
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
+
+  // void _showLogoutDialog(BuildContext context) {
+  //   final theme = Theme.of(context);
+  //   final isDark = theme.brightness == Brightness.dark;
+  //
+  //   showModalBottomSheet(
+  //     context: context,
+  //     backgroundColor: Colors.transparent,
+  //     builder: (_) {
+  //       return Container(
+  //         decoration: BoxDecoration(
+  //           color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+  //           borderRadius: const BorderRadius.vertical(
+  //             top: Radius.circular(28),
+  //           ),
+  //         ),
+  //         padding: const EdgeInsets.fromLTRB(24, 24, 24, 30),
+  //         child: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //
+  //             // Drag handle
+  //             Container(
+  //               height: 5,
+  //               width: 45,
+  //               decoration: BoxDecoration(
+  //                 color: Colors.grey.shade400,
+  //                 borderRadius: BorderRadius.circular(10),
+  //               ),
+  //             ),
+  //
+  //             const SizedBox(height: 22),
+  //
+  //             const Icon(
+  //               Icons.power_settings_new_rounded,
+  //               size: 38,
+  //               color: Colors.redAccent,
+  //             ),
+  //
+  //             const SizedBox(height: 14),
+  //
+  //             Text(
+  //               "Sign Out",
+  //               style: theme.textTheme.titleLarge?.copyWith(
+  //                 fontWeight: FontWeight.w700,
+  //               ),
+  //             ),
+  //
+  //             const SizedBox(height: 6),
+  //
+  //             Text(
+  //               "Select how you want to proceed",
+  //               style: theme.textTheme.bodyMedium?.copyWith(
+  //                 color: isDark ? Colors.grey[400] : Colors.grey[600],
+  //               ),
+  //             ),
+  //
+  //             const SizedBox(height: 26),
+  //
+  //             // 🔹 This Device
+  //             _logoutOptionTile(
+  //               context,
+  //               icon: Icons.phone_android,
+  //               title: "Logout This Device",
+  //               subtitle: "You’ll stay logged in on other devices",
+  //               color: Colors.blueAccent,
+  //               onTap: () {
+  //                 Navigator.pop(context);
+  //                 _logout(context);
+  //               },
+  //             ),
+  //
+  //             const SizedBox(height: 16),
+  //
+  //             // 🔴 All Devices
+  //             _logoutOptionTile(
+  //               context,
+  //               icon: Icons.devices_other,
+  //               title: "Logout From All Devices",
+  //               subtitle: "This will disconnect every active session",
+  //               color: Colors.redAccent,
+  //               isDanger: true,
+  //               onTap: () {
+  //                 Navigator.pop(context);
+  //                 _logoutFromAllDevices();
+  //               },
+  //             ),
+  //
+  //             const SizedBox(height: 18),
+  //
+  //             TextButton(
+  //               onPressed: () => Navigator.pop(context),
+  //               child: const Text("Cancel"),
+  //             ),
+  //           ],
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
   Widget _logoutOptionTile(
       BuildContext context, {
         required IconData icon,

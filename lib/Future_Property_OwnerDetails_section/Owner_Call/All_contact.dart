@@ -27,7 +27,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
 
   List<dynamic> flats = [];
   bool isLoading = true;
-  Map<String, Map<String, dynamic>?> latestLogs = {};
+
   String call_done = "1";
 
   @override
@@ -46,6 +46,8 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      // Trigger full rebuild to refresh reminder cards & data
+      setState(() {});
       fetchFlats();
     }
   }
@@ -217,6 +219,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
                                     ),
                                   ],
                                 ),
+
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
@@ -231,7 +234,26 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
                                       ),
                                     ),
                                   ],
-                                )
+                                ),
+
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.orange,
+                                      foregroundColor: Colors.black,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                    ),
+                                    icon: const Icon(Icons.update),
+                                    label: const Text("Update Status"),
+                                    onPressed: () {
+                                      Navigator.pop(context); // close logs
+                                      _showUpdateReasonSelector(log['id'].toString());
+                                    },
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -247,47 +269,65 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
       },
     );
   }
+  Future<void> _updateBuildingStatus(String id, String reason) async {
+    const url =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/calling_update_building.php";
 
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        body: {
+          "id": id,
+          "reason": reason,
+        },
+      );
 
+      print("Sending ID: $id");
+      print("Update Status Response: ${response.body}");
+    } catch (e) {
+      debugPrint("Update Status Error: $e");
+    }
+  }
 
   Future<void> fetchFlats() async {
     setState(() => isLoading = true);
-
     final apiUrl =
         "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_data_calling_both_of_flat.php?subid=${widget.buildingId}";
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
-
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-
         if (jsonData["success"] == true) {
-          flats = jsonData["data"];
-
-          // Fetch building log
-          latestLogs[widget.buildingId] =
-          await _fetchLatestCallLog(widget.buildingId);
-
-          // Fetch each flat log
-          for (var flat in flats) {
-            final id = flat['P_id'].toString();
-            latestLogs[id] = await _fetchLatestCallLog(id);
-          }
-
-          setState(() {});
+          setState(() {
+            flats = jsonData["data"];
+          });
         }
       }
     } catch (e) {
       debugPrint("Error fetching flats: $e");
     } finally {
-      setState(() => isLoading = false);
+      setState(() {
+        isLoading = false;
+      });
     }
   }
+  String selectedReason = "Completed Successfully";
+
+  final List<String> reasons = [
+    "Completed Successfully",
+    "Wrong Contact Number",
+    "Not Reachable",
+    "No Respond",
+    "Property Not Found",
+    "Customer Cancelled",
+    "Mismatch Requirements",
+  ];
 
   Future<void> _logContact({
     required String message,
     required String id,
+    required String reason,
   })
   async {
     final prefs = await SharedPreferences.getInstance();
@@ -319,6 +359,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
           "fieldworkar_name": FName,
           "fieldworkar_number": FNum,
           "call_done": call_done,
+          "reason": reason,
         },
       );
 
@@ -351,6 +392,86 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
       debugPrint("Error fetching latest log: $e");
     }
     return null;
+  }
+
+
+  Future<void> _showUpdateReasonSelector(String id) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? Colors.black : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) {
+        String selected = reasons.first;
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                  const Text(
+                    "Update Status",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  DropdownButtonFormField<String>(
+                    value: selected,
+                    items: reasons
+                        .map((r) => DropdownMenuItem(
+                      value: r,
+                      child: Text(r),
+                    ))
+                        .toList(),
+                    onChanged: (val) {
+                      setModalState(() {
+                        selected = val!;
+                      });
+                    },
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+
+                        await _updateBuildingStatus(id, selected);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Status Updated Successfully"),
+                          ),
+                        );
+
+                        fetchFlats();
+                      },
+                      child: const Text("Update"),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   String _reminderFromBackend(String? nextDate) {
@@ -395,43 +516,55 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
     required bool isDark,
     required String id,
   }) {
-    String msg;
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _fetchLatestCallLog(id),
+      builder: (context, snapshot) {
+        String msg;
 
-    final log = latestLogs[id];
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          msg = "🔄 Checking next contact...";
+        } else if (!snapshot.hasData) {
+          msg = "❌ Never contacted this owner.";
+        } else {
+          msg = _reminderFromBackend(
+            snapshot.data!["next_calling_date"],
+          );
+        }
 
-    if (log == null) {
-      msg = "❌ Never contacted this owner.";
-    } else {
-      msg = _reminderFromBackend(log["next_calling_date"]);
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(top: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: Colors.redAccent.withOpacity(0.3),
-        ),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.notifications_active,
-              color: Colors.redAccent),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              msg,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                color: Colors.red,
-              ),
+        return Container(
+          margin: const EdgeInsets.only(top: 12),
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.redAccent.withOpacity(0.3),
             ),
           ),
-        ],
-      ),
+          child: Row(
+            children: [
+              const Icon(Icons.notifications_active,
+                  color: Colors.redAccent),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  msg,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.red,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
+
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -481,7 +614,6 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
                   isDark: isDark,
                   number: widget.ownerNumber??"Not Available",
                   id: widget.buildingId,
-                  onLog: _logContact,
                 ),
                 const SizedBox(height: 12),
                 _reminderCard(isDark: isDark, id: widget.buildingId),
@@ -599,7 +731,6 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
           isDark: isDark,
           number: flat['owner_number'] ?? "",
           id: flat['P_id'].toString(),
-          onLog: _logContact,
         ),
         const SizedBox(height: 12),
         _reminderCard(isDark: isDark, id: flat['P_id'].toString()),
@@ -728,65 +859,138 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
     required bool isDark,
     required String number,
     required String id,
-    required Function({required String message, required String id}) onLog,
-  }) {return Row(
+  }) {
+    return Column(
       children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.black,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30)),
-            ),
-            icon: const Icon(Icons.call),
-            label: const Text("Call"),
-            onPressed: () async {
-              await onLog(message: "Call made to $number", id: id);
-              latestLogs[id] = await _fetchLatestCallLog(id);
-              setState(() {});
-              final Uri uri = Uri.parse("tel:$number");
-              if (await canLaunchUrl(uri)) {
-                await launchUrl(uri);
-              }
-            },
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.black,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30)),
-            ),
-            icon: const Icon(Icons.chat_outlined),
-            label: const Text("WhatsApp"),
-            onPressed: () async {
-              final phone = number.replaceAll(' ', '');
-              final msg = Uri.encodeComponent("Hello!");
-              final url = Uri.parse("https://wa.me/$phone?text=$msg");
-              await onLog(
-                  message: "WhatsApp message sent to $phone", id: id);
-              latestLogs[id] = await _fetchLatestCallLog(id);
-              setState(() {});
-              if (await canLaunchUrl(url)) {
-                await launchUrl(url,
-                    mode: LaunchMode.externalApplication);
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("WhatsApp not installed or invalid number"),
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
                   ),
-                );
-              }
-            },
-          ),
+                ),
+                icon: const Icon(Icons.call),
+                label: const Text("Call"),
+                onPressed: () async {
+                  final Uri uri = Uri.parse("tel:$number");
+                  if (await canLaunchUrl(uri)) {
+                    await launchUrl(uri);
+                  }
+                },
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
+                icon: const Icon(Icons.chat_outlined),
+                label: const Text("WhatsApp"),
+                onPressed: () async {
+                  final phone = number.replaceAll(' ', '');
+                  final msg = Uri.encodeComponent("Hello!");
+                  final url = Uri.parse("https://wa.me/$phone?text=$msg");
+
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url,
+                        mode: LaunchMode.externalApplication);
+                  }
+                },
+              ),
+            ),
+          ],
         ),
       ],
+    );
+  }
+  Future<void> _showReasonSelector({
+    required String number,
+    required String id,
+  }) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? Colors.black : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Select Reason",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+
+                  DropdownButtonFormField<String>(
+                    value: selectedReason,
+                    items: reasons
+                        .map((r) => DropdownMenuItem(
+                      value: r,
+                      child: Text(r),
+                    ))
+                        .toList(),
+                    onChanged: (val) {
+                      setModalState(() {
+                        selectedReason = val!;
+                      });
+                    },
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        Navigator.pop(context);
+
+                        await _logContact(
+                          message: "Status updated for $number",
+                          id: id,
+                          reason: selectedReason,
+                        );
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Status updated successfully"),
+                          ),
+                        );
+
+                        fetchFlats(); // refresh UI
+                      },
+                      child: const Text("Update"),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

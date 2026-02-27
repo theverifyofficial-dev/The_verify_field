@@ -305,9 +305,9 @@ Widget customerDemand2CompactCard({
               const SizedBox(width: 8),
 
               animatedCount(
-                        value: disclosed,
-                        color: DemandColors.disclosed,
-                        label: "Closed"),
+                  value: disclosed,
+                  color: DemandColors.disclosed,
+                  label: "Closed"),
 
 
             ],
@@ -315,38 +315,38 @@ Widget customerDemand2CompactCard({
           const SizedBox(height: 8),
 
 
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Container(
-                  width: 4,
-                  height: 20,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.redAccent, Colors.orangeAccent],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                    borderRadius: BorderRadius.circular(2),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 20,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.redAccent, Colors.orangeAccent],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                   ),
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                const SizedBox(width: 6),
+              ),
+              const SizedBox(width: 6),
 
-                const Text(
-                  "Today’s New Demands",
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
+              const Text(
+                "Today’s New Demands",
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
                 ),
+              ),
 
-                Spacer(),
+              Spacer(),
 
-                const Icon(Icons.arrow_forward_ios),
-                const SizedBox(width: 6),
-              ],
-            ),
-            const SizedBox(height: 6),
+              const Icon(Icons.arrow_forward_ios),
+              const SizedBox(width: 6),
+            ],
+          ),
+          const SizedBox(height: 6),
           if (todayDemands.isNotEmpty) ...[
             ...todayDemands.take(3).map(todayDemandTile),
           ],
@@ -372,4 +372,3 @@ Widget customerDemand2CompactCard({
     ),
   );
 }
-

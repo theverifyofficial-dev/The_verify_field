@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 class AppImages{
   static const vehicle = "assets/images/carshundred.png";
   static const documents = "assets/images/Documenthundred.png";
@@ -42,6 +44,7 @@ class AppImages{
   static const car_insu="assets/images/Cars_iiiii.png";
   static const realestate_pro="assets/images/realestate_pro.png";
   static const verify_Property="assets/images/verified_property.png";
+  static const compliant="assets/images/compliant.png";
   static const rent_pro="assets/images/rrrrrreeeennnn.png";
   static const whatsaap="assets/images/whatsapp.png";
   static const call="assets/images/call.png";
@@ -60,9 +63,6 @@ class AppImages{
   static const video = 'assets/images/clapperboard.png';
   static const media = 'assets/images/social-media.png';
   static const AI = 'assets/images/gemini-color.png';
-
-
-
 
   static const static1 = "assets/images/carregister.jpg";
   static const static2 = "assets/images/documentthree.jpg";
@@ -84,3 +84,14 @@ List<String> staticImages = [
   AppImages.static7,
   AppImages.static8,
 ];
+class AppIcons {
+
+  static const liveProperty = Icons.home_work_outlined;
+  static const verification = Icons.verified_user_outlined;
+  static const futureProperty = Icons.apartment_outlined;
+  static const tenantDemands = Icons.groups_outlined;
+  static const agreements = Icons.description_outlined;
+  static const rentedFlats = Icons.meeting_room_outlined;
+  static const upcomingFlats = Icons.upcoming_outlined;
+
+}

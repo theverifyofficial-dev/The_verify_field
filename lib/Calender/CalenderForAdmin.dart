@@ -14,9 +14,16 @@ import '../Administrator/Admin_future _property/Future_Property_Details.dart';
 import '../Administrator/Administater_Realestate_Details.dart';
 import '../Administrator/Administator_Agreement/Admin_Agreement_details.dart';
 import '../Administrator/Administator_Agreement/Sub/Accepted_details.dart';
+import '../Future_Property_OwnerDetails_section/Future_Property.dart';
+import '../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../Upcoming/Upcoming_details.dart';
 import 'CalenderForFieldWorker.dart';
+class OverviewStat {
+  final String label;
+  final int value;
 
+  OverviewStat(this.label, this.value);
+}
 
 class AgreementTaskResponse {
   final String status;
@@ -866,6 +873,21 @@ class BuildingCalling {
   }
 }
 
+class FieldWorkerStat {
+  final String name;
+  final String number;
+  final int totalBuilding;
+  final int liveFlat;
+  final int agreements;
+
+  FieldWorkerStat({
+    required this.name,
+    required this.number,
+    required this.totalBuilding,
+    required this.liveFlat,
+    required this.agreements,
+  });
+}
 /// -------- MAIN PAGE --------
 class CalendarTaskPageForAdmin extends StatefulWidget {
   const CalendarTaskPageForAdmin({super.key});
@@ -916,6 +938,70 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
       _fetchMonthlyEvents(_selectedYear, _selectedMonth);
     });
   }
+  int totalBuildings = 0;
+  int buildingsWithFlat = 0;
+  int emptyBuildings = 0;
+  // List<FieldWorkerStat> workerStats = [];
+  // bool _isWorkerLoading = false;
+  List<OverviewStat> overviewStats = [];
+
+  // Future<void> _fetchAllWorkerStats() async {
+  //   if (_isWorkerLoading) return;
+  //
+  //   setState(() => _isWorkerLoading = true);
+  //
+  //   try {
+  //     final futures = fieldWorkers.map((fw) async {
+  //       final uri = Uri.parse(
+  //         "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/"
+  //             "building_over_view.php?fieldworkarnumber=${fw["number"]}",
+  //       );
+  //
+  //       final res = await http.get(uri);
+  //
+  //       if (res.statusCode == 200 && res.body.isNotEmpty) {
+  //         final decoded = jsonDecode(res.body);
+  //
+  //         if (decoded["status"] == "success") {
+  //           final data = decoded["data"] ?? {};
+  //
+  //           return FieldWorkerStat(
+  //             name: fw["name"]!,
+  //             number: fw["number"]!,
+  //             totalBuilding:
+  //             int.tryParse(data["total_building"] ?? "0") ?? 0,
+  //             liveFlat:
+  //             int.tryParse(data["live_flat"] ?? "0") ?? 0,
+  //             agreements:
+  //             int.tryParse(data["agreement"] ?? "0") ?? 0,
+  //           );
+  //         }
+  //       }
+  //       return null;
+  //     });
+  //
+  //     final results = await Future.wait(futures);
+  //
+  //     if (!mounted) return;
+  //
+  //     setState(() {
+  //       workerStats = results.whereType<FieldWorkerStat>().toList();
+  //     });
+  //   } catch (e) {
+  //     debugPrint("❌ Worker Stats Error: $e");
+  //   } finally {
+  //     if (mounted) {
+  //       setState(() => _isWorkerLoading = false);
+  //     }
+  //   }
+  // }
+  // List<Map<String, String>> fieldWorkers = [
+  //   {"number": "9711775300", "name": "Sumit"},
+  //   {"number": "9711275300", "name": "Ravi Kumar"},
+  //   {"number": "9971172204", "name": "Faizan Khan"},
+  //   {"number": "9675383184", "name": "Abhay"},
+  //   {"number": "8130209217", "name": "Manish"},
+  // ];
 
   Future<void> _initUserAndFetch() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -932,6 +1018,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     });
 
     if (userNumber != null && userNumber!.isNotEmpty) {
+      // await _fetchAllWorkerStats();
       await _fetchData(_focusedDay);
     } else {
       debugPrint("⚠️ userNumber not found in SharedPreferences");
@@ -1006,7 +1093,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
   Future<void> _fetchData(DateTime date) async {
     if (_isLoading) return;
     setState(() => _isLoading = true);
-
+    // await _fetchAllWorkerStats();
     _agreements.clear();
     _acceptedAgreements.clear();
     _pendingAgreements.clear();
@@ -1645,7 +1732,116 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
       )
     );
   }
+  // Widget _buildWorkerTile(FieldWorkerStat stat, bool isDark) {
+  //   return Container(
+  //     margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+  //     padding: const EdgeInsets.all(14),
+  //     decoration: BoxDecoration(
+  //       gradient: const LinearGradient(
+  //         colors: [
+  //           Color(0xFF4F46E5),
+  //           Color(0xFF06B6D4),
+  //         ],
+  //       ),
+  //       borderRadius: BorderRadius.circular(16),
+  //     ),
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: [
+  //         Text(
+  //           stat.name,
+  //           style: const TextStyle(
+  //             color: Colors.white,
+  //             fontSize: 16,
+  //             fontWeight: FontWeight.bold,
+  //           ),
+  //         ),
+  //         Text(
+  //           stat.number,
+  //           style: const TextStyle(
+  //             color: Colors.white70,
+  //             fontSize: 12,
+  //           ),
+  //         ),
+  //         const SizedBox(height: 10),
+  //         Row(
+  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  //           children: [
+  //             _miniStat("Buildings", stat.totalBuilding),
+  //             _miniStat("Live Flats", stat.liveFlat),
+  //             _miniStat("Agreements", stat.agreements),
+  //           ],
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
+  Widget _miniStat(String label, int value) {
+    return Column(
+      children: [
+        Text(
+          value.toString(),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 11,
+          ),
+        ),
+      ],
+    );
+  }
+  Widget _overviewTile(OverviewStat stat, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.indigo,
+            Colors.blueAccent,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            stat.value.toString(),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            stat.label,
+            style: const TextStyle(
+              color: Colors.white70,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   Widget _buildBookedTenantVisitCard(BookedTenantVisit v, bool isDark) {
     final statusColor =
     v.status.toLowerCase() == 'progressing' ? Colors.orange : Colors.green;
@@ -1817,7 +2013,58 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
       ),
     );
   }
+  Widget _buildOverviewCard(bool isDark) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (context) {
+          return FrontPage_FutureProperty();
+        }));
+      },
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xFF4F46E5),
+              Color(0xFF06B6D4),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _overviewItem("Buildings", totalBuildings),
+            _overviewItem("With Flats", buildingsWithFlat),
+            _overviewItem("Empty", emptyBuildings),
+          ],
+        ),
+      ),
+    );
+  }
 
+  Widget _overviewItem(String label, int value) {
+    return Column(
+      children: [
+        Text(
+          value.toString(),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 11,
+          ),
+        ),
+      ],
+    );
+  }
   // Enhanced Add Flat Card
   Widget _buildAddFlatCard(AdminAddFlat f, bool isDark) {
     final statusColor = _getLiveUnliveColor(f.liveUnlive);
@@ -2372,8 +2619,8 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => Administater_Future_Property_details(
-                buildingId: f.id.toString(),
+              builder: (_) => Future_Property_details(
+                idd: f.id.toString(),
               ),
             ),
           );
@@ -2976,13 +3223,20 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
               ),
             ),
-            if (_isLoading)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Center(
-                  child: CircularProgressIndicator(color: Colors.indigo),
-                ),
-              ),
+            // if (_isWorkerLoading)
+            //   const Padding(
+            //     padding: EdgeInsets.all(16),
+            //     child: Center(
+            //       child: CircularProgressIndicator(),
+            //     ),
+            //   ),
+            // if (workerStats.isNotEmpty)
+            //   _sectionTitle("Field Workers Overview", isDark, workerStats.length),
+            //
+            // ...workerStats.map(
+            //       (stat) => _buildWorkerTile(stat, isDark),
+            // ),
+
             if (_websiteVisits.isNotEmpty)
               _sectionTitle("Website Visits", isDark, _websiteVisits.length),
             ..._websiteVisits.map(

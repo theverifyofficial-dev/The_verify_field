@@ -9,6 +9,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../Administrator/Admin_future _property/Future_Property_Details.dart';
 import '../Demand_2/Demand_detail.dart';
+import '../Future_Property_OwnerDetails_section/Future_Property.dart';
 import '../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../Future_Property_OwnerDetails_section/New_Update/under_flats_infutureproperty.dart';
 import '../Future_Property_OwnerDetails_section/Owner_Call/All_contact.dart';
@@ -504,14 +505,17 @@ class LiveFlat {
 }
 /// -------- BUILDING MODEL (UPDATED FOR NEW API) --------
 class FuturePropertyResponse {
-  final String status;
+  final bool status;   // ✅ BOOLEAN
   final List<FutureProperty> data;
 
-  FuturePropertyResponse({required this.status, required this.data});
+  FuturePropertyResponse({
+    required this.status,
+    required this.data,
+  });
 
   factory FuturePropertyResponse.fromJson(Map<String, dynamic> json) {
     return FuturePropertyResponse(
-      status: json['status'] ?? 'error',
+      status: json['status'] ?? false,
       data: (json['data'] as List<dynamic>?)
           ?.map((e) => FutureProperty.fromJson(e))
           .toList() ??
@@ -1436,10 +1440,43 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
     _initUserAndFetch();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      loadUserName(); // ✅ ONLY UI work here
+      loadUserName();
     });
   }
-
+  // int totalBuildings = 0;
+  // int buildingsWithFlat = 0;
+  // int emptyBuildings = 0;
+  //
+  // Future<void> _fetchOverviewBuildingDetail() async {
+  //   final uri = Uri.parse(
+  //     "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/"
+  //         "building_over_view.php?fieldworkarnumber=${userNumber ?? ''}",
+  //   );
+  //
+  //   try {
+  //     final res = await http.get(uri);
+  //
+  //     if (res.statusCode != 200 || res.body.isEmpty) return;
+  //
+  //     final decoded = jsonDecode(res.body);
+  //     final data = decoded["data"] ?? {};
+  //
+  //     if (!mounted) return;
+  //
+  //     setState(() {
+  //       totalBuildings =
+  //           int.tryParse(data["total_building"].toString()) ?? 0;
+  //
+  //       buildingsWithFlat =
+  //           int.tryParse(data["building_with_flat"].toString()) ?? 0;
+  //
+  //       emptyBuildings =
+  //           int.tryParse(data["building_without_flat"].toString()) ?? 0;
+  //     });
+  //   } catch (e) {
+  //     debugPrint("❌ Building Overview Error: $e");
+  //   }
+  // }
   Future<void> _initUserAndFetch() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final storedName = prefs.getString('name');
@@ -1451,6 +1488,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
     });
 
     if (userNumber != null && userNumber!.isNotEmpty) {
+      _fetchOverviewBuildingDetail();
       await _fetchData(_focusedDay);
     } else {
       debugPrint("⚠️ userNumber not found in SharedPreferences");
@@ -1490,7 +1528,341 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
     }
   }
   List<CalendarAddFlat> _calendarAddFlats = [];
+  int totalBuildings = 0;
+  int buildingsWithFlat = 0;
+  int emptyBuildings = 0;
 
+  final Map<String, int> yearlyTargets = {
+    "Building": 250,
+  };
+  Future<void> _fetchOverviewBuildingDetail() async {
+    final uri = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/building_over_view.php?fieldworkarnumber=$userNumber",
+    );
+
+    final res = await http.get(uri);
+    print(res);
+    if (res.statusCode != 200 || res.body.isEmpty) return;
+
+    final decoded = jsonDecode(res.body);
+    final data = decoded["data"] ?? {};
+
+    if (!mounted) return;
+
+    setState(() {
+      totalBuildings =
+          int.tryParse(data["total_building"].toString()) ?? 0;
+
+      buildingsWithFlat =
+          int.tryParse(data["building_with_flat"].toString()) ?? 0;
+
+      emptyBuildings =
+          int.tryParse(data["building_without_flat"].toString()) ?? 0;
+    });
+  }
+  void _openBuildingCalculator() {
+    final int target = yearlyTargets["Building"]!;
+    final int done = buildingsWithFlat;   // 🔥 IMPORTANT FIX
+
+    final int remaining = (target - done).clamp(0, target);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,   // ✅ IMPORTANT
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+
+        return DraggableScrollableSheet(
+          initialChildSize: 0.55,
+          minChildSize: 0.40,
+          maxChildSize: 0.90,
+          builder: (context, controller) {
+            return Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF111827) : Colors.white,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(26),
+                ),
+              ),
+
+              /// ✅ SCROLL FIX
+              child: ListView(
+                controller: controller,
+                children: [
+
+                  /// HEADER
+                  Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.blue.withOpacity(.12),
+                        ),
+                        child: const Icon(
+                          Icons.calculate_outlined,
+                          color: Colors.blue,
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      const Text(
+                        "Building Target Intelligence",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: "PoppinsBold",
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 18),
+
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context){
+                        return const FrontPage_FutureProperty();
+                      }));
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        color: isDark
+                            ? Colors.white.withOpacity(.04)
+                            : Colors.grey.shade100,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(child: _miniStat("Total", totalBuildings)),
+                          Expanded(child: _miniStat("Without Flats", emptyBuildings)),
+                          Expanded(child: _miniStat("With Flats", buildingsWithFlat)),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 13),
+
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      gradient: LinearGradient(
+                        colors: isDark
+                            ? [
+                          const Color(0xFF1E3A8A), // deep blue
+                          const Color(0xFF2563EB),
+                        ]
+                            : [
+                          const Color(0xFF3B82F6),
+                          const Color(0xFF135BEC),
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withOpacity(0.25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+
+                        /// ICON BADGE
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(.18),
+                          ),
+                          child: const Icon(
+                            Icons.flag_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        /// TEXT
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+
+                              const Text(
+                                "YEARLY TARGET",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  letterSpacing: 1.2,
+                                  color: Colors.white70,
+                                  fontFamily: "PoppinsBold",
+                                ),
+                              ),
+
+                              const SizedBox(height: 2),
+
+                              Text(
+                                "$target Buildings",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontFamily: "PoppinsBold",
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        /// OPTIONAL KPI STYLE
+                        Text(
+                          "🎯",
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white.withOpacity(.9),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+
+                  const SizedBox(height: 13),
+                  _calcTile("Per Week", remaining, 52, done, target),
+                  _calcTile("Per Month", remaining, 12, done, target),
+                  _calcTile("3 Month Pace", remaining, 4, done, target),
+                  _calcTile("6 Month Pace", remaining, 2, done, target),
+                  _calcTile("8 Month Pace", remaining, 1.5, done, target),
+                  _calcTile("10 Month Pace", remaining, 1.2, done, target),
+
+                  const SizedBox(height: 30),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+  Widget _miniStat(String label, int value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+
+        /// VALUE (Primary Focus)
+        Text(
+          value.toString(),
+          style: TextStyle(
+            fontSize: 18,
+            fontFamily: "PoppinsBold",
+            fontWeight: FontWeight.bold,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+        ),
+
+        const SizedBox(height: 4),
+
+        /// LABEL (Secondary)
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10.5,
+            fontFamily: "PoppinsMedium",
+            color: isDark ? Colors.white54 : Colors.black54,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _calcTile(
+      String label,
+      int remaining,
+      double divisor,
+      int done,
+      int target,
+      ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final double raw = remaining / divisor;
+    final int required = raw.ceil();
+
+    final Color accent = const Color(0xFF3B82F6);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: isDark
+            ? Colors.white.withOpacity(.05)
+            : Colors.grey.shade100,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          /// 🔝 HEADER
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontFamily: "PoppinsBold",
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              Text(
+                "$required Buildings",
+                style:  TextStyle(
+                  fontSize: 13,
+                  fontFamily: "PoppinsBold",
+                  color: accent,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+
+
+          /// ✅ SIMPLE INSTRUCTION
+          Text(
+            "Complete $required buildings every $label to reach your target.",
+            style: TextStyle(
+              fontSize: 11.5,
+              fontFamily: "PoppinsMedium",
+              color: isDark ? Colors.white60 : Colors.black54,
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          /// ✅ REMAINING
+          Text(
+            "Remaining: $remaining Buildings",
+            style: TextStyle(
+              fontSize: 11,
+              fontFamily: "PoppinsMedium",
+              color: isDark ? Colors.white70 : Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   Future<void> loadAddFlats(DateTime date) async {
     final formatted =
         "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
@@ -1582,17 +1954,20 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         a = AgreementTaskResponse(status: "error", data: []);
       }
 
-      // ✅ Handle FutureProperty API safely
       if (responses[1].statusCode == 200 && responses[1].body.isNotEmpty) {
         try {
           f = FuturePropertyResponse.fromRawJson(responses[1].body);
+
+          debugPrint("🟢 BUILDING STATUS: ${f.status}");
+          debugPrint("🟢 BUILDING COUNT: ${f.data.length}");
+
         } catch (e) {
-          debugPrint("FutureProperty parse error: $e");
-          f = FuturePropertyResponse(status: "error", data: []);
+          debugPrint("❌ FutureProperty parse error: $e");
+          f = FuturePropertyResponse(status: false, data: []);
         }
       } else {
-        debugPrint("FutureProperty API failed (${responses[1].statusCode})");
-        f = FuturePropertyResponse(status: "error", data: []);
+        debugPrint("❌ FutureProperty API failed (${responses[1].statusCode})");
+        f = FuturePropertyResponse(status: false, data: []);
       }
 
       // ✅ Handle Website Visit API safely
@@ -1651,8 +2026,8 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
           debugPrint("🟢 PARSED LIVE COUNT: ${l.data.length}");
         } catch (e, s) {
-          debugPrint("❌ LIVE PARSE ERROR: $e");
-          debugPrint(s.toString());
+          // debugPrint("❌ LIVE PARSE ERROR: $e");
+          // debugPrint(s.toString());
           l = LivePropertyResponse(status: "error", data: []);
         }
       } else {
@@ -1715,7 +2090,6 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       } else {
         cr = CallingReminderResponse(status: 'error', data: []);
       }
-
 
       if (!mounted) return;
 
@@ -2269,6 +2643,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       return value; // fallback if parsing fails
     }
   }
+
   Widget _responsiveCard({
     required Widget child,
   }) {
@@ -2297,6 +2672,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       },
     );
   }
+
   Widget _buildBookedTenantVisitCard(BookedTenantVisit v, bool isDark) {
     final statusColor =
     v.status.toLowerCase() == 'progressing' ? Colors.orange : Colors.green;
@@ -2768,8 +3144,8 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           context,
           MaterialPageRoute(
             builder: (_) =>
-                Administater_Future_Property_details(
-                  buildingId: f.id.toString(),
+                Future_Property_details(
+                  idd: f.id.toString(),
                 ),
           ),
         );
@@ -3235,11 +3611,59 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               ],
             ),
             const SizedBox(height: 6),
-            Text(
-              "Contact: ${w.contactNo}",
-              style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white ),
+            Row(
+              children: [
+                Icon(
+                  PhosphorIcons.phone_call,
+                  size: 16,
+                  color: Colors.white70,
+                ),
+
+                const SizedBox(width: 8),
+
+                Expanded(
+                  child: Text(
+                    w.contactNo,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+
+                GestureDetector(
+                  onTap: () async {
+                    final Uri callUri = Uri(
+                      scheme: 'tel',
+                      path: w.contactNo,
+                    );
+
+                    if (await canLaunchUrl(callUri)) {
+                      await launchUrl(callUri);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("Could not open dialer"),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      CupertinoIcons.phone_circle_fill,
+                      size: 25,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
             ),
 
             /// 👤 FieldWorkar (OPTIONAL)
@@ -3723,6 +4147,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
               ),
             ),
+            // _buildOverviewCard(isDark),
             if (_isLoading)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
@@ -3730,6 +4155,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   child: CircularProgressIndicator(color: Colors.indigo),
                 ),
               ),
+
             /// 🔹 WEBSITE VISITS
             if (_websiteVisits.isNotEmpty)
               _sectionTitle(
@@ -3793,11 +4219,50 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
             /// 🔹 FUTURE PROPERTIES
             if (_futureProperties.isNotEmpty)
-              _sectionTitle(
-                  "New Building", isDark, _futureProperties.length),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children:[
+                  _sectionTitle(
+                    "New Building", isDark, _futureProperties.length),
+                  GestureDetector(
+                    onTap: _openBuildingCalculator,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white10 : Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isDark ? Colors.white24 : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "Suggestion",
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontFamily: "PoppinsMedium",
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white : Colors.indigo,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(
+                            Icons.lightbulb_outline,
+                            size: 16,
+                            color: Colors.amber,
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+             ] ),
             ..._futureProperties.map(
                   (e) => _buildFuturePropertyCard(e, isDark),
             ),
+
             /// 🔹 UPCOMING FLATS
             if (_upcomingFlats.isNotEmpty)
               _sectionTitle(

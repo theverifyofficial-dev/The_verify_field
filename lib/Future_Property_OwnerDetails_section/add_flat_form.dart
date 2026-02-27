@@ -477,7 +477,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
   String? _floor1;
   final List<String> _items_floor1 = ['G Floor','1 Floor','2 Floor','3 Floor','4 Floor','5 Floor','6 Floor','7 Floor','8 Floor','9 Floor','10 Floor'];
 
-  final List<String>_balcony_items = ['Front Side Balcony', 'Back Side Balcony','Side','Window', 'Park Facing', 'Road Facing', 'Corner', 'No Balcony',];
+  final List<String>_balcony_items = ['Front Side', 'Back Side','Two Side', 'Side','Window', 'Park Facing', 'Road Facing', 'Corner', 'No Balcony',];
 
   final List<String> _Parking_items = ['Car','Bike','Both','No Parking',];
 
@@ -1547,7 +1547,6 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
       )),
     );
   }
-
 
   InputDecoration _buildInputDecoration(BuildContext context, String label) {
     final isDark = Theme

@@ -209,6 +209,7 @@ class _Login_pageState extends State<Login_page> {
       String? fcmToken = await messaging.getToken();
       print("🔑 FCM Token: $fcmToken");
 
+
       // API call with number, password, and token
       final response = await http.get(Uri.parse(
         "https://verifyserve.social/WebService4.asmx/new_login_api_for_field_and_admin?FNumber=$number&Password=$password&FCM=$fcmToken",
@@ -228,7 +229,9 @@ class _Login_pageState extends State<Login_page> {
         prefs.setString('number', user["FNumber"]);
         prefs.setString('post', user["FAadharCard"]);
         prefs.setString('location', user["F_Location"] ?? "");
-        prefs.setString('fcmToken', user["FCM"]);
+        prefs.setString('fcmToken', fcmToken ?? "");
+
+        print("Saved Local FCM: ${prefs.getString('fcmToken')}");
 
         Fluttertoast.showToast(
           msg: user["message"] ?? "Login Successful ✅",

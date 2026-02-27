@@ -200,10 +200,10 @@ class _View_DetailsState extends State<AllViewDetails> {
 
   Future<List<Catid>> fetchData(int id) async {
     final url = Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id");
-    print('Fetching property for id: $id'); // Debug
+    print('Fetching property for id: $id');
     final response = await http.get(url).timeout(const Duration(seconds: 30));
-    print('Property Response status: ${response.statusCode}'); // Debug
-    print('Property Response body: ${response.body}'); // Debug
+    print('Property Response status: ${response.statusCode}');
+    print('Property Response body: ${response.body}');
     if (response.statusCode != 200) {
       throw Exception("HTTP ${response.statusCode}: ${response.body}");
     }

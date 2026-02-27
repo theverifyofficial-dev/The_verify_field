@@ -277,10 +277,8 @@ class _YearlyTargetScreenState extends State<YearlyTargetScreen> {
     );
   }
   Widget _buildCalculatorButton() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return GestureDetector(
-      onTap: _openBuildingCalculator,   // ✅ यही सही है
+      onTap: _openBuildingCalculator,
       child: Container(
         margin: const EdgeInsets.only(top: 6, bottom: 20),
         padding: const EdgeInsets.all(18),

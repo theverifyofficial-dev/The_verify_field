@@ -13,9 +13,11 @@ import 'package:verify_feild_worker/provider/property_id_for_multipleimage_provi
 import 'package:verify_feild_worker/provider/real_Estate_Show_Data_provider.dart';
 import 'package:verify_feild_worker/Notification_demo/routes.dart';
 import 'package:verify_feild_worker/Z-Screen/splash.dart';
+import 'Administrator/AdminInsurance/AdminInsuranceListScreen.dart';
 import 'Administrator/Admin_future _property/Administater_Future_Tabbar.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
 import 'Administrator/SubAdmin/SubAdminAccountant_Home.dart';
+import 'Controller/Cache_memory.dart';
 import 'Home_Screen.dart';
 import 'Home_Screen_click/VideoEditingForField.dart';
 import 'Home_Screen_click/live_tabbar.dart';
@@ -34,9 +36,13 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 void main() async {
+
+
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp();
+
+
 
   FirebaseMessaging.onBackgroundMessage(
     firebaseMessagingBackgroundHandler,
@@ -76,6 +82,10 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await checkCacheAndShowToast();
+    });
 
     FirebaseMessaging.instance.getToken().then((token) {
       print("🔑 FCM Token: $token");
@@ -172,6 +182,27 @@ class _MyAppState extends State<MyApp> {
             "propertyId": pId,
           },
         );
+        return;
+      }
+
+      /// 🛡 NEW INSURANCE → ADMIN / SUBADMIN
+      if (type == "NEW_INSURANCE_ADMIN" || type == "NEW_INSURANCE_SUBADMIN") {
+
+        final insuranceId = data['insurance_id']?.toString();
+
+        if (insuranceId == null) {
+          print("⚠️ Missing insurance_id");
+          return;
+        }
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          navigatorKey.currentState?.push(
+            MaterialPageRoute(
+              builder: (_) => AdminInsuranceListScreen(),
+            ),
+          );
+        });
+
         return;
       }
 

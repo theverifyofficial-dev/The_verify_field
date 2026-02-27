@@ -11,6 +11,7 @@ import 'Monthly_Tab/Live_Commercial.dart';
 import 'Monthly_Tab/Monthly_LiveBuy.dart';
 import 'Monthly_Tab/Monthly_LiveRent.dart';
 import 'Monthly_Tab/Monthly_agreement_external.dart';
+import 'Monthly_Tab/Monthly_under_detail/Monthly_Building.dart';
 import 'history_target.dart';
 
 class MonthlyTargetScreen extends StatefulWidget {
@@ -43,6 +44,7 @@ class _MonthlyTargetScreenState extends State<MonthlyTargetScreen> {
     "Police Verification": 20,
     "Live Rent": 15,
     "Live Buy": 5,
+    "Buildings": 25
   };
 
   @override
@@ -76,9 +78,36 @@ class _MonthlyTargetScreenState extends State<MonthlyTargetScreen> {
       _fetchAgreementMonthly(),
       _fetchPoliceMonthly(),
       _fetchCommercialMonthly(),
+      _fetchBuildingMonthly()
     ]);
 
     setState(() => loading = false);
+  }
+  int monthlyBuildingsDone = 0;
+  List<dynamic> monthlyBuildingsList = [];
+  Future<void> _fetchBuildingMonthly() async {
+    final uri = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/"
+          "builidng_monthly_data.php?fieldworkarnumber=$fieldWorkerNumber",
+    );
+
+    final res = await http.get(uri);
+
+    if (res.statusCode != 200) {
+      throw Exception("Building Monthly API Error");
+    }
+
+    final decoded = jsonDecode(res.body);
+
+    if (decoded["status"] == true) {
+      monthlyBuildingsList = decoded["data"] ?? [];
+      monthlyBuildingsDone = monthlyBuildingsList.length; // ✅ COUNT FIX
+    } else {
+      monthlyBuildingsDone = 0;
+      monthlyBuildingsList = [];
+    }
+
+    setState(() {});
   }
 
   Future<void> _fetchBookMonthly() async {
@@ -232,6 +261,7 @@ class _MonthlyTargetScreenState extends State<MonthlyTargetScreen> {
                         Text(
                           title,
                           style:  TextStyle(
+                            fontFamily: "PoppinsMedium",
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey.shade800,
@@ -244,6 +274,7 @@ class _MonthlyTargetScreenState extends State<MonthlyTargetScreen> {
                               "$completed",
                               style: TextStyle(
                                 fontSize: 22,
+                                fontFamily: "PoppinsMedium",
                                 fontWeight: FontWeight.w900,
                                 color: primaryColor,
                               ),
@@ -305,6 +336,7 @@ class _MonthlyTargetScreenState extends State<MonthlyTargetScreen> {
                       Text(
                         "$percent%",
                         style:  TextStyle(
+                          fontFamily: "PoppinsMedium",
                           fontSize: 14, // 🔥 bigger text
                           fontWeight: FontWeight.bold,
                           color: Theme.of(context).brightness==Brightness.dark?Colors.white.withOpacity(0.5):Colors.grey.shade800,
@@ -326,7 +358,7 @@ class _MonthlyTargetScreenState extends State<MonthlyTargetScreen> {
                   "Progress",
                   style: TextStyle(
                     fontSize: 11,
-                    fontFamily: "Poppins",
+                    fontFamily: "PoppinsMedium",
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.2,
                     color:
@@ -338,6 +370,8 @@ class _MonthlyTargetScreenState extends State<MonthlyTargetScreen> {
                   "$percent%",
                   style: TextStyle(
                     fontSize: 12,
+                    fontFamily: "PoppinsMedium",
+
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).brightness==Brightness.dark?Colors.white.withOpacity(0.5):Colors.grey.shade800,
 
@@ -560,6 +594,20 @@ class _MonthlyTargetScreenState extends State<MonthlyTargetScreen> {
                   icon: Icons.shopping_bag_rounded,
                   primaryColor: const Color(0xFF36E27B), // 🟢 primary again
                   secondaryColor: const Color(0xFF36E27B),
+                ),
+
+                _buildModernTargetCard(
+                  title: 'Buildings',
+                  completed: monthlyBuildingsDone,
+                  target: monthlyTargets['Buildings']!,
+                  onTap:(){
+                    Navigator.push(context,MaterialPageRoute(builder: (context){
+                      return BuildingMonthlyListScreen();
+                    }));
+                  },   // ✅ NEW ACTION
+                  icon: Icons.apartment_rounded,
+                  primaryColor: const Color(0xFF06B6D4), // Cyan Accent 🔥
+                  secondaryColor: const Color(0xFF06B6D4),
                 ),
               ],
             ),

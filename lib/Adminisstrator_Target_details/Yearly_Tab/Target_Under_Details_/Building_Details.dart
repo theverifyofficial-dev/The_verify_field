@@ -6,7 +6,7 @@ class BuildingDetailScreen extends StatelessWidget {
 
   const BuildingDetailScreen({super.key, required this.building});
 
-  static final Color primary = Color(0xFF22C55E);
+  static final Color primary = Color(0xFFD747FF);
   static const String myFont = 'PoppinsMedium';
 
   /// ================= SAFE VALUE =================
@@ -67,7 +67,7 @@ class BuildingDetailScreen extends StatelessWidget {
             ),
             centerTitle: true,
             title: Text(
-              "COMMERCIAL PROPERTY REPORT",
+                "BUILDING REPORT",
               style: TextStyle(
                 fontFamily: myFont,
                 fontSize: 12,

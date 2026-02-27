@@ -1548,7 +1548,6 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
     );
   }
 
-
   InputDecoration _buildInputDecoration(BuildContext context, String label) {
     final isDark = Theme
         .of(context)

@@ -1,24 +1,23 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart'; // for XFile
 import 'Commercial_detail.dart';
-import 'Add_commercial_property.dart';
 
 class CommercialListPage extends StatefulWidget {
-  const CommercialListPage({super.key, this.fieldWorkerNumber = '11'});
+  const CommercialListPage({super.key,
+    this.fieldWorkerNumber = '11'});
   final String fieldWorkerNumber;
   @override
   State<CommercialListPage> createState() => _CommercialListPageState();
 }
 
 class _CommercialListPageState extends State<CommercialListPage> {
-  List<CommercialProperty> _allProperties = [];
-  List<CommercialProperty> _filteredProperties = [];
+  List<CommercialPropertyData> _allProperties = [];
+  List<CommercialPropertyData> _filteredProperties = [];
   bool _isLoading = true;
   TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
@@ -69,42 +68,46 @@ class _CommercialListPageState extends State<CommercialListPage> {
 
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
+
     _debounce = Timer(const Duration(milliseconds: 400), () {
       String query = _searchController.text.toLowerCase().trim();
-      List<CommercialProperty> searchOn = selectedLabel.isEmpty ? _allProperties : _filteredProperties;
-      List<CommercialProperty> filtered;
+
+      List<CommercialPropertyData> searchOn =
+      selectedLabel.isEmpty ? _allProperties : _filteredProperties;
+
+      List<CommercialPropertyData> filtered;
+
       if (query.isEmpty) {
         filtered = List.from(searchOn);
       } else {
         filtered = searchOn.where((item) {
-          return (item.id?.toString() ?? '').toLowerCase().contains(query) ||
-              (item.listingType ?? '').toLowerCase().contains(query) ||
-              (item.location ?? '').toLowerCase().contains(query) ||
-              (item.currentLocation ?? '').toLowerCase().contains(query) ||
-              (item.propertyType ?? '').toLowerCase().contains(query) ||
-              (item.buildUpArea ?? '').toLowerCase().contains(query) ||
-              (item.carpetArea ?? '').toLowerCase().contains(query) ||
-              (item.rentPrice ?? '').toLowerCase().contains(query) ||
-              (item.totalFloor ?? '').toLowerCase().contains(query) ||
-              (item.parkingFacility ?? '').toLowerCase().contains(query) ||
-              (item.amenities ?? '').toLowerCase().contains(query) ||
-              (item.fieldWorkerName ?? '').toLowerCase().contains(query) ||
-              (item.fieldWorkerNumber ?? '').toLowerCase().contains(query) ||
-              (item.height ?? '').toLowerCase().contains(query) ||
-              (item.width ?? '').toLowerCase().contains(query) ||
-              (item.securityDeposit ?? '').toLowerCase().contains(query) ||
-              (item.rentMeterType ?? '').toLowerCase().contains(query) ||
-              (item.lockInPeriod ?? '').toLowerCase().contains(query) ||
-              (item.monthlyRentIncome ?? '').toLowerCase().contains(query) ||
-              (item.warehouseType ?? '').toLowerCase().contains(query);
+          return
+            (item.listing_type ?? '').toLowerCase().contains(query) ||
+                (item.location_ ?? '').toLowerCase().contains(query) ||
+                (item.current_location ?? '').toLowerCase().contains(query) ||
+                (item.property_type ?? '').toLowerCase().contains(query) ||
+                (item.build_up_area ?? '').toLowerCase().contains(query) ||
+                (item.carpet_area ?? '').toLowerCase().contains(query) ||
+                (item.price ?? '').toLowerCase().contains(query) ||
+                (item.total_floor ?? '').toLowerCase().contains(query) ||
+                (item.parking_faciltiy ?? '').toLowerCase().contains(query) ||
+                (item.amenites_.join(', ').toLowerCase().contains(query)) ||
+                (item.field_workar_name ?? '').toLowerCase().contains(query) ||
+                (item.field_workar_number ?? '').toLowerCase().contains(
+                    query) ||
+                (item.Description ?? '').toLowerCase().contains(query) ||
+                (item.width_ ?? '').toLowerCase().contains(query) ||
+                (item.height_ ?? '').toLowerCase().contains(query);
         }).toList();
       }
+
       setState(() {
         _filteredProperties = filtered;
         propertyCount = filtered.length;
       });
     });
   }
+
 
   Color _getIconColor(IconData icon, ThemeData theme) {
     final cs = theme.colorScheme;
@@ -130,15 +133,23 @@ class _CommercialListPageState extends State<CommercialListPage> {
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery
+        .of(context)
+        .size
+        .height;
+    final screenWidth = MediaQuery
+        .of(context)
+        .size
+        .width;
     final isTablet = screenWidth > 600;
     return RefreshIndicator(
       onRefresh: _refreshProperties,
       child: Scaffold(
         body: _isLoading
             ? const Center(child: CircularProgressIndicator())
-            : _buildCommercialTab(isTablet: isTablet, screenWidth: screenWidth, screenHeight: screenHeight),
+            : _buildCommercialTab(isTablet: isTablet,
+            screenWidth: screenWidth,
+            screenHeight: screenHeight),
       ),
     );
   }
@@ -272,7 +283,9 @@ class _CommercialListPageState extends State<CommercialListPage> {
                       .map((label) {
                     final isSelected = label == selectedLabel;
                     return Padding(
-                      padding: EdgeInsets.symmetric(horizontal: isTablet ? 6 : 4),
+                      padding: EdgeInsets.symmetric(horizontal: isTablet
+                          ? 6
+                          : 4),
                       child: ElevatedButton(
                         onPressed: () {
                           setState(() {
@@ -282,18 +295,20 @@ class _CommercialListPageState extends State<CommercialListPage> {
                           _searchController.clear();
                           _debounce?.cancel();
 
-                          List<CommercialProperty> filtered = [];
+                          List<CommercialPropertyData> filtered = [];
 
                           if (label == 'All') {
                             filtered = List.from(_allProperties);
                           } else if (label == 'Rent' || label == 'Sell') {
                             filtered = _allProperties.where((item) {
-                              final value = (item.listingType ?? '').toLowerCase();
+                              final value = (item.listing_type ?? '')
+                                  .toLowerCase();
                               return value == label.toLowerCase();
                             }).toList();
                           } else {
                             filtered = _allProperties.where((item) {
-                              final value = (item.propertyType ?? '').toLowerCase();
+                              final value = (item.property_type ?? '')
+                                  .toLowerCase();
                               return value == label.toLowerCase();
                             }).toList();
                           }
@@ -304,7 +319,8 @@ class _CommercialListPageState extends State<CommercialListPage> {
                           });
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: isSelected ? Colors.blue : Colors.grey[300],
+                          backgroundColor: isSelected ? Colors.blue : Colors
+                              .grey[300],
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -425,13 +441,21 @@ class _CommercialListPageState extends State<CommercialListPage> {
                 final theme = Theme.of(context);
                 final cs = theme.colorScheme;
                 final isDark = theme.brightness == Brightness.dark;
-                final screenHeight = MediaQuery.of(context).size.height;
-                final screenWidth = MediaQuery.of(context).size.width;
+                final screenHeight = MediaQuery
+                    .of(context)
+                    .size
+                    .height;
+                final screenWidth = MediaQuery
+                    .of(context)
+                    .size
+                    .width;
 
-                final images = _buildMultipleImages(property);
+                final List<String> images = _buildMultipleImages(property);
 
-                final double cardPadding = (screenWidth * 0.03).clamp(8.0, 20.0);
-                final double horizontalMargin = (screenWidth * 0.0).clamp(0.5, 0.8);
+                final double cardPadding = (screenWidth * 0.03).clamp(
+                    8.0, 20.0);
+                final double horizontalMargin = (screenWidth * 0.0).clamp(
+                    0.5, 0.8);
                 final double titleFontSize = isTablet ? 20 : 16;
                 final double detailFontSize = isTablet ? 14 : 13;
                 final double imageH = (screenHeight * 0.29).clamp(150.0, 250.0);
@@ -459,11 +483,11 @@ class _CommercialListPageState extends State<CommercialListPage> {
 
                 // Priority detail rows: location, listing type, property type, area, rent, floors
                 final List<Widget> detailRows = [];
-                if ((property.location ?? '').isNotEmpty) {
+                if ((property.location_ ?? '').isNotEmpty) {
                   detailRows.add(_DetailRow(
                     icon: Icons.location_on,
                     label: 'Location',
-                    value: property.location!,
+                    value: property.location_!,
                     theme: theme,
                     getIconColor: _getIconColor,
                     fontSize: detailFontSize,
@@ -473,7 +497,7 @@ class _CommercialListPageState extends State<CommercialListPage> {
                 detailRows.add(_DetailRow(
                   icon: Icons.handshake_outlined,
                   label: '',
-                  value: property.listingType ?? 'N/A',
+                  value: property.listing_type ?? 'N/A',
                   theme: theme,
                   getIconColor: _getIconColor,
                   fontSize: detailFontSize,
@@ -482,39 +506,39 @@ class _CommercialListPageState extends State<CommercialListPage> {
                 detailRows.add(_DetailRow(
                   icon: Icons.apartment,
                   label: '',
-                  value: property.propertyType ?? 'N/A',
+                  value: property.property_type ?? 'N/A',
                   theme: theme,
                   getIconColor: _getIconColor,
                   fontSize: detailFontSize,
                   fontWeight: FontWeight.bold,
                 ));
-                if ((property.buildUpArea ?? '').isNotEmpty) {
+                if ((property.build_up_area ?? '').isNotEmpty) {
                   detailRows.add(_DetailRow(
                     icon: Icons.square_foot,
                     label: 'Area',
-                    value: property.buildUpArea!,
+                    value: property.build_up_area!,
                     theme: theme,
                     getIconColor: _getIconColor,
                     fontSize: detailFontSize,
                     fontWeight: FontWeight.bold,
                   ));
                 }
-                if ((property.rentPrice ?? '').isNotEmpty) {
+                if ((property.price ?? '').isNotEmpty) {
                   detailRows.add(_DetailRow(
                     icon: Icons.attach_money,
                     label: 'Rent',
-                    value: property.rentPrice!,
+                    value: property.price!,
                     theme: theme,
                     getIconColor: _getIconColor,
                     fontSize: detailFontSize,
                     fontWeight: FontWeight.bold,
                   ));
                 }
-                if ((property.totalFloor ?? '').isNotEmpty) {
+                if ((property.total_floor ?? '').isNotEmpty) {
                   detailRows.add(_DetailRow(
                     icon: Icons.layers,
                     label: 'Floors',
-                    value: property.totalFloor!,
+                    value: property.total_floor!,
                     theme: theme,
                     getIconColor: _getIconColor,
                     fontSize: detailFontSize,
@@ -535,7 +559,8 @@ class _CommercialListPageState extends State<CommercialListPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        property.location ?? property.currentLocation ?? 'No Title',
+                        property.location_ ?? property.current_location ??
+                            'No Title',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           fontSize: titleFontSize,
@@ -562,44 +587,47 @@ class _CommercialListPageState extends State<CommercialListPage> {
                 return GestureDetector(
                   onTap: () {
                     final imagesList = _buildMultipleImages(property);
-                    final data = CommercialPropertyData(
-                      listingType: property.listingType,
-                      propertyType: property.propertyType,
-                      parkingType: property.parkingFacility,
-                      warehouseType: property.warehouseType,
-                      rentMeterType: property.rentMeterType,
-                      totalFloors: property.totalFloor,
-                      lockInPeriod: property.lockInPeriod,
-                      location: property.location ?? '',
-                      availableFrom: property.availableDate ?? '',
-                      builtupArea: property.buildUpArea ?? '',
-                      carpetArea: property.carpetArea ?? '',
-                      sellingHeight: property.height ?? '',
-                      sellingWidth: property.width ?? '',
-                      rentPrice: property.rentPrice ?? '',
-                      security: property.securityDeposit ?? '',
-                      rentIncome: property.monthlyRentIncome ?? '',
-                      fieldWorkerName: property.fieldWorkerName ?? '',
-                      fieldWorkerNumber: property.fieldWorkerNumber ?? '',
-                      amenities: (property.amenities ?? '').split(',').where((a) => a.trim().isNotEmpty).toList(),
-                      currentAddress: property.currentLocation,
-                      latitude: double.tryParse(property.latitude ?? '') ?? 0.0,
-                      longitude: double.tryParse(property.longitude ?? '') ?? 0.0,
-                      singleImage: imagesList.isNotEmpty ? imagesList.first : null,
-                      selectedImages: imagesList,
-                    );
 
+                    final data = CommercialPropertyData(
+                      listing_type: property.listing_type,
+                      property_type: property.property_type,
+                      parking_faciltiy: property.parking_faciltiy,
+                      total_floor: property.total_floor,
+                      location_: property.location_ ?? '',
+                      current_location: property.current_location ?? '',
+                      avaible_date: property.avaible_date ?? '',
+                      build_up_area: property.build_up_area ?? '',
+                      carpet_area: property.carpet_area ?? '',
+                      dimmensions_: property.dimmensions_ ?? '',
+                      height_: property.height_ ?? '',
+                      width_: property.width_ ?? '',
+                      price: property.price ?? '',
+                      Description: property.Description ?? '',
+
+                      field_workar_name: property.field_workar_name ?? '',
+                      field_workar_number: property.field_workar_number ?? '',
+
+                      /// ✅ SAFE AMENITIES FIX
+                      amenites_: property.amenites_,
+
+                      /// ✅ IMAGE FIX
+                      image_: imagesList.isNotEmpty ? imagesList.first : null,
+                      images: imagesList,
+                      id: 0,
+                      latitude: '',
+                      longitude: '',
+                    );
 
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => CommercialUnderProperty(
-                          id: property.id?.toString() ?? '',
-                          subid: property.id?.toString() ?? '',
-                          propertyData: data,
-                        ),
+                        builder: (context) =>
+                            CommercialUnderProperty(property: property,
+
+                            ),
                       ),
                     );
                   },
+
                   child: Card(
                     margin: EdgeInsets.symmetric(
                         horizontal: horizontalMargin,
@@ -641,7 +669,8 @@ class _CommercialListPageState extends State<CommercialListPage> {
                           top: 8,
                           right: 8,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               color: cs.primary.withOpacity(0.8),
                               borderRadius: BorderRadius.circular(12),
@@ -668,7 +697,7 @@ class _CommercialListPageState extends State<CommercialListPage> {
   }
 
   Widget _buildImageSection({
-    required List<XFile> images,
+    required List<String> images,
     required ColorScheme cs,
     required ThemeData theme,
     required double imageHeight,
@@ -693,21 +722,20 @@ class _CommercialListPageState extends State<CommercialListPage> {
       imageWidget = ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: SizedBox(
-          height: imageHeight,
-          width: double.infinity,
-          child: CachedNetworkImage(
-            imageUrl: images.first.path,
-            fit: BoxFit.cover,
-            placeholder: (_, __) => const Center(
-              child: SizedBox(
-                height: 50,
-                width: 50,
-                child: CircularProgressIndicator(strokeWidth: 2),
+            height: imageHeight,
+            width: double.infinity,
+            child:
+            CachedNetworkImage(
+              imageUrl: images.first,
+              fit: BoxFit.cover,
+              placeholder: (_, __) =>
+              const Center(
+                child: CircularProgressIndicator(),
               ),
-            ),
-            errorWidget: (_, __, ___) =>
-                Icon(Icons.broken_image, color: cs.error, size: 90),
-          ),
+              errorWidget: (_, __, ___) =>
+                  Icon(Icons.broken_image, color: cs.error, size: 70),
+            )
+
         ),
       );
     } else {
@@ -722,9 +750,10 @@ class _CommercialListPageState extends State<CommercialListPage> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: CachedNetworkImage(
-                      imageUrl: images[0].path,
+                      imageUrl: images[0],
                       fit: BoxFit.cover,
-                      placeholder: (_, __) => const Center(
+                      placeholder: (_, __) =>
+                      const Center(
                         child: SizedBox(
                           height: 30,
                           width: 30,
@@ -745,24 +774,28 @@ class _CommercialListPageState extends State<CommercialListPage> {
                         fit: StackFit.expand,
                         children: [
                           CachedNetworkImage(
-                            imageUrl: images[1].path,
+                            imageUrl: images[1],
                             fit: BoxFit.cover,
-                            placeholder: (_, __) => const Center(
+                            placeholder: (_, __) =>
+                            const Center(
                               child: SizedBox(
                                 height: 30,
                                 width: 30,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2),
                               ),
                             ),
                             errorWidget: (_, __, ___) =>
-                                Icon(Icons.broken_image, color: cs.error, size: 50),
+                                Icon(Icons.broken_image, color: cs.error,
+                                    size: 50),
                           ),
                           if (images.length > 2)
                             Positioned(
                               bottom: 4,
                               right: 4,
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: Colors.black54,
                                   borderRadius: BorderRadius.circular(10),
@@ -805,20 +838,23 @@ class _CommercialListPageState extends State<CommercialListPage> {
   }
 
   // Fallback logic: use single image
-  List<XFile> _buildMultipleImages(CommercialProperty p) {
-    final List<XFile> imgs = [];
-    final baseUri = Uri.parse('https://verifyserve.social/Second%20PHP%20FILE/main_realestate/');
+  List<String> _buildMultipleImages(CommercialPropertyData p) {
+    final List<String> imgs = [];
 
-    final single = p.imageUrl();
-    if (single != null) {
-      imgs.add(XFile(single));
+    if (p.image_ != null && p.image_!.trim().isNotEmpty) {
+      imgs.add(p.image_!);
+    }
+
+    if (p.images.isNotEmpty) {
+      imgs.addAll(p.images);
     }
 
     return imgs;
   }
 }
 
-class _DetailRow extends StatelessWidget {
+
+  class _DetailRow extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
@@ -889,105 +925,6 @@ class _DetailRow extends StatelessWidget {
     );
   }
 }
-
-/// ----------------- MODEL & API (minor updates for consistency) -----------------
-class CommercialProperty {
-  final int? id;
-  final String? image;
-  final String? listingType;
-  final String? location;
-  final String? currentLocation;
-  final String? propertyType;
-  final String? availableDate;
-  final String? buildUpArea;
-  final String? carpetArea;
-  final String? dimensions;
-  final String? height;
-  final String? width;
-  final String? totalFloor;
-  final String? parkingFacility;
-  final String? amenities;
-  final String? fieldWorkerName;
-  final String? fieldWorkerNumber;
-  final String? longitude;
-  final String? latitude;
-  final String? rentPrice;
-  final String? securityDeposit;
-  final String? rentMeterType;
-  final String? lockInPeriod;
-  final String? monthlyRentIncome;
-  final String? warehouseType;
-
-  CommercialProperty({
-    this.id,
-    this.image,
-    this.listingType,
-    this.location,
-    this.currentLocation,
-    this.propertyType,
-    this.availableDate,
-    this.buildUpArea,
-    this.carpetArea,
-    this.dimensions,
-    this.height,
-    this.width,
-    this.totalFloor,
-    this.parkingFacility,
-    this.amenities,
-    this.fieldWorkerName,
-    this.fieldWorkerNumber,
-    this.longitude,
-    this.latitude,
-    this.rentPrice,
-    this.securityDeposit,
-    this.rentMeterType,
-    this.lockInPeriod,
-    this.monthlyRentIncome,
-    this.warehouseType,
-  });
-
-  factory CommercialProperty.fromJson(Map<String, dynamic> json) => CommercialProperty(
-    id: _toInt(json['id']),
-    image: json['image_'] as String?,
-    listingType: json['listing_type'] as String?,
-    location: json['location_'] as String?,
-    currentLocation: json['current_location'] as String?,
-    propertyType: json['property_type'] as String?,
-    availableDate: json['avaible_date'] as String?,
-    buildUpArea: json['build_up_area'] as String?,
-    carpetArea: json['carpet_area'] as String?,
-    dimensions: json['dimmensions_'] as String?,
-    height: json['height_'] as String?,
-    width: json['width_'] as String?,
-    totalFloor: json['total_floor'] as String?,
-    parkingFacility: json['parking_faciltiy'] as String?,
-    amenities: json['amenites_'] as String?,
-    fieldWorkerName: json['field_workar_name'] as String?,
-    fieldWorkerNumber: json['field_workar_number'] as String?,
-    longitude: json['longitude'] as String?,
-    latitude: json['latitude'] as String?,
-    rentPrice: json['rent_price'] as String?,
-    securityDeposit: json['security_deposit'] as String?,
-    rentMeterType: json['rent_meter_type'] as String?,
-    lockInPeriod: json['lock_in_period'] as String?,
-    monthlyRentIncome: json['rent_income'] as String?,
-    warehouseType: json['warehouse_type'] as String?,
-  );
-
-  static int? _toInt(dynamic v) {
-    if (v == null) return null;
-    if (v is int) return v;
-    return int.tryParse(v.toString());
-  }
-
-  String? imageUrl({String? baseUrl}) {
-    if (image == null || image!.isEmpty) return null;
-    if (image!.startsWith('http')) return image;
-    final base = baseUrl ?? 'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/';
-    return Uri.parse(base).resolve(image!).toString();
-  }
-}
-
 class CommercialApi {
   static Uri endpoint(String fieldWorkerNumber) {
     final base = 'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_api_commercial_property.php';
@@ -996,7 +933,7 @@ class CommercialApi {
     );
   }
 
-  static Future<List<CommercialProperty>> fetch(
+  static Future<List<CommercialPropertyData>> fetch(
       String fieldWorkerNumber, {
         Duration timeout = const Duration(seconds: 30),
       }) async {
@@ -1017,7 +954,7 @@ class CommercialApi {
     if (decoded is Map && decoded['success'] == true && decoded['data'] is List) {
       final List list = decoded['data'];
       return list
-          .map((e) => CommercialProperty.fromJson(e as Map<String, dynamic>))
+          .map((e) => CommercialPropertyData.fromJson(e as Map<String, dynamic>))
           .toList()
           .reversed
           .toList();

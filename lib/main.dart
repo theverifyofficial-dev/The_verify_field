@@ -13,6 +13,8 @@ import 'package:verify_feild_worker/provider/property_id_for_multipleimage_provi
 import 'package:verify_feild_worker/provider/real_Estate_Show_Data_provider.dart';
 import 'package:verify_feild_worker/Notification_demo/routes.dart';
 import 'package:verify_feild_worker/Z-Screen/splash.dart';
+import 'Administrator/AdminInsurance/AdminInsuranceListScreen.dart';
+import 'Administrator/Admin_future _property/Administater_Future_Tabbar.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
 import 'Administrator/SubAdmin/SubAdminAccountant_Home.dart';
 import 'Controller/Cache_memory.dart';
@@ -152,6 +154,9 @@ class _MyAppState extends State<MyApp> {
       final redemandId = data["redemand_id"]?.toString();
       String? buildingId = data['building_id']?.toString();
       String? propertyId = data['P_id']?.toString();
+      String? commercialId = data['commercial_id']?.toString();
+      String? plotId = data['plot_id']?.toString();
+      // 🔥 PAYMENT NOTIFICATION (ONLY p_id)
 
       final String rawBody = message.notification?.body ?? "";
       final String body = rawBody
@@ -177,6 +182,27 @@ class _MyAppState extends State<MyApp> {
             "propertyId": pId,
           },
         );
+        return;
+      }
+
+      /// 🛡 NEW INSURANCE → ADMIN / SUBADMIN
+      if (type == "NEW_INSURANCE_ADMIN" || type == "NEW_INSURANCE_SUBADMIN") {
+
+        final insuranceId = data['insurance_id']?.toString();
+
+        if (insuranceId == null) {
+          print("⚠️ Missing insurance_id");
+          return;
+        }
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          navigatorKey.currentState?.push(
+            MaterialPageRoute(
+              builder: (_) => AdminInsuranceListScreen(),
+            ),
+          );
+        });
+
         return;
       }
 
@@ -314,6 +340,41 @@ class _MyAppState extends State<MyApp> {
             arguments: {
               "fromNotification": true,
               "buildingId": buildingId
+            },
+          );
+        });
+        return;
+      }
+      //Commercial
+
+      if (
+      (type == "NEW_COMMERCIAL" || type == "COMMERCIAL_UPDATED") &&
+          commercialId != null
+      ) {
+        Future.delayed(const Duration(milliseconds: 350), () {
+              navigatorKey.currentState?.pushNamedAndRemoveUntil(
+                Routes.AdminFieldCommercial,
+                    (route) => false,
+                arguments: {
+                  "fromNotification": true,
+                  "commercialId": commercialId,
+                  "tabIndex": 2,
+                },
+              );
+        });
+        return;
+      }
+
+      // Plot
+      if ((type == "NEW_PLOT" || type == "PLOT_UPDATED") && plotId != null) {
+        Future.delayed(const Duration(milliseconds: 350), () {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            Routes.AdminFieldPlot,
+                (route) => false,  // tabbar route
+            arguments: {
+              "fromNotification": true,
+              "plotId": plotId,
+              "tabIndex": 1,   // ✅ plot tab
             },
           );
         });
@@ -640,6 +701,9 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+
+
+
   void _initDynamicLinks() async {
     final PendingDynamicLinkData? initialLink =
     await FirebaseDynamicLinks.instance.getInitialLink();
@@ -658,15 +722,19 @@ class _MyAppState extends State<MyApp> {
       final flatId = deepLink.queryParameters['flatId'];
       final buildingId = deepLink.queryParameters['buildingId'];
 
+
       if (type == "BUILDING_UPDATE" && buildingId != null) {
         navigatorKey.currentState?.pushNamed(
-          Routes.administaterShowFutureProperty,
+          Routes.administaterShowFutureProperty,   // ✅ tabbar route
           arguments: {
             "fromNotification": true,
             "buildingId": buildingId,
+            "tabIndex": 0,          // ✅ building tab
           },
         );
+        return;
       }
+
       // ✅ Handle NEW_FLAT → Administater_Future_Property_details
       else if (
       (type == "NEW_FLAT" || type == "FLAT_UPDATE") &&

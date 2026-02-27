@@ -12,8 +12,10 @@ import '../Web_query/web_query.dart' hide SlideAnimation;
 import '../Z-Screen/Social_Media_links.dart';
 import '../main.dart';
 import '../ui_decoration_tools/app_images.dart';
+import 'AdminInsurance/AdminInsuranceListScreen.dart';
 import 'AdminRealEstateTabbar.dart';
 import 'Admin_future _property/Administater_Future_Property.dart';
+import 'Admin_future _property/Administater_Future_Tabbar.dart';
 import 'Admin_profile.dart';
 import 'Administater_Parent_TenantDemand.dart';
 import 'All_Rented_Flat/Administator_Add_Rented_Flat_Tabbar.dart';
@@ -236,7 +238,8 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                     const Text('🌐'),
                   ],
                 ),
-                const Text('Web',style: TextStyle(color: Colors.white),),
+                const Text('Web', style: TextStyle(
+                      fontFamily: "PoppinsMedium",color: Colors.white),),
               ],
             ),
           ),
@@ -391,7 +394,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 9,
+                        itemCount: 10,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
@@ -429,7 +432,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => ADministaterShow_FutureProperty(),
+                                    builder: (context) => AdministaterPropertyTabPage(),
                                   ),
                                 );
                               },
@@ -495,6 +498,17 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                       builder: (
                                           context) => const AdminTabbar())),
                               "count": 0,
+                            },
+
+                            {
+                              'image': AppImages.compliant,
+                              'title': "Insurance",
+                              'onTap': () =>
+                                  Navigator.push(context, MaterialPageRoute(
+                                      builder: (
+                                          context) => const AdminInsuranceListScreen())),
+                              "count": 0,
+
                             },
                           ];
 
@@ -601,7 +615,8 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                 children: [
                   Text(
                     "Target",
-                    style: TextStyle(
+                      style: TextStyle(
+                      fontFamily: "PoppinsMedium",
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                       color: isDark ? Colors.white : Colors.black,
@@ -610,7 +625,8 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                   const SizedBox(height: 6),
                   Text(
                     "Tap to view progress",
-                    style: TextStyle(
+                      style: TextStyle(
+                      fontFamily: "PoppinsMedium",
                       fontSize: 13.5,
                       color: (isDark ? Colors.white : Colors.black).withOpacity(0.75),
                     ),
@@ -732,11 +748,11 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                       child: Text(
                         title,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                          style: TextStyle(
+                      fontFamily: "PoppinsMedium",
                           fontSize: fontSize.clamp(12, 16),
                           color: isDarkMode ? Colors.white : Colors.black87,
                           fontWeight: FontWeight.w600,
-                          fontFamily: 'Poppins',
                           height: 1.2,
                         ),
                         overflow: TextOverflow.ellipsis,

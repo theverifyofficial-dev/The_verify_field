@@ -18,6 +18,7 @@ import '../../Z-Screen/Social_Media_links.dart';
 import '../../Z-Screen/profile.dart';
 import '../../ui_decoration_tools/app_images.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import '../AdminInsurance/AdminInsuranceListScreen.dart';
 import '../Admin_future _property/Administater_Future_Property.dart';
 import '../Admin_upcoming.dart';
 import '../All_Rented_Flat/Administator_Add_Rented_Flat_Tabbar.dart';
@@ -207,7 +208,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
           //     ThemeSwitcher.of(context)?.toggleTheme();
           //   },
           // ),
-         //SizedBox(width: 5,),
+          //SizedBox(width: 5,),
           GestureDetector(
             onTap: () {
               Navigator.push(
@@ -411,25 +412,35 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                             if (userNumber == "9711779003" || userNumber=="9315016461")
 
                               {
-                              "image": AppImages.tenant,
-                              "title": "Tenant Demands",
-                              "onTap": () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (_) => const MainPage_TenandDemand()));
-                              },
+                                "image": AppImages.tenant,
+                                "title": "Tenant Demands",
+                                "onTap": () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) => const MainPage_TenandDemand()));
+                                },
                                 "count": 0,
-                            },
+                              },
                             if (userNumber == "9711779003" || userNumber=="9315016461")
 
                               {
-                              'image': AppImages.police,
-                              'title': "All Rented \nFlat",
-                              'onTap': () =>
-                                  Navigator.push(context, MaterialPageRoute(
-                                      builder: (context) => const AdministatorAddRentedFlatTabbar())),
+                                'image': AppImages.police,
+                                'title': "All Rented \nFlat",
+                                'onTap': () =>
+                                    Navigator.push(context, MaterialPageRoute(
+                                        builder: (context) => const AdministatorAddRentedFlatTabbar())),
                                 "count": BookCount,
+                              },
+                            if (userNumber == "9711779003" || userNumber == "9315016461")
+                              {
+                                "icon": AppImages.compliant,
+                                "title": "Insurance",
+                                "onTap": () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const AdminInsuranceListScreen()),
+                                ),
+                                "count": 0,
                               },
                           ];
 

@@ -248,7 +248,7 @@ class _YearlyBuildingState extends State<YearlyBuilding> {
                                 decoration: BoxDecoration(
                                   color: b.buyRent == "Buy"
                                       ? Colors.green
-                                      : Color(0xFF22C55E),
+                                      : Color(0xFFD747FF),
                                   borderRadius: BorderRadius.circular(30),
                                 ),
                                 child: Text(
@@ -276,7 +276,7 @@ class _YearlyBuildingState extends State<YearlyBuilding> {
                                   Icons.apartment,
                                   color: b.buyRent == "Buy"
                                       ? Colors.green
-                                      : Color(0xFF22C55E),
+                                      : Color(0xFFD747FF),
                                   size: 18,
                                 ),
                               ),
@@ -441,7 +441,7 @@ class _LuxuryChip extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: Color(0xFF22C55E)),
+          Icon(icon, size: 16, color:Color(0xFFD747FF)),
           const SizedBox(width: 4),
           Text(
             text.isEmpty ? "-" : text,

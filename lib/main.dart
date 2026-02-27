@@ -15,6 +15,7 @@ import 'package:verify_feild_worker/Notification_demo/routes.dart';
 import 'package:verify_feild_worker/Z-Screen/splash.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
 import 'Administrator/SubAdmin/SubAdminAccountant_Home.dart';
+import 'Controller/Cache_memory.dart';
 import 'Home_Screen.dart';
 import 'Home_Screen_click/VideoEditingForField.dart';
 import 'Home_Screen_click/live_tabbar.dart';
@@ -33,9 +34,13 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 }
 
 void main() async {
+
+
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp();
+
+
 
   FirebaseMessaging.onBackgroundMessage(
     firebaseMessagingBackgroundHandler,
@@ -75,6 +80,10 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await checkCacheAndShowToast();
+    });
 
     FirebaseMessaging.instance.getToken().then((token) {
       print("🔑 FCM Token: $token");

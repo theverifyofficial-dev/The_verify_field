@@ -1679,7 +1679,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                     const SizedBox(height: 8),
 
                     customerDemand2CompactCard(
-                      context: context,
                       isDark: isDark,
                       loading: demandLoading,
                       newCount: newCount,

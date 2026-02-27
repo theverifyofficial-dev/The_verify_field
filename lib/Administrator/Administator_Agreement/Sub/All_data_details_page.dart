@@ -5,12 +5,18 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
+import 'package:open_filex/open_filex.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../Custom_Widget/Custom_backbutton.dart';
 import '../../../model/Additional_agreement_tenants.dart';
 import '../../imagepreviewscreen.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:image_picker/image_picker.dart';
+
+import '../PDFs/Commercial_PDF.dart';
+import '../PDFs/PDF.dart';
+import '../PDFs/furnished pdf.dart';
+import 'Accepted_details.dart';
 
 class AllDataDetailsPage extends StatefulWidget {
   final String agreementId;
@@ -25,7 +31,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
   bool isLoading = true;
   File? pdfFile;
   List<AdditionalTenant> additionalTenants = [];
-
+  bool pdfGenerated = false;
 
   @override
   void initState() {
@@ -66,6 +72,43 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
               list.map((e) => AdditionalTenant.fromJson(e)).toList();
         });
       }
+    }
+  }
+
+  Future<void> _handleGeneratePdf() async {
+    if (agreement == null) return;
+
+    File file;
+
+    final String type = (agreement!['agreement_type'] ?? '').toString().trim();
+
+    setState(() => isLoading = true);
+
+    try {
+
+      if (type == "Furnished Agreement") {
+        file = await generateFurnishedAgreementPdf(agreement!);
+      }
+      else if (type == "Commercial Agreement") {
+        file = await generateCommercialAgreementPdf(agreement!);
+      } else {
+        file = await generateAgreementPdf(agreement!);
+      }
+
+      setState(() {
+        pdfFile = file;
+        pdfGenerated = true;
+      });
+    } catch (e) {
+      debugPrint("PDF Generation Error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to generate PDF: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
@@ -775,6 +818,34 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
               _kv("Name", agreement!["Fieldwarkarname"]),
               _kv("Number", agreement!["Fieldwarkarnumber"]),
             ]),
+
+            SizedBox(height: 20,),
+
+            if (!isPolice && pdfFile != null)
+              _glassContainer(
+                child: ListTile(
+                  leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
+                  title: Text(pdfFile!.path.split('/').last),
+                  subtitle: const Text("Tap to open in browser"),
+                  onTap: () async {
+                    final uri = Uri.file(pdfFile!.path);
+                    // inside onTap
+                    if (pdfFile != null) {
+                      await OpenFilex.open(pdfFile!.path);
+                    }
+                    else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Could not open PDF")),
+                      );
+                    }
+                  },
+                ),
+              ),
+
+            SizedBox(height: 20,),
+
+            if (!isPolice)
+              GenerateAgreementButton(onGenerate: _handleGeneratePdf),
 
             SizedBox(height: 20,),
 

@@ -941,34 +941,45 @@ class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
                         },
                       ),
                     ),
-                  /// back button
+                  /// ⭐ BACK BUTTON
                   Positioned(
-                    top: 40,
+                    top: MediaQuery.of(context).padding.top + 8,
                     left: 10,
                     child: CircleAvatar(
-                      backgroundColor: Colors.black54,
+                      radius: isSmallScreen ? 20 : 22,
+                      backgroundColor: Colors.black.withOpacity(0.6),
                       child: IconButton(
-                        icon: Icon(Icons.arrow_back, color: Colors.white),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                        icon: Icon(
+                          Icons.arrow_back,
+                          color: Colors.white,
+                          size: isSmallScreen ? 22 : 24,
+                        ),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ),
                   ),
 
-                  /// popup menu
+                  /// ⭐ POPUP MENU
                   Positioned(
-                    top: MediaQuery.of(context).padding.top + (isSmallScreen ? 4.0 : 8.0),
-                    right: horizontalPadding,
+                    top: MediaQuery.of(context).padding.top + 8,
+                    right: 10,
                     child: CircleAvatar(
                       radius: isSmallScreen ? 20 : 22,
                       backgroundColor: Colors.black.withOpacity(0.6),
-                      child:
-                      PopupMenuButton<String>(
+                      child: PopupMenuButton<String>(
+                        padding: EdgeInsets.zero,
                         splashRadius: 22,
                         offset: const Offset(0, 45),
+                        icon: Icon(
+                          Icons.more_vert,
+                          color: Colors.white,
+                          size: isSmallScreen ? 22 : 24,
+                        ),
                         onSelected: (value) async {
                           if (value == 'Edit Commercial') {
                             if (p != null) {
-
                               final result = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -978,10 +989,7 @@ class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
                                   ),
                                 ),
                               );
-
-                              if (result == true) {
-                                await _refreshProperty();
-                              }
+                              if (result == true) await _refreshProperty();
                             }
                           }
 
@@ -994,29 +1002,19 @@ class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
                                 ),
                               ),
                             ).then((value) async {
-                              if (value == true) {
-                                await _refreshProperty();
-                              }
+                              if (value == true) await _refreshProperty();
                             });
                           }
                         },
                         itemBuilder: (context) => const [
                           PopupMenuItem(
-                            value: 'Edit Commercial',
-                            child: Text('Edit Commercial'),
-                          ),
+                              value: 'Edit Commercial',
+                              child: Text('Edit Commercial')),
                           PopupMenuItem(
-                            value: 'Add Commercial Images',
-                            child: Text('Add Commercial Images'),
-                          ),
+                              value: 'Add Commercial Images',
+                              child: Text('Add Commercial Images')),
                         ],
-                        icon: Icon(
-                          Icons.more_vert,
-                          color: Colors.white,
-                          size: isSmallScreen ? 22 : 26,
-                        ),
                       ),
-
                     ),
                   ),
 

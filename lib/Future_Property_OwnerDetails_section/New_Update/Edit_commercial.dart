@@ -93,6 +93,72 @@ class _EditCommercialFormState extends State<EditCommercialForm> {
     'Internet Ready'
   ];
 
+  String calculateSqft() {
+    double builtup = double.tryParse(_builtupAreaController.text) ?? 0;
+    double carpet = double.tryParse(_carpetAreaController.text) ?? 0;
+    double length = double.tryParse(_sellingHeightController.text) ?? 0;
+    double width = double.tryParse(_sellingWidthController.text) ?? 0;
+
+    /// ⭐ Priority 1 → Builtup
+    if (builtup > 0) {
+      return builtup.toStringAsFixed(2);
+    }
+
+    /// ⭐ Priority 2 → Carpet
+    if (carpet > 0) {
+      return carpet.toStringAsFixed(2);
+    }
+
+    /// ⭐ Priority 3 → Length × Width
+    if (length > 0 && width > 0) {
+      return (length * width).toStringAsFixed(2);
+    }
+
+    return "";
+  }
+
+
+  String calculatePricePerSqft() {
+    double price =
+        double.tryParse(_priceController.text.replaceAll(',', '')) ?? 0;
+
+    double area = double.tryParse(calculateSqft()) ?? 0;
+
+    if (price == 0 || area == 0) return "";
+
+    return (price / area).toString();
+  }
+
+  String formatIndianAmount(String value) {
+    if (value.isEmpty) return '';
+
+    double amount = double.tryParse(value.replaceAll(',', '')) ?? 0;
+
+    if (amount >= 10000000) {
+      return "${(amount / 10000000).toStringAsFixed(2)} Cr";
+    } else if (amount >= 100000) {
+      return "${(amount / 100000).toStringAsFixed(2)} Lakh";
+    } else if (amount >= 1000) {
+      return "${(amount / 1000).toStringAsFixed(2)} K";
+    } else {
+      return amount.toStringAsFixed(0);
+    }
+  }
+
+  void autoCalculateWidth() {
+    double length = double.tryParse(_sellingHeightController.text) ?? 0;
+    double builtup = double.tryParse(_builtupAreaController.text) ?? 0;
+
+    if (length > 0 && builtup > 0) {
+      double width = builtup / length;
+      _sellingWidthController.text = width.toStringAsFixed(2);
+    } else {
+      _sellingWidthController.clear();
+    }
+  }
+
+
+
 
   @override
   void initState() {
@@ -176,12 +242,12 @@ class _EditCommercialFormState extends State<EditCommercialForm> {
                 _buildAvailableFromSection(
                     isDarkMode, cardColor, textColor, secondaryTextColor),
                 SizedBox(height: 20),
-                _buildAreaSection(
-                    isDarkMode, cardColor, textColor, secondaryTextColor),
-                SizedBox(height: 20),
-                _buildDimensionsSection(
-                    isDarkMode, cardColor, textColor, secondaryTextColor),
-                SizedBox(height: 20),
+                // _buildAreaSection(
+                //     isDarkMode, cardColor, textColor, secondaryTextColor),
+                // SizedBox(height: 20),
+                // _buildDimensionsSection(
+                //     isDarkMode, cardColor, textColor, secondaryTextColor),
+                // SizedBox(height: 20),
                 _buildFloorAndParkingSection(
                     isDarkMode, cardColor, textColor, secondaryTextColor),
                 SizedBox(height: 20),
@@ -856,27 +922,14 @@ class _EditCommercialFormState extends State<EditCommercialForm> {
     }
   }
 
-  String formatIndianAmount(String value) {
-    if (value.isEmpty) return '';
-
-    double amount = double.tryParse(value.replaceAll(',', '')) ?? 0;
-
-    if (amount >= 10000000) {
-      return "${(amount / 10000000).toStringAsFixed(2)} Cr";
-    } else if (amount >= 100000) {
-      return "${(amount / 100000).toStringAsFixed(2)} Lakh";
-    } else if (amount >= 1000) {
-      return "${(amount / 1000).toStringAsFixed(2)} K";
-    } else {
-      return amount.toStringAsFixed(0);
-    }
-  }
 
 
-  Widget _buildpriceSection(bool isDarkMode,
+  Widget _buildpriceSection(
+      bool isDarkMode,
       Color cardColor,
       Color textColor,
       Color secondaryTextColor) {
+
     return _buildPremiumCard(
       isDarkMode: isDarkMode,
       cardColor: cardColor,
@@ -884,20 +937,18 @@ class _EditCommercialFormState extends State<EditCommercialForm> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSectionHeader(
-              'Pricing Details', Icons.currency_rupee_rounded, textColor),
+              'Pricing & Area Details', Icons.currency_rupee_rounded, textColor),
+
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: [
+
+                /// ⭐ PRICE
                 TextFormField(
                   controller: _priceController,
                   keyboardType: TextInputType.number,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-
-                  onChanged: (val){
-                    setState(() {}); // live update
-                  },
-
+                  onChanged: (_) => setState(() {}),
                   decoration: _buildInputDecoration(
                     isDarkMode: isDarkMode,
                     label: 'Price',
@@ -911,8 +962,8 @@ class _EditCommercialFormState extends State<EditCommercialForm> {
                         widthFactor: 1,
                         child: Text(
                           formatIndianAmount(_priceController.text),
-                          style: TextStyle(
-                            color: Colors.green, // 🔥 GREEN COLOR
+                          style: const TextStyle(
+                            color: Colors.green,
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
                           ),
@@ -920,21 +971,125 @@ class _EditCommercialFormState extends State<EditCommercialForm> {
                       ),
                     ),
                   ),
-
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter price';
-                    }
-                    return null;
-                  },
                 ),
 
+                const SizedBox(height: 16),
 
-                SizedBox(height: 16),
+                /// ⭐ BUILTUP
+                TextFormField(
+                  controller: _builtupAreaController,
+                  keyboardType: TextInputType.number,
+                  onChanged: (v){
+                    autoCalculateWidth();
+                    setState(() {});
+                  },
+                  decoration: _buildInputDecoration(
+                    isDarkMode: isDarkMode,
+                    label: 'Builtup Area',
+                    icon: Icons.square_foot,
+                    textColor: textColor,
+                    secondaryTextColor: secondaryTextColor,
+                    suffixText: 'sqft',
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                /// ⭐ CARPET
+                TextFormField(
+                  controller: _carpetAreaController,
+                  keyboardType: TextInputType.number,
+                  onChanged: (_) => setState(() {}),
+                  decoration: _buildInputDecoration(
+                    isDarkMode: isDarkMode,
+                    label: 'Carpet Area',
+                    icon: Icons.square_foot,
+                    textColor: textColor,
+                    secondaryTextColor: secondaryTextColor,
+                    suffixText: 'sqft',
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                /// ⭐ LENGTH
+                TextFormField(
+                  controller: _sellingHeightController,
+                  keyboardType: TextInputType.number,
+                  onChanged: (v){
+                    autoCalculateWidth();
+                    setState(() {});
+                  },
+                  decoration: _buildInputDecoration(
+                    isDarkMode: isDarkMode,
+                    label: 'Length',
+                    icon: Icons.height,
+                    textColor: textColor,
+                    secondaryTextColor: secondaryTextColor,
+                    suffixText: 'ft',
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                /// ⭐ WIDTH AUTO
+                TextFormField(
+                  controller: _sellingWidthController,
+                  readOnly: true,
+                  decoration: _buildInputDecoration(
+                    isDarkMode: isDarkMode,
+                    label: 'Width (auto)',
+                    icon: Icons.width_full,
+                    textColor: textColor,
+                    secondaryTextColor: secondaryTextColor,
+                    suffixText: 'ft',
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+
+                /// ⭐ TOTAL SQFT
+                if (calculateSqft().isNotEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      "Total Area: ${calculateSqft()} sqft",
+                      style: const TextStyle(
+                          color: Colors.orange,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
+
+                const SizedBox(height: 8),
+
+                /// ⭐ PRICE PER SQFT
+                if (calculatePricePerSqft().isNotEmpty)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      "Price per sqft: ₹ ${calculatePricePerSqft()}",
+                      style: const TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ),
               ],
             ),
           ),
-          SizedBox(height: 24),
+
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -1100,117 +1255,6 @@ class _EditCommercialFormState extends State<EditCommercialForm> {
     );
   }
 
-  Widget _buildAreaSection(bool isDarkMode, Color cardColor, Color textColor,
-      Color secondaryTextColor) {
-    return _buildPremiumCard(
-      isDarkMode: isDarkMode,
-      cardColor: cardColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(
-              'Area Details', Icons.aspect_ratio_rounded, textColor),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _builtupAreaController,
-                    style: TextStyle(
-                        color: textColor, fontWeight: FontWeight.w500),
-                    decoration: _buildInputDecoration(
-                      isDarkMode: isDarkMode,
-                      label: 'Built-up Area',
-                      icon: Icons.square_foot_rounded,
-                      textColor: textColor,
-                      secondaryTextColor: secondaryTextColor,
-                      suffixText: 'sq ft',
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-                SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _carpetAreaController,
-                    style: TextStyle(
-                        color: textColor, fontWeight: FontWeight.w500),
-                    decoration: _buildInputDecoration(
-                      isDarkMode: isDarkMode,
-                      label: 'Carpet Area',
-                      icon: Icons.carpenter_rounded,
-                      textColor: textColor,
-                      secondaryTextColor: secondaryTextColor,
-                      suffixText: 'sq ft',
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDimensionsSection(bool isDarkMode, Color cardColor,
-      Color textColor, Color secondaryTextColor) {
-    return _buildPremiumCard(
-      isDarkMode: isDarkMode,
-      cardColor: cardColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(
-              'Dimensions', Icons.straighten_rounded, textColor),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _sellingHeightController,
-                    style: TextStyle(
-                        color: textColor, fontWeight: FontWeight.w500),
-                    decoration: _buildInputDecoration(
-                      isDarkMode: isDarkMode,
-                      label: 'Height',
-                      icon: Icons.height_rounded,
-                      textColor: textColor,
-                      secondaryTextColor: secondaryTextColor,
-                      suffixText: 'ft',
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-                SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _sellingWidthController,
-                    style: TextStyle(
-                        color: textColor, fontWeight: FontWeight.w500),
-                    decoration: _buildInputDecoration(
-                      isDarkMode: isDarkMode,
-                      label: 'Width',
-                      icon: Icons.width_full_rounded,
-                      textColor: textColor,
-                      secondaryTextColor: secondaryTextColor,
-                      suffixText: 'ft',
-                    ),
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
 
   Widget _buildFloorAndParkingSection(bool isDarkMode, Color cardColor,
       Color textColor, Color secondaryTextColor) {

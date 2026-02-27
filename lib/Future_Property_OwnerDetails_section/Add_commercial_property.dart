@@ -88,12 +88,29 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
   final Color accentColor = Color(0xFF00D4AA);
 
   String calculateSqft() {
-    double h = double.tryParse(_sellingHeightController.text) ?? 0;
-    double w = double.tryParse(_sellingWidthController.text) ?? 0;
+    double builtup = double.tryParse(_builtupAreaController.text) ?? 0;
+    double carpet = double.tryParse(_carpetAreaController.text) ?? 0;
+    double length = double.tryParse(_sellingHeightController.text) ?? 0;
+    double width = double.tryParse(_sellingWidthController.text) ?? 0;
 
-    if (h == 0 || w == 0) return "";
-    return (h * w).toStringAsFixed(0);
+    /// ⭐ Priority 1 → Builtup
+    if (builtup > 0) {
+      return builtup.toStringAsFixed(2);
+    }
+
+    /// ⭐ Priority 2 → Carpet
+    if (carpet > 0) {
+      return carpet.toStringAsFixed(2);
+    }
+
+    /// ⭐ Priority 3 → Length × Width
+    if (length > 0 && width > 0) {
+      return (length * width).toStringAsFixed(2);
+    }
+
+    return "";
   }
+
 
   String calculatePricePerSqft() {
     double price =
@@ -103,7 +120,8 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
 
     if (price == 0 || area == 0) return "";
 
-    return (price / area).toStringAsFixed(0);
+    return (price / area).toString();
+    
   }
 
   @override
@@ -1046,22 +1064,7 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
     }
   }
 
-  // String calculateSqft() {
-  //   double length = double.tryParse(_sellingHeightController.text) ?? 0;
-  //   double width = double.tryParse(_sellingWidthController.text) ?? 0;
-  //
-  //   if (length > 0 && width > 0) {
-  //     return (length * width).toStringAsFixed(0);
-  //   }
-  //
-  //   double builtup = double.tryParse(_builtupAreaController.text) ?? 0;
-  //   if (builtup > 0) return builtup.toStringAsFixed(0);
-  //
-  //   double carpet = double.tryParse(_carpetAreaController.text) ?? 0;
-  //   if (carpet > 0) return carpet.toStringAsFixed(0);
-  //
-  //   return "";
-  // }
+
 
 
   Widget _buildListingTypeSection(bool isDarkMode, Color cardColor,
@@ -1222,62 +1225,7 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
       ),
     );
   }
-  //
-  // Widget _buildAreaSection(bool isDarkMode, Color cardColor, Color textColor,
-  //     Color secondaryTextColor) {
-  //   return _buildPremiumCard(
-  //     isDarkMode: isDarkMode,
-  //     cardColor: cardColor,
-  //     child: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: [
-  //         _buildSectionHeader(
-  //             'Area Details', Icons.aspect_ratio_rounded, textColor),
-  //         Padding(
-  //           padding: EdgeInsets.symmetric(horizontal: 24),
-  //           child: Row(
-  //             children: [
-  //               Expanded(
-  //                 child: TextFormField(
-  //                   controller: _builtupAreaController,
-  //                   style: TextStyle(
-  //                       color: textColor, fontWeight: FontWeight.w500),
-  //                   decoration: _buildInputDecoration(
-  //                     isDarkMode: isDarkMode,
-  //                     label: 'Built-up Area',
-  //                     icon: Icons.square_foot_rounded,
-  //                     textColor: textColor,
-  //                     secondaryTextColor: secondaryTextColor,
-  //                     suffixText: 'sq ft',
-  //                   ),
-  //                   keyboardType: TextInputType.number,
-  //                 ),
-  //               ),
-  //               SizedBox(width: 16),
-  //               Expanded(
-  //                 child: TextFormField(
-  //                   controller: _carpetAreaController,
-  //                   style: TextStyle(
-  //                       color: textColor, fontWeight: FontWeight.w500),
-  //                   decoration: _buildInputDecoration(
-  //                     isDarkMode: isDarkMode,
-  //                     label: 'Carpet Area',
-  //                     icon: Icons.carpenter_rounded,
-  //                     textColor: textColor,
-  //                     secondaryTextColor: secondaryTextColor,
-  //                     suffixText: 'sq ft',
-  //                   ),
-  //                   keyboardType: TextInputType.number,
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //         SizedBox(height: 24),
-  //       ],
-  //     ),
-  //   );
-  // }
+
 
   Widget _buildpriceSection(
       bool isDarkMode,
@@ -1450,84 +1398,7 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
     );
   }
 
-  // Widget _buildDimensionsSection(bool isDarkMode, Color cardColor,
-  //     Color textColor, Color secondaryTextColor) {
-  //   return _buildPremiumCard(
-  //     isDarkMode: isDarkMode,
-  //     cardColor: cardColor,
-  //     child: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: [
-  //         _buildSectionHeader('Dimensions', Icons.straighten_rounded, textColor),
-  //         Padding(
-  //           padding: EdgeInsets.symmetric(horizontal: 24),
-  //           child: Column(
-  //             children: [
-  //               Row(
-  //                 children: [
-  //                   Expanded(
-  //                     child: TextFormField(
-  //                       controller: _sellingHeightController,
-  //                       onChanged: (v) => setState(() {}), // ⭐ LIVE UPDATE
-  //                       style: TextStyle(
-  //                           color: textColor, fontWeight: FontWeight.w500),
-  //                       decoration: _buildInputDecoration(
-  //                         isDarkMode: isDarkMode,
-  //                         label: 'Height',
-  //                         icon: Icons.height_rounded,
-  //                         textColor: textColor,
-  //                         secondaryTextColor: secondaryTextColor,
-  //                         suffixText: 'ft',
-  //                       ),
-  //                       keyboardType: TextInputType.number,
-  //                     ),
-  //                   ),
-  //                   SizedBox(width: 16),
-  //                   Expanded(
-  //                     child:
-  //                     TextFormField(
-  //                       controller: _sellingWidthController,
-  //                       readOnly: true,
-  //                       decoration: _buildInputDecoration(
-  //                         isDarkMode: isDarkMode,
-  //                         label: 'Width (auto)',
-  //                         icon: Icons.width_full_rounded,
-  //                         textColor: textColor,
-  //                         secondaryTextColor: secondaryTextColor,
-  //                         suffixText: 'ft',
-  //                       ),
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-  //
-  //               SizedBox(height: 12),
-  //
-  //               // ⭐ AUTO SQFT SHOW
-  //               if (calculateSqft().isNotEmpty)
-  //                 Container(
-  //                   width: double.infinity,
-  //                   padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-  //                   decoration: BoxDecoration(
-  //                     color: Colors.orange.withOpacity(0.1),
-  //                     borderRadius: BorderRadius.circular(10),
-  //                   ),
-  //                   child: Text(
-  //                     "Total Area: ${calculateSqft()} sqft",
-  //                     style: TextStyle(
-  //                       color: Colors.orange,
-  //                       fontWeight: FontWeight.bold,
-  //                     ),
-  //                   ),
-  //                 ),
-  //             ],
-  //           ),
-  //         ),
-  //         SizedBox(height: 24),
-  //       ],
-  //     ),
-  //   );
-  // }
+
 
   Widget _buildFloorAndParkingSection(bool isDarkMode, Color cardColor,
       Color textColor, Color secondaryTextColor) {

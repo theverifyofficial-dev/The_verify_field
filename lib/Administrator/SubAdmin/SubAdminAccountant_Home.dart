@@ -20,6 +20,7 @@ import '../../ui_decoration_tools/app_images.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../AdminInsurance/AdminInsuranceListScreen.dart';
 import '../Admin_future _property/Administater_Future_Property.dart';
+import '../Admin_future _property/Administater_Future_Tabbar.dart';
 import '../Admin_upcoming.dart';
 import '../All_Rented_Flat/Administator_Add_Rented_Flat_Tabbar.dart';
 import 'SubAdmin_MainRealEstate_Tabbar.dart';
@@ -390,7 +391,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                               "onTap": () => Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (_) => ADministaterShow_FutureProperty())),
+                                      builder: (_) => AdministaterPropertyTabPage())),
                               "count": 0,
                             },
                             {

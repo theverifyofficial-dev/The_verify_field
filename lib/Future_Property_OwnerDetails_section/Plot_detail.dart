@@ -1085,30 +1085,42 @@ class _PlotPropertyDisplayPageState
                     ),
                   ),
                 Positioned(
-                  top: 40,
+                  top: MediaQuery.of(context).padding.top + 8,
                   left: 16,
                   child: CircleAvatar(
+                    radius: isSmallScreen ? 20 : 22,
                     backgroundColor: Colors.black.withOpacity(0.6),
                     child: IconButton(
-                      icon: const Icon(Icons.arrow_back),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      icon: Icon(
+                        Icons.arrow_back_sharp,
+                        color: Colors.white,
+                        size: isSmallScreen ? 22 : 24,
+                      ),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ),
                 ),
+
                 Positioned(
-                  top: MediaQuery.of(context).padding.top + (isSmallScreen ? 4.0 : 8.0),
-                  right: horizontalPadding,
+                  top: MediaQuery.of(context).padding.top + 8,
+                  right: 16,
                   child: CircleAvatar(
                     radius: isSmallScreen ? 20 : 22,
                     backgroundColor: Colors.black.withOpacity(0.6),
-                    child:
-                    PopupMenuButton<String>(
+                    child: PopupMenuButton<String>(
+                      padding: EdgeInsets.zero,
                       splashRadius: 22,
                       offset: const Offset(0, 45),
+                      icon: Icon(
+                        Icons.more_vert,
+                        color: Colors.white,
+                        size: isSmallScreen ? 22 : 24,
+                      ),
                       onSelected: (value) async {
                         if (value == 'Edit Plot') {
                           if (_currentData != null) {
-
                             final result = await Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -1118,14 +1130,11 @@ class _PlotPropertyDisplayPageState
                                 ),
                               ),
                             );
-
-                            if (result == true) {
-                              await _refreshProperty();   // 🔥 refresh after update
-                            }
+                            if (result == true) await _refreshProperty();
                           }
                         }
 
-                              if (value == 'Add Plot Images') {
+                        if (value == 'Add Plot Images') {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -1133,28 +1142,15 @@ class _PlotPropertyDisplayPageState
                                 sub_id: _currentData!.id.toString(),
                               ),
                             ),
-                         ).then((value) async {
-                            if (value == true) {
-                              await _refreshProperty();
-                            }
+                          ).then((value) async {
+                            if (value == true) await _refreshProperty();
                           });
                         }
                       },
                       itemBuilder: (context) => const [
-                        PopupMenuItem(
-                          value: 'Edit Plot',
-                          child: Text('Edit Plot'),
-                        ),
-                        PopupMenuItem(
-                          value: 'Add Plot Images',
-                          child: Text('Add Plot Images'),
-                        ),
+                        PopupMenuItem(value: 'Edit Plot', child: Text('Edit Plot')),
+                        PopupMenuItem(value: 'Add Plot Images', child: Text('Add Plot Images')),
                       ],
-                      icon: Icon(
-                        Icons.more_vert,
-                        color: Colors.white,
-                        size: isSmallScreen ? 22 : 26,
-                      ),
                     ),
                   ),
                 ),

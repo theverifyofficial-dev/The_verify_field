@@ -235,6 +235,19 @@ class _EditPlotformState extends State<EditPlotform> {
     }
   }
 
+  String formatPriceShort(String value) {
+    double price = double.tryParse(value.replaceAll(',', '')) ?? 0;
+
+    if (price >= 10000000) {
+      return "${(price / 10000000).toStringAsFixed(2)} Cr";
+    } else if (price >= 100000) {
+      return "${(price / 100000).toStringAsFixed(2)} L";
+    } else if (price >= 1000) {
+      return "${(price / 1000).toStringAsFixed(2)} K";
+    }
+    return price.toStringAsFixed(0);
+  }
+
   void _recalculateDimensions() {
     if (_plotSqft == null || _plotSqft! <= 0) return;
     if (_frontValue == null || _frontValue! <= 0) return;
@@ -818,18 +831,30 @@ class _EditPlotformState extends State<EditPlotform> {
           /// PRICE
           TextFormField(
             controller: _plotPriceController,
+            keyboardType: TextInputType.number,
+            onChanged: (_) => setState(() {}),
             decoration: _inputDecoration(
               isDark: isDark,
               label: 'Enter Plot Price',
               icon: Icons.money,
-              suffixText: _priceUnit,
               textColor: textColor,
               secondaryTextColor: secondaryTextColor,
+            ).copyWith(
+              suffixIcon: Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Center(
+                  widthFactor: 1,
+                  child: Text(
+                    formatPriceShort(_plotPriceController.text),
+                    style: const TextStyle(
+                      color: Colors.green,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
             ),
-            keyboardType: TextInputType.number,
-            onChanged: (_) => _calculatePriceDetails(),
-            validator: (v) =>
-            v == null || v.isEmpty ? 'Please enter plot price' : null,
           ),
 
           const SizedBox(height: 12),

@@ -1351,6 +1351,8 @@ class CallingReminder {
   final String date;
   final String time;
   final String subId;
+  final String building_id;
+  final String reason;
   final String nextCallingDate;
   final String fieldWorkerName;
   final String fieldWorkerNumber;
@@ -1360,6 +1362,8 @@ class CallingReminder {
     required this.message,
     required this.date,
     required this.time,
+    required this.building_id,
+    required this.reason,
     required this.subId,
     required this.nextCallingDate,
     required this.fieldWorkerName,
@@ -1370,9 +1374,11 @@ class CallingReminder {
     return CallingReminder(
       id: json['id'] ?? 0,
       message: json['message'] ?? '',
-      date: json['date'] ?? '',
+      date: json['date']?['date'] ?? '',
       time: json['time'] ?? '',
+      reason: json['reason'] ?? '',
       subId: json['subid'] ?? '',
+      building_id: json['building_id'] ?? '',
       nextCallingDate: json['next_calling_date'] ?? '',
       fieldWorkerName: json['fieldworkar_name'] ?? '',
       fieldWorkerNumber: json['fieldworkar_number'] ?? '',
@@ -2136,6 +2142,10 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       if (responses[9].statusCode == 200 && responses[9].body.isNotEmpty) {
         try {
           final decoded = jsonDecode(responses[9].body);
+          print(responses[9].body);
+
+          print("Calling Reminder Count: ${cr?.data.length}");
+
           if (decoded['status'] == 'success') {
             cr = CallingReminderResponse.fromJson(decoded);
           } else {
@@ -2341,13 +2351,17 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
   }
 
   Widget _buildCallingReminderCard(CallingReminder r, bool isDark) {
+    final String reason = r.reason ?? "";
+
+    final bool isCompleted =
+        reason.isNotEmpty;
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (_) => Future_Property_details(
-              idd: r.subId.toString(),
+              idd: r.building_id,
 
             ),
           ),
@@ -2357,12 +2371,18 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient:  LinearGradient(
 
-            colors: [
-              Color(0xFF6366F1), // Indigo-500
-              Color(0xFF06B6D4), // Cyan-500
+            colors: isCompleted
+                ? [
+              const Color(0xFF1B8E3E),   // deep green
+              const Color(0xFF4CAF50),   // light green
+            ]
+                : const [
+              Color(0xFFF02626),
+              Color(0xFFFF9E0B),
             ],
+
           ),
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
@@ -2420,6 +2440,42 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 color: Colors.white ,
               ),
             ),
+
+            /// 🔹 REASON (if exists)
+            if (reason != null &&
+                reason.isNotEmpty &&
+                reason.toLowerCase() != "null") ...[
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.info_outline,
+                      size: 14,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        "Reason: $reason",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
 
             const SizedBox(height: 6),
 

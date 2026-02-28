@@ -378,6 +378,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
           "date": date,
           "time": time,
           "subid": id,
+          "building_id": widget.buildingId,
           "fieldworkar_name": FName,
           "fieldworkar_number": FNum,
           "call_done": call_done,

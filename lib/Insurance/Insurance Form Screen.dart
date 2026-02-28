@@ -175,7 +175,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
             const SnackBar(content: Text('Submitted Successfully')),
           );
 
-          // Navigator.pop(context, true);
+          Navigator.pop(context, true);
         }
 
         /// ❌ DUPLICATE VEHICLE CASE

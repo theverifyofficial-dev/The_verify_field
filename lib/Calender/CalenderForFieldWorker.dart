@@ -19,6 +19,17 @@ import '../Rent Agreement/details_agreement.dart';
 import '../Rent Agreement/history_tab.dart';
 import '../Upcoming/Upcoming_details.dart';
 
+class BuildingNextCall {
+  final String? nextCallingDate;
+  final String? reason;
+
+  BuildingNextCall({
+    required this.nextCallingDate,
+    required this.reason,
+  });
+
+  }
+
 CalendarAddFlatResponse calendarAddFlatResponseFromJson(String str) =>
     CalendarAddFlatResponse.fromJson(json.decode(str));
 
@@ -1432,6 +1443,7 @@ class CalendarTaskPage extends StatefulWidget {
 }
 
 class _CalendarTaskPageState extends State<CalendarTaskPage> {
+  Map<String, NextCallingItem?> _nextCallingCache = {};
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   bool _isLoading = false;
@@ -1480,27 +1492,43 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       loadUserName();
     });
   }
-  Future<NextCallingItem?> fetchLatestCallingDate(String subId) async {
+  Future<NextCallingItem?> fetchLatestCallingDate(String buildingId) async {
     final url =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"
-        "show_next_calling_date_in_building.php?subid=$subId";
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_next_calling_date_in_building.php?subid=$buildingId";
 
     try {
       final response = await http.get(Uri.parse(url));
 
-      if (response.statusCode == 200 && response.body.isNotEmpty) {
-        final decoded = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        final jsonData = json.decode(response.body);
 
-        final parsed = NextCallingDateResponse.fromJson(decoded);
+        if (jsonData["status"] == true &&
+            jsonData["data"] != null &&
+            jsonData["data"].isNotEmpty) {
 
-        if (parsed.status && parsed.data.isNotEmpty) {
-          // Reverse to get latest
-          final reversed = parsed.data.reversed.toList();
-          return reversed.first;
+          // 🔥 find FIRST valid date
+          for (var item in jsonData["data"]) {
+
+            final date = item["next_calling_date"];
+            final reason = item["reason"];
+
+            if (date != null &&
+                date.toString().isNotEmpty &&
+                date.toString().toLowerCase() != "null") {
+
+              return NextCallingItem(
+                nextCallingDate: date.toString(),
+                reason: (reason == null ||
+                    reason.toString().toLowerCase() == "null")
+                    ? ""
+                    : reason.toString(),
+              );
+            }
+          }
         }
       }
     } catch (e) {
-      debugPrint("Next Calling Date Error: $e");
+      debugPrint("Fetch latest calling error: $e");
     }
 
     return null;
@@ -2137,6 +2165,8 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         _isLoading = false;
       });
 
+      await _fetchAllNextCallingDates();
+
       if (_agreements.isEmpty && _futureProperties.isEmpty && _websiteVisits.isEmpty) {
 
       }
@@ -2162,6 +2192,24 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       );
     }
   }
+
+  Future<void> _fetchAllNextCallingDates() async {
+    _nextCallingCache.clear();
+
+    for (var building in _futureProperties) {
+
+      final id = building.id.toString();
+      final data = await fetchLatestCallingDate(id);
+
+      print("BUILDING ID: $id");
+      print("FETCHED DATA: ${data?.nextCallingDate} | ${data?.reason}");
+
+      _nextCallingCache[id] = data;
+    }
+
+    setState(() {});
+  }
+
   Future<void> _showMonthYearPicker(BuildContext context) async {
     int tempYear = _selectedYear;
     int tempMonth = _selectedMonth;
@@ -3167,210 +3215,215 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
   }
 
   Widget _buildFuturePropertyCard(FutureProperty f, bool isDark) {
-    return FutureBuilder<NextCallingItem?>(
-      future: fetchLatestCallingDate(f.id.toString()),
-      builder: (context, snapshot) {
+    final apiData = _nextCallingCache[f.id.toString()];
+    final nextDate = apiData?.nextCallingDate;
+    final String reason = apiData?.reason ?? "";
 
-        final apiData = snapshot.data;
+    final bool isCompleted =
+        reason.isNotEmpty;
 
-        return GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => Future_Property_details(
-                  idd: f.id.toString(),
-                ),
-              ),
-            );
-          },
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [
-                  Color(0xFFF02626),
-                  Color(0xFFFF9E0B),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(14),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-
-                /// 🔹 TITLE + BUY/RENT
-                Row(
-                  children: [
-                    const Icon(
-                      PhosphorIcons.buildings,
-                      size: 16,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        f.propertyAddress,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        f.buyRent,
-                        style: const TextStyle(
-                          fontFamily: "poppinsBold",
-                          color: Colors.blue,
-                          fontSize: 11,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 6),
-
-                /// 📍 LOCATION
-                Text(
-                  "${f.place}  •  ${f.residenceType}",
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-
-                const SizedBox(height: 8),
-
-                /// 🚆 METRO + FLOORS
-                Row(
-                  children: [
-                    if (f.metroName.isNotEmpty)
-                      _miniChip(
-                        icon: PhosphorIcons.train,
-                        text: "${f.metroName} ${f.metroDistance}",
-                        isDark: isDark,
-                      ),
-                    if (f.metroName.isNotEmpty) const SizedBox(width: 6),
-                    _miniChip(
-                      icon: PhosphorIcons.star_fill,
-                      text: "${f.totalFloor}",
-                      isDark: isDark,
-                    ),
-                  ],
-                ),
-
-                /// ✅ NEXT CALL DATE FROM API
-                if (apiData != null &&
-                    apiData.nextCallingDate.isNotEmpty) ...[
-
-                  const SizedBox(height: 8),
-
-                  /// 🔹 NEXT CALL DATE CONTAINER
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.white.withOpacity(0.4)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.calendar_today,
-                          size: 14,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          "Next Call: ${formatDate(apiData.nextCallingDate)}",
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  /// 🔹 REASON CONTAINER (Only if exists)
-                  // if (apiData.reason != null &&
-                  //     apiData.reason!.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white.withOpacity(0.3)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.info_outline,
-                            size: 14,
-                            color: Colors.white,
-                          ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              "Reason: ${apiData.reason}",
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                // ],
-
-                /// 🏢 FIELDWORKER
-                if (f.fieldWorkerName.isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    "${f.fieldWorkerName} • ${f.fieldWorkerNumber}",
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ],
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => Future_Property_details(
+              idd: f.id.toString(),
             ),
           ),
         );
       },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isCompleted
+                ? [
+              const Color(0xFF1B8E3E),   // deep green
+              const Color(0xFF4CAF50),   // light green
+            ]
+                : const [
+              Color(0xFFF02626),
+              Color(0xFFFF9E0B),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            /// 🔹 TITLE + BUY/RENT
+            Row(
+              children: [
+                const Icon(
+                  PhosphorIcons.buildings,
+                  size: 16,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    f.propertyAddress,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    f.buyRent,
+                    style: const TextStyle(
+                      fontFamily: "poppinsBold",
+                      color: Colors.blue,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 6),
+
+            /// 📍 LOCATION
+            Text(
+              "${f.place}  •  ${f.residenceType}",
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            /// 🚆 METRO + FLOORS
+            Row(
+              children: [
+                if (f.metroName.isNotEmpty)
+                  _miniChip(
+                    icon: PhosphorIcons.train,
+                    text: "${f.metroName} ${f.metroDistance}",
+                    isDark: isDark,
+                  ),
+                if (f.metroName.isNotEmpty) const SizedBox(width: 6),
+                _miniChip(
+                  icon: PhosphorIcons.star_fill,
+                  text: "${f.totalFloor}",
+                  isDark: isDark,
+                ),
+              ],
+            ),
+
+            /// ✅ NEXT CALL SECTION (Only if valid)
+            if (nextDate != null &&
+                nextDate.isNotEmpty &&
+                nextDate.toLowerCase() != "null") ...[
+
+              const SizedBox(height: 8),
+
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withOpacity(0.4)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.calendar_today,
+                      size: 14,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      "Next Call: ${formatDate(nextDate)}",
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              /// 🔹 REASON (if exists)
+              if (reason != null &&
+                  reason.isNotEmpty &&
+                  reason.toLowerCase() != "null") ...[
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.white.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.info_outline,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          "Reason: $reason",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+
+            /// 🏢 FIELDWORKER
+            if (f.fieldWorkerName.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                "${f.fieldWorkerName} • ${f.fieldWorkerNumber}",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 

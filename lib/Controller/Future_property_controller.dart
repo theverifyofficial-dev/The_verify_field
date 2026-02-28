@@ -277,14 +277,46 @@ class FuturePropertyController extends ChangeNotifier {
   }
 
   void search(String query) {
-    if (query.isEmpty) {
+    if (query.trim().isEmpty) {
       _filtered = List.from(_all);
     } else {
+      final lowerQuery = query.toLowerCase();
+
       _filtered = _all.where((item) {
-        return item.propertyNameAddress
-            ?.toLowerCase()
-            .contains(query.toLowerCase()) ??
-            false;
+        return
+          item.id.toString().contains(lowerQuery) ||
+
+              (item.propertyNameAddress ?? '')
+                  .toLowerCase()
+                  .contains(lowerQuery) ||
+
+              (item.ownerName ?? '')
+                  .toLowerCase()
+                  .contains(lowerQuery) ||
+
+              (item.ownerNumber ?? '')
+                  .toLowerCase()
+                  .contains(lowerQuery) ||
+
+              (item.caretakerName ?? '')
+                  .toLowerCase()
+                  .contains(lowerQuery) ||
+
+              (item.caretakerNumber ?? '')
+                  .toLowerCase()
+                  .contains(lowerQuery) ||
+
+              (item.place ?? '')
+                  .toLowerCase()
+                  .contains(lowerQuery) ||
+
+              (item.buyRent ?? '')
+                  .toLowerCase()
+                  .contains(lowerQuery) ||
+
+              (item.residenceCommercial ?? '')
+                  .toLowerCase()
+                  .contains(lowerQuery);
       }).toList();
     }
 

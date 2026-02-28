@@ -2417,7 +2417,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    "Building ID: ${r.subId}",
+                    "Building ID: ${r.building_id}",
                     style: TextStyle(
                       fontSize: 11,
                       fontFamily: "PoppinsBold",

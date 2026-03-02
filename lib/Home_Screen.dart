@@ -2268,10 +2268,10 @@ class _GradientBorderPainter extends CustomPainter {
         startAngle: angle,
         endAngle: angle + 2 * pi,
         colors: const [
-          Color(0xFF4285F4), // blue
-          Color(0xFFDB4437), // red
-          Color(0xFFF4B400), // yellow
-          Color(0xFF0F9D58), // green
+          Color(0xFF4285F4),
+          Color(0xFFDB4437),
+          Color(0xFFF4B400),
+          Color(0xFF0F9D58),
           Color(0xFF4285F4),
         ],
       ).createShader(rect)

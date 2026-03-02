@@ -503,21 +503,18 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-
       backgroundColor:
       isDark ? const Color(0xFF020617) : Colors.grey.shade50,
-
       appBar: AppBar(
         backgroundColor: isDark ? const Color(0xFF020617) : Colors.grey.shade100,
         surfaceTintColor:
         isDark ? const Color(0xFF020617) : Colors.grey.shade100,
-
-
         title: const Text("Insurance Details",style: TextStyle(fontFamily: "PoppinsMedium"),),
         elevation: 0,
       ),
 
-      body: Stack(
+      body:
+        Stack(
         children: [
 
           SingleChildScrollView(

@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Administrator/Account_registeration.dart';
 
+import '../APK_VERSION/ApkVersionScreen.dart';
 import '../Z-Screen/Login_page.dart';
 import '../model/Profile_model.dart';
 
@@ -174,6 +175,18 @@ class _ProfilePageState extends State<AdminProfile> {
             color: isDark ? Colors.white : Colors.black,
           ),
         ),
+        actions: [
+          IconButton(
+            icon:  Icon(Icons.download_for_offline_rounded,
+              color:  isDark ? Colors.white : const Color(0xFF1A1A1A), size: 30,),
+            onPressed:() {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ApkVersionScreen()),
+              );
+            },
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

@@ -2435,7 +2435,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           gradient: LinearGradient(
             colors: isCompleted
                 ? [Color(0xFF1B8E3E), Color(0xFF4CAF50)]
-                : [Color(0xFFF02626), Color(0xFFFF9E0B)],
+                : [Color(0xFF1E3C72), Color(0xFF2A5298)],
           ),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
@@ -4271,14 +4271,13 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           ),
         ),
 
-        // 🔹 SUBTITLE (Selected Day)
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(28),
           child: Padding(
             padding: const EdgeInsets.only(bottom: 6),
             child: Text(
               _selectedDay != null
-                  ? "Selected: ${_selectedDay!.day} ${_monthName(_selectedMonth).substring(0, 3)}"
+                  ? "Selected: ${_selectedDay!.day} ${_monthName(_selectedDay!.month).substring(0, 3)} ${_selectedDay!.year}"
                   : "",
               style: TextStyle(
                 fontSize: 13,
@@ -4298,7 +4297,6 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             onPressed: () => _fetchData(_selectedDay ?? _focusedDay),
           ),
 
-          // Calendar View Switch
           PopupMenuButton<String>(
             tooltip: "Calendar View",
             onSelected: (value) {

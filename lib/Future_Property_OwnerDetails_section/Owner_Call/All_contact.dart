@@ -220,6 +220,28 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
                                   ],
                                 ),
 
+                                if (log['reason'] != null &&
+                                    log['reason'].toString().isNotEmpty) ...[
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.info_outline,
+                                          size: 14, color: Colors.orange),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: Text(
+                                          "Reason: ${log['reason']}",
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.orange,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
@@ -250,7 +272,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
                                     label: const Text("Update Status"),
                                     onPressed: () {
                                       Navigator.pop(context); // close logs
-                                      _showUpdateReasonSelector(log['id'].toString());
+                                      _showUpdateReasonSelector(flatId);
                                     },
                                   ),
                                 ),
@@ -282,12 +304,12 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
         },
       );
 
-      print("Sending ID: $id");
-      print("Update Status Response: ${response.body}");
+      debugPrint("Update Status Response: ${response.body}");
     } catch (e) {
       debugPrint("Update Status Error: $e");
     }
   }
+
 
   Future<void> fetchFlats() async {
     setState(() => isLoading = true);
@@ -356,6 +378,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
           "date": date,
           "time": time,
           "subid": id,
+          "building_id": widget.buildingId,
           "fieldworkar_name": FName,
           "fieldworkar_number": FNum,
           "call_done": call_done,
@@ -560,11 +583,6 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
       },
     );
   }
-
-
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -877,8 +895,18 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
                 label: const Text("Call"),
                 onPressed: () async {
                   final Uri uri = Uri.parse("tel:$number");
+
                   if (await canLaunchUrl(uri)) {
                     await launchUrl(uri);
+
+                    // 🔥 Log call without reason
+                    await _logContact(
+                      message: "Call made to $number",
+                      id: id,
+                      reason: "", // no reason
+                    );
+
+                    fetchFlats();
                   }
                 },
               ),
@@ -901,8 +929,19 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
                   final url = Uri.parse("https://wa.me/$phone?text=$msg");
 
                   if (await canLaunchUrl(url)) {
-                    await launchUrl(url,
-                        mode: LaunchMode.externalApplication);
+                    await launchUrl(
+                      url,
+                      mode: LaunchMode.externalApplication,
+                    );
+
+                    // 🔥 Log WhatsApp without reason
+                    await _logContact(
+                      message: "WhatsApp message sent to $number",
+                      id: id,
+                      reason: "", // no reason
+                    );
+
+                    fetchFlats();
                   }
                 },
               ),

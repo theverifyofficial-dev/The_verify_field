@@ -1560,7 +1560,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // Curved Silver App Bar with Dual Target Indicators
             SliverAppBar(
               expandedHeight: expandedHeight,
               collapsedHeight: (screenHeight * 0.1).clamp(60.0, 80.0),

@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../Administrator/Admin_future _property/Future_Property_Details.dart';
+import '../Custom_Widget/property_preview.dart';
 import '../Demand_2/Demand_detail.dart';
 import '../Future_Property_OwnerDetails_section/Future_Property.dart';
 import '../Future_Property_OwnerDetails_section/Future_property_details.dart';
@@ -621,7 +622,6 @@ class FutureProperty {
   }
 }
 
-/// -------- WEBSITE VISIT MODEL --------
 class WebsiteVisitResponse {
   final String status;
   final List<WebsiteVisit> data;
@@ -1440,6 +1440,23 @@ class NextCallingItem {
   }
 }
 
+class CallingBuildingData {
+  final String image;
+  final String address;
+
+  CallingBuildingData({
+    required this.image,
+    required this.address,
+  });
+
+  factory CallingBuildingData.fromJson(Map<String, dynamic> json) {
+    return CallingBuildingData(
+      image: json['images'] ?? '',
+      address: json['property_address_for_fieldworkar'] ?? '',
+    );
+  }
+}
+
 /// -------- MAIN PAGE --------
 class CalendarTaskPage extends StatefulWidget {
   const CalendarTaskPage({super.key});
@@ -1484,6 +1501,20 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
   String _calendarView = "Week";
   List<PendingAgreement> _pendingAgreements = [];
   List<AcceptedAgreement> _acceptedAgreements = [];
+  Map<String, CallingBuildingData> _buildingImageCache = {};
+  List<CalendarAddFlat> _calendarAddFlats = [];
+  int totalBuildings = 0;
+  int buildingsWithFlat = 0;
+  int emptyBuildings = 0;
+  String? userName;
+  String? userNumber;
+
+  String _monthName(int m) => _months[m - 1];
+  List<WebsiteVisit> _websiteVisits = [];
+
+  final Map<String, int> yearlyTargets = {
+    "Building": 250,
+  };
 
   @override
   void initState() {
@@ -1498,6 +1529,33 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       loadUserName();
     });
   }
+
+  Future<void> fetchBuildingImage(String id) async {
+    if (_buildingImageCache.containsKey(id)) return;
+
+    try {
+      final res = await http.get(
+        Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/calling_building.php?id=$id",
+        ),
+      );
+
+      if (res.statusCode == 200 && res.body.isNotEmpty) {
+        final decoded = jsonDecode(res.body);
+
+        if (decoded['status'] == true && decoded['data'] != null && decoded['data'].isNotEmpty) {
+          final data = CallingBuildingData.fromJson(decoded['data'][0]);
+
+          setState(() {
+            _buildingImageCache[id] = data;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Building Image API error: $e");
+    }
+  }
+
   Future<NextCallingItem?> fetchLatestCallingDate(String buildingId) async {
     final url =
         "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_next_calling_date_in_building.php?subid=$buildingId";
@@ -1559,8 +1617,6 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
     }
   }
 
-  String? userName;
-  String? userNumber;
   Future<void> loadUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final storedName = prefs.getString('name');
@@ -1573,10 +1629,12 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       });
     }
   }
+
   Future<List<CalendarAddFlat>> fetchCalendarAddFlats({
     required String date,
     required String fieldWorkerNumber,
-  }) async {
+  })
+  async {
     final url =
         "https://verifyserve.social/Second%20PHP%20FILE/Calender/"
         "task_for_add_flat_in_future_property.php"
@@ -1591,14 +1649,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       return [];
     }
   }
-  List<CalendarAddFlat> _calendarAddFlats = [];
-  int totalBuildings = 0;
-  int buildingsWithFlat = 0;
-  int emptyBuildings = 0;
 
-  final Map<String, int> yearlyTargets = {
-    "Building": 250,
-  };
   Future<void> _fetchOverviewBuildingDetail() async {
     final uri = Uri.parse(
       "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/building_over_view.php?fieldworkarnumber=$userNumber",
@@ -1624,6 +1675,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           int.tryParse(data["building_without_flat"].toString()) ?? 0;
     });
   }
+
   void _openBuildingCalculator() {
     final int target = yearlyTargets["Building"]!;
     final int done = buildingsWithFlat;   // 🔥 IMPORTANT FIX
@@ -1815,6 +1867,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       },
     );
   }
+
   Widget _miniStat(String label, int value) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -1854,7 +1907,8 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       double divisor,
       int done,
       int target,
-      ) {
+      )
+  {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final double raw = remaining / divisor;
@@ -1927,6 +1981,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       ),
     );
   }
+
   Future<void> loadAddFlats(DateTime date) async {
     final formatted =
         "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
@@ -1938,10 +1993,6 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
     setState(() {});
   }
-
-
-  String _monthName(int m) => _months[m - 1];
-  List<WebsiteVisit> _websiteVisits = [];
 
   Future<void> _fetchData(DateTime date) async {
     setState(() => _isLoading = true);
@@ -1968,7 +2019,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         http.get(Uri.parse(
             "https://verifyserve.social/Second%20PHP%20FILE/Calender/"
                 "tenant_demand_for_field_task.php"
-                "?fieldworker_assigned_at=$formattedDate"
+                "&fieldworker_assigned_at=$formattedDate"
                 "&assigned_fieldworker_name=${userName ?? ''}"
         )),
         http.get(Uri.parse(
@@ -1989,6 +2040,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             "https://verifyserve.social/Second%20PHP%20FILE/Calender/"
                 "building_calling_reminder.php"
                 "?next_calling_date=$formattedDate"
+                "&call_done=0"
                 "&fieldworkar_number=$userNumber"
         )),
 
@@ -2167,11 +2219,17 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         _tenantDemands = td?.data ?? [];
         _acceptedAgreements = aa?.data ?? [];
         _futureProperties = f?.data ?? [];
+        for (var property in _futureProperties) {
+          fetchBuildingImage(property.id.toString());
+        }
         _liveProperties = l?.data ?? [];
         _websiteVisits = w?.data ?? [];
         _bookedTenantVisits = bv?.data ?? [];
         _upcomingFlats = uf?.data ?? [];
         _callingReminders = cr?.data ?? [];
+        for (var reminder in _callingReminders) {
+          fetchBuildingImage(reminder.building_id.toString());
+        }
         _isLoading = false;
       });
 
@@ -2352,9 +2410,11 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
   Widget _buildCallingReminderCard(CallingReminder r, bool isDark) {
     final String reason = r.reason ?? "";
+    final bool isCompleted = reason.isNotEmpty;
 
-    final bool isCompleted =
-        reason.isNotEmpty;
+    final buildingData =
+    _buildingImageCache[r.building_id.toString()];
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -2362,140 +2422,170 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           MaterialPageRoute(
             builder: (_) => Future_Property_details(
               idd: r.building_id,
-
             ),
           ),
-        );
+        ).then((_) {
+          _fetchData(_selectedDay ?? _focusedDay);
+        });
       },
-      child:  Container(
-        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          gradient:  LinearGradient(
-
+          gradient: LinearGradient(
             colors: isCompleted
-                ? [
-              const Color(0xFF1B8E3E),   // deep green
-              const Color(0xFF4CAF50),   // light green
-            ]
-                : const [
-              Color(0xFFF02626),
-              Color(0xFFFF9E0B),
-            ],
-
+                ? [Color(0xFF1B8E3E), Color(0xFF4CAF50)]
+                : [Color(0xFFF02626), Color(0xFFFF9E0B)],
           ),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
+              color: Colors.black.withOpacity(0.12),
               blurRadius: 10,
-              offset: const Offset(0, 4),
+              offset: Offset(0, 4),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// 🔹 MESSAGE
+
+            /// 🔹 IMAGE + ADDRESS ROW
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Follow up with the client \nfor the building inquiry.",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color:Colors.white ,
+
+                /// IMAGE
+                if (buildingData != null &&
+                    buildingData.image.isNotEmpty)
+                  GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PropertyPreview(
+                              ImageUrl:
+                              "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
+                            ),
+                          ),
+                        );
+                      },
+                      child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.network(
+                      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  ),
+
+                if (buildingData != null &&
+                    buildingData.image.isNotEmpty)
+                  const SizedBox(width: 12),
+
+                /// DETAILS
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+
+                      /// ADDRESS
+                      Text(
+                        buildingData?.address ??
+                            "Building ID: ${r.building_id}",
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+
+                      const SizedBox(height: 6),
+
+                      /// NEXT CALL DATE
+                      Text(
+                        "Next Call: ${formatReminderDate(r.nextCallingDate)}",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
+                /// BUILDING ID CHIP
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    "Building ID: ${r.building_id}",
+                    "ID: ${r.building_id}",
                     style: TextStyle(
                       fontSize: 11,
-                      fontFamily: "PoppinsBold",
                       fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.indigoAccent : Colors.indigo,
+                      color: isDark
+                          ? Colors.indigoAccent
+                          : Colors.indigo,
+                    ),
+                  ),
+                ),
+
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+
+
+            /// 🔹 REASON
+            if (reason.isNotEmpty &&
+                reason.toLowerCase() != "null") ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  "Reason: $reason",
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+                Spacer(),
+                /// 🔹 FIELD WORKER
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    "By: ${r.fieldWorkerName} • ${r.fieldWorkerNumber}",
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.white,
+                      fontStyle: FontStyle.italic,
                     ),
                   ),
                 ),
               ],
             ),
-
-            const SizedBox(height: 6),
-
-            /// 🔹 NEXT CALL DATE
-            Text(
-              "Next Call Date: ${formatReminderDate(r.nextCallingDate)}",
-              style: TextStyle(
-                fontFamily: "PoppinsBold",
-                fontSize: 12,
-                color: Colors.white ,
-              ),
-            ),
-
-            /// 🔹 REASON (if exists)
-            if (reason != null &&
-                reason.isNotEmpty &&
-                reason.toLowerCase() != "null") ...[
-              const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withOpacity(0.3)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.info_outline,
-                      size: 14,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        "Reason: $reason",
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 6),
-
-            /// 🔹 FIELD WORKER
-            Text(
-              "FW: ${r.fieldWorkerName} • ${r.fieldWorkerNumber}",
-              style: TextStyle(
-                  fontSize: 12,
-                  fontFamily: "PoppinsBold",
-                  color: Colors.white
-              ),
-            ),
-
-
           ],
         ),
       ),
     );
   }
-
   Widget _buildAcceptedAgreementCard(AcceptedAgreement t, bool isDark) {
     final Color statusColor = Colors.green;
 
@@ -3274,9 +3364,8 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
     final apiData = _nextCallingCache[f.id.toString()];
     final nextDate = apiData?.nextCallingDate;
     final String reason = apiData?.reason ?? "";
-
-    final bool isCompleted =
-        reason.isNotEmpty;
+    final buildingData = _buildingImageCache[f.id.toString()];
+    final bool isCompleted = reason.isNotEmpty;
 
     return GestureDetector(
       onTap: () {
@@ -3287,29 +3376,25 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               idd: f.id.toString(),
             ),
           ),
-        );
+        ).then((_) {
+          _fetchData(_selectedDay ?? _focusedDay);
+        });
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: isCompleted
-                ? [
-              const Color(0xFF1B8E3E),   // deep green
-              const Color(0xFF4CAF50),   // light green
-            ]
-                : const [
-              Color(0xFFF02626),
-              Color(0xFFFF9E0B),
-            ],
+                ? [Color(0xFF1B8E3E), Color(0xFF4CAF50)]
+                : [Color(0xFFF02626), Color(0xFFFF9E0B)],
           ),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 10,
+              offset: Offset(0, 4),
             ),
           ],
         ),
@@ -3317,102 +3402,131 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            /// 🔹 TITLE + BUY/RENT
+            /// 🔹 IMAGE + DETAILS ROW
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(
-                  PhosphorIcons.buildings,
-                  size: 16,
-                  color: Colors.white,
-                ),
-                const SizedBox(width: 6),
+
+                /// 🖼 IMAGE
+                if (buildingData != null &&
+                    buildingData.image.isNotEmpty)
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PropertyPreview(
+                            ImageUrl:
+                            "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
+                          ),
+                        ),
+                      );
+                    },
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.network(
+                        "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
+                        width: 110,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+
+                if (buildingData != null &&
+                    buildingData.image.isNotEmpty)
+                  const SizedBox(width: 12),
+
+                /// 📋 DETAILS
                 Expanded(
-                  child: Text(
-                    f.propertyAddress,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    f.buyRent,
-                    style: const TextStyle(
-                      fontFamily: "poppinsBold",
-                      color: Colors.blue,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+
+                      /// TITLE + BUY/RENT
+                      Row(
+                        children: [
+                          Icon(
+                            PhosphorIcons.buildings,
+                            size: 16,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              buildingData?.address ??
+                                  f.propertyAddress,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 6),
+
+                      /// BUY/RENT CHIP
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          f.buyRent,
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 6),
+
+                      /// LOCATION
+                      Text(
+                        "${f.place} • ${f.residenceType}",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+
+                    ],
                   ),
                 ),
               ],
             ),
 
-            const SizedBox(height: 6),
-
-            /// 📍 LOCATION
-            Text(
-              "${f.place}  •  ${f.residenceType}",
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            /// 🚆 METRO + FLOORS
-            Row(
-              children: [
-                if (f.metroName.isNotEmpty)
-                  _miniChip(
-                    icon: PhosphorIcons.train,
-                    text: "${f.metroName} ${f.metroDistance}",
-                    isDark: isDark,
-                  ),
-                if (f.metroName.isNotEmpty) const SizedBox(width: 6),
-                _miniChip(
-                  icon: PhosphorIcons.star_fill,
-                  text: "${f.totalFloor}",
-                  isDark: isDark,
-                ),
-              ],
-            ),
-
-            /// ✅ NEXT CALL SECTION (Only if valid)
+            /// 🔽 NEXT CALL SECTION
             if (nextDate != null &&
                 nextDate.isNotEmpty &&
                 nextDate.toLowerCase() != "null") ...[
-
-              const SizedBox(height: 8),
-
+              const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withOpacity(0.4)),
+                  border: Border.all(
+                      color: Colors.white.withOpacity(0.4)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
-                      Icons.calendar_today,
-                      size: 14,
-                      color: Colors.white,
-                    ),
+                    const Icon(Icons.calendar_today,
+                        size: 14, color: Colors.white),
                     const SizedBox(width: 6),
                     Text(
                       "Next Call: ${formatDate(nextDate)}",
@@ -3426,54 +3540,50 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 ),
               ),
 
-              /// 🔹 REASON (if exists)
-              if (reason != null &&
-                  reason.isNotEmpty &&
+              if (reason.isNotEmpty &&
                   reason.toLowerCase() != "null") ...[
                 const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.info_outline,
-                        size: 14,
-                        color: Colors.white,
-                      ),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          "Reason: $reason",
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
+                Text(
+                  "Reason: $reason",
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.white,
                   ),
                 ),
               ],
             ],
+            const SizedBox(height: 6),
 
-            /// 🏢 FIELDWORKER
+            Row(
+              children: [
+                if (f.metroName.isNotEmpty)
+                  _miniChip(
+                    icon: PhosphorIcons.train,
+                    text:
+                    "${f.metroName} ${f.metroDistance}",
+                    isDark: isDark,
+                  ),
+                if (f.metroName.isNotEmpty)
+                  const SizedBox(width: 6),
+                _miniChip(
+                  icon: PhosphorIcons.star_fill,
+                  text: "${f.totalFloor}",
+                  isDark: isDark,
+                ),
+              ],
+            ),
+            /// 👷 FIELDWORKER
             if (f.fieldWorkerName.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                "${f.fieldWorkerName} • ${f.fieldWorkerNumber}",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  "By: ${f.fieldWorkerName} • ${f.fieldWorkerNumber}",
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.white,
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
               ),
             ],
@@ -3744,6 +3854,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       ),
     );
   }
+
   String formatTimeRange12h(String timeRange) {
     try {
       final parts = timeRange.split('-');
@@ -3765,6 +3876,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       return timeRange; // fallback
     }
   }
+
   Widget _buildWebsiteVisitCard(WebsiteVisit w, bool isDark) {
     return GestureDetector(
       onTap: () async {
@@ -3915,6 +4027,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         return Colors.grey;
     }
   }
+
   String formatDate(String date) {
     try {
       final parsed = DateTime.parse(date);
@@ -3923,6 +4036,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       return date; // fallback if API date is invalid
     }
   }
+
   Widget _buildCalendarAddFlatCard(CalendarAddFlat f, bool isDark) {
     final statusColor = _getLiveUnliveColor(f.liveUnlive);
 
@@ -4526,5 +4640,4 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       ),
     );
   }
-
 }

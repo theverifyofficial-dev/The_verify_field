@@ -29,6 +29,8 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   late Future<List<Ground>> flatsFuture;
   late Future<List<FutureProperty2>> propertyFuture;
   late Future<List<DocumentMainModel_F>> imagesFuture;
+  String? _networkImageUrl;
+
 
   @override
   void initState() {
@@ -423,6 +425,9 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+
+
+
                   // Property Type Tags - Fixed overflow with Wrap
                   Wrap(
                     spacing: 8,
@@ -454,6 +459,8 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+
+
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -791,9 +798,28 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+
                   // Section Header
                   Row(
                     children: [
+                          Container(
+                            width: 140,
+                            height: 100,
+                            child: _networkImageUrl != null && _networkImageUrl!.isNotEmpty
+                                ? ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: Image.network(
+                                _networkImageUrl!,
+                                height: 100,
+                                width: 100,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                                : Center(child: Text('No image Added.', style: TextStyle(color: Colors.black))),
+                          ),
+
+                      const SizedBox(width: 20),
+
                       Icon(Icons.business, color: Colors.blue, size: 20),
                       const SizedBox(width: 8),
                       const Text(
@@ -804,9 +830,9 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                           color: Colors.black87,
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
                   // Contact Information
                   _buildContactSection(property, isDarkMode),
                   const SizedBox(height: 20),
@@ -1152,6 +1178,8 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
         }
 
         final data = snapshot.data!.first;
+        _networkImageUrl = "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/" + (data.images.isNotEmpty ? data.images : '');
+
 
         return Container(
           margin: const EdgeInsets.all(16),
@@ -1171,10 +1199,14 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => AllContact(
+                        builder: (context) => AllContact(
                           buildingId: data.id,
                           ownerName: data.ownerName,
                           ownerNumber: data.ownerNumber,
+                          buildingImage: _networkImageUrl,
+                          buildingAddress: data.propertyAddressForFieldworker,
+                          caretakerName: data.caretakerName,
+                          caretakerNumber: data.caretakerNumber,
                         ),
                       ),
                     );

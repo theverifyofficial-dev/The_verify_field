@@ -10,12 +10,20 @@ class AllContact extends StatefulWidget {
   final String buildingId;
   final String? ownerName;     // ✅ Nullable
   final String? ownerNumber;   // ✅ Nullable
+  final String? buildingImage;
+  final String? buildingAddress;
+  final String? caretakerName;
+  final String? caretakerNumber;
 
   const AllContact({
     super.key,
     required this.buildingId,
-    this.ownerName,            // ✅ Not required
-    this.ownerNumber,          // ✅ Not required
+    this.ownerName,
+    this.ownerNumber,
+    this.buildingImage,
+    this.buildingAddress,
+    this.caretakerName,
+    this.caretakerNumber,
   });
 
 
@@ -417,7 +425,6 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
     return null;
   }
 
-
   Future<void> _showUpdateReasonSelector(String id) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -609,6 +616,22 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+
+                /// 🔥 Building Image
+                if (widget.buildingImage != null &&
+                    widget.buildingImage!.isNotEmpty)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: Image.network(
+                      widget.buildingImage!,
+                      height: 280,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+
+                const SizedBox(height: 12),
+
                 Row(
                   children: [
                     Icon(Icons.apartment_rounded,
@@ -616,26 +639,57 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
                     const SizedBox(width: 8),
                     const Text(
                       "Building Overview",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                      style: TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.w700),
                     ),
                   ],
                 ),
+
                 const Divider(height: 20),
+
                 _infoRow("Building ID", widget.buildingId, isDark),
-                const SizedBox(height: 12),
+
+                const SizedBox(height: 8),
+
+                /// 🔥 Address
+                _infoRow(
+                  "Address",
+                  widget.buildingAddress ?? "Not Available",
+                  isDark,
+                ),
+
+                const SizedBox(height: 16),
+
+                /// 🔵 OWNER SECTION
                 const Text("Owner Details",
                     style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 6),
-                _infoRow("Name", widget.ownerName??"Not Available", isDark),
+
+                _infoRow("Name", widget.ownerName ?? "Not Available", isDark),
+
+                const SizedBox(height: 16),
+
+                /// 🟢 CARETAKER SECTION
+                const Text("Caretaker Details",
+                    style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 6),
-                _contactButtons(
-                  isDark: isDark,
-                  number: widget.ownerNumber??"Not Available",
-                  id: widget.buildingId,
-                ),
+
+                _infoRow(
+                    "Name",
+                    widget.caretakerName ?? "Not Available",
+                    isDark),
+                const SizedBox(height: 6),
+
+                _buildingContactButtons(isDark),
+
                 const SizedBox(height: 12),
-                _reminderCard(isDark: isDark, id: widget.buildingId),
+
+                _reminderCard(
+                    isDark: isDark,
+                    id: widget.buildingId),
+
                 const SizedBox(height: 12),
+
                 _viewLogsCard(
                   isDark: isDark,
                   title: "View Logs",
@@ -749,6 +803,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
           isDark: isDark,
           number: flat['owner_number'] ?? "",
           id: flat['P_id'].toString(),
+          contactType: "Flat Owner",
         ),
         const SizedBox(height: 12),
         _reminderCard(isDark: isDark, id: flat['P_id'].toString()),
@@ -762,7 +817,6 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
       ],
     );
   }
-
 
   Widget _glassCard(bool isDark, {required Widget child, EdgeInsetsGeometry? margin}) {
     return ClipRRect(
@@ -805,7 +859,8 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
     required bool isDark,
     required String title,
     required VoidCallback onTap,
-  }) {return GestureDetector(
+  }) {
+    return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
@@ -846,7 +901,8 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
           ],
         ),
       ),
-    );}
+    );
+  }
 
   Widget _infoRow(String title, String value, bool isDark) {
     return Row(
@@ -877,6 +933,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
     required bool isDark,
     required String number,
     required String id,
+    required String contactType,
   }) {
     return Column(
       children: [
@@ -901,7 +958,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
 
                     // 🔥 Log call without reason
                     await _logContact(
-                      message: "Call made to $number",
+                      message: "Call made to $contactType - $number",
                       id: id,
                       reason: "", // no reason
                     );
@@ -936,7 +993,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
 
                     // 🔥 Log WhatsApp without reason
                     await _logContact(
-                      message: "WhatsApp message sent to $number",
+                      message: "WhatsApp message sent to $contactType - $number",
                       id: id,
                       reason: "", // no reason
                     );
@@ -951,10 +1008,150 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
       ],
     );
   }
+
+  Widget _buildingContactButtons(bool isDark) {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+            icon: const Icon(Icons.call),
+            label: const Text("Call"),
+            onPressed: () {
+              _selectPersonAndContact(isCall: true);
+            },
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+            ),
+            icon: const Icon(Icons.chat),
+            label: const Text("WhatsApp"),
+            onPressed: () {
+              _selectPersonAndContact(isCall: false);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _selectPersonAndContact({required bool isCall}) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? Colors.black : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Select Person",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              if (widget.ownerNumber != null &&
+                  widget.ownerNumber!.isNotEmpty)
+                ListTile(
+                  leading: const Icon(Icons.person),
+                  title: Text("Owner (${widget.ownerName ?? ''})"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _performContact(
+                      number: widget.ownerNumber!,
+                      contactType: "Owner",
+                      isCall: isCall,
+                    );
+                  },
+                ),
+
+              if (widget.caretakerNumber != null &&
+                  widget.caretakerNumber!.isNotEmpty)
+                ListTile(
+                  leading: const Icon(Icons.badge),
+                  title: Text("Caretaker (${widget.caretakerName ?? ''})"),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _performContact(
+                      number: widget.caretakerNumber!,
+                      contactType: "Caretaker",
+                      isCall: isCall,
+                    );
+                  },
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _performContact({
+    required String number,
+    required String contactType,
+    required bool isCall,
+  })
+  async {
+
+    if (isCall) {
+      final Uri uri = Uri.parse("tel:$number");
+
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+
+        await _logContact(
+          message: "Call made to $contactType - $number",
+          id: widget.buildingId,
+          reason: "",
+        );
+      }
+    } else {
+      final phone = number.replaceAll(' ', '');
+      final msg = Uri.encodeComponent("Hello!");
+      final url = Uri.parse("https://wa.me/$phone?text=$msg");
+
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+
+        await _logContact(
+          message: "WhatsApp sent to $contactType - $number",
+          id: widget.buildingId,
+          reason: "",
+        );
+      }
+    }
+
+    fetchFlats();
+  }
+
   Future<void> _showReasonSelector({
     required String number,
     required String id,
-  }) async {
+  })
+  async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showModalBottomSheet(

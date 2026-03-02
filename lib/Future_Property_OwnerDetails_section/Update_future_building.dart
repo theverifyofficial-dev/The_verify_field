@@ -873,7 +873,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
         controller: controller,
         keyboardType: keyboardType,
-        decoration: InputDecoration(hintText: 'Enter $label', hintStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black), prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null, border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))), filled: true, fillColor: Colors.grey.shade100),
+        decoration: InputDecoration(hintText: 'Enter $label', hintStyle: const TextStyle(color: Colors.black), prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null, border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))), filled: true, fillColor: Colors.grey.shade100),
         inputFormatters: validateLength ? [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)] : [],
       ),
     );
@@ -886,7 +886,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         controller: controller,
         keyboardType: keyboardType,
         style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-        decoration: InputDecoration(hintText: 'Enter $label', hintStyle: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black), prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null, border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))), filled: true, fillColor: Colors.grey.shade100),
+        decoration: InputDecoration(hintText: 'Enter $label', hintStyle: const TextStyle(color: Colors.black), prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null, border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))), filled: true, fillColor: Colors.grey.shade100),
         maxLines: 1,
         inputFormatters: validate10Digits ? [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)] : [],
         validator: (value) {
@@ -1075,6 +1075,15 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
       child: Column(
         children: [
           Container(width: 40, height: 5, margin: const EdgeInsets.only(bottom: 20), decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(10))),
+          Text(
+            'Nearby Localities',
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+              color: textCol,
+            ),
+          ),
+          const SizedBox(height: 10),
           TextField(controller: metroCtrl, onChanged: searchMetro, style: TextStyle(color: textCol), decoration: InputDecoration(labelText: "Metro Station", labelStyle: TextStyle(color: textCol.withOpacity(0.8)), filled: true, fillColor: cardBg, border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)))),
           if (loadingMetro) const Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator()),
           if (metroList.isNotEmpty)

@@ -2510,8 +2510,8 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => Future_Property_details(
-                idd: f.id.toString(),
+              builder: (_) => Administater_Future_Property_details(
+                buildingId: f.id.toString(),
               ),
             ),
           );

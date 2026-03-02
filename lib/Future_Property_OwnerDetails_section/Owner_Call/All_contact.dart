@@ -272,7 +272,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
                                     label: const Text("Update Status"),
                                     onPressed: () {
                                       Navigator.pop(context); // close logs
-                                      _showUpdateReasonSelector(log['id'].toString());
+                                      _showUpdateReasonSelector(flatId);
                                     },
                                   ),
                                 ),
@@ -304,12 +304,12 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
         },
       );
 
-      print("Sending ID: $id");
-      print("Update Status Response: ${response.body}");
+      debugPrint("Update Status Response: ${response.body}");
     } catch (e) {
       debugPrint("Update Status Error: $e");
     }
   }
+
 
   Future<void> fetchFlats() async {
     setState(() => isLoading = true);

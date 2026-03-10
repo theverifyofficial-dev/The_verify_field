@@ -64,6 +64,7 @@ class _DetailRow extends StatelessWidget {
                     TextSpan(
                       text: '$label: ',
                       style: TextStyle(
+                        fontFamily: "PoppinsMedium",
                         fontWeight: FontWeight.w600,
                         color: cs.onSurface.withOpacity(0.8),
                         fontSize: fontSize ?? 13,
@@ -72,6 +73,7 @@ class _DetailRow extends StatelessWidget {
                   TextSpan(
                     text: value,
                     style: TextStyle(
+                      fontFamily: "PoppinsMedium",
                       fontWeight: fontWeight ?? FontWeight.normal, // Apply fontWeight if provided
                       color: cs.onSurface.withOpacity(0.9), // Slightly darker for value
                     ),
@@ -95,131 +97,193 @@ class SeeAll_FutureProperty extends StatefulWidget {
 }
 
 class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
-  String _number = '';
-  final Map<int, int> _liveCountMap = {}; // subid -> live count
-  final Map<int, String> _totalFlatsMap = {}; // subid -> total flats count as String
-  bool _prefetching = false;
-  List<PropertyModel> _allProperties = [];
-  List<PropertyModel> _filteredProperties = [];
+
   Timer? _debounce;
   final TextEditingController _searchController = TextEditingController();
-  String selectedLabel = '';
-  int propertyCount = 0;
+
   bool _isLoading = true;
-  bool isLoading = true;
   int? totalFlats;
   int liveFlats = 0;
   int bookFlats = 0;
-  bool _prefetchingEmpty = false;
+  int _currentPage = 1;
+  bool _hasMore = true;
+  bool _isFetchingMore = false;
+  final ScrollController _scrollController = ScrollController();
+  String selectedLabel = 'All';
+  List<PropertyModel> _searchResults = [];
+  bool _isSearching = false;
+
+  int totalRecordsFromApi = 0;
+  List<PropertyModel> _properties = [];
 
   @override
   void initState() {
     super.initState();
+
+    selectedLabel = "All";
+
     _searchController.addListener(_onSearchChanged);
-    _loaduserdata(); // this is cheap
-    // Boot once: fetch data + counters in parallel,
-    // but keep loader on screen for at least 2 seconds.
-    _bootstrap();
+
+    _scrollController.addListener(() {
+      if (_isSearching) return;
+
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        _fetchNextPage();
+      }
+    });
+
+    fetchData(reset: true);
+    fetchTotalFlats();
+    fetchFlatsStatus();
+    print("Widget number: ${widget.number}");
   }
 
-  Future<void> _bootstrap() async {
-    // start both: a 2s delay and your real fetches
-    final minSplash = Future.delayed(const Duration(seconds: 2));
-    final dataFetch = fetchData().then((_) => _prefetchAllPropertyData());
-    // wait for both to complete
-    await Future.wait([minSplash, dataFetch, fetchTotalFlats(), fetchFlatsStatus()]);
-    if (!mounted) return;
-    setState(() => _isLoading = false);
+
+  Future<void> fetchData({bool reset = false}) async {
+    if (_isFetchingMore) return;
+    if (!_hasMore && !reset) return;
+
+    if (reset) {
+      _currentPage = 1;
+      _hasMore = true;
+      _properties.clear();
+    }
+
+    setState(() {
+      _isFetchingMore = true;
+      if (reset) _isLoading = true;
+    });
+
+    String getFilterKey(String label) {
+      switch (label) {
+        case 'All':
+          return 'all';
+        case 'Buy':
+          return 'buy';
+        case 'Rent':
+          return 'rent';
+        case 'Commercial':
+          return 'commercial';
+        case 'Live':
+          return 'live';
+        case 'Unlive':
+          return 'unlive';
+        case 'Missing Field':
+          return 'missing';
+        case 'Empty Building':
+          return 'empty';
+        default:
+          return 'all';
+      }
+    }
+
+    final filterParam = getFilterKey(selectedLabel);
+
+    final url = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/future_property_pagination.php"
+          "?fieldworkarnumber=${widget.number}"
+          "&filter=$filterParam"
+          "&page=$_currentPage"
+          "&limit=10",
+    );
+
+    // print("📡 PAGINATION API CALL:");
+    // print(url.toString());
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body);
+
+      if (body["pagination"] != null) {
+        totalRecordsFromApi =
+            body["pagination"]["total_records"] ?? 0;
+      }
+
+      if (body["status"] == "success") {
+        List data = body["data"];
+
+        final newItems =
+        data.map<PropertyModel>((e) => PropertyModel.FromJson(e)).toList();
+
+        setState(() {
+          _properties.addAll(newItems);
+          _currentPage++;
+          _hasMore = newItems.isNotEmpty;
+        });
+      }
+    }
+
+    setState(() {
+      _isFetchingMore = false;
+      _isLoading = false;
+    });
   }
+
+  Future<void> _fetchNextPage() async {
+    await fetchData();
+  }
+
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     _debounce?.cancel();
-    super.dispose();
-  }
 
-  Future<void> _prefetchAllPropertyData() async {
-    if (_allProperties.isEmpty) return;
-    final futures = _allProperties.map((p) async {
-      try {
-        // Fetch total flats
-        final response2 = await http.get(Uri.parse(
-          'https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=${p.id}',
-        ));
-        String totalStr = "0";
-        if (response2.statusCode == 200) {
-          final body = jsonDecode(response2.body);
-          if (body is List && body.isNotEmpty) {
-            totalStr = body[0]['logg'].toString();
-          }
-        }
-        _totalFlatsMap[p.id] = totalStr;
-        // Fetch live count
-        final response3 = await http.get(Uri.parse(
-          'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${p.id}',
-        ));
-        int liveC = 0;
-        if (response3.statusCode == 200) {
-          final body3 = jsonDecode(response3.body);
-          if (body3 is List && body3.isNotEmpty) {
-            for (var item in body3) {
-              if (item['live_unlive'] == 'Live') {
-                liveC = (item['logs'] as num?)?.toInt() ?? 0;
-                break;
-              }
-            }
-          }
-        }
-        _liveCountMap[p.id] = liveC;
-      } catch (_) {
-        _totalFlatsMap[p.id] = "0";
-        _liveCountMap[p.id] = 0;
-      }
-    }).toList();
-    await Future.wait(futures);
-    if (mounted) setState(() {});
+    super.dispose();
   }
 
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
-    _debounce = Timer(const Duration(milliseconds: 400), () {
-      String query = _searchController.text.toLowerCase().trim();
-      List<PropertyModel> filtered;
+
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      final query = _searchController.text.trim();
+
       if (query.isEmpty) {
-        filtered = List.from(_allProperties);
-        selectedLabel = ''; // optional reset
-      } else {
-        // 🔍 Normal search
-        filtered = _allProperties.where((item) {
-          return (item.id.toString()).toLowerCase().contains(query) ||
-              (item.ownerName ?? '').toLowerCase().contains(query) ||
-              (item.caretakerName ?? '').toLowerCase().contains(query) ||
-              (item.place ?? '').toLowerCase().contains(query) ||
-              (item.buyRent ?? '').toLowerCase().contains(query) ||
-              (item.propertyNameAddress ?? '').toLowerCase().contains(query) ||
-              (item.residenceCommercial ?? '').toLowerCase().contains(query) ||
-              (item.ownerNumber ?? '').toLowerCase().contains(query) ||
-              (item.ownerVehicleNumber ?? '').toLowerCase().contains(query) ||
-              (item.propertyAddressForFieldworker ?? '').toLowerCase().contains(query) ||
-              (item.yourAddress ?? '').toLowerCase().contains(query) ||
-              (item.fieldWorkerName ?? '').toLowerCase().contains(query) ||
-              (item.fieldWorkerNumber ?? '').toLowerCase().contains(query) ||
-              (item.currentDate ?? '').toLowerCase().contains(query) ||
-              (item.roadSize ?? '').toLowerCase().contains(query) ||
-              (item.metroDistance ?? '').toLowerCase().contains(query) ||
-              (item.metroName ?? '').toLowerCase().contains(query) ||
-              (item.mainMarketDistance ?? '').toLowerCase().contains(query) ||
-              (item.ageOfProperty ?? '').toLowerCase().contains(query) ||
-              (item.lift ?? '').toLowerCase().contains(query) ||
-              (item.parking ?? '').toLowerCase().contains(query) ||
-              (item.totalFloor ?? '').toLowerCase().contains(query) ||
-              (item.facility ?? '').toLowerCase().contains(query);
-        }).toList();
+        setState(() {
+          _isSearching = false;
+          _searchResults.clear();
+        });
+
+        await fetchData(reset: true);
+        return;
       }
+
       setState(() {
-        _filteredProperties = filtered;
-        propertyCount = filtered.length;
+        _isSearching = true;
+        _isLoading = true;
+      });
+
+      final url = Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/search_in_future_builing.php"
+            "?fieldworkarnumber=${widget.number}"
+            "&search=$query",
+      );
+
+      // print("🔎 SEARCH API CALL:");
+      // print(url.toString());
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+
+        if (body["status"] == "success") {
+          final List data = body["data"];
+
+          setState(() {
+            _searchResults =
+                data.map<PropertyModel>((e) => PropertyModel.FromJson(e)).toList();
+
+            totalRecordsFromApi = body["total_results"] ?? data.length;
+          });
+        }
+      }
+
+      setState(() {
+        _isLoading = false;
       });
     });
   }
@@ -261,96 +325,76 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
   }
 
   bool _hasMissing(PropertyModel i) => _missingFieldsFor(i).isNotEmpty;
-
-  // ✅ Fetch API only once
-  Future<void> fetchData() async {
-    try {
-      final url = Uri.parse(
-          "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=${widget.number}");
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        List listResponse = json.decode(response.body);
-        listResponse.sort((a, b) => b['id'].compareTo(a['id']));
-        setState(() {
-          _allProperties = listResponse.map((data) => PropertyModel.FromJson(data)).toList();
-          _filteredProperties = _allProperties;
-          propertyCount = _allProperties.length;
-          _isLoading = false;
-        });
-      } else {
-        throw Exception("Unexpected error occurred!");
-      }
-    } catch (e) {
-      debugPrint("API Error: $e");
-      setState(() => _isLoading = false);
-    }
-  }
+  bool _statsLoading = true;
 
   Future<void> fetchFlatsStatus() async {
     try {
       final url = Uri.parse(
         'https://verifyserve.social/WebService4.asmx/GetTotalFlats_Live_under_building?field_workar_number=${widget.number}',
       );
+
       final response = await http.get(url);
+
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as List<dynamic>;
+        final data = jsonDecode(response.body);
+
         int book = 0;
         int live = 0;
-        for (var item in data) {
-          if (item['live_unlive'] == "Book") {
-            book = (item['logs'] as num?)?.toInt() ?? 0;
-          } else if (item['live_unlive'] == "Live") {
-            live = (item['logs'] as num?)?.toInt() ?? 0;
+
+        if (data is List) {
+          for (var item in data) {
+            if (item['live_unlive'] == "Book") {
+              book = int.tryParse(item['subid'].toString()) ?? 0;
+            } else if (item['live_unlive'] == "Live") {
+              live = int.tryParse(item['subid'].toString()) ?? 0;
+            }
           }
         }
-        setState(() {
-          bookFlats = book;
-          liveFlats = live;
-          isLoading = false;
-        });
-      } else {
-        setState(() {
-          bookFlats = 0;
-          liveFlats = 0;
-          isLoading = false;
-        });
+
+        if (mounted) {
+          setState(() {
+            bookFlats = book;
+            liveFlats = live;
+            _statsLoading = false; // 🔥 IMPORTANT
+          });
+        }
       }
     } catch (e) {
-      print("Error fetching flats status: $e");
-      setState(() {
-        bookFlats = 0;
-        liveFlats = 0;
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _statsLoading = false;
+        });
+      }
     }
   }
-
   Future<void> fetchTotalFlats() async {
     try {
       final url = Uri.parse(
         'https://verifyserve.social/WebService4.asmx/GetTotalFlats_under_building?field_workar_number=${widget.number}',
       );
+
       final response = await http.get(url);
+      // print("TotalFlats Response: ${response.body}");
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        // API returns a list, take the first element's logg
-        final logg = data.isNotEmpty ? (data[0]['logg'] as num?)?.toInt() : 0;
+
+        int total = 0;
+
+        if (data is List && data.isNotEmpty) {
+          total = int.tryParse(data[0]['subid'].toString()) ?? 0;
+        }
+
         setState(() {
-          totalFlats = logg;
-          isLoading = false;
-        });
-      } else {
-        setState(() {
-          totalFlats = 0;
-          isLoading = false;
+          totalFlats = total;
+          _statsLoading = false;
         });
       }
     } catch (e) {
-      setState(() {
-        totalFlats = 0;
-        isLoading = false;
-      });
       print("Error fetching total flats: $e");
+      setState(() {
+        _statsLoading = false;
+      });
     }
   }
 
@@ -396,15 +440,15 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
   }
 
   Widget _buildImageSection({
+    required PropertyModel property,
     required List<String> images,
     required ColorScheme cs,
     required ThemeData theme,
-    required Map<String, dynamic> status,
     required double imageHeight,
     required double multiImgHeight,
     required bool isTablet,
   }) {
-    final int liveCount = status['liveCount'] ?? 0;
+    final int liveCount = property.liveFlats ?? 0;
     final Color liveColor = liveCount > 0 ? Colors.green : Colors.red;
     final String liveLabel = liveCount > 0 ? "Live: $liveCount" : "Unlive: 0";
 
@@ -588,9 +632,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
             ),
           ),
         ),
-        body: _isLoading
-            ? Center(child: Lottie.asset(AppImages.loadingHand, height: 400),)
-            :
+        body:
         Column(
           children: [
             Padding(
@@ -624,13 +666,16 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                       child: TextField(
                         controller: _searchController,
                         style: const TextStyle(
+                          fontFamily: "PoppinsMedium",
                           color: Colors.black87,
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
                         ),
                         decoration: InputDecoration(
                           hintText: 'Search properties...',
-                          hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                          hintStyle: TextStyle(
+                              fontFamily: "PoppinsMedium",
+                              color: Colors.grey.shade600, fontSize: 16),
                           prefixIcon: Padding(
                             padding: const EdgeInsets.all(12),
                             child: Icon(Icons.search_rounded, color: Colors.grey.shade700, size: 24),
@@ -643,10 +688,10 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                               icon: Icon(Icons.close_rounded, color: Colors.grey.shade700, size: 22),
                               onPressed: () {
                                 _searchController.clear();
-                                selectedLabel = '';
-                                _filteredProperties = _allProperties;
-                                propertyCount = _allProperties.length;
-                                setState(() {});
+                                setState(() {
+                                  _isSearching = false;
+                                  _searchResults.clear();
+                                });
                               },
                             )
                                 : const SizedBox(key: ValueKey('empty')),
@@ -670,96 +715,25 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: ['Buy', 'Rent', 'Commercial', 'Live', 'Unlive', 'Empty Field','Empty Building']
+                      children: ['All','Buy','Rent','Commercial','Live','Unlive','Missing Field','Empty Building']
                           .map((label) {
                         final isSelected = label == selectedLabel;
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: ElevatedButton(
                             onPressed: () async {
-                              // Toggle off
-                              if (selectedLabel == label) {
-                                setState(() {
-                                  selectedLabel = '';
-                                  _searchController.clear();
-                                  _filteredProperties = List.from(_allProperties);
-                                  propertyCount = _filteredProperties.length;
-                                });
-                                return;
-                              }
-                              // If Live/Unlive is requested, make sure we have the cache first.
-                              if (label == 'Live' || label == 'Unlive') {
-                                if (_prefetching) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Fetching live status… try again in a moment')),
-                                  );
-                                  return;
-                                }
-                                if (_liveCountMap.isEmpty) {
-                                  setState(() => _prefetching = true);
-                                  await _prefetchAllPropertyData();
-                                  if (!mounted) return;
-                                  setState(() => _prefetching = false);
-                                }
-                              }
-                              List<PropertyModel> filtered = List.from(_allProperties);
-                              switch (label) {
-                                case 'Commercial':
-                                  filtered = filtered
-                                      .where((item) =>
-                                  (item.residenceCommercial?.toLowerCase() ?? '') ==
-                                      'commercial')
-                                      .toList();
-                                  break;
-                                case 'Buy':
-                                case 'Rent':
-                                  filtered = filtered
-                                      .where((item) =>
-                                  (item.buyRent?.toLowerCase() ?? '') ==
-                                      label.toLowerCase())
-                                      .toList();
-                                  break;
-                                case 'Live':
-                                // Only items explicitly marked live in the cache
-                                  filtered = filtered
-                                      .where((item) => (_liveCountMap[item.id] ?? 0) > 0)
-                                      .toList();
-                                  break;
-                                case 'Unlive':
-                                // Everything not explicitly live (false or null)
-                                  filtered = filtered
-                                      .where((item) => (_liveCountMap[item.id] ?? 0) == 0)
-                                      .toList();
-                                  break;
-                                case 'Empty Field':
-                                  filtered = _allProperties.where(_hasMissing).toList();
-                                  break;
-                                case 'Empty Building':
-                                  if (_prefetchingEmpty) {
-                                    debugPrint('Checking empty buildings… try again');
-                                    break;
-                                  }
-                                  if (_totalFlatsMap.isEmpty) {
-                                    setState(() => _prefetchingEmpty = true);
-                                    await _prefetchAllPropertyData();
-                                    if (!mounted) return;
-                                    setState(() => _prefetchingEmpty = false);
-                                  }
-                                  filtered = filtered.where((item) {
-                                    return (_totalFlatsMap[item.id] ?? '0') == '0';
-                                  }).toList();
-                                  break;
-                                default:
-                                  break;
-                              }
+                              if (selectedLabel == label) return;
+
                               setState(() {
                                 selectedLabel = label;
-                                // DO NOT write the label into the search box (it triggers onChanged and wipes your filter)
-                                // _searchController.text = label; <-- removed on purpose
-                                _filteredProperties = filtered;
-                                propertyCount = filtered.length;
+                                _currentPage = 1;
+                                _hasMore = true;
+                                _properties.clear();   // clear only list
                               });
+
+                              await fetchData(); // ❌ reset: true mat bhejo
                             },
+
                             style: ElevatedButton.styleFrom(
                               backgroundColor: isSelected ? Colors.blue : Colors.grey[300],
                               shape:
@@ -768,6 +742,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                             child: Text(
                               label,
                               style: TextStyle(
+                                fontFamily: "PoppinsMedium",
                                 color: isSelected ? Colors.white : Colors.black87,
                                 fontWeight: FontWeight.w800,
                                 fontSize: 12,
@@ -780,7 +755,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                   ),
                   const SizedBox(height: 10),
                   // ✅ Property count pill
-                  if (propertyCount > 0)
+                  if (totalRecordsFromApi > 0)
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Row(
@@ -798,18 +773,17 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                                 const Icon(Icons.check_circle_outline, size: 20, color: Colors.green),
                                 const SizedBox(width: 6),
                                 Text(
-                                  "$propertyCount building found",
-                                  style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14,color: Colors.black),
+                                    "$totalRecordsFromApi building found",
+                                  style: const TextStyle(
+                                      fontFamily: "PoppinsMedium",
+                                      fontWeight: FontWeight.w500, fontSize: 14,color: Colors.black),
                                 ),
                                 const SizedBox(width: 6),
                                 GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _searchController.clear();
-                                      selectedLabel = '';
-                                      _filteredProperties = _allProperties;
-                                      propertyCount = _allProperties.length; // ✅ reset to total
-                                    });
+                                  onTap: () async {
+                                    _searchController.clear();
+                                    selectedLabel = "All";
+                                    await fetchData(reset: true);
                                   },
                                   child: const Icon(Icons.close, size: 18, color: Colors.grey),
                                 ),
@@ -817,7 +791,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          isLoading
+                          _statsLoading
                               ? const SizedBox.shrink()
                               : Container(
                             padding: const EdgeInsets.symmetric(
@@ -832,6 +806,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                                 Text(
                                   "Total Flats: ${totalFlats ?? 0}",
                                   style: const TextStyle(
+                                      fontFamily: "PoppinsMedium",
                                       fontWeight: FontWeight.w500,
                                       fontSize: 14),
                                 ),
@@ -839,7 +814,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          isLoading
+                          _statsLoading
                               ? const SizedBox.shrink()
                               : Row(
                             mainAxisAlignment:
@@ -858,7 +833,8 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                                   children: [
                                     Text(
                                       "Live Flats: $liveFlats",
-                                      style: const TextStyle(
+                                      style:  TextStyle(
+                                        fontFamily: "PoppinsMedium",
                                           fontWeight: FontWeight.w500,
                                           fontSize: 14),
                                     ),
@@ -880,6 +856,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                                     Text(
                                       "Rent Out: $bookFlats",
                                       style: const TextStyle(
+                                          fontFamily: "PoppinsMedium",
                                           fontWeight: FontWeight.w500,
                                           fontSize: 14),
                                     ),
@@ -898,33 +875,42 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : _filteredProperties.isEmpty
+                  : (_isSearching ? _searchResults : _properties).isEmpty
                   ? const Center(
                 child: Text(
                   "No Building Found!",
                   style: TextStyle(
+                    fontFamily: "PoppinsMedium",
                     fontSize: 20,
                     fontWeight: FontWeight.w500,
-                    color: Colors.black,
-                    fontFamily: 'Poppins',
                   ),
                 ),
               )
                   : ListView.builder(
-                padding: EdgeInsets.symmetric(horizontal: isTablet ? 24 : 16),
-                itemCount: _filteredProperties.length,
+                controller: _scrollController,
+                itemCount: (_isSearching
+                    ? _searchResults.length
+                    : _properties.length) +
+                    (_isFetchingMore && !_isSearching ? 1 : 0),
                 itemBuilder: (context, index) {
-                  final property = _filteredProperties[index];
-                  final displayIndex = _filteredProperties.length - index;
+                  final currentList =
+                  _isSearching ? _searchResults : _properties;
+
+                  if (!_isSearching &&
+                      index == _properties.length) {
+                    return const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
+                  final property = currentList[index];
+                  final displayIndex = _properties.length - index;
                   final theme = Theme.of(context);
                   final cs = theme.colorScheme;
                   final isDark = theme.brightness == Brightness.dark;
                   final screenHeight = MediaQuery.of(context).size.height;
                   final screenWidth = MediaQuery.of(context).size.width;
-                  final status = {
-                    "loggValue2": _totalFlatsMap[property.id] ?? '0',
-                    "liveCount": _liveCountMap[property.id] ?? 0,
-                  };
                   final images = _buildMultipleImages(property);
                   final double cardPadding = (screenWidth * 0.03).clamp(8.0, 20.0);
                   final double horizontalMargin = (screenWidth * 0.0).clamp(0.5, 0.8);
@@ -935,11 +921,11 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                   // Calculate missing fields
                   final missingFields = _missingFieldsFor(property);
                   final hasMissingFields = missingFields.isNotEmpty;
-                  final Object loggValue2 = status['loggValue2'] ?? 'N/A';
+                  final loggValue2 = property.totalFlats;
                   final Widget totalDetail = _DetailRow(
                     icon: Icons.format_list_numbered,
                     label: 'Total Flats',
-                    value: '$loggValue2',
+                    value: '${property.totalFlats}',
                     theme: theme,
                     getIconColor: _getIconColor,
                     maxLines: 1,
@@ -957,10 +943,10 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                     fontWeight: FontWeight.bold,
                   );
                   final Widget imageSection = _buildImageSection(
+                    property: property,
                     images: images,
                     cs: cs,
                     theme: theme,
-                    status: status,
                     imageHeight: imageH,
                     multiImgHeight: multiH,
                     isTablet: isTablet,
@@ -1155,12 +1141,5 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
           ],
         )
     );
-  }
-
-  void _loaduserdata() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _number = prefs.getString('number') ?? '';
-    });
   }
 }

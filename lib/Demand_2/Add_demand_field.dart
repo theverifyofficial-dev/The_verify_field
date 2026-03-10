@@ -28,7 +28,7 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
   Map<String, dynamic>? _existingCustomer;
   String? _buyRent, _reference, _location;
   bool _isSubmitting = false;
-  final String _status = "assign_to_fieldworkar";
+  final String _status = "assigned to fieldworker";
   bool _isUrgent = false;
 
   void _resetBudgetState() {

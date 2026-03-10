@@ -3,24 +3,24 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/Demand_2/Add_demand_field.dart';
 import '../../model/demand_model.dart';
 import '../utilities/bug_founder_fuction.dart';
+import 'Demand_detail.dart';
 
-class CostumerDemand extends StatefulWidget {
-  const CostumerDemand({super.key});
+class AcceptedField extends StatefulWidget {
+  const AcceptedField({super.key});
   @override
-  State<CostumerDemand> createState() => _TenantDemandState();
+  State<AcceptedField> createState() => _TenantDemandState();
 }
 
-class _TenantDemandState extends State<CostumerDemand> {
+class _TenantDemandState extends State<AcceptedField> {
 
   List<TenantDemandModel> _parentDemands = [];
   List<TenantDemandModel> _crossRedemands = [];
 
   List<TenantDemandModel> _filteredParent = [];
   List<TenantDemandModel> _filteredCross = [];
-
-  Set<int> _accepting = {};
 
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
@@ -55,14 +55,15 @@ class _TenantDemandState extends State<CostumerDemand> {
       final encodedName = Uri.encodeQueryComponent(FName);
       final encodedLoc = Uri.encodeQueryComponent(FLocation);
 
-      final url = Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php?Status=new");
-
+      final url = Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/display_accept_demand.php?assigned_fieldworker_name=$encodedName");
       final response = await http.get(url);
+
+      // final crossRedemands = await _loadCrossRedemand();
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
 
-        if (decoded["success"] == true) {
+        if (decoded["status"] == true) {
           final parents = (decoded["data"] as List)
               .map((e) => TenantDemandModel.fromJson(e))
               .toList();
@@ -70,10 +71,7 @@ class _TenantDemandState extends State<CostumerDemand> {
               // .toList();
           setState(() {
             _parentDemands = parents;
-            // _crossRedemands = crossRedemands;
-
             _filteredParent = parents;
-            // _filteredCross = crossRedemands;
           });
         } else {
           if (mounted) {
@@ -105,41 +103,6 @@ class _TenantDemandState extends State<CostumerDemand> {
       if (mounted) {
         setState(() => _isLoading = false);
       }
-    }
-  }
-
-  Future<void> _acceptDemand(int demandId) async {
-    setState(() {
-      _parentDemands.removeWhere((d) => d.id == demandId);
-      _filteredParent.removeWhere((d) => d.id == demandId);
-    });
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final name = prefs.getString('name') ?? "";
-      final location = prefs.getString('location') ?? "";
-
-      final url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/accept_demand_by_fields.php");
-
-      final res = await http.post(url, body: {
-        "id": demandId.toString(),
-        "assigned_subadmin_name": "Saurabh yadav",
-        "assigned_subadmin_location": "Sultanpur",
-        "assigned_fieldworker_name": name,
-        "assigned_fieldworker_location": location,
-      });
-
-      final data = jsonDecode(res.body);
-
-      if (data["success"] != true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data["message"] ?? "Error")),
-        );
-      }
-
-    } catch (e) {
-      print(e);
     }
   }
 
@@ -227,43 +190,43 @@ class _TenantDemandState extends State<CostumerDemand> {
       backgroundColor:
       isDark ? const Color(0xFF090B11) : const Color(0xFFF4F6FA),
 
-      // floatingActionButton: Container(
-      //   decoration: BoxDecoration(
-      //     borderRadius: BorderRadius.circular(14),
-      //     gradient: LinearGradient(
-      //       colors: [
-      //         theme.colorScheme.primary.withOpacity(0.9),
-      //         theme.colorScheme.primaryContainer.withOpacity(0.9)
-      //       ],
-      //     ),
-      //     boxShadow: [
-      //       BoxShadow(
-      //         color: theme.colorScheme.primary.withOpacity(0.4),
-      //         blurRadius: 18,
-      //         spreadRadius: 1,
-      //         offset: const Offset(0, 6),
-      //       ),
-      //     ],
-      //   ),
-      //   child: FloatingActionButton.extended(
-      //     backgroundColor: Colors.transparent,
-      //     elevation: 0,
-      //     icon: const Icon(Icons.add, color: Colors.white),
-      //     label: const Text(
-      //       "Add Demand",
-      //       style: TextStyle(
-      //         color: Colors.white,
-      //         fontWeight: FontWeight.w600,
-      //         fontSize: 15,
-      //         letterSpacing: 0.3,
-      //       ),
-      //     ),
-      //     onPressed: () => Navigator.push(
-      //       context,
-      //       MaterialPageRoute(builder: (_) => const AddDemandField()),
-      //     ).then((_) => _loadDemands()),
-      //   ),
-      // ),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          gradient: LinearGradient(
+            colors: [
+              theme.colorScheme.primary.withOpacity(0.9),
+              theme.colorScheme.primaryContainer.withOpacity(0.9)
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: theme.colorScheme.primary.withOpacity(0.4),
+              blurRadius: 18,
+              spreadRadius: 1,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          icon: const Icon(Icons.add, color: Colors.white),
+          label: const Text(
+            "Add Demand",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+              letterSpacing: 0.3,
+            ),
+          ),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddDemandField()),
+          ).then((_) => _loadDemands()),
+        ),
+      ),
 
 
       body: _isLoading
@@ -294,113 +257,110 @@ class _TenantDemandState extends State<CostumerDemand> {
           ),
 
           Column(
-            children: [
-              const SizedBox(height: 10),
-              // floating search
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: isDark
-                        ? Colors.white.withOpacity(0.06)
-                        : Colors.white.withOpacity(0.85),
-                    boxShadow: [
-                      BoxShadow(
-                        color: isDark
-                            ? Colors.black.withOpacity(0.3)
-                            : Colors.grey.withOpacity(0.2),
-                        blurRadius: 20,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                    border: Border.all(
-                      color: isDark
-                          ? Colors.white.withOpacity(0.1)
-                          : Colors.black.withOpacity(0.1),
-                      width: 0.6,
-                    ),
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: "Search Here",
-                      hintStyle: TextStyle(
-                        color: isDark
-                            ? Colors.white.withOpacity(0.4)
-                            : Colors.black54,
-                        fontSize: 15,
-                      ),
-                      prefixIcon: Icon(Icons.search,
-                          color: isDark
-                              ? Colors.white70
-                              : Colors.black54),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                        icon: Icon(Icons.close_rounded,
-                            color: isDark
-                                ? Colors.white54
-                                : Colors.black54),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {
-                            _filteredParent = _parentDemands;
-                            _filteredCross = _crossRedemands;
-                          });
-
-                        },
-                      )
-                          : null,
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 14, horizontal: 14),
-                    ),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-              Expanded(
-                child:  (_filteredParent.isEmpty)
-                ? Center(
-                child: Text(
-                "No demands found",
-                style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.grey.shade700,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                ),
-                ),
-                )
-                    : RefreshIndicator(
-                onRefresh: _loadDemands,
-                color: theme.colorScheme.primary,
-                child:
-                ListView(
+              children: [
+                const SizedBox(height: 10),
+                // floating search
+                Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      color: isDark
+                          ? Colors.white.withOpacity(0.06)
+                          : Colors.white.withOpacity(0.85),
+                      boxShadow: [
+                        BoxShadow(
+                          color: isDark
+                              ? Colors.black.withOpacity(0.3)
+                              : Colors.grey.withOpacity(0.2),
+                          blurRadius: 20,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                      border: Border.all(
+                        color: isDark
+                            ? Colors.white.withOpacity(0.1)
+                            : Colors.black.withOpacity(0.1),
+                        width: 0.6,
+                      ),
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: "Search Here",
+                        hintStyle: TextStyle(
+                          color: isDark
+                              ? Colors.white.withOpacity(0.4)
+                              : Colors.black54,
+                          fontSize: 15,
+                        ),
+                        prefixIcon: Icon(Icons.search,
+                            color: isDark
+                                ? Colors.white70
+                                : Colors.black54),
+                        suffixIcon: _searchController.text.isNotEmpty
+                            ? IconButton(
+                          icon: Icon(Icons.close_rounded,
+                              color: isDark
+                                  ? Colors.white54
+                                  : Colors.black54),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _filteredParent = _parentDemands;
+                              _filteredCross = _crossRedemands;
+                            });
 
-                    if (_filteredParent.isNotEmpty) ...[
-                      _sectionTitle("Demands"),
-                      ..._filteredParent.map((d) => KeyedSubtree(
-                        key: ValueKey(d.id),
-                        child: _buildDemandTile(d, isDark),
-                      )),
-                    ],
-
-                    // if (_filteredCross.isNotEmpty) ...[
-                    //   const SizedBox(height: 24),
-                    //   _sectionTitle("Cross ReDemands"),
-                    //   ..._filteredCross.map((d) => _buildCrossRedemandTile(d, isDark)),
-                    // ],
-                  ],
+                          },
+                        )
+                            : null,
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 14, horizontal: 14),
+                      ),
+                    ),
+                  ),
                 ),
-              )            ),
+
+                const SizedBox(height: 16),
+                Expanded(
+                    child:  (_filteredParent.isEmpty)
+                        ? Center(
+                      child: Text(
+                        "No demands found",
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : Colors.grey.shade700,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    )
+                        : RefreshIndicator(
+                      onRefresh: _loadDemands,
+                      color: theme.colorScheme.primary,
+                      child:
+                      ListView(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        children: [
+
+                          if (_filteredParent.isNotEmpty) ...[
+                            _sectionTitle("Your Demands"),
+                            ..._filteredParent.map((d) => _buildDemandTile(d, isDark)),
+                          ],
+
+                          // if (_filteredCross.isNotEmpty) ...[
+                          //   const SizedBox(height: 24),
+                          //   _sectionTitle("Cross ReDemands"),
+                          //   ..._filteredCross.map((d) => _buildCrossRedemandTile(d, isDark)),
+                          // ],
+                        ],
+                      ),
+                    )            ),
               ]
           ),
 
@@ -428,14 +388,14 @@ class _TenantDemandState extends State<CostumerDemand> {
       d,
       isDark,
       onTap: () {
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (_) => DemandDetail(
-        //       demandId: d.id.toString(),
-        //     ),
-        //   ),
-        // ).then((_) => _loadDemands());
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => DemandDetail(
+              demandId: d.id.toString(),
+            ),
+          ),
+        ).then((_) => _loadDemands());
       },
     );
   }
@@ -457,6 +417,7 @@ class _TenantDemandState extends State<CostumerDemand> {
   //     },
   //   );
   // }
+
 
   Widget _buildCommonTile(
       TenantDemandModel d,
@@ -582,7 +543,6 @@ class _TenantDemandState extends State<CostumerDemand> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     Text(
                       "${d.location} • ${d.bhk}",
                       style: TextStyle(
@@ -590,9 +550,7 @@ class _TenantDemandState extends State<CostumerDemand> {
                         fontSize: 14,
                       ),
                     ),
-
                     const SizedBox(height: 2),
-
                     Text(
                       "₹ ${d.price}",
                       style: TextStyle(
@@ -600,114 +558,56 @@ class _TenantDemandState extends State<CostumerDemand> {
                         fontSize: 14,
                       ),
                     ),
-
-
                     if (d.reference.isNotEmpty)
                       Padding(
-                        padding: const EdgeInsets.only(top: 6),
+                        padding: const EdgeInsets.only(top: 3),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               "Ref: ${d.reference}",
                               style: TextStyle(
-                                color: isDark
-                                    ? Colors.white38
-                                    : Colors.black45,
+                                color:
+                                isDark ? Colors.white38 : Colors.black45,
+                                fontSize: 13,
+                              ),
+                            ),
+                            Text(
+                              formatApiDate(d.createdDate),
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
                                 fontSize: 13,
                               ),
                             ),
                           ],
                         ),
                       ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          formatApiDate(d.createdDate),
-                          style: TextStyle(
-                            color: Colors.grey.shade500,
-                            fontSize: 13,
-                          ),
-                        ),
-
-                        GestureDetector(
-                          onTap: _accepting.contains(d.id)
-                              ? null
-                              : () async {
-                            setState(() {
-                              _accepting.add(d.id);
-                            });
-
-                            await _acceptDemand(d.id);
-
-                            setState(() {
-                              _accepting.remove(d.id);
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.green,
-                                  Colors.green.withOpacity(0.85),
-                                ],
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.green.withOpacity(0.35),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.check_circle_outline, color: Colors.white, size: 16),
-                                SizedBox(width: 6),
-                                Text(
-                                  "Accept",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
                   ],
                 ),
               ),
-
             ),
           ),
         ),
 
-        // // 🎯 STATUS RIBBONS (UNCHANGED)
-        // if (d.status.toLowerCase() == "redemand")
-        //   _buildRibbon("REDEMAND", Colors.green.shade500, Colors.green.shade700),
-        //
-        // if (d.status.toLowerCase() == "disclosed")
-        //   _buildRibbon("DISCLOSED", Colors.red.shade500, Colors.red.shade700),
-        //
-        // if (d.status.toLowerCase() == "assigned to fieldworker")
-        //   _buildRibbon("NEW", Colors.green.shade500, Colors.green.shade700),
-        // if (d.re_status.toLowerCase() == "redemand")
-        //   _buildRibbon("REDEMAND", Colors.green.shade500, Colors.green.shade700),
-        //
-        // if (d.re_status.toLowerCase() == "disclosed")
-        //   _buildRibbon("DISCLOSED", Colors.red.shade500, Colors.red.shade700),
-        //
-        // if (d.re_status.toLowerCase() == "assigned to fieldworker")
-        //   _buildRibbon("NEW", Colors.green.shade500, Colors.green.shade700),
+        // 🎯 STATUS RIBBONS (UNCHANGED)
+        if (d.status.toLowerCase() == "redemand")
+          _buildRibbon("REDEMAND", Colors.green.shade500, Colors.green.shade700),
+
+        if (d.status.toLowerCase() == "disclosed")
+          _buildRibbon("DISCLOSED", Colors.red.shade500, Colors.red.shade700),
+
+        if (d.status.toLowerCase() == "assigned to fieldworker")
+          _buildRibbon("NEW", Colors.green.shade500, Colors.green.shade700),
+        if (d.status.toLowerCase() == "progressing")
+          _buildRibbon("PROGRESS", Colors.green.shade500, Colors.green.shade700),
+        if (d.re_status.toLowerCase() == "redemand")
+          _buildRibbon("REDEMAND", Colors.green.shade500, Colors.green.shade700),
+
+        if (d.re_status.toLowerCase() == "disclosed")
+          _buildRibbon("DISCLOSED", Colors.red.shade500, Colors.red.shade700),
+
+        if (d.re_status.toLowerCase() == "assigned to fieldworker")
+          _buildRibbon("NEW", Colors.green.shade500, Colors.green.shade700),
       ],
     );
 

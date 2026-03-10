@@ -10,6 +10,7 @@ import '../../Adminisstrator_Target_details/Targets.dart';
 import '../../Administrator/Administator_Agreement/Admin_dashboard.dart';
 import '../../Calender/CalenderForAdmin.dart';
 import '../../Future_Property_OwnerDetails_section/Future_Property.dart';
+import '../../Future_Property_OwnerDetails_section/Future_Property_Tabbar.dart';
 import '../../Home_Screen_click/live_tabbar.dart';
 import '../../Rent Agreement/history_tab.dart';
 import '../../Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
@@ -136,6 +137,19 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
     }
   }
 
+  final List<LinearGradient> cardGradients = [
+    LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)]),
+    LinearGradient(colors: [Color(0xFF10B981), Color(0xFF047857)]),
+    LinearGradient(colors: [Color(0xFFF59E0B), Color(0xFFDC2626)]),
+    LinearGradient(colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)]),
+    LinearGradient(colors: [Color(0xFFEF4444), Color(0xFFDC2626)]),
+    LinearGradient(colors: [Color(0xFF06B6D4), Color(0xFF0891B2)]),
+    LinearGradient(colors: [Color(0xFF6366F1), Color(0xFF4F46E5)]),
+    LinearGradient(colors: [Color(0xFF1D4ED8), Color(0xFFDC2626)]),
+    LinearGradient(colors: [Color(0xFFDC2626), Color(0xFF06B6D4)]),
+    LinearGradient(colors: [Colors.blue, Colors.purple]),
+    LinearGradient(colors: [Colors.blueAccent, Colors.blue]),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -412,17 +426,17 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                             },
                             if (userNumber == "9711779003" || userNumber=="9315016461")
 
-                              {
-                                "image": AppImages.tenant,
-                                "title": "Tenant Demands",
-                                "onTap": () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (_) => const MainPage_TenandDemand()));
-                                },
-                                "count": 0,
-                              },
+                              // {
+                              //   "image": AppImages.tenant,
+                              //   "title": "Tenant Demands",
+                              //   "onTap": () {
+                              //     Navigator.push(
+                              //         context,
+                              //         MaterialPageRoute(
+                              //             builder: (_) => const MainPage_TenandDemand()));
+                              //   },
+                              //   "count": 0,
+                              // },
                             if (userNumber == "9711779003" || userNumber=="9315016461")
 
                               {
@@ -463,9 +477,10 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                 title: item['title'] as String,
                                 onTap: item['onTap'] as VoidCallback,
                                 count: item['count'] as int,
-
                                 shineAnimation: _shineAnimation,
                                 itemWidth: itemWidth,
+                                gradient: cardGradients[index % cardGradients.length],
+
                               );
                             },
                           );
@@ -515,7 +530,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                 "onTap": () => Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                        builder: (_) => const FrontPage_FutureProperty())),
+                                        builder: (_) => const FuturePropertyTabPage())),
                               },
                               {
                                 "image": AppImages.realestatefeild,
@@ -553,6 +568,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
 
                                   shineAnimation: _shineAnimation,
                                   itemWidth: itemWidth,
+                                  gradient: cardGradients[index % cardGradients.length],
                                 );
                               },
                             );
@@ -759,131 +775,124 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
     required VoidCallback onTap,
     required Animation<double> shineAnimation,
     required double itemWidth,
+    required LinearGradient gradient,
     int? count,
   }) {
-    final isDarkMode = Theme
-        .of(context)
-        .brightness == Brightness.dark;
-    final primaryColor = Theme
-        .of(context)
-        .primaryColor;
-
-    // Calculate sizes based on item width
-    final imageSize = itemWidth * 0.35;
+    final imageSize = itemWidth * 0.30;
     final fontSize = itemWidth * 0.07;
-    final padding = itemWidth * 0.08;
 
-    return AnimatedBuilder(
-      animation: shineAnimation,
-      builder: (context, child) {
-        return Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              colors: [
-                Colors.transparent,
-                Colors.transparent,
-                primaryColor.withOpacity(0.05 * shineAnimation.value),
-              ],
-              stops: const [0.0, 0.5, 1.0],
-              begin: Alignment(-1.0 + (2.0 * shineAnimation.value), -1.0),
-              end: Alignment(1.0 - (2.0 * shineAnimation.value), 1.0),
-            ),
-          ),
-          child: Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(
-                color: primaryColor.withOpacity(0.1 * shineAnimation.value),
-                width: 1,
-              ),
-            ),
-            color: isDarkMode ? Colors.white10 : Colors.white,
-            child: InkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: EdgeInsets.all(padding),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: gradient,
+          // boxShadow: [
+          //   BoxShadow(
+          //     color: gradient.colors.first.withOpacity(0.35),
+          //     blurRadius: 18,
+          //     offset: const Offset(0, 8),
+          //   )
+          // ],
+        ),
+        child: Stack(
+          children: [
 
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: (count != null && count > 0)
-                          ? Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          count.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      )
-                          : const SizedBox(height: 10), // keep spacing consistent
-                    ),
-                    Container(
-                      height: imageSize,
-                      width: imageSize,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(2, 4),
-                          ),
-                        ],
-                      ),
-                      child: Image.asset(
-                        imagePath,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    SizedBox(height: 5,),
-                    Flexible(
-                      child: Text(
-                        title,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: fontSize.clamp(12, 16),
-                          // Minimum 12, maximum 16
-                          color: isDarkMode ? Colors.white : Colors.black87,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: 'Poppins',
-                          height: 1.2,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
-                      ),
-                    ),
-                    SizedBox(height: 5,),
-                    CircleAvatar(
-                      radius: imageSize * 0.25,
-                      backgroundColor: isDarkMode ? Colors.white10 : Colors.grey
-                          .shade100,
-                      child: Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        color: isDarkMode ? Colors.white : Colors.black87,
-                        size: imageSize * 0.2,
-                      ),
-                    ),
-                  ],
+            /// background circle decoration
+            Positioned(
+              right: -20,
+              bottom: -20,
+              child: Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.15),
                 ),
               ),
             ),
-          ),
-        );
-      },
+
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+
+                  /// COUNT BADGE
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: (count != null && count > 0)
+                        ? Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        count.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                        : const SizedBox(height: 10),
+                  ),
+
+                  /// ICON
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.20),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Image.asset(
+                      imagePath,
+                      height: imageSize,
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  /// TITLE
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: fontSize.clamp(12, 16),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontFamily: "PoppinsMedium",
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  /// ARROW BUTTON
+                  CircleAvatar(
+                    radius: 14,
+                    backgroundColor: Colors.white.withOpacity(0.25),
+                    child: const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 12,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
+
   Widget _TargetHeaderCard(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 

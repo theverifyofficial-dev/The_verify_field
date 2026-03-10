@@ -19,7 +19,7 @@ import 'Add_Rented_Flat_New/Add_Rented_Flat_Tabbar_New.dart';
 import 'Calender/CalenderForFieldWorker.dart';
 import 'Demand_2/Tabbar.dart';
 import 'Demand_2/Demand_card.dart';
-import 'Future_Property_OwnerDetails_section/Future_Property.dart';
+import 'Future_Property_OwnerDetails_section/Future_Property_Tabbar.dart';
 import 'Insurance/InsuranceShowListPage.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
 import 'Rent Agreement/history_tab.dart';
@@ -1489,21 +1489,10 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         "onTap": () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => const FrontPage_FutureProperty(),
+            builder: (_) =>  FuturePropertyTabPage(),
           ),
         ),
         "gradient": cardGradients[2],
-      },
-      {
-        "image": AppImages.tenant,
-        "title": "Tenant Demands",
-        "onTap": () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => const MainPage_TenandDemand()));
-        },
-        "gradient": cardGradients[3],
       },
       {
         "image": AppImages.agreement,
@@ -1562,7 +1551,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // Curved Silver App Bar with Dual Target Indicators
             SliverAppBar(
               expandedHeight: expandedHeight,
               collapsedHeight: (screenHeight * 0.1).clamp(60.0, 80.0),

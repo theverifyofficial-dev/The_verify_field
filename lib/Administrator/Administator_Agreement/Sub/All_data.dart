@@ -661,7 +661,7 @@ class _AgreementDetailsState extends State<AllData> {
                               spacing: 8,
                               runSpacing: 6,
                               children: [
-                                if (item.policeVerificationPdf.isEmpty ||
+                                if (item.withPolice == "true" && item.policeVerificationPdf.isEmpty ||
                                     item.policeVerificationPdf == 'null')
                                   _MissingBadge(label: "Police Verification Missing"),
                                 if (!isPolice)

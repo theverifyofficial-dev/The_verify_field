@@ -68,6 +68,7 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
     'Fully Furnished',
     'Semi Furnished',
     'Unfurnished',
+    '',
   ];
 
   @override
@@ -1237,6 +1238,4 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
       ),
     );
   }
-
-
 }

@@ -8,8 +8,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../Administrator/Admin_future _property/Future_Property_Details.dart';
+import '../Custom_Widget/property_preview.dart';
 import '../Demand_2/Demand_detail.dart';
 import '../Future_Property_OwnerDetails_section/Future_Property.dart';
+import '../Future_Property_OwnerDetails_section/Future_Property_Tabbar.dart';
 import '../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../Future_Property_OwnerDetails_section/New_Update/under_flats_infutureproperty.dart';
 import '../Future_Property_OwnerDetails_section/Owner_Call/All_contact.dart';
@@ -1150,7 +1152,7 @@ class TenantDemand {
       status: json['Status'] ?? '',
       date: json['Date'] ?? '',
       time: json['Time'] ?? '',
-      fieldWorkerName: json['assigned_fieldworker_name'] ?? '',
+      fieldWorkerName: json['assigned_fieldworker_name'] ?? 'Unknown',
     );
   }
 }
@@ -1440,6 +1442,23 @@ class NextCallingItem {
   }
 }
 
+class CallingBuildingData {
+  final String image;
+  final String address;
+
+  CallingBuildingData({
+    required this.image,
+    required this.address,
+  });
+
+  factory CallingBuildingData.fromJson(Map<String, dynamic> json) {
+    return CallingBuildingData(
+      image: json['images'] ?? '',
+      address: json['property_address_for_fieldworkar'] ?? '',
+    );
+  }
+}
+
 /// -------- MAIN PAGE --------
 class CalendarTaskPage extends StatefulWidget {
   const CalendarTaskPage({super.key});
@@ -1461,7 +1480,11 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
   List<BookedTenantVisit> _bookedTenantVisits = [];
   List<UpcomingFlat> _upcomingFlats = [];
   List<CallingReminder> _callingReminders = [];
+  int agreementTarget = 120;
+  int agreementDone = 0;
 
+  int policeVerificationTarget = 200;
+  int policeVerificationDone = 0;
   // month/year state & lists
   final List<int> _years = List.generate(10, (i) => 2022 + i);
   final List<String> _months = const [
@@ -1484,6 +1507,19 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
   String _calendarView = "Week";
   List<PendingAgreement> _pendingAgreements = [];
   List<AcceptedAgreement> _acceptedAgreements = [];
+  Map<String, CallingBuildingData> _buildingImageCache = {};
+  List<CalendarAddFlat> _calendarAddFlats = [];
+  int totalBuildings = 0;
+  int buildingsWithFlat = 0;
+  int emptyBuildings = 0;
+
+
+  String _monthName(int m) => _months[m - 1];
+  List<WebsiteVisit> _websiteVisits = [];
+
+  final Map<String, int> yearlyTargets = {
+    "Building": 250,
+  };
 
   @override
   void initState() {
@@ -1491,13 +1527,37 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
     _selectedDay = _focusedDay;
     _selectedYear = _focusedDay.year;
     _selectedMonth = _focusedDay.month;
-
-    _initUserAndFetch();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       loadUserName();
     });
   }
+
+  Future<void> fetchBuildingImage(String id) async {
+    if (_buildingImageCache.containsKey(id)) return;
+
+    try {
+      final res = await http.get(
+        Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/calling_building.php?id=$id",
+        ),
+      );
+
+      if (res.statusCode == 200 && res.body.isNotEmpty) {
+        final decoded = jsonDecode(res.body);
+
+        if (decoded['status'] == true && decoded['data'] != null && decoded['data'].isNotEmpty) {
+          final data = CallingBuildingData.fromJson(decoded['data'][0]);
+
+          setState(() {
+            _buildingImageCache[id] = data;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Building Image API error: $e");
+    }
+  }
+
   Future<NextCallingItem?> fetchLatestCallingDate(String buildingId) async {
     final url =
         "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_next_calling_date_in_building.php?subid=$buildingId";
@@ -1539,44 +1599,96 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
     return null;
   }
+  Future<void> fetchAgreementYearly() async {
+    try {
+      final res = await http.get(
+        Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/count_api_agreement_yealry_with_reward.php?Fieldwarkarnumber=$userNumber",
+        ),
+      );
 
+      if (res.statusCode == 200 && res.body.isNotEmpty) {
+        final decoded = jsonDecode(res.body);
 
-  Future<void> _initUserAndFetch() async {
+        if (decoded['status'] == true) {
+          setState(() {
+
+            /// total agreements completed
+            agreementDone = decoded['total_agreement'] ?? 0;
+
+            /// your yearly target (set manually)
+            agreementTarget = 120;
+
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Agreement yearly API error: $e");
+    }
+  }
+
+  Future<void> _fetchPoliceYearly() async {
+    try {
+      final res = await http.get(
+        Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/police_verification_yearly.php?Fieldwarkarnumber=$userNumber",
+        ),
+      );
+
+      if (res.statusCode == 200 && res.body.isNotEmpty) {
+        final decoded = jsonDecode(res.body);
+
+        if (decoded['status'] == true) {
+          setState(() {
+
+            /// completed police verification
+            policeVerificationDone =
+                decoded['total_police_verification'] ?? 0;
+
+            /// yearly target (set manually)
+            policeVerificationTarget = 200;
+
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Police yearly API error: $e");
+    }
+  }
+
+  
+
+  String? userName;
+  String? userNumber;
+  Future<void> loadUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+
     final storedName = prefs.getString('name');
     final storedNumber = prefs.getString('number');
+
+    if (!mounted) return;
 
     setState(() {
       userName = storedName;
       userNumber = storedNumber;
     });
 
-    if (userNumber != null && userNumber!.isNotEmpty) {
-      _fetchOverviewBuildingDetail();
-      await _fetchData(_focusedDay);
-    } else {
-      debugPrint("⚠️ userNumber not found in SharedPreferences");
+    if (userNumber == null || userNumber!.isEmpty) {
+      debugPrint("❌ userNumber is NULL");
+      return;
     }
-  }
 
-  String? userName;
-  String? userNumber;
-  Future<void> loadUserName() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final storedName = prefs.getString('name');
-    final storedNumber = prefs.getString('number');
+    debugPrint("✅ USER NUMBER: $userNumber");
 
-    if (mounted) {
-      setState(() {
-        userName = storedName;
-        userNumber = storedNumber;
-      });
-    }
-  }
-  Future<List<CalendarAddFlat>> fetchCalendarAddFlats({
+    await fetchAgreementYearly();
+    await _fetchPoliceYearly();
+    await _fetchOverviewBuildingDetail();
+    await _fetchData(_selectedDay ?? _focusedDay);
+  }  Future<List<CalendarAddFlat>> fetchCalendarAddFlats({
     required String date,
     required String fieldWorkerNumber,
-  }) async {
+  })
+  async {
     final url =
         "https://verifyserve.social/Second%20PHP%20FILE/Calender/"
         "task_for_add_flat_in_future_property.php"
@@ -1591,14 +1703,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       return [];
     }
   }
-  List<CalendarAddFlat> _calendarAddFlats = [];
-  int totalBuildings = 0;
-  int buildingsWithFlat = 0;
-  int emptyBuildings = 0;
 
-  final Map<String, int> yearlyTargets = {
-    "Building": 250,
-  };
   Future<void> _fetchOverviewBuildingDetail() async {
     final uri = Uri.parse(
       "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/building_over_view.php?fieldworkarnumber=$userNumber",
@@ -1624,6 +1729,265 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           int.tryParse(data["building_without_flat"].toString()) ?? 0;
     });
   }
+  void _openPoliceCalculator() {
+
+    final int target = policeVerificationTarget;
+    final int done = policeVerificationDone;
+    final int remaining = (target - done).clamp(0, target);
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+
+        return DraggableScrollableSheet(
+          initialChildSize: 0.55,
+          minChildSize: 0.40,
+          maxChildSize: 0.90,
+          builder: (context, controller) {
+
+            return Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF111827) : Colors.white,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(26),
+                ),
+              ),
+
+              child: ListView(
+                controller: controller,
+                children: [
+
+                  /// HEADER
+                  Row(
+                    children: [
+
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.red.withOpacity(.15),
+                        ),
+                        child: const Icon(
+                          Icons.verified_user,
+                          color: Colors.red,
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      const Text(
+                        "Police Verification Target",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontFamily: "PoppinsBold",
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  /// STATS
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(
+                          builder: (context) => const HistoryTab()
+                      ));
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        color: isDark
+                            ? Colors.white.withOpacity(.05)
+                            : Colors.grey.shade100,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(child: _miniStat("Target", target)),
+                          Expanded(child: _miniStat("Completed", done)),
+                          Expanded(child: _miniStat("Remaining", remaining)),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  /// TARGET CARD
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(
+                          builder: (context) => const HistoryTab()
+                      ));
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFFDC2626),
+                            Color(0xFFEF4444),
+                          ],
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withOpacity(.18),
+                            ),
+                            child: const Icon(
+                              Icons.flag_rounded,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
+
+                          const SizedBox(width: 12),
+
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+
+                                Text(
+                                  "YEARLY TARGET",
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    letterSpacing: 1.2,
+                                    color: Colors.white70,
+                                    fontFamily: "PoppinsBold",
+                                  ),
+                                ),
+
+                                SizedBox(height: 2),
+
+                                Text(
+                                  "Police Verifications",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                    fontFamily: "PoppinsBold",
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const Text("🚔", style: TextStyle(fontSize: 18)),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  /// CALCULATOR
+                  _calcTilePolice("Per Week", remaining, 52, done, target),
+                  _calcTilePolice("Per Month", remaining, 12, done, target),
+                  _calcTilePolice("3 Month Pace", remaining, 4, done, target),
+                  _calcTilePolice("6 Month Pace", remaining, 2, done, target),
+                  _calcTilePolice("8 Month Pace", remaining, 1.5, done, target),
+                  _calcTilePolice("10 Month Pace", remaining, 1.2, done, target),
+
+                  const SizedBox(height: 30),
+
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+  Widget _calcTilePolice(
+      String label,
+      int remaining,
+      double divisor,
+      int done,
+      int target,
+      ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final double raw = remaining / divisor;
+    final int required = raw.ceil();
+
+    const Color accent = Color(0xFFEF4444);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: isDark
+            ? Colors.white.withOpacity(.05)
+            : Colors.grey.shade100,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontFamily: "PoppinsBold",
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+
+              Text(
+                "$required Police Verification",
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontFamily: "PoppinsBold",
+                  color: accent,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          Text(
+            "Complete $required police verifications every $label to reach your target.",
+            style: TextStyle(
+              fontSize: 11.5,
+              fontFamily: "PoppinsMedium",
+              color: isDark ? Colors.white60 : Colors.black54,
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          Text(
+            "Remaining: $remaining Police Verifications",
+            style: TextStyle(
+              fontSize: 11,
+              fontFamily: "PoppinsMedium",
+              color: isDark ? Colors.white70 : Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _openBuildingCalculator() {
     final int target = yearlyTargets["Building"]!;
     final int done = buildingsWithFlat;   // 🔥 IMPORTANT FIX
@@ -1689,7 +2053,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   GestureDetector(
                     onTap: (){
                       Navigator.push(context, MaterialPageRoute(builder: (context){
-                        return const FrontPage_FutureProperty();
+                        return const FuturePropertyTabPage();
                       }));
                     },
                     child: Container(
@@ -1815,6 +2179,301 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       },
     );
   }
+  void openAgreementSuggestion() {
+
+    final int target = agreementTarget;
+    final int done = agreementDone;
+    final int remaining = (target - done).clamp(0, target);
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+
+        return DraggableScrollableSheet(
+          initialChildSize: 0.55,
+          minChildSize: 0.40,
+          maxChildSize: 0.90,
+          builder: (context, controller) {
+
+            return Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF111827) : Colors.white,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(26),
+                ),
+              ),
+
+              child: ListView(
+                controller: controller,
+                children: [
+
+                  /// HEADER
+                  Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.purple.withOpacity(.12),
+                        ),
+                        child: const Icon(
+                          Icons.description_outlined,
+                          color:  Color(0xFFDC2626),
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      const Text(
+                        "Agreement Target Intelligence",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: "PoppinsBold",
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  /// MINI STATS
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(
+                          builder: (context) => const HistoryTab()
+                      ));
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        color: isDark
+                            ? Colors.white.withOpacity(.04)
+                            : Colors.grey.shade100,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(child: _miniStat("Target", target)),
+                          Expanded(child: _miniStat("Completed", done)),
+                          Expanded(child: _miniStat("Remaining", remaining)),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  /// TARGET CARD
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      gradient: const LinearGradient(
+                        colors: [
+                          const Color(0xFFDC2626),
+                          const Color(0xFFEF4444),
+                        ],
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(.18),
+                          ),
+                          child: const Icon(
+                            Icons.flag_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+
+                              const Text(
+                                "YEARLY TARGET",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  letterSpacing: 1.2,
+                                  color: Colors.white70,
+                                  fontFamily: "PoppinsBold",
+                                ),
+                              ),
+
+                              const SizedBox(height: 2),
+
+                              Text(
+                                "$target Agreements",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontFamily: "PoppinsBold",
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const Text("📑", style: TextStyle(fontSize: 18)),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  /// CALCULATION TILES
+                  _calcTileAgreement("Per Week", remaining, 52, done, target),
+                  _calcTileAgreement("Per Month", remaining, 12, done, target),
+                  _calcTileAgreement("3 Month Pace", remaining, 4, done, target),
+                  _calcTileAgreement("6 Month Pace", remaining, 2, done, target),
+                  _calcTileAgreement("8 Month Pace", remaining, 1.5, done, target),
+                  _calcTileAgreement("10 Month Pace", remaining, 1.2, done, target),
+
+                  const SizedBox(height: 30),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+  Widget _calcTileAgreement(
+      String label,
+      int remaining,
+      double divisor,
+      int done,
+      int target,
+      ) {
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final double raw = remaining / divisor;
+    final int required = raw.ceil();
+
+    final Color accent = const Color(0xFFDC2626); // purple for agreement
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: isDark
+            ? Colors.white.withOpacity(.05)
+            : Colors.grey.shade100,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          /// HEADER
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontFamily: "PoppinsBold",
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              Text(
+                "$required Agreements",
+                style: TextStyle(
+                  fontSize: 13,
+                  fontFamily: "PoppinsBold",
+                  color: accent,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          /// SIMPLE INSTRUCTION
+          Text(
+            "Complete $required agreements every $label to reach your target.",
+            style: TextStyle(
+              fontSize: 11.5,
+              fontFamily: "PoppinsMedium",
+              color: isDark ? Colors.white60 : Colors.black54,
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          /// REMAINING
+          Text(
+            "Remaining: $remaining Agreements",
+            style: TextStyle(
+              fontSize: 11,
+              fontFamily: "PoppinsMedium",
+              color: isDark ? Colors.white70 : Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget agreementSuggestionButton() {
+    final remaining = (agreementTarget - agreementDone).clamp(0, agreementTarget);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: openAgreementSuggestion,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.white10 : Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? Colors.white24 : Colors.grey.shade300,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Suggestion",
+              style: TextStyle(
+                fontSize: 13,
+                fontFamily: "PoppinsMedium",
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white : Colors.indigo,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(
+              Icons.lightbulb_outline,
+              size: 16,
+              color: Colors.amber,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
   Widget _miniStat(String label, int value) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -1854,7 +2513,8 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       double divisor,
       int done,
       int target,
-      ) {
+      )
+  {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final double raw = remaining / divisor;
@@ -1927,6 +2587,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       ),
     );
   }
+
   Future<void> loadAddFlats(DateTime date) async {
     final formatted =
         "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
@@ -1938,10 +2599,6 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
     setState(() {});
   }
-
-
-  String _monthName(int m) => _months[m - 1];
-  List<WebsiteVisit> _websiteVisits = [];
 
   Future<void> _fetchData(DateTime date) async {
     setState(() => _isLoading = true);
@@ -1989,6 +2646,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             "https://verifyserve.social/Second%20PHP%20FILE/Calender/"
                 "building_calling_reminder.php"
                 "?next_calling_date=$formattedDate"
+                "&call_done=0"
                 "&fieldworkar_number=$userNumber"
         )),
 
@@ -2144,7 +2802,10 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           final decoded = jsonDecode(responses[9].body);
           print(responses[9].body);
 
-          print("Calling Reminder Count: ${cr?.data.length}");
+          if (decoded['status'] == 'success') {
+            cr = CallingReminderResponse.fromJson(decoded);
+            print("Calling Reminder Count: ${cr.data.length}");
+          }
 
           if (decoded['status'] == 'success') {
             cr = CallingReminderResponse.fromJson(decoded);
@@ -2167,11 +2828,17 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         _tenantDemands = td?.data ?? [];
         _acceptedAgreements = aa?.data ?? [];
         _futureProperties = f?.data ?? [];
+        for (var property in _futureProperties) {
+          fetchBuildingImage(property.id.toString());
+        }
         _liveProperties = l?.data ?? [];
         _websiteVisits = w?.data ?? [];
         _bookedTenantVisits = bv?.data ?? [];
         _upcomingFlats = uf?.data ?? [];
         _callingReminders = cr?.data ?? [];
+        for (var reminder in _callingReminders) {
+          fetchBuildingImage(reminder.building_id.toString());
+        }
         _isLoading = false;
       });
 
@@ -2352,9 +3019,11 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
   Widget _buildCallingReminderCard(CallingReminder r, bool isDark) {
     final String reason = r.reason ?? "";
+    final bool isCompleted = reason.isNotEmpty;
 
-    final bool isCompleted =
-        reason.isNotEmpty;
+    final buildingData =
+    _buildingImageCache[r.building_id.toString()];
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -2362,56 +3031,108 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           MaterialPageRoute(
             builder: (_) => Future_Property_details(
               idd: r.building_id,
-
             ),
           ),
-        );
+        ).then((_) {
+          _fetchData(_selectedDay ?? _focusedDay);
+        });
       },
-      child:  Container(
-        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          gradient:  LinearGradient(
-
+          gradient: LinearGradient(
             colors: isCompleted
-                ? [
-              const Color(0xFF1B8E3E),   // deep green
-              const Color(0xFF4CAF50),   // light green
-            ]
-                : const [
-              Color(0xFFF02626),
-              Color(0xFFFF9E0B),
-            ],
-
+                ? [Color(0xFF1B8E3E), Color(0xFF4CAF50)]
+                : [Color(0xFF1E3C72), Color(0xFF2A5298)],
           ),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
+              color: Colors.black.withOpacity(0.12),
               blurRadius: 10,
-              offset: const Offset(0, 4),
+              offset: Offset(0, 4),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// 🔹 MESSAGE
+
+            /// 🔹 IMAGE + ADDRESS ROW
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Follow up with the client \nfor the building inquiry.",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color:Colors.white ,
+
+                /// IMAGE
+                if (buildingData != null &&
+                    buildingData.image.isNotEmpty)
+                  GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => PropertyPreview(
+                              ImageUrl:
+                              "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
+                            ),
+                          ),
+                        );
+                      },
+                      child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.network(
+                      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
+                      width: 100,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  ),
+
+                if (buildingData != null &&
+                    buildingData.image.isNotEmpty)
+                  const SizedBox(width: 12),
+
+                /// DETAILS
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+
+                      /// ADDRESS
+                      Text(
+                        buildingData?.address ??
+                            "Building ID: ${r.building_id}",
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+
+                      const SizedBox(height: 6),
+
+                      /// NEXT CALL DATE
+                      Text(
+                        "Next Call: ${formatReminderDate(r.nextCallingDate)}",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
+                /// BUILDING ID CHIP
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
@@ -2420,73 +3141,55 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     "Building ID: ${r.building_id}",
                     style: TextStyle(
                       fontSize: 11,
-                      fontFamily: "PoppinsBold",
                       fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.indigoAccent : Colors.indigo,
+                      color: isDark
+                          ? Colors.indigoAccent
+                          : Colors.indigo,
+                    ),
+                  ),
+                ),
+
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+
+
+            /// 🔹 REASON
+            if (reason.isNotEmpty &&
+                reason.toLowerCase() != "null") ...[
+              const SizedBox(height: 10),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  "Reason: $reason",
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+                Spacer(),
+                /// 🔹 FIELD WORKER
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    "By: ${r.fieldWorkerName} • ${r.fieldWorkerNumber}",
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.white,
+                      fontStyle: FontStyle.italic,
                     ),
                   ),
                 ),
               ],
-            ),
-
-            const SizedBox(height: 6),
-
-            /// 🔹 NEXT CALL DATE
-            Text(
-              "Next Call Date: ${formatReminderDate(r.nextCallingDate)}",
-              style: TextStyle(
-                fontFamily: "PoppinsBold",
-                fontSize: 12,
-                color: Colors.white ,
-              ),
-            ),
-
-            /// 🔹 REASON (if exists)
-            if (reason != null &&
-                reason.isNotEmpty &&
-                reason.toLowerCase() != "null") ...[
-              const SizedBox(height: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withOpacity(0.3)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.info_outline,
-                      size: 14,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: Text(
-                        "Reason: $reason",
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 6),
-
-            /// 🔹 FIELD WORKER
-            Text(
-              "FW: ${r.fieldWorkerName} • ${r.fieldWorkerNumber}",
-              style: TextStyle(
-                  fontSize: 12,
-                  fontFamily: "PoppinsBold",
-                  color: Colors.white
-              ),
             ),
 
 
@@ -3035,6 +3738,41 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     ),
                   ),
                 ),
+                if (t.agreementType.toLowerCase() == "police verification")
+                  GestureDetector(
+                    onTap: _openPoliceCalculator,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white : Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isDark ? Colors.white24 : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "Suggestion",
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontFamily: "PoppinsMedium",
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.black : Colors.indigo,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(
+                            Icons.lightbulb_outline,
+                            size: 16,
+                            color: Colors.amber.shade900,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
 
               ],
             ),
@@ -3274,9 +4012,8 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
     final apiData = _nextCallingCache[f.id.toString()];
     final nextDate = apiData?.nextCallingDate;
     final String reason = apiData?.reason ?? "";
-
-    final bool isCompleted =
-        reason.isNotEmpty;
+    final buildingData = _buildingImageCache[f.id.toString()];
+    final bool isCompleted = reason.isNotEmpty;
 
     return GestureDetector(
       onTap: () {
@@ -3287,196 +4024,209 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               idd: f.id.toString(),
             ),
           ),
-        );
+        ).then((_) {
+          _fetchData(_selectedDay ?? _focusedDay);
+        });
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: isCompleted
-                ? [
-              const Color(0xFF1B8E3E),   // deep green
-              const Color(0xFF4CAF50),   // light green
-            ]
-                : const [
-              Color(0xFFF02626),
-              Color(0xFFFF9E0B),
-            ],
+                ? [Color(0xFF1B8E3E), Color(0xFF4CAF50)]
+                : [Color(0xFFF02626), Color(0xFFFF9E0B)],
           ),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: Column(
+
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            /// 🔹 TITLE + BUY/RENT
-            Row(
-              children: [
-                const Icon(
-                  PhosphorIcons.buildings,
-                  size: 16,
-                  color: Colors.white,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    f.propertyAddress,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    f.buyRent,
-                    style: const TextStyle(
-                      fontFamily: "poppinsBold",
-                      color: Colors.blue,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 6),
-
-            /// 📍 LOCATION
-            Text(
-              "${f.place}  •  ${f.residenceType}",
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            /// 🚆 METRO + FLOORS
-            Row(
-              children: [
-                if (f.metroName.isNotEmpty)
-                  _miniChip(
-                    icon: PhosphorIcons.train,
-                    text: "${f.metroName} ${f.metroDistance}",
-                    isDark: isDark,
-                  ),
-                if (f.metroName.isNotEmpty) const SizedBox(width: 6),
-                _miniChip(
-                  icon: PhosphorIcons.star_fill,
-                  text: "${f.totalFloor}",
-                  isDark: isDark,
-                ),
-              ],
-            ),
-
-            /// ✅ NEXT CALL SECTION (Only if valid)
-            if (nextDate != null &&
-                nextDate.isNotEmpty &&
-                nextDate.toLowerCase() != "null") ...[
-
-              const SizedBox(height: 8),
-
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withOpacity(0.4)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.calendar_today,
-                      size: 14,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      "Next Call: ${formatDate(nextDate)}",
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+            /// IMAGE
+            if (buildingData != null && buildingData.image.isNotEmpty)
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PropertyPreview(
+                        ImageUrl:
+                        "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
                       ),
                     ),
-                  ],
+                  );
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.network(
+                    "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
+                    width: 110,
+                    height: 100,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
 
-              /// 🔹 REASON (if exists)
-              if (reason != null &&
-                  reason.isNotEmpty &&
-                  reason.toLowerCase() != "null") ...[
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white.withOpacity(0.3)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
+            if (buildingData != null && buildingData.image.isNotEmpty)
+              const SizedBox(width: 12),
+
+            /// DETAILS
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                  /// ADDRESS
+                  Row(
                     children: [
-                      const Icon(
-                        Icons.info_outline,
-                        size: 14,
+                      Icon(
+                        PhosphorIcons.buildings,
+                        size: 16,
                         color: Colors.white,
                       ),
                       const SizedBox(width: 6),
-                      Flexible(
+                      Expanded(
                         child: Text(
-                          "Reason: $reason",
+                          buildingData?.address ?? f.propertyAddress,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
                             color: Colors.white,
                           ),
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
-            ],
 
-            /// 🏢 FIELDWORKER
-            if (f.fieldWorkerName.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                "${f.fieldWorkerName} • ${f.fieldWorkerNumber}",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
+                  const SizedBox(height: 6),
+
+                  /// BUY / RENT
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      f.buyRent,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  /// LOCATION
+                  Text(
+                    "${f.place} • ${f.residenceType}",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  /// METRO + FLOOR
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: [
+                      if (f.metroName.isNotEmpty)
+                        _miniChip(
+                          icon: PhosphorIcons.train,
+                          text: "${f.metroName} ${f.metroDistance}",
+                          isDark: isDark,
+                        ),
+
+                      _miniChip(
+                        icon: PhosphorIcons.star_fill,
+                        text: "${f.totalFloor}",
+                        isDark: isDark,
+                      ),
+                    ],
+                  ),
+                  /// NEXT CALL DATE
+                  if (nextDate != null &&
+                      nextDate.isNotEmpty &&
+                      nextDate.toLowerCase() != "null") ...[
+                    const SizedBox(height: 8),
+
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                            color: Colors.white.withOpacity(0.4)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.calendar_today,
+                              size: 14, color: Colors.white),
+                          const SizedBox(width: 6),
+                          Text(
+                            "Next Call: ${formatDate(nextDate)}",
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    if (reason.isNotEmpty &&
+                        reason.toLowerCase() != "null") ...[
+                      const SizedBox(height: 6),
+                      Text(
+                        "Reason: $reason",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ],
+
+                  /// FIELDWORKER
+                  if (f.fieldWorkerName.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      "${f.fieldWorkerName} • ${f.fieldWorkerNumber}",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ],
               ),
-            ],
+            ),
           ],
         ),
       ),
@@ -3744,6 +4494,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       ),
     );
   }
+
   String formatTimeRange12h(String timeRange) {
     try {
       final parts = timeRange.split('-');
@@ -3765,6 +4516,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       return timeRange; // fallback
     }
   }
+
   Widget _buildWebsiteVisitCard(WebsiteVisit w, bool isDark) {
     return GestureDetector(
       onTap: () async {
@@ -3915,6 +4667,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         return Colors.grey;
     }
   }
+
   String formatDate(String date) {
     try {
       final parsed = DateTime.parse(date);
@@ -3923,6 +4676,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       return date; // fallback if API date is invalid
     }
   }
+
   Widget _buildCalendarAddFlatCard(CalendarAddFlat f, bool isDark) {
     final statusColor = _getLiveUnliveColor(f.liveUnlive);
 
@@ -4157,14 +4911,13 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           ),
         ),
 
-        // 🔹 SUBTITLE (Selected Day)
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(28),
           child: Padding(
             padding: const EdgeInsets.only(bottom: 6),
             child: Text(
               _selectedDay != null
-                  ? "Selected: ${_selectedDay!.day} ${_monthName(_selectedMonth).substring(0, 3)}"
+                  ? "Selected: ${_selectedDay!.day} ${_monthName(_selectedDay!.month).substring(0, 3)} ${_selectedDay!.year}"
                   : "",
               style: TextStyle(
                 fontSize: 13,
@@ -4400,7 +5153,43 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
             /// 🔹 AGREEMENTS
             if (_agreements.isNotEmpty)
-              _sectionTitle("Agreements", isDark, _agreements.length),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          "Agreements",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.indigo.shade800 : Colors.indigo.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            _agreements.length.toString(),
+                            style: TextStyle(
+                              color: isDark ? Colors.white : Colors.indigo,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    agreementSuggestionButton(),
+                  ],
+                ),
+              ),
             ..._agreements.map(
                   (e) => _buildAgreementCard(e, isDark),
             ),

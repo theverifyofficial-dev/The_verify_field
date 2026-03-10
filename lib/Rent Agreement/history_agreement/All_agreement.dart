@@ -696,7 +696,7 @@ class _AllAgreementState extends State<AllAgreement> {
                 spacing: 8,
                 runSpacing: 6,
                 children: [
-                  if (item.policeVerificationPdf.isEmpty ||
+                  if (item.withPolice == "true" && item.policeVerificationPdf.isEmpty ||
                       item.policeVerificationPdf == 'null')
                     const _MissingBadge(
                         label: "Police Verification Missing"),

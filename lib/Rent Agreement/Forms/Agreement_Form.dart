@@ -12,6 +12,7 @@ import 'package:verify_feild_worker/Rent%20Agreement/history_tab.dart';
 import '../../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 
+import '../../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../Dashboard_screen.dart';
 
 
@@ -36,7 +37,61 @@ class TenantBlock {
   String? aadhaarBackUrl;
   String? photoUrl;
 }
+class BuildingSuggestion {
+  final int id;
+  final String ownerName;
+  final String place;
+  final String propertyAddressForFieldworkar;
+  final List<FlatSuggestion> flats;
 
+  BuildingSuggestion({
+    required this.id,
+    required this.ownerName,
+    required this.place,
+    required this.flats,
+    required this.propertyAddressForFieldworkar,
+  });
+
+  factory BuildingSuggestion.fromJson(Map<String, dynamic> json) {
+    return BuildingSuggestion(
+      id: json["id"],
+      ownerName: json["ownername"] ?? "",
+      propertyAddressForFieldworkar: json["property_address_for_fieldworkar"] ?? "",
+      place: json["place"] ?? "",
+      flats: (json["flats"] as List)
+          .map((e) => FlatSuggestion.fromJson(e))
+          .toList(),
+    );
+  }
+}
+class FlatSuggestion {
+  final String id;
+  final String bhk;
+  final String price;
+  final String floor;
+  final String address;
+  final String fieldworkarAddress;
+
+  FlatSuggestion({
+    required this.id,
+    required this.bhk,
+    required this.price,
+    required this.floor,
+    required this.address,
+    required this.fieldworkarAddress,
+  });
+
+  factory FlatSuggestion.fromJson(Map<String, dynamic> json) {
+    return FlatSuggestion(
+      id: json["P_id"].toString(),
+      bhk: json["Bhk"] ?? "",
+      price: json["show_Price"] ?? "",
+      floor: json["Floor_"] ?? "",
+      address: json["Apartment_Address"] ?? "",
+      fieldworkarAddress: json["fieldworkar_address"] ?? "",
+    );
+  }
+}
 
 class RentalWizardPage extends StatefulWidget {
   final String? agreementId;
@@ -117,6 +172,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   @override
   void initState() {
     super.initState();
+    loadUserName();
     if (tenants.isEmpty) {
       tenants.add(TenantBlock());
     }
@@ -133,7 +189,51 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       _fetchAgreementDetails(widget.agreementId!);
     }
   }
+  String? userName;
+  String? userNumber;
+  Future<void> loadUserName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final storedName = prefs.getString('name');
+    final storedNumber = prefs.getString('number');
 
+    if (mounted) {
+      setState(() {
+        userName = storedName;
+        userNumber = storedNumber;
+      });
+    }
+  }
+  List<BuildingSuggestion> buildingSuggestions = [];
+  bool isSuggestionLoading = false;
+
+  Future<void> fetchBuildingSuggestions(String mobile) async {
+
+    final uri = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/building_data_for_agreement.php?mobile_number=$mobile&fieldworker_number=$userNumber",
+    );
+
+    final res = await http.get(uri);
+
+    if (res.statusCode == 200) {
+
+      final decoded = jsonDecode(res.body);
+      print("userNumber $userNumber");
+      print(res.statusCode);
+
+      if (decoded["status"] == true) {
+
+        final List list = decoded["buildings"];
+
+        setState(() {
+          buildingSuggestions =
+              list.map((e) => BuildingSuggestion.fromJson(e)).toList();
+        });
+
+      }
+
+    }
+
+  }
 
   Future<void> _fetchAgreementDetails(String id) async {
     final url = Uri.parse(
@@ -1424,7 +1524,304 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       ),
     );
   }
+  Future<void> _showBuildingSuggestions(String mobile) async {
 
+    if (mobile.length < 10) {
+      _showToast("Enter valid mobile number");
+      return;
+    }
+
+    await fetchBuildingSuggestions(mobile);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.7,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF111827) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+
+          child: Column(
+            children: [
+
+              /// DRAG HANDLE
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white24 : Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              Text(
+                "Select Property",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontFamily: "PoppinsMedium",
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
+
+              const SizedBox(height: 6),
+
+              Text(
+                "Choose building & flat",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: "PoppinsMedium",
+                  color: isDark ? Colors.white54 : Colors.grey,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              Divider(
+                color: isDark ? Colors.white10 : Colors.grey.shade300,
+              ),
+
+              /// PROPERTY LIST
+              Expanded(
+                child: buildingSuggestions.isEmpty
+                    ? Center(
+                  child: Text(
+                    "No Property Found On this Number",
+                    style: TextStyle(
+                      fontFamily: "PoppinsMedium",
+                      color: isDark ? Colors.white60 : Colors.grey,
+                    ),
+                  ),
+                )
+                    : ListView.builder(
+                  itemCount: buildingSuggestions.length,
+                  itemBuilder: (context, index) {
+
+                    final building = buildingSuggestions[index];
+
+                    return GestureDetector(
+                      onTap: (){
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                Future_Property_details(idd: building.id.toString()),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF1F2937)
+                              : Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isDark
+                                ? Colors.white10
+                                : Colors.grey.shade200,
+                          ),
+                        ),
+
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+
+                            /// BUILDING HEADER
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF7F1D1D)
+                                    : Colors.red.shade50,
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(16),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+
+                                  const Icon(
+                                    Icons.apartment,
+                                    color: Color(0xFFEF4444),
+                                  ),
+
+                                  const SizedBox(width: 8),
+
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+
+
+
+                                        Text(
+                                          "Owner: ${building.ownerName}",
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontFamily: "PoppinsMedium",
+                                            color: isDark ? Colors.white54 : Colors.black54,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+
+                                        Text(
+                                          building.propertyAddressForFieldworkar,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontFamily: "PoppinsMedium",
+                                            color: isDark ? Colors.white : Colors.black87,
+                                          ),
+                                        ),
+
+
+                                      ],
+                                    )
+                                  ),
+                                  Text(
+                                    "Building ID : "+building.id.toString(),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontFamily: "PoppinsMedium",
+                                      color: isDark ? Colors.white : Colors.black87,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            /// FLATS
+                            Column(
+                              children: building.flats.map((flat) {
+
+                                return InkWell(
+                                  onTap: () {
+
+                                    Bhk.text = flat.bhk;
+                                    floor.text = flat.floor;
+                                    Address.text = flat.address;
+
+                                    Navigator.pop(context);
+
+                                  },
+
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 12
+                                    ),
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          color: isDark
+                                              ? Colors.white10
+                                              : Colors.grey.shade200,
+                                        ),
+                                      ),
+                                    ),
+
+                                    child: Row(
+                                      children: [
+
+                                        /// BHK BADGE
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFEF4444)
+                                                .withOpacity(.15),
+                                            borderRadius:
+                                            BorderRadius.circular(8),
+                                          ),
+                                          child: Text(
+                                            flat.bhk,
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontFamily: "PoppinsMedium",
+                                              color: Color(0xFFEF4444),
+                                            ),
+                                          ),
+                                        ),
+
+                                        const SizedBox(width: 10),
+
+                                        /// DETAILS
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                            children: [
+
+                                              Text(
+                                                "₹${flat.price}",
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontFamily: "PoppinsMedium",
+                                                  color: isDark
+                                                      ? Colors.white
+                                                      : Colors.black,
+                                                ),
+                                              ),
+
+                                              Text(
+                                                "${flat.floor} • ${flat.fieldworkarAddress}",
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontFamily: "PoppinsMedium",
+                                                  color: isDark
+                                                      ? Colors.white54
+                                                      : Colors.grey,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+
+                                        Text(
+                                          "Flat ID: ${flat.id}",
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontFamily: "PoppinsMedium",
+                                            color: isDark
+                                                ? Colors.white54
+                                                : Colors.grey,
+                                          ),
+                                        ),
+
+                                      ],
+                                    ),
+                                  ),
+                                );
+
+                              }).toList(),
+                            )
+
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+            ],
+          ),
+        );
+      },
+    );
+  }
   Widget _propertyCard(Map<String, dynamic> data) {
     final String imageUrl =
         "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${data['property_photo'] ?? ''}";
@@ -1918,60 +2315,42 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
 
   Widget _ownerStep() {
     return _glassContainer(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
         Row(
+          // crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Owner Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
-            Align(
-                alignment: Alignment.centerRight,
-                child:Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFF6E0D0D), // ancient deep red – base tone
-                        Color(0xFF8F1D14), // royal crimson – mid tone
-                        Color(0xFFB3261E), // faded blood red – highlight
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
-                        blurRadius: 14,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child:ElevatedButton.icon(
-                    onPressed: () => _fetchUserData(
-                      fillOwner: true,
-                      aadhaar: ownerAadhaar.text,
-                      mobile: ownerMobile.text,
-                    ),
-                    icon: const Icon(Icons.search, color: Colors.white),
-                    label: const Text(
-                      'Auto fetch',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-
-                )
-
+            Expanded(child: Text('Owner Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black))),
+            SizedBox(height: 10,),
+            Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFF6E0D0D),
+                    Color(0xFF8F1D14),
+                    Color(0xFFB3261E),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ElevatedButton.icon(
+                onPressed: () => _fetchUserData(
+                  fillOwner: true,
+                  aadhaar: ownerAadhaar.text,
+                  mobile: ownerMobile.text,
+                ),
+                icon: const Icon(Icons.search, color: Colors.white),
+                label: const Text(
+                  'Auto Fetch',
+                  style: TextStyle(color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                ),
+              ),
             ),
           ],
         ),
@@ -2193,6 +2572,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                                 FilteringTextInputFormatter.digitsOnly,
                                 LengthLimitingTextInputFormatter(10),
                               ],
+
                               validator: (v) {
                                 if (v == null || v.trim().isEmpty) return 'Required';
                                 if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) {
@@ -2444,62 +2824,106 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Property Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFD50000), Color(0xFFB71C1C)], // deep red → dark crimson
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+
+            Text(
+              'Property Details',
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+              ),
+            ),
+
+
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+
+            /// AUTO FETCH BUTTON
+            Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFD50000), Color(0xFFB71C1C)],
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  if (isPropertyFetched) {
+                    _resetProperty();
+                  } else {
+                    fetchPropertyDetails();
+                  }
+                },
+                icon: Icon(
+                  isPropertyFetched ? Icons.refresh : Icons.search,
+                  color: Colors.white,
+                ),
+                label: Text(
+                  isPropertyFetched ? 'Change' : 'Auto Fetch',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
                   ),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.red.shade900.withOpacity(0.4),
-                      blurRadius: 8,
-                      offset: const Offset(2, 3),
-                    ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                ),
+              ),
+            ),
+
+
+            /// PROPERTY SUGGESTION BUTTON
+            Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFF1D4ED8),
+                    Color(0xFF2563EB),
                   ],
                 ),
-                child:
-                ElevatedButton.icon(
-                  onPressed: () {
-                    if (isPropertyFetched) {
-                      _resetProperty(); // allow change
-                    } else {
-                      fetchPropertyDetails(); // fetch property
-                    }
-                  },
-                  icon: Icon(
-                    isPropertyFetched ? Icons.refresh : Icons.search,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ElevatedButton.icon(
+                onPressed: () {
+
+                  /// priority owner mobile → tenant mobile
+                  String mobile = ownerMobile.text;
+
+                  if (mobile.isEmpty && tenants.isNotEmpty) {
+                    mobile = tenants[0].mobile.text;
+                  }
+
+                  if (mobile.isEmpty) {
+                    _showToast("Enter mobile number first");
+                    return;
+                  }
+
+                  _showBuildingSuggestions(mobile);
+
+                },
+                icon: const Icon(Icons.apartment, color: Colors.white),
+                label: const Text(
+                  'Suggestion',
+                  style: TextStyle(
                     color: Colors.white,
-                  ),
-                  label: Text(
-                    isPropertyFetched ? 'Change' : 'Auto Fetch',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    elevation: 0,
-                    backgroundColor: Colors.transparent, // gradient visible
-                    shadowColor: Colors.transparent,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                ),
               ),
             ),
 
           ],
         ),
-        const SizedBox(height: 12),
         Form(
           key: _propertyFormKey,
           child: Column(children: [

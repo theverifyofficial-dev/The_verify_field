@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../Dashboard/AllFieldWorkers.dart';
 import '../../main.dart';
 import '../Z-Screen/profile.dart';
 import '../../ui_decoration_tools/app_images.dart';
@@ -438,106 +437,98 @@ class _VideoHomepage_ScreenState extends State<VideoHomepage> with TickerProvide
   Widget _TargetHeaderCard(BuildContext context) {
     final bool isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => AllFieldWorkersPage()),
-        );
-      },
-      child: Container(
-        width: double.infinity,
-        margin: const EdgeInsets.symmetric(vertical: 18),
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            colors: isDark?
-            [Color(0xFF1E1E1E), Color(0xFF2C2C2C)]
-                :
-            [Colors.grey.shade100, Colors.white],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: isDark
-                  ? Colors.white.withOpacity(0.08)
-                  : Colors.black.withOpacity(0.12),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 18),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          colors: isDark?
+          [Color(0xFF1E1E1E), Color(0xFF2C2C2C)]
+              :
+          [Colors.grey.shade100, Colors.white],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        child: Row(
-          children: [
-            // 🔥 Animated Glow with Image
-            Stack(
-              alignment: Alignment.center,
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.white.withOpacity(0.08)
+                : Colors.black.withOpacity(0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // 🔥 Animated Glow with Image
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(seconds: 2),
+                curve: Curves.easeInOut,
+                height: 70,
+                width: 70,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: isDark
+                          ? Colors.blueAccent.withOpacity(0.4)
+                          : Colors.blue.withOpacity(0.4),
+                      blurRadius: 15,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+              ),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(50),
+                child: Image.asset(
+                  AppImages.target, // your target image asset here
+                  height: 55,
+                  width: 55,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(width: 18),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AnimatedContainer(
-                  duration: const Duration(seconds: 2),
-                  curve: Curves.easeInOut,
-                  height: 70,
-                  width: 70,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: isDark
-                            ? Colors.blueAccent.withOpacity(0.4)
-                            : Colors.blue.withOpacity(0.4),
-                        blurRadius: 15,
-                        spreadRadius: 2,
-                      ),
-                    ],
+                Text(
+                  "Target",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : Colors.black,
                   ),
                 ),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(50),
-                  child: Image.asset(
-                    AppImages.target, // your target image asset here
-                    height: 55,
-                    width: 55,
-                    fit: BoxFit.cover,
+                const SizedBox(height: 6),
+                Text(
+                  "Tap to view progress",
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    color: (isDark ? Colors.white : Colors.black).withOpacity(0.75),
                   ),
                 ),
               ],
             ),
+          ),
 
-            const SizedBox(width: 18),
-
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Target",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    "Tap to view progress",
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      color: (isDark ? Colors.white : Colors.black).withOpacity(0.75),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 18,
-              color: isDark ? Colors.white70 : Colors.black54,
-            ),
-          ],
-        ),
+          Icon(
+            Icons.arrow_forward_ios_rounded,
+            size: 18,
+            color: isDark ? Colors.white70 : Colors.black54,
+          ),
+        ],
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:verify_feild_worker/Upcoming/All_flats.dart';
 import 'package:verify_feild_worker/Upcoming/add_flats.dart';
 import 'package:verify_feild_worker/Upcoming/user_flat.dart';
 import '../ui_decoration_tools/app_images.dart';
+import 'Accepted_field.dart';
 import 'Disclosed_demand.dart';
 
 
@@ -46,7 +47,7 @@ class _Show_New_Real_EstateState extends State<Tabbar> {
         ),
       ),
       body: DefaultTabController(
-        length: 2,
+        length: 3,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -70,14 +71,17 @@ class _Show_New_Real_EstateState extends State<Tabbar> {
                 indicatorSize: TabBarIndicatorSize.tab, // Full width of tab
                 tabs: const [
                   Tab(text: 'New Demand'),
+                  Tab(text: 'Accepted'),
                   Tab(text: 'Closed Demand'),
                 ],
               ),
             ),
 
             Expanded(
-              child: TabBarView(children: [
+              child: TabBarView(
+                  children: [
                 CostumerDemand(),
+                AcceptedField(),
                 DisclosedDemand(),
               ]),
             )

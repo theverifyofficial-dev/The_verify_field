@@ -183,79 +183,79 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
   }
 
 
-  Future<void> _assignDemand() async {
-    if (_selectedName == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Select Name")),
-      );
-      return;
-    }
-    if (_selectedOffice == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("location error")),
-      );
-      return;
-    }
-
-    setState(() => _assigning = true);
-
-    try {
-      final body = jsonEncode({
-        "demand_id": widget.demandId,
-        "subadmin_role": "Sub Administrator",
-        "subadmin_name": _selectedName,
-        "subadmin_location": _selectedOffice
-      });
-
-      final response = await http.post(
-        Uri.parse(
-            "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/assign_subadmin.php"),
-        headers: {"Content-Type": "application/json"},
-        body: body,
-      );
-
-      final result = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-        if (mounted) Navigator.pop(context);
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: Colors.green,
-              content: Text(result["message"] ?? "Demand assigned successfully"),
-            ),
-          );
-        }
-
-        await Future.delayed(const Duration(milliseconds: 300));
-
-        if (mounted) {
-          // refresh both parent and child list
-          await _fetchDemandDetails();
-        }
-      } else {
-        await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/assign_subadmin.php",
-          error: response.body.toString(),
-          statusCode: response.statusCode ?? 0,
-        );
-
-        throw Exception(result["message"] ?? "Assignment failed");
-
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Error: $e")));
-      await BugLogger.log(
-        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/assign_subadmin.php",
-        error: e.toString(),
-        statusCode: 500,
-      );
-    } finally {
-      if (mounted) setState(() => _assigning = false);
-    }
-  }
+  // Future<void> _assignDemand() async {
+  //   if (_selectedName == null) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text("Select Name")),
+  //     );
+  //     return;
+  //   }
+  //   if (_selectedOffice == null) {
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       const SnackBar(content: Text("location error")),
+  //     );
+  //     return;
+  //   }
+  //
+  //   setState(() => _assigning = true);
+  //
+  //   try {
+  //     final body = jsonEncode({
+  //       "demand_id": widget.demandId,
+  //       "subadmin_role": "Sub Administrator",
+  //       "subadmin_name": _selectedName,
+  //       "subadmin_location": _selectedOffice
+  //     });
+  //
+  //     final response = await http.post(
+  //       Uri.parse(
+  //           "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/assign_subadmin.php"),
+  //       headers: {"Content-Type": "application/json"},
+  //       body: body,
+  //     );
+  //
+  //     final result = jsonDecode(response.body);
+  //
+  //     if (response.statusCode == 200) {
+  //       if (mounted) Navigator.pop(context);
+  //
+  //       if (mounted) {
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(
+  //             backgroundColor: Colors.green,
+  //             content: Text(result["message"] ?? "Demand assigned successfully"),
+  //           ),
+  //         );
+  //       }
+  //
+  //       await Future.delayed(const Duration(milliseconds: 300));
+  //
+  //       if (mounted) {
+  //         // refresh both parent and child list
+  //         await _fetchDemandDetails();
+  //       }
+  //     } else {
+  //       await BugLogger.log(
+  //         apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/assign_subadmin.php",
+  //         error: response.body.toString(),
+  //         statusCode: response.statusCode ?? 0,
+  //       );
+  //
+  //       throw Exception(result["message"] ?? "Assignment failed");
+  //
+  //     }
+  //   } catch (e) {
+  //     ScaffoldMessenger.of(context)
+  //         .showSnackBar(SnackBar(content: Text("Error: $e")));
+  //     await BugLogger.log(
+  //       apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/assign_subadmin.php",
+  //       error: e.toString(),
+  //       statusCode: 500,
+  //     );
+  //   } finally {
+  //     if (mounted) setState(() => _assigning = false);
+  //   }
+  // }
 
   Widget _buildTenantCard(bool isDark, Color accent, Map<String, dynamic> data) {
     final bool isUrgent = (data["mark"]?.toString() ?? "0") == "1";
@@ -779,132 +779,132 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
     );
   }
 
-  void _openAssignBottomSheet(Color accent, bool isDark) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-        builder: (ctx) {
-          return StatefulBuilder(
-            builder: (context, setModalState) {
-              return DraggableScrollableSheet(
-                initialChildSize: 0.55,
-                minChildSize: 0.35,
-                maxChildSize: 0.9,
-                expand: false,
-                builder: (_, controller) {
-                  return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF111217) : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
-                boxShadow: [
-                  BoxShadow(
-                    color: accent.withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 0),
-                  )
-                ],
-              ),
-              child: Column(
-                children: [
-                  Container(width: 50, height: 5, decoration: BoxDecoration(color: Colors.grey.withOpacity(0.4), borderRadius: BorderRadius.circular(10))),
-                  const SizedBox(height: 18),
-                  Text("Assign Demand", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: accent)),
-                  const SizedBox(height: 20),
-
-                  DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: "Select Name",
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                    ),
-                    value: _selectedName,
-                    onChanged: (v) {
-                      setModalState(() {
-                        _selectedName = v;
-                        _selectedOffice =
-                        v == null ? null : _resolveLocationByName(v);
-                      });
-                    },
-                    items: _nameList
-                        .map(
-                          (e) => DropdownMenuItem(
-                        value: e,
-                        child: Text(e),
-                      ),
-                    )
-                        .toList(),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // --- AUTO LOCATION DISPLAY ---
-                  if (_selectedOffice != null)
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: accent.withOpacity(0.12),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.location_on, color: accent),
-                          const SizedBox(width: 10),
-                          Text(
-                            _selectedOffice!,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: isDark
-                                  ? Colors.white70
-                                  : Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                  const Spacer(),
-
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: _assigning ? null : _assignDemand,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: accent,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: _assigning ? 2 : 5,
-                      ),
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 250),
-                        child: _assigning
-                            ? Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(height: 22, width: 22, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2.3)),
-                            const SizedBox(width: 12),
-                            Text("Assigning...", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-                          ],
-                        )
-                            : Text("Assign Now", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-    );
-        }
+  // void _openAssignBottomSheet(Color accent, bool isDark) {
+  //   showModalBottomSheet(
+  //     context: context,
+  //     isScrollControlled: true,
+  //     backgroundColor: Colors.transparent,
+  //       builder: (ctx) {
+  //         return StatefulBuilder(
+  //           builder: (context, setModalState) {
+  //             return DraggableScrollableSheet(
+  //               initialChildSize: 0.55,
+  //               minChildSize: 0.35,
+  //               maxChildSize: 0.9,
+  //               expand: false,
+  //               builder: (_, controller) {
+  //                 return Container(
+  //             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
+  //             decoration: BoxDecoration(
+  //               color: isDark ? const Color(0xFF111217) : Colors.white,
+  //               borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+  //               boxShadow: [
+  //                 BoxShadow(
+  //                   color: accent.withOpacity(0.2),
+  //                   blurRadius: 10,
+  //                   offset: const Offset(0, 0),
+  //                 )
+  //               ],
+  //             ),
+  //             child: Column(
+  //               children: [
+  //                 Container(width: 50, height: 5, decoration: BoxDecoration(color: Colors.grey.withOpacity(0.4), borderRadius: BorderRadius.circular(10))),
+  //                 const SizedBox(height: 18),
+  //                 Text("Assign Demand", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: accent)),
+  //                 const SizedBox(height: 20),
+  //
+  //                 DropdownButtonFormField<String>(
+  //                   decoration: InputDecoration(
+  //                     labelText: "Select Name",
+  //                     border: OutlineInputBorder(
+  //                         borderRadius: BorderRadius.circular(12)),
+  //                     contentPadding: const EdgeInsets.symmetric(
+  //                         horizontal: 12, vertical: 10),
+  //                   ),
+  //                   value: _selectedName,
+  //                   onChanged: (v) {
+  //                     setModalState(() {
+  //                       _selectedName = v;
+  //                       _selectedOffice =
+  //                       v == null ? null : _resolveLocationByName(v);
+  //                     });
+  //                   },
+  //                   items: _nameList
+  //                       .map(
+  //                         (e) => DropdownMenuItem(
+  //                       value: e,
+  //                       child: Text(e),
+  //                     ),
+  //                   )
+  //                       .toList(),
+  //                 ),
+  //
+  //                 const SizedBox(height: 16),
+  //
+  //                 // --- AUTO LOCATION DISPLAY ---
+  //                 if (_selectedOffice != null)
+  //                   Container(
+  //                     width: double.infinity,
+  //                     padding: const EdgeInsets.all(14),
+  //                     decoration: BoxDecoration(
+  //                       borderRadius: BorderRadius.circular(12),
+  //                       color: accent.withOpacity(0.12),
+  //                     ),
+  //                     child: Row(
+  //                       children: [
+  //                         Icon(Icons.location_on, color: accent),
+  //                         const SizedBox(width: 10),
+  //                         Text(
+  //                           _selectedOffice!,
+  //                           style: TextStyle(
+  //                             fontWeight: FontWeight.w600,
+  //                             color: isDark
+  //                                 ? Colors.white70
+  //                                 : Colors.black87,
+  //                           ),
+  //                         ),
+  //                       ],
+  //                     ),
+  //                   ),
+  //
+  //                 const Spacer(),
+  //
+  //                 SizedBox(
+  //                   width: double.infinity,
+  //                   height: 48,
+  //                   child: ElevatedButton(
+  //                     onPressed: _assigning ? null : _assignDemand,
+  //                     style: ElevatedButton.styleFrom(
+  //                       backgroundColor: accent,
+  //                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  //                       elevation: _assigning ? 2 : 5,
+  //                     ),
+  //                     child: AnimatedSwitcher(
+  //                       duration: const Duration(milliseconds: 250),
+  //                       child: _assigning
+  //                           ? Row(
+  //                         mainAxisAlignment: MainAxisAlignment.center,
+  //                         children: [
+  //                           SizedBox(height: 22, width: 22, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2.3)),
+  //                           const SizedBox(width: 12),
+  //                           Text("Assigning...", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+  //                         ],
+  //                       )
+  //                           : Text("Assign Now", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 16)),
+  //                     ),
+  //                   ),
+  //                 ),
+  //                 const SizedBox(height: 14),
+  //               ],
+  //             ),
+  //           );
+  //         },
+  //       );
+  //     },
+  //   );
+  // }
+  //   );
+  //       }
 
   Widget _buildFinalSummarySection(bool isDark, Color accent) {
     final theme = Theme.of(context);
@@ -1110,22 +1110,22 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
 
             const SizedBox(height: 15),
 
-            if (status == "new") ...[
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => _openAssignBottomSheet(accent, isDark),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: accent.withOpacity(0.85),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    elevation: 6,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  child: Text("Assign Demand", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 17)),
-                ),
-              ),
-              const SizedBox(height: 14),
-            ],
+            // if (status == "new") ...[
+            //   SizedBox(
+            //     width: double.infinity,
+            //     child: ElevatedButton(
+            //       onPressed: () => _openAssignBottomSheet(accent, isDark),
+            //       style: ElevatedButton.styleFrom(
+            //         backgroundColor: accent.withOpacity(0.85),
+            //         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            //         elevation: 6,
+            //         padding: const EdgeInsets.symmetric(vertical: 14),
+            //       ),
+            //       child: Text("Assign Demand", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 17)),
+            //     ),
+            //   ),
+            //   const SizedBox(height: 14),
+            // ],
 
             SizedBox(
               width: double.infinity,

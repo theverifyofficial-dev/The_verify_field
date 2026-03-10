@@ -514,8 +514,8 @@ class _RedemandDetailPageState extends State<RedemandSubadmin> {
             _buildProgressDetailsCard(_redemand!, isDark, accent),
 
 
-          if (isAssignedToMe && status == "progressing")
-            _buildCompletionSection(isDark, accent),
+          // if (isAssignedToMe && status == "progressing")
+          //   _buildCompletionSection(isDark, accent),
 
 
           // ✔ Show disclosed summary same as admin
@@ -537,68 +537,68 @@ class _RedemandDetailPageState extends State<RedemandSubadmin> {
           ],
 
 
-          // ✔ SubAdmin can assign ON LY when status == assign to subadmin
-          if (status == "assign to subadmin")
-            _buildAssignButton(accent, isDark),
+          // // ✔ SubAdmin can assign ON LY when status == assign to subadmin
+          // if (status == "assign to subadmin")
+          //   _buildAssignButton(accent, isDark),
+          //
+          //
+          // if (status == "assign to subadmin")
+          //   SizedBox(
+          //     width: double.infinity,
+          //     child: ElevatedButton.icon(
+          //       icon: const Icon(Icons.swap_horiz, color: Colors.white),
+          //       label: const Text(
+          //         "Transfer to Another Office",
+          //         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          //       ),
+          //       style: ElevatedButton.styleFrom(
+          //         backgroundColor: Colors.deepPurple,
+          //         padding: const EdgeInsets.symmetric(vertical: 14),
+          //         shape: RoundedRectangleBorder(
+          //           borderRadius: BorderRadius.circular(14),
+          //         ),
+          //       ),
+          //       onPressed: () => _openTransferBottomSheet(isDark),
+          //     ),
+          //   ),
 
 
-          if (status == "assign to subadmin")
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.swap_horiz, color: Colors.white),
-                label: const Text(
-                  "Transfer to Another Office",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                onPressed: () => _openTransferBottomSheet(isDark),
-              ),
-            ),
 
-
-
-          if (isAssignedToMe && status == "assigned to fieldworker" || status == "progressing")
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isDisclosed
-                      ? Colors.grey.shade200   // 🔒 disabled look
-                      : accent,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: isDisclosed
-                    ? null // 🔒 FULLY DISABLED
-                    : () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => RedemandForm(demand: _redemand!),
-                    ),
-                  ).then((_) => _fetchRedemandDetails());
-                },
-                child: Text(
-                  isDisclosed
-                      ? "Redemand Closed"
-                      : "Add More Details",
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
+          // if (isAssignedToMe && status == "assigned to fieldworker" || status == "progressing")
+          //   SizedBox(
+          //     width: double.infinity,
+          //     child: ElevatedButton(
+          //       style: ElevatedButton.styleFrom(
+          //         backgroundColor: isDisclosed
+          //             ? Colors.grey.shade200   // 🔒 disabled look
+          //             : accent,
+          //         padding: const EdgeInsets.symmetric(vertical: 14),
+          //         shape: RoundedRectangleBorder(
+          //           borderRadius: BorderRadius.circular(12),
+          //         ),
+          //       ),
+          //       onPressed: isDisclosed
+          //           ? null // 🔒 FULLY DISABLED
+          //           : () {
+          //         Navigator.push(
+          //           context,
+          //           MaterialPageRoute(
+          //             builder: (_) => RedemandForm(demand: _redemand!),
+          //           ),
+          //         ).then((_) => _fetchRedemandDetails());
+          //       },
+          //       child: Text(
+          //         isDisclosed
+          //             ? "Redemand Closed"
+          //             : "Add More Details",
+          //         style: const TextStyle(
+          //           color: Colors.black,
+          //           fontWeight: FontWeight.bold,
+          //           fontSize: 16,
+          //         ),
+          //       ),
+          //     ),
+          //   ),
 
           const SizedBox(height: 15),
           SizedBox(

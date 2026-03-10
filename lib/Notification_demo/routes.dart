@@ -16,6 +16,7 @@ import '../Administrator/SubAdmin/Redemand_subadmin.dart';
 import '../Administrator/SubAdmin/SubAdminAccountant_Home.dart';
 import '../Administrator/SubAdmin/sub_demand_details.dart';
 import '../Demand_2/Demand_detail.dart';
+import '../Demand_2/Tabbar.dart';
 import '../Demand_2/redemand_detailpage.dart';
 import '../Home_Screen_click/VideoEditingForField.dart';
 import '../Rent Agreement/details_agreement.dart';
@@ -34,6 +35,7 @@ class Routes {
   static const String fieldAgreementPending = '/fieldAgreementPending';
   static const String adminAgreementPending = '/adminAgreementPending';
   static const String administaterAddRentedFlatTabbar = "/AdministatorAddRentedFlatTabbar";
+  static const String fieldNewDemand = "/fieldNewDemand";
   static const String addRentedFlatTabbarNew = "/AddRentedFlatTabbarNew";
   // ADMIN
   static const String AdminDemandDetails = "/adminDemandDetail";
@@ -137,6 +139,12 @@ class Routes {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
       final tabIndex = args['tabIndex'] ?? 0;
       return HistoryTab(defaultTabIndex: tabIndex);
+    },
+
+    // 🔸 Field Worker - Demand Added
+    fieldNewDemand: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+      return Tabbar();
     },
 
     // 🔸 Field Worker - Pending Agreements

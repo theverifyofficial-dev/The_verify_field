@@ -50,7 +50,8 @@ class _CommercialListPageState extends State<CommercialListPage> {
         propertyCount = properties.length;
         _isLoading = false;
       });
-    } catch (e) {
+    }
+    catch (e) {
       setState(() {
         _isLoading = false;
       });

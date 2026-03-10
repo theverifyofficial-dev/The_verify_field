@@ -239,7 +239,6 @@ class _ProfilePageState extends State<AdminProfile> {
 
             // Profile Details
             profileCard(theme, isDark),
-
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: () => _showLogoutDialog(context),

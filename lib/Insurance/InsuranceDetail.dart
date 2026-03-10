@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../Custom_Widget/property_preview.dart';
 import 'InsuranceShowListPage.dart';
@@ -29,6 +30,7 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
   void initState() {
     super.initState();
     fetchDetails();
+    loadUserName();
     fetchMultipleImages();
   }
   String insuranceBaseUrl =
@@ -92,6 +94,38 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
       isLoading = false;
     });
   }
+
+  String? userName;
+  String? userNumber;
+  String? userStoredFAadharCard;
+  String? userStoredLocation;
+
+  Future<void> loadUserName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    final storedName = prefs.getString('name');
+    final storedNumber = prefs.getString('number');
+    final storedLocation = prefs.getString('location') ?? '';
+    final storedFAadharCard = prefs.getString('post');
+
+    // 🔥 PRINT DATA
+    debugPrint("------ SHARED PREF DATA ------");
+    debugPrint("Name: $storedName");
+    debugPrint("Number: $storedNumber");
+    debugPrint("Location: $storedLocation");
+    debugPrint("Post: $storedFAadharCard");
+    debugPrint("------------------------------");
+
+    if (mounted) {
+      setState(() {
+        userName = storedName;
+        userNumber = storedNumber;
+        userStoredFAadharCard = storedFAadharCard;
+        userStoredLocation = storedLocation;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -173,7 +207,7 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
                           _circleButton(Icons.arrow_back_ios_new, () {
                             Navigator.pop(context);
                           }),
-
+                          if (userStoredFAadharCard == "fieldworker")
                           _circleButton(Icons.more_horiz_rounded, () async {
 
                             final refreshed = await Navigator.push(

@@ -11,7 +11,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_tab.dart';
 import '../../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
+import '../../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../Dashboard_screen.dart';
+import 'Agreement_Form.dart';
 
 class DirectorBlock {
   String? id; // 🔥 (for update case)
@@ -145,7 +147,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
   @override
   void initState() {
     super.initState();
-
+    loadUserName();
     if (directors.isEmpty) {
       directors.add(DirectorBlock());
     }
@@ -163,8 +165,52 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
       _fetchAgreementDetails(widget.agreementId!);
     }
   }
+  String? userName;
+  String? userNumber;
+  Future<void> loadUserName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final storedName = prefs.getString('name');
+    final storedNumber = prefs.getString('number');
 
+    if (mounted) {
+      setState(() {
+        userName = storedName;
+        userNumber = storedNumber;
+      });
+    }
+  }
 
+  List<BuildingSuggestion> buildingSuggestions = [];
+  bool isSuggestionLoading = false;
+
+  Future<void> fetchBuildingSuggestions(String mobile) async {
+
+    final uri = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/building_data_for_agreement.php?mobile_number=$mobile&fieldworker_number=$userNumber",
+    );
+
+    final res = await http.get(uri);
+
+    if (res.statusCode == 200) {
+
+      final decoded = jsonDecode(res.body);
+      print("userNumber $userNumber");
+      print(res.statusCode);
+
+      if (decoded["status"] == true) {
+
+        final List list = decoded["buildings"];
+
+        setState(() {
+          buildingSuggestions =
+              list.map((e) => BuildingSuggestion.fromJson(e)).toList();
+        });
+
+      }
+
+    }
+
+  }
   String convertToWords(int number) {
     if (number == 0) return 'Zero';
 
@@ -2537,42 +2583,87 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Property Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
-            Align(
-              alignment: Alignment.centerRight,
+
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            ElevatedButton.icon(
+              onPressed: () {
+                if (isPropertyFetched) {
+                  _resetProperty(); // allow change
+                } else {
+                  fetchPropertyDetails(); // fetch property
+                }
+              },
+              icon: Icon(
+                isPropertyFetched ? Icons.refresh : Icons.search,
+                color: Colors.white,
+              ),
+              label: Text(
+                isPropertyFetched ? 'Change' : 'Auto Fetch',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                elevation: 0,
+                backgroundColor: Colors.amber.shade700, // gradient visible
+                shadowColor: Colors.transparent,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFF1D4ED8),
+                    Color(0xFF2563EB),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: ElevatedButton.icon(
                 onPressed: () {
-                  if (isPropertyFetched) {
-                    _resetProperty(); // allow change
-                  } else {
-                    fetchPropertyDetails(); // fetch property
+
+                  /// priority owner mobile → tenant mobile
+                  String mobile = ownerMobile.text;
+
+                  if (mobile.isEmpty && directors.isNotEmpty) {
+                    mobile = directors[0].mobile.text;
                   }
+
+                  if (mobile.isEmpty) {
+                    _showToast("Enter mobile number first");
+                    return;
+                  }
+
+                  _showBuildingSuggestions(mobile);
+
                 },
-                icon: Icon(
-                  isPropertyFetched ? Icons.refresh : Icons.search,
-                  color: Colors.white,
-                ),
-                label: Text(
-                  isPropertyFetched ? 'Change' : 'Auto Fetch',
-                  style: const TextStyle(
+                icon: const Icon(Icons.apartment, color: Colors.white),
+                label: const Text(
+                  'Suggestion',
+                  style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  elevation: 0,
-                  backgroundColor: Colors.amber.shade700, // gradient visible
+                  backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
                 ),
               ),
-
             ),
+
           ],
         ),
-        const SizedBox(height: 12),
         Form(
           key: _propertyFormKey,
           child: Column(children: [
@@ -2894,6 +2985,303 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
           ),
         ),
       ]),
+    );
+  }
+  Future<void> _showBuildingSuggestions(String mobile) async {
+
+    if (mobile.length < 10) {
+      _showToast("Enter valid mobile number");
+      return;
+    }
+
+    await fetchBuildingSuggestions(mobile);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.7,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF111827) : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+
+          child: Column(
+            children: [
+
+              /// DRAG HANDLE
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white24 : Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              Text(
+                "Select Property",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontFamily: "PoppinsMedium",
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
+
+              const SizedBox(height: 6),
+
+              Text(
+                "Choose building & flat",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontFamily: "PoppinsMedium",
+                  color: isDark ? Colors.white54 : Colors.grey,
+                ),
+              ),
+
+              const SizedBox(height: 10),
+
+              Divider(
+                color: isDark ? Colors.white10 : Colors.grey.shade300,
+              ),
+
+              /// PROPERTY LIST
+              Expanded(
+                child: buildingSuggestions.isEmpty
+                    ? Center(
+                  child: Text(
+                    "No Property Found On this Number",
+                    style: TextStyle(
+                      fontFamily: "PoppinsMedium",
+                      color: isDark ? Colors.white60 : Colors.grey,
+                    ),
+                  ),
+                )
+                    : ListView.builder(
+                  itemCount: buildingSuggestions.length,
+                  itemBuilder: (context, index) {
+
+                    final building = buildingSuggestions[index];
+
+                    return GestureDetector(
+                      onTap: (){
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                Future_Property_details(idd: building.id.toString()),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0xFF1F2937)
+                              : Colors.grey.shade50,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isDark
+                                ? Colors.white10
+                                : Colors.grey.shade200,
+                          ),
+                        ),
+
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+
+                            /// BUILDING HEADER
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? const Color(0xFF7F1D1D)
+                                    : Colors.red.shade50,
+                                borderRadius: const BorderRadius.vertical(
+                                  top: Radius.circular(16),
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+
+                                  const Icon(
+                                    Icons.apartment,
+                                    color: Color(0xFFEF4444),
+                                  ),
+
+                                  const SizedBox(width: 8),
+
+                                  Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+
+
+
+                                          Text(
+                                            "Owner: ${building.ownerName}",
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontFamily: "PoppinsMedium",
+                                              color: isDark ? Colors.white54 : Colors.black54,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+
+                                          Text(
+                                            building.propertyAddressForFieldworkar,
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontFamily: "PoppinsMedium",
+                                              color: isDark ? Colors.white : Colors.black87,
+                                            ),
+                                          ),
+
+
+                                        ],
+                                      )
+                                  ),
+                                  Text(
+                                    "Building ID : "+building.id.toString(),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontFamily: "PoppinsMedium",
+                                      color: isDark ? Colors.white : Colors.black87,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            /// FLATS
+                            Column(
+                              children: building.flats.map((flat) {
+
+                                return InkWell(
+                                  onTap: () {
+
+
+                                    Address.text = flat.address;
+
+                                    Navigator.pop(context);
+
+                                  },
+
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 12
+                                    ),
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        bottom: BorderSide(
+                                          color: isDark
+                                              ? Colors.white10
+                                              : Colors.grey.shade200,
+                                        ),
+                                      ),
+                                    ),
+
+                                    child: Row(
+                                      children: [
+
+                                        /// BHK BADGE
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFEF4444)
+                                                .withOpacity(.15),
+                                            borderRadius:
+                                            BorderRadius.circular(8),
+                                          ),
+                                          child: Text(
+                                            flat.bhk,
+                                            style: const TextStyle(
+                                              fontSize: 11,
+                                              fontFamily: "PoppinsMedium",
+                                              color: Color(0xFFEF4444),
+                                            ),
+                                          ),
+                                        ),
+
+                                        const SizedBox(width: 10),
+
+                                        /// DETAILS
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                            children: [
+
+                                              Text(
+                                                "₹${flat.price}",
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontFamily: "PoppinsMedium",
+                                                  color: isDark
+                                                      ? Colors.white
+                                                      : Colors.black,
+                                                ),
+                                              ),
+
+                                              Text(
+                                                "${flat.floor} • ${flat.fieldworkarAddress}",
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontFamily: "PoppinsMedium",
+                                                  color: isDark
+                                                      ? Colors.white54
+                                                      : Colors.grey,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+
+                                        Text(
+                                          "Flat ID: ${flat.id}",
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontFamily: "PoppinsMedium",
+                                            color: isDark
+                                                ? Colors.white54
+                                                : Colors.grey,
+                                          ),
+                                        ),
+
+                                      ],
+                                    ),
+                                  ),
+                                );
+
+                              }).toList(),
+                            )
+
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+            ],
+          ),
+        );
+      },
     );
   }
 

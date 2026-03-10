@@ -11,20 +11,21 @@ class RealEstateSlider {
 
   factory RealEstateSlider.fromJson(Map<String, dynamic> json) {
     return RealEstateSlider(
-      mId: int.tryParse(json['M_id'].toString()) ?? 0,
+      mId: json['M_id'] ?? 0,
       mImages: json['M_images'] ?? "",
-      subid: int.tryParse(json['subid'].toString()) ?? 0,
+      subid: json['subid'] ?? 0,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'M_id': mId,
-      'M_images': mImages,
-      'subid': subid,
+      "M_id": mId,
+      "M_images": mImages,
+      "subid": subid,
     };
   }
 }
+
 class RealEstateSlider1 {
   int? id;
   String? rimg;

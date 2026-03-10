@@ -179,18 +179,29 @@ class AllViewDetails extends StatefulWidget {
 }
 class _View_DetailsState extends State<AllViewDetails> {
   Future<List<RealEstateSlider>> fetchCarouselData(int subid) async {
-    final url = 'https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$subid';
-    print('Fetching gallery for subid: $subid'); // Debug
-    final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 30));
-    print('Gallery Response status: ${response.statusCode}'); // Debug
-    print('Gallery Response body: ${response.body}'); // Debug
+    final url =
+        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mutliple_image_in_mainrealestate.php?subid=$subid';
+
+    print('Fetching gallery for subid: $subid');
+
+    final response =
+    await http.get(Uri.parse(url)).timeout(const Duration(seconds: 30));
+
+    print('Gallery Response status: ${response.statusCode}');
+    // print('Gallery Response body: ${response.body}');
+
     if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      if (data is String) {
-        final innerData = json.decode(data);
-        return (innerData as List).map((item) => RealEstateSlider.fromJson(item)).toList();
+      final decoded = json.decode(response.body);
+
+      if (decoded['success'] == true) {
+        final List data = decoded['data'];
+
+        return data
+            .map((item) => RealEstateSlider.fromJson(item))
+            .toList();
+      } else {
+        return [];
       }
-      return (data as List).map((item) => RealEstateSlider.fromJson(item)).toList();
     } else if (response.statusCode == 404) {
       return [];
     } else {

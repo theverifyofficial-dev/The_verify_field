@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Administrator/Admin_upcoming.dart';
 import '../Adminisstrator_Target_details/Targets.dart';
 import '../Calender/CalenderForAdmin.dart';
+import '../Dashboard/Dashoard.dart';
 import '../Home_Screen.dart' hide AgreementTaskResponse, FuturePropertyResponse, WebsiteVisitResponse;
 import '../Web_query/web_query.dart' hide SlideAnimation;
 import '../Z-Screen/Social_Media_links.dart';
@@ -15,7 +16,6 @@ import '../main.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'AdminInsurance/AdminInsuranceListScreen.dart';
 import 'AdminRealEstateTabbar.dart';
-import 'Admin_future _property/Administater_Future_Property.dart';
 import 'Admin_future _property/Administater_Future_Tabbar.dart';
 import 'Admin_profile.dart';
 import 'Administater_Parent_TenantDemand.dart';
@@ -177,20 +177,21 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
   String? userNumber;
   String? userStoredFAadharCard;
 
-  Future<void> loadUserName() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final storedName = prefs.getString('name');
-    final storedNumber = prefs.getString('number');
-    final storedFAadharCard = prefs.getString('post');
+  // Future<void> loadUserName() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   final storedName = prefs.getString('name');
+  //   final storedNumber = prefs.getString('number');
+  //   final storedFAadharCard = prefs.getString('post');
+  //
+  //   if (mounted) {
+  //     setState(() {
+  //       userName = storedName;
+  //       userNumber = storedNumber;
+  //       userStoredFAadharCard = storedFAadharCard;
+  //     });
+  //   }
+  // }
 
-    if (mounted) {
-      setState(() {
-        userName = storedName;
-        userNumber = storedNumber;
-        userStoredFAadharCard = storedFAadharCard;
-      });
-    }
-  }
   Future<void> fetchAgreementCount() async {
     try {
       final response = await http.get(
@@ -480,7 +481,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 9,
+                        itemCount: 8,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
@@ -520,27 +521,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                               },
                               "count": 0,
                             },
-                            {
-                              "image": AppImages.tenant,
-                              "title": "Costumer Demands",
-                              "gradient": AppGradients.purple(),
-                              "onTap": () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) => const Administater_parent_TenandDemand()),
-                                );
-                              },
-                              "count": 0,
-                            },
-                            {
-                              'image': AppImages.tenant,
-                              'title': "Costumer Demands",
-                              'onTap': () =>
-                                  Navigator.push(context, MaterialPageRoute(
-                                      builder: (
-                                          context) => const Administater_parent_TenandDemand())),
-                            },
+
                             {
                               "image": AppImages.police,
                               "title": "All Rented Flat",
@@ -760,7 +741,6 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
     required String imagePath,
     required String title,
     required VoidCallback onTap,
-    required Animation<double> shineAnimation,
     required double itemWidth,
     required Gradient gradient,
     int? count,

@@ -484,14 +484,14 @@ class _InsuranceListScreenState extends State<InsuranceListScreen> {
                   ),
                 ),
 
-                Text(
-                  "Showing: ${filteredList.length}",
-                  style: TextStyle(
-                    fontFamily: "PoppinsMedium",
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
+                // Text(
+                //   "Showing: ${filteredList.length}",
+                //   style: TextStyle(
+                //     fontFamily: "PoppinsMedium",
+                //     fontSize: 12,
+                //     color: Colors.grey.shade600,
+                //   ),
+                // ),
 
               ],
             ),

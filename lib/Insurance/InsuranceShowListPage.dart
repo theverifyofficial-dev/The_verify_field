@@ -157,10 +157,12 @@ class InsuranceResponse {
 
 class InsuranceListScreen extends StatefulWidget {
   final String fieldWorkerNumber;
+  final String fieldWorkerName;
 
   const InsuranceListScreen({
     super.key,
     required this.fieldWorkerNumber,
+    required this.fieldWorkerName,
   });
 
   @override
@@ -232,38 +234,41 @@ class _InsuranceListScreenState extends State<InsuranceListScreen> {
         elevation: 0,
       ),
       floatingActionButton: GestureDetector(
-          onTap: () {
+        onTap: () {
 
-            if (insuranceList.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("No worker data found")),
-              );
-              return;
-            }
+          String workerName = widget.fieldWorkerName??"";
+          String workerNumber = widget.fieldWorkerNumber ?? "";
 
+          if (insuranceList.isNotEmpty) {
             final worker = insuranceList.first;
-            print(worker.fieldWorkerName);
-            print(worker.fieldWorkerNumber);
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => InsuranceFormScreen(
-                  fieldWorkerName: worker.fieldWorkerName ?? "",
-                  fieldWorkerNumber: worker.fieldWorkerNumber ?? "",
-                ),
+            workerName = worker.fieldWorkerName ?? workerName;
+            workerNumber = worker.fieldWorkerNumber ?? workerNumber;
+
+          } else {
+            print("⚠️ No worker data found, opening form anyway");
+          }
+          debugPrint("------ NAVIGATION DATA ------");
+          debugPrint("Worker Name: $workerName");
+          debugPrint("Worker Number: $workerNumber");
+          debugPrint("-----------------------------");
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => InsuranceFormScreen(
+                fieldWorkerName: workerName,
+                fieldWorkerNumber: workerNumber,
               ),
-            ).then((value) {
+            ),
+          ).then((value) {
+            refreshInsurance();
+          });
 
-              refreshInsurance();
-
-            });
-            },
+        },
         child: Container(
           height: 58,
           padding: const EdgeInsets.symmetric(horizontal: 22),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(30),
-
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -272,7 +277,6 @@ class _InsuranceListScreenState extends State<InsuranceListScreen> {
                 Color(0xFF3B82F6),
               ],
             ),
-
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.25),
@@ -281,25 +285,21 @@ class _InsuranceListScreenState extends State<InsuranceListScreen> {
               )
             ],
           ),
-
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: const [
-
               Icon(
                 Icons.add_rounded,
                 color: Colors.white,
                 size: 28,
               ),
-
               SizedBox(width: 10),
-
               Text(
                 "Add Insurance",
                 style: TextStyle(
                   fontSize: 15,
                   fontFamily: "PoppinsBold",
-                  color: Colors.white, // ✅ ALWAYS WHITE (important)
+                  color: Colors.white,
                 ),
               ),
             ],

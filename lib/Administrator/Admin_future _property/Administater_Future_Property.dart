@@ -212,8 +212,8 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
     {"name": "Sumit Kasaniya", "id": "9711775300"},
     {"name": "Ravi Kumar", "id": "9711275300"},
     {"name": "Faizan Khan", "id": "9971172204"},
-    {"name": "Manish", "id": "8130209217"},
-    {"name": "Abhay", "id": "9675383184"},
+    // {"name": "Manish", "id": "8130209217"},
+    // {"name": "Abhay", "id": "9675383184"},
   ];
 
   final Map<int, int> _liveCountMap = {};
@@ -777,8 +777,10 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
             children: [
               Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               GestureDetector(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SeeAll_FutureProperty(number: id))),
-                child: const Text('See All →', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) =>
+                    SeeAll_FutureProperty(number: id))
+                ),
+                child:  Text('See All →', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
               ),
             ],
           ),

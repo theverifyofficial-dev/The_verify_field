@@ -19,6 +19,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../utilities/bug_founder_fuction.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Future_Property.dart';
+import 'Future_Property_Tabbar.dart';
 import 'metro_api.dart';
 
 class Add_FutureProperty extends StatefulWidget {
@@ -293,7 +294,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       if (response.statusCode == 200) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-              builder: (context) => FrontPage_FutureProperty()),
+              builder: (context) => FuturePropertyTabPage()),
               (route) => route.isFirst,
         );
         setState(() => _isLoading = false);

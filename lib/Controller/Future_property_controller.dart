@@ -38,73 +38,75 @@ class Catid {
 
   Catid({
     required this.id,
-    required this.images,
-    required this.ownerName,
-    required this.ownerNumber,
-    required this.caretakerName,
-    required this.caretakerNumber,
-    required this.place,
-    required this.buyRent,
-    required this.typeOfProperty,
-    required this.selectBhk,
-    required this.floorNumber,
-    required this.squareFeet,
-    required this.propertyNameAddress,
-    required this.buildingInformationFacilities,
-    required this.propertyAddressForFieldworker,
-    required this.ownerVehicleNumber,
-    required this.yourAddress,
-    required this.fieldWorkerName,
-    required this.fieldWorkerNumber,
-    required this.currentDate,
-    required this.longitude,
-    required this.latitude,
-    required this.roadSize,
-    required this.metroDistance,
-    required this.metroName,
-    required this.mainMarketDistance,
-    required this.ageOfProperty,
-    required this.lift,
-    required this.parking,
-    required this.totalFloor,
-    required this.residenceCommercial,
-    required this.facility,
+    this.images,
+    this.ownerName,
+    this.ownerNumber,
+    this.caretakerName,
+    this.caretakerNumber,
+    this.place,
+    this.buyRent,
+    this.typeOfProperty,
+    this.selectBhk,
+    this.floorNumber,
+    this.squareFeet,
+    this.propertyNameAddress,
+    this.buildingInformationFacilities,
+    this.propertyAddressForFieldworker,
+    this.ownerVehicleNumber,
+    this.yourAddress,
+    this.fieldWorkerName,
+    this.fieldWorkerNumber,
+    this.currentDate,
+    this.longitude,
+    this.latitude,
+    this.roadSize,
+    this.metroDistance,
+    this.metroName,
+    this.mainMarketDistance,
+    this.ageOfProperty,
+    this.lift,
+    this.parking,
+    this.totalFloor,
+    this.residenceCommercial,
+    this.facility,
   });
 
-  factory Catid.FromJson(Map<String, dynamic> json) {
+  factory Catid.fromJson(Map<String, dynamic> json) {
     return Catid(
-      id: json['id'] ?? 0,
-      images: json['images'],
-      ownerName: json['ownername'],
-      ownerNumber: json['ownernumber'],
-      caretakerName: json['caretakername'],
-      caretakerNumber: json['caretakernumber'],
-      place: json['place'],
-      buyRent: json['buy_rent'],
-      typeOfProperty: json['typeofproperty'],
-      selectBhk: json['select_bhk'],
-      floorNumber: json['floor_number'],
-      squareFeet: json['sqyare_feet'],
-      propertyNameAddress: json['propertyname_address'],
-      buildingInformationFacilities: json['building_information_facilitys'],
-      propertyAddressForFieldworker: json['property_address_for_fieldworkar'],
-      ownerVehicleNumber: json['owner_vehical_number'],
-      yourAddress: json['your_address'],
-      fieldWorkerName: json['fieldworkarname'],
-      fieldWorkerNumber: json['fieldworkarnumber'],
-      currentDate: json['current_date_'],
-      longitude: json['longitude'],
-      latitude: json['latitude'],
-      roadSize: json['Road_Size'],
-      metroDistance: json['metro_distance'],
-      metroName: json['metro_name'],
-      mainMarketDistance: json['main_market_distance'],
-      ageOfProperty: json['age_of_property'],
-      lift: json['lift'],
-      parking: json['parking'],
-      totalFloor: json['total_floor'],
-      residenceCommercial: json['Residence_commercial'],
-      facility: json['facility'],
+      id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      images: json['images']?.toString(),
+      ownerName: json['ownername']?.toString(),
+      ownerNumber: json['ownernumber']?.toString(),
+      caretakerName: json['caretakername']?.toString(),
+      caretakerNumber: json['caretakernumber']?.toString(),
+      place: json['place']?.toString(),
+      buyRent: json['buy_rent']?.toString(),
+      typeOfProperty: json['typeofproperty']?.toString(),
+      selectBhk: json['select_bhk']?.toString(),
+      floorNumber: json['floor_number']?.toString(),
+      squareFeet: json['sqyare_feet']?.toString(),
+      propertyNameAddress: json['propertyname_address']?.toString(),
+      buildingInformationFacilities:
+      json['building_information_facilitys']?.toString(),
+      propertyAddressForFieldworker:
+      json['property_address_for_fieldworkar']?.toString(),
+      ownerVehicleNumber: json['owner_vehical_number']?.toString(),
+      yourAddress: json['your_address']?.toString(),
+      fieldWorkerName: json['fieldworkarname']?.toString(),
+      fieldWorkerNumber: json['fieldworkarnumber']?.toString(),
+      currentDate: json['current_date_']?.toString(),
+      longitude: json['longitude']?.toString(),
+      latitude: json['latitude']?.toString(),
+      roadSize: json['Road_Size']?.toString(),
+      metroDistance: json['metro_distance']?.toString(),
+      metroName: json['metro_name']?.toString(),
+      mainMarketDistance: json['main_market_distance']?.toString(),
+      ageOfProperty: json['age_of_property']?.toString(),
+      lift: json['lift']?.toString(),
+      parking: json['parking']?.toString(),
+      totalFloor: json['total_floor']?.toString(),
+      residenceCommercial: json['Residence_commercial']?.toString(),
+      facility: json['facility']?.toString(),
     );
   }
 }
@@ -113,6 +115,11 @@ class FuturePropertyController extends ChangeNotifier {
   final String fieldWorkerNumber;
 
   FuturePropertyController(this.fieldWorkerNumber);
+
+  int currentPage = 1;
+  final int limit = 10;
+  bool hasMore = true;
+  bool isPaginationLoading = false;
 
   bool isStatusLoading = false;
 
@@ -125,96 +132,93 @@ class FuturePropertyController extends ChangeNotifier {
   Map<int, Map<String, dynamic>> _statuses = {};
 
   bool _loading = true;
-  String selectedLabel = '';
 
   List<Catid> get properties => _filtered;
   Map<int, Map<String, dynamic>> get statuses => _statuses;
   bool get isLoading => _loading;
-
   int get count => _filtered.length;
-
+  int totalRecords = 0;
   Future<void> initialize() async {
     await refresh();
   }
 
+  String selectedLabel = "All";
   Future<void> refresh() async {
+    selectedLabel = "All";
     _loading = true;
     notifyListeners();
 
+    currentPage = 1;
+    hasMore = true;
+    _all.clear();
+    _filtered.clear();
+
     await _fetchProperties();
 
-    _filtered = List.from(_all);
-
     _loading = false;
-    isStatusLoading = true;   // ← MOVE HERE
-    notifyListeners(); // show buildings immediately
+    notifyListeners();
 
-    // Background loading (do NOT await)
-    _fetchStatusesParallel();
     _fetchFlatsSummary();
-
   }
 
-  Future<void> _fetchFlatsSummary() async {
-    try {
-      final totalUrl = Uri.parse(
-        'https://verifyserve.social/WebService4.asmx/GetTotalFlats_under_building?field_workar_number=$fieldWorkerNumber',
-      );
-
-      final liveUrl = Uri.parse(
-        'https://verifyserve.social/WebService4.asmx/GetTotalFlats_Live_under_building?field_workar_number=$fieldWorkerNumber',
-      );
-
-      final totalResponse = await http.get(totalUrl);
-      final liveResponse = await http.get(liveUrl);
-
-      if (totalResponse.statusCode == 200) {
-        final data = jsonDecode(totalResponse.body);
-        totalFlats = data.isNotEmpty ? data[0]['subid'] ?? 0 : 0;
-      }
-
-      if (liveResponse.statusCode == 200) {
-        final data = jsonDecode(liveResponse.body);
-
-        int live = 0;
-        int book = 0;
-
-        for (var item in data) {
-          if (item['live_unlive'] == "Live") {
-            live = item['subid'] ?? 0;
-          } else if (item['live_unlive'] == "Book") {
-            book = item['subid'] ?? 0;
-          }
-        }
-
-        liveFlats = live;
-        bookFlats = book;
-
-        notifyListeners();
-      }
-    } catch (_) {
-      totalFlats = 0;
-      liveFlats = 0;
-      bookFlats = 0;
-    }
+  Future<void> loadMore() async {
+    await _fetchProperties(isLoadMore: true);
   }
 
-  Future<void> _fetchProperties() async {
+  Future<void> _fetchProperties({bool isLoadMore = false}) async {
+
+    if (isPaginationLoading || !hasMore) return;
+
+    isPaginationLoading = true;
+    notifyListeners();
+
+    print("Loading Page: $currentPage | Filter: $currentFilter");
+
     final url = Uri.parse(
-      "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=$fieldWorkerNumber",
+      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/future_property_pagination.php"
+          "?fieldworkarnumber=$fieldWorkerNumber"
+          "&filter=$currentFilter"
+          "&page=$currentPage"
+          "&limit=$limit",
     );
 
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      data.sort((a, b) => b['id'].compareTo(a['id']));
-      _all = data.map((e) => Catid.FromJson(e)).toList();
+
+      final body = jsonDecode(response.body);
+
+      if (body["pagination"] != null) {
+        totalRecords =
+            body["pagination"]["total_records"] ?? 0;
+
+        print("Total Records Updated: $totalRecords");
+      }
+
+      if (body["data"] != null) {
+
+        List data = body["data"];
+
+        if (data.isEmpty) {
+          hasMore = false;
+        } else {
+
+          final newItems =
+          data.map((e) => Catid.fromJson(e)).toList();
+
+          _all.addAll(newItems);
+          _filtered = List.from(_all);
+
+          currentPage++;
+        }
+      }
     }
+
+    isPaginationLoading = false;
+    notifyListeners();
   }
 
   Future<void> _fetchStatusesParallel() async {
-
     _statuses.clear();
 
     final futures = _all.map((p) async {
@@ -227,15 +231,13 @@ class FuturePropertyController extends ChangeNotifier {
     for (final entry in results) {
       _statuses[entry.key] = entry.value;
     }
+
     isStatusLoading = false;
     notifyListeners();
   }
 
   Future<Map<String, dynamic>> _fetchStatus(int subid) async {
     try {
-      final response1 = await http.get(Uri.parse(
-          "https://verifyserve.social/WebService4.asmx/check_live_flat_in_main_realesate?subid=$subid&live_unlive=Flat"));
-
       final response2 = await http.get(Uri.parse(
           "https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=$subid"));
 
@@ -264,139 +266,152 @@ class FuturePropertyController extends ChangeNotifier {
         }
       }
 
-      return {
-        "liveCount": liveCount,
-        "totalFlats": totalFlats,
-      };
+      return {"liveCount": liveCount, "totalFlats": totalFlats};
     } catch (_) {
-      return {
-        "liveCount": 0,
-        "totalFlats": 0,
-      };
+      return {"liveCount": 0, "totalFlats": 0};
     }
   }
 
-  void search(String query) {
-    if (query.trim().isEmpty) {
-      _filtered = List.from(_all);
-    } else {
-      final lowerQuery = query.toLowerCase();
+  Future<void> _fetchFlatsSummary() async {
+    try {
+      final totalUrl = Uri.parse(
+        'https://verifyserve.social/WebService4.asmx/GetTotalFlats_under_building?field_workar_number=$fieldWorkerNumber',
+      );
 
-      _filtered = _all.where((item) {
-        return
-          item.id.toString().contains(lowerQuery) ||
+      final liveUrl = Uri.parse(
+        'https://verifyserve.social/WebService4.asmx/GetTotalFlats_Live_under_building?field_workar_number=$fieldWorkerNumber',
+      );
 
-              (item.propertyNameAddress ?? '')
-                  .toLowerCase()
-                  .contains(lowerQuery) ||
+      final totalResponse = await http.get(totalUrl);
+      final liveResponse = await http.get(liveUrl);
 
-              (item.ownerName ?? '')
-                  .toLowerCase()
-                  .contains(lowerQuery) ||
+      if (totalResponse.statusCode == 200) {
+        final data = jsonDecode(totalResponse.body);
+        totalFlats = data.isNotEmpty ? data[0]['subid'] ?? 0 : 0;
+      }
 
-              (item.ownerNumber ?? '')
-                  .toLowerCase()
-                  .contains(lowerQuery) ||
-
-              (item.caretakerName ?? '')
-                  .toLowerCase()
-                  .contains(lowerQuery) ||
-
-              (item.caretakerNumber ?? '')
-                  .toLowerCase()
-                  .contains(lowerQuery) ||
-
-              (item.place ?? '')
-                  .toLowerCase()
-                  .contains(lowerQuery) ||
-
-              (item.buyRent ?? '')
-                  .toLowerCase()
-                  .contains(lowerQuery) ||
-
-              (item.residenceCommercial ?? '')
-                  .toLowerCase()
-                  .contains(lowerQuery);
-      }).toList();
+      if (liveResponse.statusCode == 200) {
+        final data = jsonDecode(liveResponse.body);
+        for (var item in data) {
+          if (item['live_unlive'] == "Live") {
+            liveFlats = item['subid'] ?? 0;
+          } else if (item['live_unlive'] == "Book") {
+            bookFlats = item['subid'] ?? 0;
+          }
+        }
+        notifyListeners();
+      }
+    } catch (_) {
+      totalFlats = 0;
+      liveFlats = 0;
+      bookFlats = 0;
     }
+  }
+  String currentFilter = "all";
+  // 🔥 COMPLETE FILTER SYSTEM
+  Future<void> applyFilter(String label) async {
+
+    selectedLabel = label;
+
+    currentPage = 1;
+    hasMore = true;
+    _all.clear();
+    _filtered.clear();
+    totalRecords = 0;
+
+    switch (label) {
+      case "Buy":
+        currentFilter = "buy";
+        break;
+
+      case "Rent":
+        currentFilter = "rent";
+        break;
+
+      case "Commercial":
+        currentFilter = "commercial";
+        break;
+
+      case "Missing Field":      // 🔥 ADD THIS
+        currentFilter = "missing";
+        break;
+
+      case "Live":
+        currentFilter = "live";
+        break;
+
+      case "Unlive":
+        currentFilter = "unlive";
+        break;
+
+      case "Empty Building":
+        currentFilter = "empty";
+        break;
+
+      default:
+        currentFilter = "all";
+    }
+
+    print("Filter Sent To API: $currentFilter");
+
+    await _fetchProperties();
 
     notifyListeners();
   }
 
-  void applyFilter(String label) {
-    selectedLabel = label;
+  bool isSearchLoading = false;
+  bool isSearching = false;
+  String searchQuery = "";
+  Future<void> searchBuilding(String query) async {
 
-    bool isEmpty(String? value) =>
-        value == null || value.trim().isEmpty;
+    print("Searching: $query");
 
-    if (label == "Rent" || label == "Buy") {
-      _filtered = _all.where((item) {
-        return (item.buyRent ?? '').toLowerCase() ==
-            label.toLowerCase();
-      }).toList();
+    if (query.trim().isEmpty) {
+      await refresh();
+      return;
     }
 
-    else if (label == "Commercial") {
-      _filtered = _all.where((item) {
-        return (item.residenceCommercial ?? '')
-            .toLowerCase() ==
-            'commercial';
-      }).toList();
+    try {
+      _loading = true;
+      notifyListeners();
+
+      final url = Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/search_in_future_builing.php"
+              "?fieldworkarnumber=$fieldWorkerNumber"
+              "&search=$query"
+      );
+
+      print("URL: $url");
+
+      final response = await http.get(url);
+
+      print("Status: ${response.statusCode}");
+      print("Body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+
+        if (body["status"] == "success") {
+          List data = body["data"];
+
+          print("Result count: ${data.length}");
+
+          _all = data.map((e) => Catid.fromJson(e)).toList();
+          _filtered = List.from(_all);
+        } else {
+          print("No success status");
+          _all.clear();
+          _filtered.clear();
+        }
+      }
+
+    } catch (e) {
+      print("ERROR: $e");
+      _all.clear();
+      _filtered.clear();
     }
 
-    else if (label == "Live") {
-      _filtered = _all.where((p) {
-        final s = _statuses[p.id];
-        return (s?["liveCount"] ?? 0) > 0;
-      }).toList();
-    }
-
-    else if (label == "Unlive") {
-      _filtered = _all.where((p) {
-        final s = _statuses[p.id];
-        return (s?["liveCount"] ?? 0) == 0;
-      }).toList();
-    }
-
-    else if (label == "Empty Building") {
-      _filtered = _all.where((p) {
-        final s = _statuses[p.id];
-        return (s?["totalFlats"] ?? 0) == 0;
-      }).toList();
-    }
-
-    else if (label == "Missing Field") {
-      _filtered = _all.where((property) {
-
-        final Map<String, String?> fields = {
-          "Images": property.images,
-          "Owner Name": property.ownerName,
-          "Owner Number": property.ownerNumber,
-          "Caretaker Name": property.caretakerName,
-          "Caretaker Number": property.caretakerNumber,
-          "Place": property.place,
-          "Buy/Rent": property.buyRent,
-          "Property Address": property.propertyNameAddress,
-          "Field Worker Name": property.fieldWorkerName,
-          "Field Worker Number": property.fieldWorkerNumber,
-          "Longitude": property.longitude,
-          "Latitude": property.latitude,
-          "Road Size": property.roadSize,
-          "Age of Property": property.ageOfProperty,
-          "Lift": property.lift,
-          "Parking": property.parking,
-          "Total Floor": property.totalFloor,
-          "Residence/Commercial": property.residenceCommercial,
-        };
-
-        return fields.values.any((value) => isEmpty(value));
-      }).toList();
-    }
-
-    else {
-      _filtered = List.from(_all);
-    }
-
+    _loading = false;
     notifyListeners();
   }
 }

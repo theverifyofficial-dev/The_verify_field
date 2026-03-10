@@ -15,6 +15,7 @@ import '../Administrator/Administater_Realestate_Details.dart';
 import '../Administrator/Administator_Agreement/Admin_Agreement_details.dart';
 import '../Administrator/Administator_Agreement/Sub/Accepted_details.dart';
 import '../Future_Property_OwnerDetails_section/Future_Property.dart';
+import '../Future_Property_OwnerDetails_section/Future_Property_Tabbar.dart';
 import '../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../Upcoming/Upcoming_details.dart';
 import 'CalenderForFieldWorker.dart';
@@ -1908,7 +1909,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     return GestureDetector(
       onTap: () {
         Navigator.push(context, MaterialPageRoute(builder: (context) {
-          return FrontPage_FutureProperty();
+          return FuturePropertyTabPage();
         }));
       },
       child: Container(

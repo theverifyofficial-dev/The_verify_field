@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:animated_analog_clock/animated_analog_clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
@@ -8,6 +9,7 @@ import 'package:verify_feild_worker/Administrator/Admin_upcoming.dart';
 import '../Adminisstrator_Target_details/Targets.dart';
 import '../Calender/CalenderForAdmin.dart';
 import '../Dashboard/Dashoard.dart';
+import '../Home_Screen.dart' hide AgreementTaskResponse, FuturePropertyResponse, WebsiteVisitResponse;
 import '../Web_query/web_query.dart' hide SlideAnimation;
 import '../Z-Screen/Social_Media_links.dart';
 import '../main.dart';
@@ -23,6 +25,68 @@ import 'Administator_Agreement/Admin_dashboard.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'New_TenandDemand/Admin_tabbar.dart';
 
+class AppGradients {
+
+  static LinearGradient blue() => const LinearGradient(
+    colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static LinearGradient green() => const LinearGradient(
+    colors: [Color(0xFF10B981), Color(0xFF047857)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static LinearGradient orangeRed() => const LinearGradient(
+    colors: [Color(0xFFF59E0B), Color(0xFFDC2626)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static LinearGradient purple() => const LinearGradient(
+    colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static LinearGradient red() => const LinearGradient(
+    colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static LinearGradient cyan() => const LinearGradient(
+    colors: [Color(0xFF06B6D4), Color(0xFF0891B2)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static LinearGradient indigo() => const LinearGradient(
+    colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static LinearGradient dual() => const LinearGradient(
+    colors: [Colors.blue, Colors.purple],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static LinearGradient blueRed() => const LinearGradient(
+    colors: [Color(0xFF1D4ED8), Color(0xFFDC2626)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static LinearGradient redCyan() => const LinearGradient(
+    colors: [Color(0xFFDC2626), Color(0xFF06B6D4)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+}
 class AdministratorHome_Screen extends StatefulWidget {
   static const route = "/AdministratorHome_Screen";
   const AdministratorHome_Screen({super.key});
@@ -37,6 +101,8 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
   int BookCount = 0;
   late AnimationController _shineController;
   late Animation<double> _shineAnimation;
+  bool todayLoading = false;
+  String number = '';
 
   @override
   void initState() {
@@ -45,7 +111,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
     loadUserName();
     fetchAgreementCount(); // must exist
     fetchBookCount(); // must exist
-
+    fetchTodayData();
     _shineController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
@@ -55,6 +121,27 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
       parent: _shineController,
       curve: Curves.easeInOut,
     );
+  }
+  TodayCounts? todayCounts;
+  Future<void> loadUserName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final storedName = prefs.getString('name');
+    final storedNumber = prefs.getString('number');
+    final storedFAadharCard = prefs.getString('post');
+
+    if (!mounted) return;
+
+    setState(() {
+      userName = storedName;
+      userNumber = storedNumber;
+      userStoredFAadharCard = storedFAadharCard;
+      number = storedNumber ?? '';   // 🔥 IMPORTANT
+    });
+
+    debugPrint("🔥 Loaded FieldWorker Number: $number");
+
+    if (number.isNotEmpty) {
+    }
   }
 
   Future<void> hitAgreementRenewalAPI() async {
@@ -91,20 +178,6 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
   String? userNumber;
   String? userStoredFAadharCard;
 
-  Future<void> loadUserName() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final storedName = prefs.getString('name');
-    final storedNumber = prefs.getString('number');
-    final storedFAadharCard = prefs.getString('post');
-
-    if (mounted) {
-      setState(() {
-        userName = storedName;
-        userNumber = storedNumber;
-        userStoredFAadharCard = storedFAadharCard;
-      });
-    }
-  }
   Future<void> fetchAgreementCount() async {
     try {
       final response = await http.get(
@@ -360,7 +433,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                   padding: const EdgeInsets.symmetric(horizontal: 15.0),
                   child: _TargetHeaderCard(context),
                 ),
-
+                _todayCard(isDarkMode),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: LayoutBuilder(
@@ -394,124 +467,135 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 10,
+                        itemCount: 9,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
                               "image": AppImages.agreement,
                               "title": "Property \nAgreement",
-                              "onTap": () async {
+                              "gradient": AppGradients.blue(),
+                              "onTap": () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const AdminDashboard(),
-                                  ),
+                                  MaterialPageRoute(builder: (_) => const AdminDashboard()),
                                 );
                               },
-                              "count": pendingCount, // 🔥 only here
+                              "count": pendingCount,
                             },
                             {
                               "image": AppImages.dashboard,
                               "title": "Dashboard",
-                              "onTap": () async {
+                              "gradient": AppGradients.green(),
+                              "onTap": () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>  DashboardScreen(),
-                                  ),
-                                );
-                              },
-                              "count": 0,
-                            },
-
-                            {
-                              'image': AppImages.propertysale,
-                              'title': "Future\n Inventory/Property",
-                              'onTap': () {
-                                // Pass the buildingId you want to highlight
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => AdministaterPropertyTabPage(),
-                                  ),
+                                  MaterialPageRoute(builder: (_) => DashboardScreen()),
                                 );
                               },
                               "count": 0,
                             },
                             {
-                              'image': AppImages.tenant,
-                              'title': "Costumer Demands",
-                              'onTap': () =>
-                                  Navigator.push(context, MaterialPageRoute(
-                                      builder: (
-                                          context) => const Administater_parent_TenandDemand())),
+                              "image": AppImages.propertysale,
+                              "title": "Future\n Inventory/Property",
+                              "gradient": AppGradients.orangeRed(),
+                              "onTap": () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => AdministaterPropertyTabPage()),
+                                );
+                              },
+                              "count": 0,
+                            },
+                            {
+                              "image": AppImages.tenant,
+                              "title": "Costumer Demands",
+                              "gradient": AppGradients.purple(),
+                              "onTap": () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const Administater_parent_TenandDemand()),
+                                );
+                              },
+                              "count": 0,
                             },
                             {
                               "image": AppImages.police,
                               "title": "All Rented Flat",
+                              "gradient": AppGradients.red(),
                               "onTap": () {
                                 Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (_) => const AdministatorAddRentedFlatTabbar()));
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const AdministatorAddRentedFlatTabbar()),
+                                );
                               },
                               "count": BookCount,
                             },
                             {
                               "image": AppImages.websiteIssue,
                               "title": "Web \nQuery",
+                              "gradient": AppGradients.cyan(),
                               "onTap": () {
                                 Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (_) => const WebQueryPage()));
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const WebQueryPage()),
+                                );
                               },
                               "count": 0,
                             },
-
                             {
                               "image": AppImages.realestatefeild,
                               "title": "Upcoming\n Property",
+                              "gradient": AppGradients.indigo(),
                               "onTap": () {
                                 Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (_) => const AdminUpcoming()));
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const AdminUpcoming()),
+                                );
+                              },
+                              "count": 0,
+                            },
+                            // {
+                            //   "image": AppImages.calendar,
+                            //   "title": "Task Calendar",
+                            //   "gradient": AppGradients.blueRed(),
+                            //   "onTap": () {
+                            //     Navigator.push(
+                            //       context,
+                            //       MaterialPageRoute(
+                            //           builder: (_) => const CalendarTaskPageForAdmin()),
+                            //     );
+                            //   },
+                            //   "count": 0,
+                            // },
+                            {
+                              "image": AppImages.demand_2,
+                              "title": "Costumer Demands 2.O",
+                              "gradient": AppGradients.redCyan(),
+                              "onTap": () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const AdminTabbar()),
+                                );
                               },
                               "count": 0,
                             },
                             {
-                              "image": AppImages.calendar,
-                              "title": "Task Calendar",
+                              "image": AppImages.compliant,
+                              "title": "Insurance",
+                              "gradient": AppGradients.dual(),
                               "onTap": () {
                                 Navigator.push(
-                                    context, MaterialPageRoute(
-                                    builder: (_) => const CalendarTaskPageForAdmin()));
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const AdminInsuranceListScreen()),
+                                );
                               },
                               "count": 0,
-                            },
-                            {
-                              'image': AppImages.demand_2,
-                              'title': "Costumer Demands 2.O",
-                              'onTap': () =>
-                                  Navigator.push(context, MaterialPageRoute(
-                                      builder: (
-                                          context) => const AdminTabbar())),
-                              "count": 0,
-                            },
-
-                            {
-                              'image': AppImages.compliant,
-                              'title': "Insurance",
-                              'onTap': () =>
-                                  Navigator.push(context, MaterialPageRoute(
-                                      builder: (
-                                          context) => const AdminInsuranceListScreen())),
-                              "count": 0,
-
                             },
                           ];
-
                           final item = featureItems[index];
 
                           return _buildFeatureCard(
@@ -519,7 +603,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                             imagePath: item['image'],
                             title: item['title'],
                             onTap: item['onTap'],
-                            shineAnimation: _shineAnimation,
+                            gradient: item['gradient'],
                             itemWidth: itemWidth,
                             count: item['count'],
                           );
@@ -652,131 +736,548 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
     required String imagePath,
     required String title,
     required VoidCallback onTap,
-    required Animation<double> shineAnimation,
     required double itemWidth,
+    required Gradient gradient,
     int? count,
   }) {
-    final isDarkMode = Theme
-        .of(context)
-        .brightness == Brightness.dark;
-    final primaryColor = Theme
-        .of(context)
-        .primaryColor;
+    final imageSize = itemWidth * 0.24;
+    final fontSize = itemWidth * 0.075;
 
-    // Calculate sizes based on item width
-    final imageSize = itemWidth * 0.35;
-    final fontSize = itemWidth * 0.07;
-    final padding = itemWidth * 0.08;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(28),
+          gradient: gradient,
+          // boxShadow: [
+          //   BoxShadow(
+          //     color: (gradient as LinearGradient)
+          //         .colors
+          //         .first
+          //         .withOpacity(0.4),
+          //     blurRadius: 25,
+          //     offset: const Offset(0, 12),
+          //   ),
+          // ],
+        ),
+        child: Stack(
+          children: [
 
-    return AnimatedBuilder(
-      animation: shineAnimation,
-      builder: (context, child) {
-        return Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              colors: [
-                Colors.transparent,
-                Colors.transparent,
-                primaryColor.withOpacity(0.05 * shineAnimation.value),
-              ],
-              stops: const [0.0, 0.5, 1.0],
-              begin: Alignment(-1.0 + (2.0 * shineAnimation.value), -1.0),
-              end: Alignment(1.0 - (2.0 * shineAnimation.value), 1.0),
-            ),
-          ),
-          child: Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(
-                color: primaryColor.withOpacity(0.1 * shineAnimation.value),
-                width: 1,
-              ),
-            ),
-            color: isDarkMode ? Colors.white10 : Colors.white,
-            child: InkWell(
-              onTap: onTap,
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: EdgeInsets.all(padding),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    // 🔥 TOP ROW (BADGE CORNER)
-                    Align(
-                      alignment: Alignment.topRight,
-                      child: (count != null && count > 0)
-                          ? Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          count.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      )
-                          : const SizedBox(height: 10), // keep spacing consistent
-                    ),
-
-                    Container(
-                      height: imageSize,
-                      width: imageSize,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 8,
-                            offset: const Offset(2, 4),
-                          ),
-                        ],
-                      ),
-                      child: Image.asset(
-                        imagePath,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                    SizedBox(height: 5,),
-                    Flexible(
-                      child: Text(
-                        title,
-                        textAlign: TextAlign.center,
-                          style: TextStyle(
-                      fontFamily: "PoppinsMedium",
-                          fontSize: fontSize.clamp(12, 16),
-                          color: isDarkMode ? Colors.white : Colors.black87,
-                          fontWeight: FontWeight.w600,
-                          height: 1.2,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 2,
-                      ),
-                    ) ,
-                    SizedBox(height: 5,),
-                    CircleAvatar(
-                      radius: imageSize * 0.25,
-                      backgroundColor: isDarkMode ? Colors.white10 : Colors.grey
-                          .shade100,
-                      child: Icon(
-                        Icons.arrow_forward_ios_rounded,
-                        color: isDarkMode ? Colors.white : Colors.black87,
-                        size: imageSize * 0.2,
-                      ),
-                    ),
-                  ],
+            Positioned(
+              bottom: -20,
+              right: -20,
+              child: Container(
+                height: 90,
+                width: 90,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withOpacity(0.15),
                 ),
               ),
             ),
-          ),
+
+            /// 🔥 Badge (Top Right)
+            if (count != null && count > 0)
+              Positioned(
+                top: 12,
+                right: 12,
+                child: Container(
+                  height: 26,
+                  width: 26,
+                  alignment: Alignment.center,
+                  decoration: const BoxDecoration(
+                    color: Colors.black,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    count > 99 ? "99+" : count.toString(),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontFamily: "PoppinsMedium",
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+
+            /// 🔥 Main Content
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                  /// ICON CIRCLE
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.2),
+                    ),
+                    child: Image.asset(
+                      imagePath,
+                      height: imageSize,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+
+                  const Spacer(),
+
+                  /// TITLE
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontFamily: "PoppinsMedium",
+                      fontSize: fontSize.clamp(14, 18),
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  Widget _todayCard(bool isDark) {
+    final today = DateTime.now();
+
+    final monthNames = [
+      "Jan","Feb","Mar","Apr","May","Jun",
+      "Jul","Aug","Sep","Oct","Nov","Dec"
+    ];
+
+    final weekNames = [
+      "MON","TUE","WED","THU","FRI","SAT","SUN"
+    ];
+
+    int agreements = todayCounts?.agreements ?? 0;
+    int futureProps = todayCounts?.futureProperties ?? 0;
+    int websiteVisits = todayCounts?.websiteVisits ?? 0;
+
+    int totalToday = agreements + futureProps + websiteVisits;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const CalendarTaskPageForAdmin()),
         );
       },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDark
+                ? [
+              Colors.grey.shade900,
+              Colors.black87,
+              Colors.grey.shade900,
+            ]
+                : [
+              Colors.white,
+              Colors.white,
+
+            ],
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
+              blurRadius: 25,
+              spreadRadius: 1,
+              offset: const Offset(0, 12),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            /// -------- HEADER --------
+            Row(
+              children: [
+
+                /// DATE BOX
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 18, vertical: 14),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        weekNames[today.weekday - 1],
+                        style: const TextStyle(
+                          fontFamily: "PoppinsMedium",
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        today.day.toString(),
+                        style: const TextStyle(
+                          fontFamily: "PoppinsMedium",
+                          color: Colors.white,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        monthNames[today.month - 1],
+                        style: const TextStyle(
+                          fontFamily: "PoppinsMedium",
+                          color: Colors.white70,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const Spacer(),
+
+                Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white,
+                        Colors.blueGrey.shade100,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: Colors.blueGrey.shade200,
+                      width: 1.5,
+                    ),
+                  ),
+                  child: ClipOval(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: AnimatedAnalogClock(
+                        size: 90,
+                        hourHandColor: Colors.black,
+                        minuteHandColor: Colors.black87,
+                        secondHandColor: Colors.redAccent,
+                      ),
+                    ),
+                  ),
+                )
+
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            /// -------- TITLE --------
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  totalToday == 0
+                      ? "No Events Today"
+                      : "Today's Events",
+                  style: TextStyle(
+                    fontFamily: "PoppinsMedium",
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : Colors.black,
+                  ),
+                ),
+                if (totalToday > 0)
+                Text(
+                  "$totalToday Total",
+                  style: TextStyle(
+                    fontFamily: "PoppinsMedium ",
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: isDark
+                        ? Colors.greenAccent
+                        : Colors.green.shade700,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            /// -------- COUNT CARDS --------
+            Row(
+              children: [
+                Expanded(
+                  child: _modernCountCard(
+                    "Agreements",
+                    agreements,
+                    const Color(0xFFEF4444),
+                    isDark,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _modernCountCard(
+                    "Future",
+                    futureProps,
+                    const Color(0xFF3B82F6),
+                    isDark,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _modernCountCard(
+                    "Web Visit",
+                    websiteVisits,
+                    const Color(0xFF10B981),
+                    isDark,
+                  ),
+                ),
+              ],
+            ),
+
+
+
+          ],
+        ),
+      ),
     );
+  }
+  Widget _modernCountCard(
+      String title,
+      int count,
+      Color color,
+      bool isDark,
+      ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      decoration: BoxDecoration(
+        color: isDark
+            ? color.withOpacity(0.15)
+            : color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Text(
+            count.toString(),
+            style: TextStyle(
+              fontFamily: "PoppinsMedium",
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: "PoppinsMedium",
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  Widget _countBox(String title, int count, Color color) {
+    return Column(
+      children: [
+        Text(
+          count.toString(),
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _enhancedCountBox(String title, int count, Gradient gradient, IconData icon, bool isDark) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        child: Column(
+          children: [
+            // Icon with gradient background
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                gradient: gradient,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: gradient.colors.first.withOpacity(0.4),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Icon(
+                icon,
+                size: 18,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              count.toString(),
+              style: TextStyle(
+                fontSize: 22,
+                fontFamily: "PoppinsMedium",
+                fontWeight: FontWeight.bold,
+                foreground: Paint()
+                  ..shader = gradient.createShader(
+                    const Rect.fromLTWH(0, 0, 200, 100),
+                  ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 10,
+                fontFamily: "PoppinsMedium",
+                color: isDark ? Colors.white70 : Colors.grey.shade700,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  Color _getEventColor(String eventType) {
+    switch (eventType.toLowerCase()) {
+      case 'agreement':
+        return Colors.redAccent;
+      case 'future':
+        return Colors.blueAccent;
+      case 'website':
+        return Colors.greenAccent;
+      default:
+        return Colors.blueGrey;
+    }
+  }
+
+
+  String _todayString() {
+    final t = DateTime.now();
+    return "${t.year}-${t.month.toString().padLeft(2, '0')}-${t.day.toString().padLeft(2, '0')}";
+  }
+
+  Future<void> fetchTodayData() async {
+    final today = _todayString();
+
+    debugPrint("📅 TODAY DATE SENT TO ADMIN API: $today");
+
+    int agreements = 0;
+    int future = 0;
+    int website = 0;
+
+    try {
+      final agreementUrl =
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_agreement_for_admin.php?current_dates=$today";
+
+      final futureUrl =
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_building_for_admin.php?current_date_=$today";
+
+      final websiteUrl =
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/web_visit_for_admin.php?dates=$today";
+
+      final responses = await Future.wait([
+        http.get(Uri.parse(agreementUrl)),
+        http.get(Uri.parse(futureUrl)),
+        http.get(Uri.parse(websiteUrl)),
+      ]);
+
+      // ---------------- AGREEMENT ----------------
+      debugPrint("---- ADMIN AGREEMENT RESPONSE ----");
+      debugPrint(responses[0].body);
+
+      final agreementDecoded = jsonDecode(responses[0].body);
+      if (agreementDecoded is Map &&
+          agreementDecoded["data"] is List) {
+        agreements = (agreementDecoded["data"] as List).length;
+      }
+
+      // ---------------- FUTURE ----------------
+      debugPrint("---- ADMIN FUTURE RESPONSE ----");
+      debugPrint(responses[1].body);
+
+      final futureDecoded = jsonDecode(responses[1].body);
+
+      if (futureDecoded is List) {
+        future = futureDecoded.length;
+      } else if (futureDecoded is Map &&
+          futureDecoded["data"] is List) {
+        future = (futureDecoded["data"] as List).length;
+      }
+
+      // ---------------- WEBSITE ----------------
+      debugPrint("---- ADMIN WEBSITE RESPONSE ----");
+      debugPrint(responses[2].body);
+
+      final websiteDecoded = jsonDecode(responses[2].body);
+      if (websiteDecoded is Map &&
+          websiteDecoded["status"] != "error" &&
+          websiteDecoded["data"] is List) {
+        website = (websiteDecoded["data"] as List).length;
+      }
+
+      debugPrint("🔥 FINAL ADMIN TOTAL");
+      debugPrint("Agreements: $agreements");
+      debugPrint("Future: $future");
+      debugPrint("Website: $website");
+
+      if (mounted) {
+        setState(() {
+          todayCounts = TodayCounts(
+            agreements: agreements,
+            futureProperties: future,
+            websiteVisits: website,
+          );
+        });
+      }
+
+    } catch (e) {
+      debugPrint("🔥 ERROR IN ADMIN fetchTodayData: $e");
+    }
   }
 }

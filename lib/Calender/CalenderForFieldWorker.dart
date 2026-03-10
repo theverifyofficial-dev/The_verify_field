@@ -622,6 +622,7 @@ class FutureProperty {
   }
 }
 
+/// -------- WEBSITE VISIT MODEL --------
 class WebsiteVisitResponse {
   final String status;
   final List<WebsiteVisit> data;
@@ -1611,12 +1612,16 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
     if (userNumber != null && userNumber!.isNotEmpty) {
       _fetchOverviewBuildingDetail();
+      await fetchAgreementYearly();
+      await _fetchPoliceYearly();
       await _fetchData(_focusedDay);
     } else {
       debugPrint("⚠️ userNumber not found in SharedPreferences");
     }
   }
 
+  String? userName;
+  String? userNumber;
   Future<void> loadUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final storedName = prefs.getString('name');
@@ -1674,6 +1679,264 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       emptyBuildings =
           int.tryParse(data["building_without_flat"].toString()) ?? 0;
     });
+  }
+  void _openPoliceCalculator() {
+
+    final int target = policeVerificationTarget;
+    final int done = policeVerificationDone;
+    final int remaining = (target - done).clamp(0, target);
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+
+        return DraggableScrollableSheet(
+          initialChildSize: 0.55,
+          minChildSize: 0.40,
+          maxChildSize: 0.90,
+          builder: (context, controller) {
+
+            return Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF111827) : Colors.white,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(26),
+                ),
+              ),
+
+              child: ListView(
+                controller: controller,
+                children: [
+
+                  /// HEADER
+                  Row(
+                    children: [
+
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.red.withOpacity(.15),
+                        ),
+                        child: const Icon(
+                          Icons.verified_user,
+                          color: Colors.red,
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      const Text(
+                        "Police Verification Target",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontFamily: "PoppinsBold",
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  /// STATS
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(
+                          builder: (context) => const HistoryTab()
+                      ));
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        color: isDark
+                            ? Colors.white.withOpacity(.05)
+                            : Colors.grey.shade100,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(child: _miniStat("Target", target)),
+                          Expanded(child: _miniStat("Completed", done)),
+                          Expanded(child: _miniStat("Remaining", remaining)),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  /// TARGET CARD
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(
+                          builder: (context) => const HistoryTab()
+                      ));
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFFDC2626),
+                            Color(0xFFEF4444),
+                          ],
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withOpacity(.18),
+                            ),
+                            child: const Icon(
+                              Icons.flag_rounded,
+                              color: Colors.white,
+                              size: 18,
+                            ),
+                          ),
+
+                          const SizedBox(width: 12),
+
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+
+                                Text(
+                                  "YEARLY TARGET",
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    letterSpacing: 1.2,
+                                    color: Colors.white70,
+                                    fontFamily: "PoppinsBold",
+                                  ),
+                                ),
+
+                                SizedBox(height: 2),
+
+                                Text(
+                                  "Police Verifications",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                    fontFamily: "PoppinsBold",
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const Text("🚔", style: TextStyle(fontSize: 18)),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  /// CALCULATOR
+                  _calcTilePolice("Per Week", remaining, 52, done, target),
+                  _calcTilePolice("Per Month", remaining, 12, done, target),
+                  _calcTilePolice("3 Month Pace", remaining, 4, done, target),
+                  _calcTilePolice("6 Month Pace", remaining, 2, done, target),
+                  _calcTilePolice("8 Month Pace", remaining, 1.5, done, target),
+                  _calcTilePolice("10 Month Pace", remaining, 1.2, done, target),
+
+                  const SizedBox(height: 30),
+
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+  Widget _calcTilePolice(
+      String label,
+      int remaining,
+      double divisor,
+      int done,
+      int target,
+      ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final double raw = remaining / divisor;
+    final int required = raw.ceil();
+
+    const Color accent = Color(0xFFEF4444);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: isDark
+            ? Colors.white.withOpacity(.05)
+            : Colors.grey.shade100,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontFamily: "PoppinsBold",
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+
+              Text(
+                "$required Police Verification",
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontFamily: "PoppinsBold",
+                  color: accent,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          Text(
+            "Complete $required police verifications every $label to reach your target.",
+            style: TextStyle(
+              fontSize: 11.5,
+              fontFamily: "PoppinsMedium",
+              color: isDark ? Colors.white60 : Colors.black54,
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          Text(
+            "Remaining: $remaining Police Verifications",
+            style: TextStyle(
+              fontSize: 11,
+              fontFamily: "PoppinsMedium",
+              color: isDark ? Colors.white70 : Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _openBuildingCalculator() {
@@ -1741,7 +2004,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   GestureDetector(
                     onTap: (){
                       Navigator.push(context, MaterialPageRoute(builder: (context){
-                        return const FrontPage_FutureProperty();
+                        return const FuturePropertyTabPage();
                       }));
                     },
                     child: Container(
@@ -1867,6 +2130,300 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       },
     );
   }
+  void openAgreementSuggestion() {
+
+    final int target = agreementTarget;
+    final int done = agreementDone;
+    final int remaining = (target - done).clamp(0, target);
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+
+        return DraggableScrollableSheet(
+          initialChildSize: 0.55,
+          minChildSize: 0.40,
+          maxChildSize: 0.90,
+          builder: (context, controller) {
+
+            return Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF111827) : Colors.white,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(26),
+                ),
+              ),
+
+              child: ListView(
+                controller: controller,
+                children: [
+
+                  /// HEADER
+                  Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.purple.withOpacity(.12),
+                        ),
+                        child: const Icon(
+                          Icons.description_outlined,
+                          color:  Color(0xFFDC2626),
+                        ),
+                      ),
+
+                      const SizedBox(width: 10),
+
+                      const Text(
+                        "Agreement Target Intelligence",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: "PoppinsBold",
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  /// MINI STATS
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(
+                          builder: (context) => const HistoryTab()
+                      ));
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        color: isDark
+                            ? Colors.white.withOpacity(.04)
+                            : Colors.grey.shade100,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(child: _miniStat("Target", target)),
+                          Expanded(child: _miniStat("Completed", done)),
+                          Expanded(child: _miniStat("Remaining", remaining)),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  /// TARGET CARD
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      gradient: const LinearGradient(
+                        colors: [
+                          const Color(0xFFDC2626),
+                          const Color(0xFFEF4444),
+                        ],
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+
+                        Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(.18),
+                          ),
+                          child: const Icon(
+                            Icons.flag_rounded,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+
+                        const SizedBox(width: 12),
+
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+
+                              const Text(
+                                "YEARLY TARGET",
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  letterSpacing: 1.2,
+                                  color: Colors.white70,
+                                  fontFamily: "PoppinsBold",
+                                ),
+                              ),
+
+                              const SizedBox(height: 2),
+
+                              Text(
+                                "$target Agreements",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontFamily: "PoppinsBold",
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const Text("📑", style: TextStyle(fontSize: 18)),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  /// CALCULATION TILES
+                  _calcTileAgreement("Per Week", remaining, 52, done, target),
+                  _calcTileAgreement("Per Month", remaining, 12, done, target),
+                  _calcTileAgreement("3 Month Pace", remaining, 4, done, target),
+                  _calcTileAgreement("6 Month Pace", remaining, 2, done, target),
+                  _calcTileAgreement("8 Month Pace", remaining, 1.5, done, target),
+                  _calcTileAgreement("10 Month Pace", remaining, 1.2, done, target),
+
+                  const SizedBox(height: 30),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+  Widget _calcTileAgreement(
+      String label,
+      int remaining,
+      double divisor,
+      int done,
+      int target,
+      ) {
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final double raw = remaining / divisor;
+    final int required = raw.ceil();
+
+    final Color accent = const Color(0xFFDC2626); // purple for agreement
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: isDark
+            ? Colors.white.withOpacity(.05)
+            : Colors.grey.shade100,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          /// HEADER
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontFamily: "PoppinsBold",
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              Text(
+                "$required Agreements",
+                style: TextStyle(
+                  fontSize: 13,
+                  fontFamily: "PoppinsBold",
+                  color: accent,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          /// SIMPLE INSTRUCTION
+          Text(
+            "Complete $required agreements every $label to reach your target.",
+            style: TextStyle(
+              fontSize: 11.5,
+              fontFamily: "PoppinsMedium",
+              color: isDark ? Colors.white60 : Colors.black54,
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          /// REMAINING
+          Text(
+            "Remaining: $remaining Agreements",
+            style: TextStyle(
+              fontSize: 11,
+              fontFamily: "PoppinsMedium",
+              color: isDark ? Colors.white70 : Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget agreementSuggestionButton() {
+    final remaining = (agreementTarget - agreementDone).clamp(0, agreementTarget);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: openAgreementSuggestion,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.white10 : Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? Colors.white24 : Colors.grey.shade300,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Suggestion",
+              style: TextStyle(
+                fontSize: 13,
+                fontFamily: "PoppinsMedium",
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white : Colors.indigo,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(
+              Icons.lightbulb_outline,
+              size: 16,
+              color: Colors.amber,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   Widget _miniStat(String label, int value) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -2019,7 +2576,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         http.get(Uri.parse(
             "https://verifyserve.social/Second%20PHP%20FILE/Calender/"
                 "tenant_demand_for_field_task.php"
-                "&fieldworker_assigned_at=$formattedDate"
+                "?fieldworker_assigned_at=$formattedDate"
                 "&assigned_fieldworker_name=${userName ?? ''}"
         )),
         http.get(Uri.parse(
@@ -2453,6 +3010,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             /// 🔹 IMAGE + ADDRESS ROW
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
 
                 /// IMAGE
@@ -2528,7 +3086,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    "ID: ${r.building_id}",
+                    "Building ID: ${r.building_id}",
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -2581,11 +3139,14 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 ),
               ],
             ),
+
+
           ],
         ),
       ),
     );
   }
+
   Widget _buildAcceptedAgreementCard(AcceptedAgreement t, bool isDark) {
     final Color statusColor = Colors.green;
 
@@ -3125,6 +3686,41 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     ),
                   ),
                 ),
+                if (t.agreementType.toLowerCase() == "police verification")
+                  GestureDetector(
+                    onTap: _openPoliceCalculator,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white : Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: isDark ? Colors.white24 : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "Suggestion",
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontFamily: "PoppinsMedium",
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.black : Colors.indigo,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Icon(
+                            Icons.lightbulb_outline,
+                            size: 16,
+                            color: Colors.amber.shade900,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
 
               ],
             ),
@@ -3488,39 +4084,53 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                         ),
                       ),
 
-                      const SizedBox(height: 6),
+            const SizedBox(height: 6),
 
-                      /// LOCATION
-                      Text(
-                        "${f.place} • ${f.residenceType}",
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                        ),
-                      ),
+            /// 📍 LOCATION
+            Text(
+              "${f.place}  •  ${f.residenceType}",
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
 
-                    ],
+            const SizedBox(height: 8),
+
+            /// 🚆 METRO + FLOORS
+            Row(
+              children: [
+                if (f.metroName.isNotEmpty)
+                  _miniChip(
+                    icon: PhosphorIcons.train,
+                    text: "${f.metroName} ${f.metroDistance}",
+                    isDark: isDark,
                   ),
+                if (f.metroName.isNotEmpty) const SizedBox(width: 6),
+                _miniChip(
+                  icon: PhosphorIcons.star_fill,
+                  text: "${f.totalFloor}",
+                  isDark: isDark,
                 ),
               ],
             ),
 
-            /// 🔽 NEXT CALL SECTION
+            /// ✅ NEXT CALL SECTION (Only if valid)
             if (nextDate != null &&
                 nextDate.isNotEmpty &&
                 nextDate.toLowerCase() != "null") ...[
-              const SizedBox(height: 12),
+
+              const SizedBox(height: 8),
+
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                      color: Colors.white.withOpacity(0.4)),
+                  border: Border.all(color: Colors.white.withOpacity(0.4)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -3574,16 +4184,15 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             ),
             /// 👷 FIELDWORKER
             if (f.fieldWorkerName.isNotEmpty) ...[
-              const SizedBox(height: 10),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  "By: ${f.fieldWorkerName} • ${f.fieldWorkerNumber}",
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.white,
-                    fontStyle: FontStyle.italic,
-                  ),
+              const SizedBox(height: 6),
+              Text(
+                "${f.fieldWorkerName} • ${f.fieldWorkerNumber}",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
                 ),
               ),
             ],
@@ -4297,6 +4906,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             onPressed: () => _fetchData(_selectedDay ?? _focusedDay),
           ),
 
+          // Calendar View Switch
           PopupMenuButton<String>(
             tooltip: "Calendar View",
             onSelected: (value) {
@@ -4512,7 +5122,43 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
             /// 🔹 AGREEMENTS
             if (_agreements.isNotEmpty)
-              _sectionTitle("Agreements", isDark, _agreements.length),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          "Agreements",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.indigo.shade800 : Colors.indigo.shade100,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            _agreements.length.toString(),
+                            style: TextStyle(
+                              color: isDark ? Colors.white : Colors.indigo,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    agreementSuggestionButton(),
+                  ],
+                ),
+              ),
             ..._agreements.map(
                   (e) => _buildAgreementCard(e, isDark),
             ),
@@ -4638,4 +5284,5 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       ),
     );
   }
+
 }

@@ -258,6 +258,19 @@ class _MyAppState extends State<MyApp> {
         });
         return;
       }
+
+
+      if (type == "NEW_DEMAND") {
+        openFromNotification(
+          homeRoute: Home_Screen.route,
+          detailRoute: Routes.fieldNewDemand,
+          arguments: {
+            "fromNotification": true,
+          },
+        );
+        return;
+      }
+
       if (type == "RENTED_OUT_UPDATED") {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           navigatorKey.currentState?.pushNamedAndRemoveUntil(

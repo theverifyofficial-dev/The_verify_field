@@ -1495,17 +1495,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         "gradient": cardGradients[2],
       },
       {
-        "image": AppImages.tenant,
-        "title": "Tenant Demands",
-        "onTap": () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => const MainPage_TenandDemand()));
-        },
-        "gradient": cardGradients[3],
-      },
-      {
         "image": AppImages.agreement,
         "title": "Property Agreement",
         "onTap": () => Navigator.push(context, MaterialPageRoute(

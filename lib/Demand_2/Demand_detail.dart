@@ -365,7 +365,6 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                     "Work is active again.",
               ),
 
-
             Divider(),
             _buildTenantCard(isDark, accent),
             const SizedBox(height: 24),
@@ -419,32 +418,32 @@ class _AdminDemandDetailState extends State<DemandDetail> {
 
             const SizedBox(height: 24),
 
-            if (status != "disclosed" && status != "redemand")
+            // if (status != "disclosed" && status != "redemand")
+            //
+            //   SizedBox(
+            //   width: double.infinity,
+            //   child: ElevatedButton.icon(
+            //     style: ElevatedButton.styleFrom(
+            //       backgroundColor: Colors.red,
+            //       padding: const EdgeInsets.symmetric(vertical: 14),
+            //       shape: RoundedRectangleBorder(
+            //         borderRadius: BorderRadius.circular(12),
+            //       ),
+            //     ),
+            //     icon: const Icon(Icons.dangerous, color: Colors.white),
+            //     label: const Text(
+            //       "Return to Sub Administrator",
+            //       style: TextStyle(
+            //         fontSize: 16,
+            //         fontWeight: FontWeight.bold,
+            //         color: Colors.white,
+            //       ),
+            //     ),
+            //     onPressed: () => _showReturnConfirmDialog(),
+            //   ),
+            // ),
 
-              SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                icon: const Icon(Icons.dangerous, color: Colors.white),
-                label: const Text(
-                  "Return to Sub Administrator",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                onPressed: () => _showReturnConfirmDialog(),
-              ),
-            ),
-
-            const SizedBox(height: 24),
+            // const SizedBox(height: 24),
 
             SizedBox(
               width: double.infinity,

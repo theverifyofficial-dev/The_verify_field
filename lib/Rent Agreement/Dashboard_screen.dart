@@ -142,61 +142,120 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
           if (!_loadingReward && _rewardStatus != null)
             _RewardBanner(reward: _rewardStatus!),
 
-          _buildSectionItem("Rental", Icons.home, () async {
+              /// RENTAL GROUP
+              SectionGroup(
+                title: "Rental Agreements",
+                icon: Icons.home,
+                children: [
 
-          Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => RentalWizardPage(rewardStatus: safeRewardStatus,)),
-            );
-          },
-            _rewardStatus?.isDiscounted == true,
+                  _buildSectionItem(
+                    "Rental",
+                    Icons.home,
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              RentalWizardPage(rewardStatus: safeRewardStatus),
+                        ),
+                      );
+                    },
+                    _rewardStatus?.isDiscounted == true,
+                  ),
 
-          ),
-          _buildSectionItem("Commercial", Icons.apartment_sharp, () async {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => CommercialWizardPage(rewardStatus: safeRewardStatus,)),
-            );
-          },
-            _rewardStatus?.isDiscounted == true,
+                  _buildSectionItem(
+                    "External Rental",
+                    Icons.add_business,
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ExternalWizardPage(rewardStatus: safeRewardStatus),
+                        ),
+                      );
+                    },
+                    _rewardStatus?.isDiscounted == true,
+                  ),
 
-          ),
-          _buildSectionItem("External Rental", Icons.add_business, () async {
-            Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ExternalWizardPage(rewardStatus: safeRewardStatus,)),
-            );
-          },
-            _rewardStatus?.isDiscounted == true,
+                  _buildSectionItem(
+                    "Renewal",
+                    Icons.timer,
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              RenewalForm(rewardStatus: safeRewardStatus),
+                        ),
+                      );
+                    },
+                    _rewardStatus?.isDiscounted == true,
+                  ),
+                ],
+              ),
 
-          ),
-          _buildSectionItem("Furnished", Icons.workspace_premium, ()  async {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => FurnishedForm(rewardStatus: safeRewardStatus,)),
-            );
-          },
-            _rewardStatus?.isDiscounted == true,
 
-          ),
-          _buildSectionItem("Renewal", Icons.timer, ()  async {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => RenewalForm(rewardStatus: safeRewardStatus,)),
-            );
-          },
-            _rewardStatus?.isDiscounted == true,
+              /// COMMERCIAL GROUP
+              SectionGroup(
+                title: "Commercial Agreements",
+                icon: Icons.apartment,
+                children: [
+                  _buildSectionItem(
+                    "Commercial",
+                    Icons.apartment,
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              CommercialWizardPage(rewardStatus: safeRewardStatus),
+                        ),
+                      );
+                    },
+                    _rewardStatus?.isDiscounted == true,
+                  ),
+                ],
+              ),
 
-          ),
-          _buildSectionItem("Police Verification", Icons.local_police_outlined, ()  async {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => VerificationWizardPage(rewardStatus: safeRewardStatus,)),
-            );
-          },
-            _rewardStatus?.isDiscounted == true,
 
-          ),
+              /// OTHER SERVICES
+              SectionGroup(
+                title: "Other Services",
+                icon: Icons.verified_user,
+                children: [
+
+                  _buildSectionItem(
+                    "Furnished",
+                    Icons.workspace_premium,
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              FurnishedForm(rewardStatus: safeRewardStatus),
+                        ),
+                      );
+                    },
+                    _rewardStatus?.isDiscounted == true,
+                  ),
+
+                  _buildSectionItem(
+                    "Police Verification",
+                    Icons.local_police_outlined,
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              VerificationWizardPage(rewardStatus: safeRewardStatus),
+                        ),
+                      );
+                    },
+                    _rewardStatus?.isDiscounted == true,
+                  ),
+                ],
+              ),
         ],
       ),
             if (_rewardStatus?.isDiscounted == true)
@@ -216,44 +275,62 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
   }
 }
 
-Widget _buildSectionItem(String title, IconData icon, VoidCallback onTap,  bool showDiscount,) {
-  return _BubbleCard(
-    showDiscount: showDiscount,
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          // Circle icon
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.green.withOpacity(0.8),
+Widget _buildSectionItem(
+    String title,
+    IconData icon,
+    VoidCallback onTap,
+    bool showDiscount,
+    ) {
+  return Padding(
+    padding: const EdgeInsets.only(
+      left: 20,   // 👈 indent to show hierarchy
+      right: 8,
+      bottom: 8,
+    ),
+    child: _BubbleCard(
+      showDiscount: showDiscount,
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,   // 👈 smaller height
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10), // 👈 smaller icon circle
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.green.withOpacity(0.8),
+              ),
+              child: Icon(icon, size: 22, color: Colors.white), // smaller icon
             ),
-            child: Icon(icon, size: 28, color: Colors.white),
-          ),
-          const SizedBox(width: 16),
 
-          // Title
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
+            const SizedBox(width: 12),
+
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16, // 👈 smaller text
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
-          ),
 
-          const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.grey),
-          const SizedBox(width: 16),
-        ],
+            const Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+              color: Colors.grey,
+            ),
+
+            const SizedBox(width: 6),
+          ],
+        ),
       ),
     ),
   );
 }
-
 class _BubbleCard extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
@@ -427,6 +504,93 @@ class _BubbleCardState extends State<_BubbleCard> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class SectionGroup extends StatefulWidget {
+  final String title;
+  final IconData icon;
+  final List<Widget> children;
+
+  const SectionGroup({
+    super.key,
+    required this.title,
+    required this.icon,
+    required this.children,
+  });
+
+  @override
+  State<SectionGroup> createState() => _SectionGroupState();
+}
+
+class _SectionGroupState extends State<SectionGroup> {
+  bool expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 10),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        children: [
+
+          /// HEADER
+          InkWell(
+            onTap: () {
+              setState(() {
+                expanded = !expanded;
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.8),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(widget.icon, color: Colors.white),
+                  ),
+
+                  const SizedBox(width: 16),
+
+                  Expanded(
+                    child: Text(
+                      widget.title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+
+                  AnimatedRotation(
+                    turns: expanded ? 0.5 : 0,
+                    duration: const Duration(milliseconds: 200),
+                    child: const Icon(Icons.keyboard_arrow_down),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          /// CHILDREN
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 250),
+            crossFadeState:
+            expanded ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+            firstChild: Column(children: widget.children),
+            secondChild: const SizedBox(),
+          )
+        ],
       ),
     );
   }

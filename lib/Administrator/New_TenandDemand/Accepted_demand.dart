@@ -1,169 +1,100 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:verify_feild_worker/Administrator/SubAdmin/sub_demand_details.dart';
+import '../../Custom_Widget/constant.dart';
 import '../../model/demand_model.dart';
 import '../../utilities/bug_founder_fuction.dart';
+import 'Add_demand.dart';
+import 'Admin_demand_detail.dart';
 
-class SubadminDisclose extends StatefulWidget {
-  const SubadminDisclose({super.key});
+class AcceptedDemand extends StatefulWidget {
+  const AcceptedDemand({super.key});
   @override
-  State<SubadminDisclose> createState() => _TenantDemandState();
+  State<AcceptedDemand> createState() => _TenantDemandState();
 }
 
-class _TenantDemandState extends State<SubadminDisclose> {
+class _TenantDemandState extends State<AcceptedDemand> {
   List<TenantDemandModel> _allDemands = [];
   List<TenantDemandModel> _filteredDemands = [];
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
-  int _page = 1;
-  final int _limit = 20;
-  bool _isFetchingMore = false;
-  bool _hasMore = true;
-  bool _isSearching = false;
-  String _lastQuery = "";
-
-
-  final ScrollController _scrollController = ScrollController();
-
 
   @override
   void initState() {
     super.initState();
     _loadDemands();
     _searchController.addListener(_onSearchChanged);
-    _scrollController.addListener(_onScroll);
-
   }
 
-  Future<void> _loadDemands({bool reset = false}) async {
-
-    if (_isFetchingMore) return;
-
-    if (reset) {
-      _page = 1;
-      _hasMore = true;
-      _allDemands.clear();
-      _filteredDemands.clear();
-    }
-
-    if (!_hasMore) return;
-
-    setState(() {
-      _isFetchingMore = true;
-      if (reset) _isLoading = true;
-    });
+  Future<void> _loadDemands() async {
+    setState(() => _isLoading = true);
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final subadminName = prefs.getString('name') ?? "";
-      final encodedName = Uri.encodeQueryComponent(subadminName);
-
-
-      final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_subadmin_status_api.php?Status=disclosed&assigned_subadmin_name=$encodedName&page=$_page&limit=$_limit",
+      final response = await http.get(
+        Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/display_accept_demand.php",
+        ),
       );
-
-      print("📡 Fetching page $_page");
-      print("📡 Fetching from : $url");
-
-      final response = await http.get(url);
-      print("Response: ${response.body}");
-
-
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
 
-        if (decoded["success"] == true) {
+        // ✅ validate backend response
+        if (decoded["status"] == true) {
           final List data = decoded["data"];
 
-          final newList = data
+          final list = data
               .map((e) => TenantDemandModel.fromJson(e))
               .toList();
-
-          if (newList.length < _limit) {
-            _hasMore = false; // 🚫 no more pages
-          }
-
-          _page++;
+          // .reversed
+          // .toList();
 
           setState(() {
-            _allDemands.addAll(newList);
-            _filteredDemands = List.from(_allDemands);
+            _allDemands = list;
+            _filteredDemands = list;
           });
         } else {
-          _hasMore = false;
+          // backend responded but with unexpected structure
+          // await BugLogger.log(
+          //   apiLink:
+          //   "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
+          //   error: response.body,
+          //   statusCode: response.statusCode,
+          // );
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("No demand data found")),
+            );
+          }
         }
       } else {
-        _hasMore = false;
+        await BugLogger.log(
+          apiLink:
+          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
+          error: response.body,
+          statusCode: response.statusCode,
+        );
       }
     } catch (e) {
       await BugLogger.log(
-        apiLink: "show_tenant_demand.php",
+        apiLink:
+        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
         error: e.toString(),
         statusCode: 500,
       );
-    } finally {
+
       if (mounted) {
-        setState(() {
-          _isFetchingMore = false;
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _searchDemands({
-    required String query,
-    bool reset = false,
-  })
-  async {
-    if (_isFetchingMore) return;
-
-    if (reset) {
-      _page = 1;
-      _hasMore = true;
-      _filteredDemands.clear();
-    }
-
-    setState(() => _isFetchingMore = true);
-
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final name = Uri.encodeQueryComponent(prefs.getString('name') ?? "");
-      final q = Uri.encodeQueryComponent(query);
-
-      final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/"
-            "Tenant_demand/search_api_for_subadmin_page.php"
-            "?q=$q"
-            "&page=$_page"
-            "&limit=$_limit",
-      );
-
-      final res = await http.get(url);
-      final decoded = jsonDecode(res.body);
-
-      if (decoded["status"] == true) {
-        final List list = decoded["data"];
-        final newItems =
-        list.map((e) => TenantDemandModel.fromJson(e)).toList();
-
-        if (newItems.length < _limit) _hasMore = false;
-
-        _page++;
-
-        setState(() => _filteredDemands.addAll(newItems));
-      } else {
-        _hasMore = false;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error fetching data: $e")),
+        );
       }
     } finally {
       if (mounted) {
-        setState(() => _isFetchingMore = false);
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -171,33 +102,33 @@ class _TenantDemandState extends State<SubadminDisclose> {
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
-    _debounce = Timer(const Duration(milliseconds: 400), () {
-      final q = _searchController.text.trim();
+    _debounce = Timer(const Duration(milliseconds: 250), () {
+      final q = _searchController.text.toLowerCase().trim();
 
-      if (q.isEmpty) {
-        _isSearching = false;
-        _loadDemands(reset: true);
-        return;
-      }
+      setState(() {
+        _filteredDemands = _allDemands.where((d) {
+          // extract date safely
+          final rawDate = d.createdDate;
+          final formattedDate = formatApiDate(rawDate).toLowerCase();
 
-      _isSearching = true;
-      _lastQuery = q;
-      _searchDemands(query: q, reset: true);
+          return [
+            d.tname,
+            d.tnumber,
+            d.buyRent,
+            d.reference,
+            d.price,
+            d.message,
+            d.bhk,
+            d.location,
+            d.status,
+            d.result,
+            formattedDate, // allow searching "13 nov 2025"
+          ].any((field) =>
+              field.toString().toLowerCase().contains(q)
+          );
+        }).toList();
+      });
     });
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 300 &&
-        !_isFetchingMore &&
-        _hasMore) {
-
-      if (_isSearching) {
-        _searchDemands(query: _lastQuery);
-      } else {
-        _loadDemands();
-      }
-    }
   }
 
   @override
@@ -210,6 +141,43 @@ class _TenantDemandState extends State<SubadminDisclose> {
       backgroundColor:
       isDark ? const Color(0xFF090B11) : const Color(0xFFF4F6FA),
 
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          gradient: LinearGradient(
+            colors: [
+              theme.colorScheme.primary.withOpacity(0.9),
+              theme.colorScheme.primaryContainer.withOpacity(0.9)
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: theme.colorScheme.primary.withOpacity(0.4),
+              blurRadius: 18,
+              spreadRadius: 1,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          icon: const Icon(Icons.add, color: Colors.white),
+          label: const Text(
+            "Add Demand",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+              letterSpacing: 0.3,
+            ),
+          ),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const CustomerDemandFormPage(mode: DemandEditMode.add,)),
+          ).then((_) => _loadDemands()),
+        ),
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : Stack(
@@ -292,10 +260,9 @@ class _TenantDemandState extends State<SubadminDisclose> {
                                 : Colors.black54),
                         onPressed: () {
                           _searchController.clear();
-                          _isSearching = false;
-                          _loadDemands(reset: true);
+                          setState(() =>
+                          _filteredDemands = _allDemands);
                         },
-
                       )
                           : null,
                       border: InputBorder.none,
@@ -306,24 +273,7 @@ class _TenantDemandState extends State<SubadminDisclose> {
                 ),
               ),
 
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 6),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Loaded Demands: ${_filteredDemands.length}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: isDark
-                          ? Colors.green.shade200
-                          : Colors.green.shade800,
-                    ),
-                  ),
-                ),
-              ),
-
+              const SizedBox(height: 16),
               Expanded(
                 child: _filteredDemands.isEmpty
                     ? Center(
@@ -342,19 +292,11 @@ class _TenantDemandState extends State<SubadminDisclose> {
                   onRefresh: _loadDemands,
                   color: theme.colorScheme.primary,
                   child: ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: _filteredDemands.length + (_hasMore ? 1 : 0),
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: _filteredDemands.length,
                     itemBuilder: (_, i) {
-                      if (i == _filteredDemands.length) {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 20),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      }
-
                       final d = _filteredDemands[i];
-                      final int indexNumber = i + 1; // 🔥 global index
                       final isUrgent = d.mark == "1";
                       final baseColor = isDark
                           ? const Color(0xFF1C1F27)
@@ -367,7 +309,7 @@ class _TenantDemandState extends State<SubadminDisclose> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => SubDemandDetails(demandId: d.id.toString()),
+                                  builder: (_) => AdminDemandDetail(demandId: d.id.toString()),
                                 ),
                               ).then((_) => _loadDemands());
                             },
@@ -472,10 +414,21 @@ class _TenantDemandState extends State<SubadminDisclose> {
                                   padding: const EdgeInsets.only(top: 6),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                    Text("${d.location} • ${d.bhk} BHK",
+
+                                    Text("Contact: ${d.tnumber}", style: TextStyle( color: isDark ? Colors.white60 : Colors.black54, fontSize: 14)),
+
+
+                                    Text("${d.location} • ${d.bhk}",
                                         style: TextStyle( color: isDark ? Colors.white70 : Colors.black54, fontSize: 14)),
                                     const SizedBox(height: 2),
-                                    Text("₹ ${d.price}", style: TextStyle( color: isDark ? Colors.white60 : Colors.black54, fontSize: 14)),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text("₹ ${d.price}", style: TextStyle( color: isDark ? Colors.white60 : Colors.black54, fontSize: 14)),
+
+                                      ],
+                                    ),
+
                                     if (d.reference.isNotEmpty)
                                       Padding( padding: const EdgeInsets.only(top: 3), child:
                                       Row(
@@ -484,64 +437,26 @@ class _TenantDemandState extends State<SubadminDisclose> {
                                           Text( "Ref: ${d.reference}", style: TextStyle( color: isDark ? Colors.white38 : Colors.black45, fontSize: 13), ),
 
                                           Text(
-                                            formatApiDate(d.Date),
+                                            formatApiDate(d.createdDate),
                                             style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
                                           )
 
                                         ],
-                                      ),
-                                      ),
+                                      ),),
 
+                                    SizedBox(height: 5),
 
-                                    if (d.result.toString().isNotEmpty)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 8.0),
-                                        child: Container(
-                                          width: double.infinity,
-                                          padding: EdgeInsets.all(6),
-                                          decoration: BoxDecoration(
-                                            color: Colors.red.shade200,
-                                            borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(color: Colors.red.shade700),
-                                          ),
-                                          child: Text(
-                                            "⚠ Conclusion: ${d.result}",
-                                            textAlign: TextAlign.center,
-                                            style: theme.textTheme.bodySmall?.copyWith(
-                                              color: Colors.red.shade700,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 12,
-                                            ),
-                                            maxLines: 4,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: Text(
+                                        "By: ${d.assignedFieldworkerName}",
+                                        style: TextStyle(
+                                          color: Colors.grey.shade500,
+                                          fontSize: 12,
+                                          fontStyle: FontStyle.italic,
                                         ),
                                       ),
-
-                                    if (d.result.toString().isEmpty)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 8.0),
-                                        child: Container(
-                                          width: double.infinity,
-                                          padding: EdgeInsets.all(6),
-                                          decoration: BoxDecoration(
-                                            color: Colors.red.shade200,
-                                            borderRadius: BorderRadius.circular(8),
-                                            border: Border.all(color: Colors.red.shade700),
-                                          ),
-                                          child: Text(
-                                            "⚠ Conclusion is not Added",
-                                            textAlign: TextAlign.center,
-                                            style: theme.textTheme.bodySmall?.copyWith(
-                                              color: Colors.red.shade700,
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 12,
-                                            ),
-                                            maxLines: 3,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ),
-                                      ),
+                                    ),
                                   ],
                                   ),
                                 ),
@@ -549,31 +464,126 @@ class _TenantDemandState extends State<SubadminDisclose> {
                             ),
                           ),
 
-                          Positioned(
-                            bottom: 20,
-                            left: 10,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? Colors.black.withOpacity(0.55)
-                                    : Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: Colors.grey.withOpacity(0.3),
-                                ),
-                              ),
-                              child: Text(
-                                "$indexNumber",
-                                style: TextStyle(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.bold,
-                                  color: isDark ? Colors.white70 : Colors.black87,
+                          if (d.status.toLowerCase() == "progressing")
+                            Positioned(
+                              top: 12,
+                              left: -30,
+                              child: Transform.rotate(
+                                angle: -0.785398, // -45 degrees in radians
+                                child: Container(
+                                  width: 140,
+                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.green.shade500,
+                                        Colors.green.shade700,
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.green.withOpacity(0.4),
+                                        blurRadius: 6,
+                                        offset: const Offset(2, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    "PROGRESS   ",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.2,
+                                      fontSize: 11.5,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
 
+                          if (d.status.toLowerCase() == "assigned to fieldworker")
+                            Positioned(
+                              top: 12,
+                              left: -30,
+                              child: Transform.rotate(
+                                angle: -0.785398, // -45 degrees in radians
+                                child: Container(
+                                  width: 140,
+                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.green.shade500,
+                                        Colors.green.shade700,
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.green.withOpacity(0.4),
+                                        blurRadius: 6,
+                                        offset: const Offset(2, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    "ASSIGNED   ",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.2,
+                                      fontSize: 11.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+
+
+                          if (d.status.toLowerCase() == "redemand")
+                            Positioned(
+                              top: 12,
+                              left: -30,
+                              child: Transform.rotate(
+                                angle: -0.785398, // -45 degrees in radians
+                                child: Container(
+                                  width: 140,
+                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.green.shade500,
+                                        Colors.green.shade700,
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.green.withOpacity(0.4),
+                                        blurRadius: 6,
+                                        offset: const Offset(2, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    "REDEMAND   ",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.2,
+                                      fontSize: 11.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                         ],
                       );
                     },

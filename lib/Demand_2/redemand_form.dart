@@ -661,21 +661,21 @@ class _RedemandFormState  extends State<RedemandForm>
               const SizedBox(height: 12),
 
               // Price
-              Text(
-                "Price",
-                style: theme.textTheme.titleSmall!
-                    .copyWith(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 6),
-
-              Text(
-                _buyRent == "Buy"
-                    ? "Buy Budget"
-                    : "Rent Budget (per month)",
-                style: theme.textTheme.titleSmall!
-                    .copyWith(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 6),
+              // Text(
+              //   "Price",
+              //   style: theme.textTheme.titleSmall!
+              //       .copyWith(fontWeight: FontWeight.w600),
+              // ),
+              // const SizedBox(height: 6),
+              //
+              // Text(
+              //   _buyRent == "Buy"
+              //       ? "Buy Budget"
+              //       : "Rent Budget (per month)",
+              //   style: theme.textTheme.titleSmall!
+              //       .copyWith(fontWeight: FontWeight.w600),
+              // ),
+              // const SizedBox(height: 6),
 
               // Container(
               //   padding: const EdgeInsets.all(14),
@@ -771,7 +771,7 @@ class _RedemandFormState  extends State<RedemandForm>
                           strokeWidth: 2, color: Colors.white))
                       : const Icon(Icons.save, color: Colors.white),
                   label: Text(
-                    _isUpdating ? "Updating..." : "Update Demand",
+                    _isUpdating ? "Updating..." : "Update Redemand",
                     style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,

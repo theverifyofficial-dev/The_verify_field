@@ -523,8 +523,8 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
           if(status == "progressing" || status == "disclosed" || status == "redemand")
             _buildProgressDetailsCard(_demand!, isDark, accent),
 
-          if (status == "progressing")
-            _buildCompletionSection(isDark, accent),
+          // if (status == "progressing")
+          //   _buildCompletionSection(isDark, accent),
 
           if (status == "disclosed" || status == "redemand")
             _buildFinalSummarySection(isDark, accent),
@@ -546,78 +546,78 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
 
           const SizedBox(height: 15),
 
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isDisclosed
-                    ? Colors.grey.shade300   // 🔒 disabled state
-                    : theme.colorScheme.primary,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onPressed: isDisclosed
-                  ? null // 🔒 fully disabled
-                  : () {
-                if (_demand == null) return;
+          // SizedBox(
+          //   width: double.infinity,
+          //   child: ElevatedButton(
+          //     style: ElevatedButton.styleFrom(
+          //       backgroundColor: isDisclosed
+          //           ? Colors.grey.shade300   // 🔒 disabled state
+          //           : theme.colorScheme.primary,
+          //       padding: const EdgeInsets.symmetric(vertical: 14),
+          //       shape: RoundedRectangleBorder(
+          //         borderRadius: BorderRadius.circular(12),
+          //       ),
+          //     ),
+          //     onPressed: isDisclosed
+          //         ? null // 🔒 fully disabled
+          //         : () {
+          //       if (_demand == null) return;
+          //
+          //       Navigator.push(
+          //         context,
+          //         MaterialPageRoute(
+          //           builder: (_) =>
+          //               TenantDemandUpdatePage(demand: _demand!),
+          //         ),
+          //       ).then((_) => _fetchDemandDetails());
+          //     },
+          //     child: Text(
+          //       isDisclosed  ? "Demand Closed" : "Add More Details",
+          //       style: const TextStyle(
+          //         color: Colors.black,
+          //         fontWeight: FontWeight.bold,
+          //         fontSize: 16,
+          //       ),
+          //     ),
+          //   ),
+          // ),
+          //
+          // SizedBox(height: 5,),
+          // Row(
+          //   mainAxisAlignment: MainAxisAlignment.center,
+          //   children: [
+          //     Text("OR",style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          //   ],
+          // ),
+          // SizedBox(height: 5,),
 
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>
-                        TenantDemandUpdatePage(demand: _demand!),
-                  ),
-                ).then((_) => _fetchDemandDetails());
-              },
-              child: Text(
-                isDisclosed  ? "Demand Closed" : "Add More Details",
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              ),
-            ),
-          ),
 
-          SizedBox(height: 5,),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text("OR",style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ],
-          ),
-          SizedBox(height: 5,),
-
-
-          if (status == "assign to subadmin") ...[
-            _buildAssignButton(accent, isDark),
-
-          SizedBox(height: 10,),
-
-            if (status == "assign to subadmin")
-              SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.swap_horiz, color: Colors.white),
-                label: const Text(
-                  "Transfer to Another Office",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.white ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                onPressed: () => _openTransferBottomSheet(isDark),
-              ),
-            ),
-
-          ],
+          // if (status == "assign to subadmin") ...[
+          //   _buildAssignButton(accent, isDark),
+          //
+          // SizedBox(height: 10,),
+          //
+          //   if (status == "assign to subadmin")
+          //     SizedBox(
+          //     width: double.infinity,
+          //     child: ElevatedButton.icon(
+          //       icon: const Icon(Icons.swap_horiz, color: Colors.white),
+          //       label: const Text(
+          //         "Transfer to Another Office",
+          //         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.white ),
+          //       ),
+          //       style: ElevatedButton.styleFrom(
+          //         backgroundColor: Colors.deepPurple,
+          //         padding: const EdgeInsets.symmetric(vertical: 14),
+          //         shape: RoundedRectangleBorder(
+          //           borderRadius: BorderRadius.circular(14),
+          //         ),
+          //       ),
+          //       onPressed: () => _openTransferBottomSheet(isDark),
+          //     ),
+          //   ),
+          //
+          // ],
           SizedBox(height: 10,),
 
           SizedBox(

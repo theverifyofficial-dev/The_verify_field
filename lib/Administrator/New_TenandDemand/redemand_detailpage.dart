@@ -29,8 +29,6 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
     "Ravi Kumar",
     "Sumit",
     "avjit",
-    "Abhay",
-    "Manish",
   ];
 
 

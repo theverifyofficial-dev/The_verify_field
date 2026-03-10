@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import '../../Custom_Widget/constant.dart';
+import 'Accepted_demand.dart';
 import 'Admin_disclose.dart';
 import 'Tenant_demand.dart';
 
@@ -42,7 +43,7 @@ class _Show_New_Real_EstateState extends State<AdminTabbar> {
         ),
       ),
       body: DefaultTabController(
-        length: 2,
+        length: 3,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -66,6 +67,7 @@ class _Show_New_Real_EstateState extends State<AdminTabbar> {
                 indicatorSize: TabBarIndicatorSize.tab, // Full width of tab
                 tabs: const [
                   Tab(text: 'New Demand'),
+                  Tab(text: 'Accepted'),
                   Tab(text: 'Closed Demand'),
                 ],
               ),
@@ -74,14 +76,13 @@ class _Show_New_Real_EstateState extends State<AdminTabbar> {
             Expanded(
               child: TabBarView(children: [
                 TenantDemand(),
+                AcceptedDemand(),
                 AdminDisclosedDemand(),
               ]),
             )
           ],
         ),
       ),
-
-
     );
   }
 }

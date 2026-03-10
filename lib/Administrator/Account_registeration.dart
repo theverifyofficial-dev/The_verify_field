@@ -4,6 +4,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../Custom_Widget/Custom_backbutton.dart';
 import '../Custom_Widget/constant.dart';
 
 class AccountRegisteration extends StatefulWidget {
@@ -138,7 +139,8 @@ class _SignUp_pageState extends State<AccountRegisteration> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SingleChildScrollView(
+      body:  Stack(
+        children: [ SingleChildScrollView(
         child: Column(
           children: [
             Center(
@@ -261,6 +263,14 @@ class _SignUp_pageState extends State<AccountRegisteration> {
             ),
           ],
         ),
+      ),
+          /// BACK BUTTON
+           Positioned(
+            top: 70,
+            left: 20,
+            child: SquareBackButton(),
+          ),
+    ]
       ),
     );
   }

@@ -1150,7 +1150,7 @@ class TenantDemand {
       status: json['Status'] ?? '',
       date: json['Date'] ?? '',
       time: json['Time'] ?? '',
-      fieldWorkerName: json['assigned_fieldworker_name'] ?? '',
+      fieldWorkerName: json['assigned_fieldworker_name'] ?? 'Unknown',
     );
   }
 }

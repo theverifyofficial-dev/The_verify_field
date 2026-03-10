@@ -58,7 +58,7 @@ class _TenantDemandState extends State<ShowTenantDemandPage> {
       final encodedName = Uri.encodeQueryComponent(subadminName);
       final encodedLoc = Uri.encodeQueryComponent(subadminLocation);
 
-      String link = "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_subadmin_page.php?assigned_subadmin_name=$encodedName";
+      String link = "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php?Status=new";
 
       final url = Uri.parse(link);
       print(link);
@@ -68,7 +68,7 @@ class _TenantDemandState extends State<ShowTenantDemandPage> {
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
 
-        if (decoded["status"] == true && decoded["data"] is List) {
+        if (decoded["success"] == true) {
           final List data = decoded["data"];
 
           final parents = data
@@ -131,6 +131,7 @@ class _TenantDemandState extends State<ShowTenantDemandPage> {
       }
     }
   }
+
 
   // Future<List<TenantDemandModel>> _loadCrossRedemand() async {
   //   try {
@@ -836,17 +837,17 @@ class _TenantDemandState extends State<ShowTenantDemandPage> {
         ),
 
         // 🎯 STATUS RIBBONS (UNCHANGED)
-        if (d.status.toLowerCase() == "assign to subadmin")
+        if (d.status.toLowerCase() == "new")
           _buildRibbon("NEW", Colors.green.shade500, Colors.green.shade700),
-
-        if (d.status.toLowerCase() == "redemand")
-          _buildRibbon("REDEMAND", Colors.green.shade500, Colors.green.shade700),
-
-        if (d.status.toLowerCase() == "disclosed")
-          _buildRibbon("DISCLOSED", Colors.red.shade500, Colors.red.shade700),
-
-        if (d.status.toLowerCase() == "assigned to fieldworker")
-          _buildRibbon("ASSIGNED", Colors.green.shade500, Colors.green.shade700),
+        //
+        // if (d.status.toLowerCase() == "redemand")
+        //   _buildRibbon("REDEMAND", Colors.green.shade500, Colors.green.shade700),
+        //
+        // if (d.status.toLowerCase() == "disclosed")
+        //   _buildRibbon("DISCLOSED", Colors.red.shade500, Colors.red.shade700),
+        //
+        // if (d.status.toLowerCase() == "assigned to fieldworker")
+        //   _buildRibbon("ASSIGNED", Colors.green.shade500, Colors.green.shade700),
       ],
     );
 

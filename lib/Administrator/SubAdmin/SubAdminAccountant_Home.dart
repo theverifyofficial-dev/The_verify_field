@@ -412,17 +412,17 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                             },
                             if (userNumber == "9711779003" || userNumber=="9315016461")
 
-                              {
-                                "image": AppImages.tenant,
-                                "title": "Tenant Demands",
-                                "onTap": () {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (_) => const MainPage_TenandDemand()));
-                                },
-                                "count": 0,
-                              },
+                              // {
+                              //   "image": AppImages.tenant,
+                              //   "title": "Tenant Demands",
+                              //   "onTap": () {
+                              //     Navigator.push(
+                              //         context,
+                              //         MaterialPageRoute(
+                              //             builder: (_) => const MainPage_TenandDemand()));
+                              //   },
+                              //   "count": 0,
+                              // },
                             if (userNumber == "9711779003" || userNumber=="9315016461")
 
                               {

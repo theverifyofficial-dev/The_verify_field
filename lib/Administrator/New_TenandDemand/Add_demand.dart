@@ -503,11 +503,8 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
           ),
         );
 
-        if (data["main_status"] == "redemand") {
+        if (data["redemand_id"] != null) {
           final parentId = data["matched_add_demand_id"].toString();
-
-          print(parentId);
-
 
           Navigator.pushReplacement(
             context,
@@ -810,7 +807,6 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
                 },
               ),
 
-
               TextFormField(
                 controller: _nameCtrl,
                 decoration: _inputStyle("Customer Name", Icons.person),
@@ -1015,7 +1011,8 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
     required String title,
     required List<String> items,
     required Function(String) onSelect,
-  }) {
+  })
+  {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -1046,6 +1043,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       ),
     );
   }
+
   Widget budgetDropdown({
     required String type, // Buy / Rent
     required ThemeData theme,
@@ -1237,9 +1235,6 @@ class BudgetSelector extends StatelessWidget {
     );
   }
 }
-
-
-
 
 final List<Map<String, RangeValues>> buyBudgetPresets = [
   {"₹20L – ₹40L": const RangeValues(2000000, 4000000)},

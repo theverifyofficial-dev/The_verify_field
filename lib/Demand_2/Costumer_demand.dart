@@ -65,9 +65,9 @@ class _TenantDemandState extends State<CostumerDemand> {
         if (decoded["success"] == true) {
           final parents = (decoded["data"] as List)
               .map((e) => TenantDemandModel.fromJson(e))
-              .toList()
-              .reversed
               .toList();
+              // .reversed
+              // .toList();
           setState(() {
             _parentDemands = parents;
             // _crossRedemands = crossRedemands;
@@ -109,9 +109,13 @@ class _TenantDemandState extends State<CostumerDemand> {
   }
 
   Future<void> _acceptDemand(int demandId) async {
+    setState(() {
+      _parentDemands.removeWhere((d) => d.id == demandId);
+      _filteredParent.removeWhere((d) => d.id == demandId);
+    });
+
     try {
       final prefs = await SharedPreferences.getInstance();
-
       final name = prefs.getString('name') ?? "";
       final location = prefs.getString('location') ?? "";
 
@@ -126,43 +130,19 @@ class _TenantDemandState extends State<CostumerDemand> {
         "assigned_fieldworker_location": location,
       });
 
-      print("STATUS CODE: ${res.statusCode}");
-      print("RAW RESPONSE: ${res.body}");
-
       final data = jsonDecode(res.body);
 
-      if (data["success"] == true) {
-
-        // 🔹 Remove demand instantly from UI
-        setState(() {
-          _parentDemands.removeWhere((d) => d.id == demandId);
-          _filteredParent.removeWhere((d) => d.id == demandId);
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Demand accepted")),
-        );
-
-      } else {
-
+      if (data["success"] != true) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(data["message"] ?? "Error")),
         );
-
       }
 
     } catch (e) {
-
-      print("ERROR: $e");
-
-      await BugLogger.log(
-        apiLink:
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/accept_demand_by_fields.php",
-        error: e.toString(),
-        statusCode: 500,
-      );
+      print(e);
     }
   }
+
   // Future<List<TenantDemandModel>> _loadCrossRedemand() async {
   //   try {
   //     final prefs = await SharedPreferences.getInstance();
@@ -407,7 +387,10 @@ class _TenantDemandState extends State<CostumerDemand> {
 
                     if (_filteredParent.isNotEmpty) ...[
                       _sectionTitle("Demands"),
-                      ..._filteredParent.map((d) => _buildDemandTile(d, isDark)),
+                      ..._filteredParent.map((d) => KeyedSubtree(
+                        key: ValueKey(d.id),
+                        child: _buildDemandTile(d, isDark),
+                      )),
                     ],
 
                     // if (_filteredCross.isNotEmpty) ...[

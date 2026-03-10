@@ -8,7 +8,10 @@ import 'package:intl/intl.dart';
 class InsuranceFormScreen extends StatefulWidget {
   final String fieldWorkerName;
   final String fieldWorkerNumber;
-  const InsuranceFormScreen({super.key, required this.fieldWorkerName, required this.fieldWorkerNumber});
+  const InsuranceFormScreen({
+    super.key,
+    required this.fieldWorkerName,
+    required this.fieldWorkerNumber});
 
   @override
   State<InsuranceFormScreen> createState() => _InsuranceFormScreenState();
@@ -30,6 +33,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
   File? rcBack;
   File? carPhoto;
   File? oldPolicy;
+  File? panCardPhoto;
 
   final picker = ImagePicker();
   bool isLoading = false;
@@ -54,6 +58,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
       setState(() {});
     }
   }
+
   @override
   void initState() {
     super.initState();
@@ -61,6 +66,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
     fieldWorkerNameController.text = widget.fieldWorkerName;
     fieldWorkerNumberController.text = widget.fieldWorkerNumber;
   }
+
   Future<void> submitForm() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -75,19 +81,69 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
       );
 
       /// 🔹 FIELDS
+      if (selectedCategory == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select vehicle category")),
+        );
+        setState(() => isLoading = false);
+        return;
+      }
+
+      if (selectedWheeler == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select wheeler type")),
+        );
+        setState(() => isLoading = false);
+        return;
+      }
+
       request.fields['name_'] = nameController.text.trim();
       request.fields['number'] = numberController.text.trim();
       request.fields['vehicle_number'] = vehicleNumberController.text.trim();
+      request.fields['vehicle_category'] = selectedCategory!;
+      request.fields['vehicle_type'] = selectedWheeler!;
+      request.fields['petrol_desiel'] = selectedFuel!;
       request.fields['fieldworkar_name'] = widget.fieldWorkerName;
       request.fields['fieldworkar_number'] = widget.fieldWorkerNumber;
-      request.fields['vehicle_type'] = vehicleTypeController.text.trim();
       request.fields['email_id'] = emailController.text.trim();
       request.fields['Nominie_name'] = nomineeNameController.text.trim();
       request.fields['Nominie_age'] = nomineeAgeController.text.trim();
-      request.fields['Nominie_relation'] = nomineeRelationController.text.trim();
+      request.fields['Nominie_relation'] =
+          nomineeRelationController.text.trim();
       request.fields['claim'] = claimStatus;
       request.fields['polution_yes_no'] = pollutionStatus;
       request.fields['expiry_date'] = expiryDateController.text.trim();
+      /// AUTO CURRENT DATE
+      request.fields['current_dates'] =
+          DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
+
+      /// 🔹 PAN FILE
+      if (panCardPhoto != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'pan_card_photo',
+          panCardPhoto!.path,
+        ));
+      }
+      if (selectedFuel == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select fuel type")),
+        );
+        return;
+      }
+
+      if (selectedCategory == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select vehicle category")),
+        );
+        return;
+      }
+
+      if (selectedWheeler == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select wheeler type")),
+        );
+        return;
+      }
 
       /// 🔹 Pollution validation
       if (pollutionStatus == "Yes" && pollutionPhoto == null) {
@@ -105,6 +161,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
           pollutionPhoto!.path,
         ));
       }
+
 
       if (aadharFront != null) {
         request.files.add(await http.MultipartFile.fromPath(
@@ -148,20 +205,56 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
         ));
       }
 
-      /// 🔹 MULTIPLE IMAGES
-      for (var image in carMultipleImages) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'car_multiple_images[]',
-          image.path,
-        ));
+
+      print("Total Multiple Images Selected: ${carMultipleImages.length}");
+
+      for (int i = 0; i < carMultipleImages.length; i++) {
+        File image = carMultipleImages[i];
+
+        print("Uploading Image ${i + 1}: ${image.path}");
+
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'car_images[]',
+            image.path,
+          ),
+        );
       }
+
+      /// JSON Preview
+      print("------ MULTIPLE IMAGES JSON PREVIEW ------");
+
+      List<String> imagesJson = [];
+
+      for (var file in request.files) {
+        if (file.field == "car_multiple_images[]") {
+          imagesJson.add(file.filename ?? "");
+        }
+      }
+
+      print(jsonEncode({
+        "car_multiple_images[]": imagesJson
+      }));
+      /// DEBUG
+      print("------ FILES GOING TO API ------");
+
+      for (var file in request.files) {
+        print("FIELD: ${file.field}");
+        print("FILE NAME: ${file.filename}");
+      }
+
+      print("TOTAL FILES SENT: ${request.files.length}");
+
+      /// SEND REQUEST
+
 
       /// 🔹 SEND REQUEST
       var response = await request.send();
       final responseBody = await response.stream.bytesToString();
 
-      debugPrint("STATUS CODE: ${response.statusCode}");
-      debugPrint("RESPONSE BODY: $responseBody");
+      print("STATUS CODE: ${response.statusCode}");
+      print("RESPONSE BODY FULL:");
+      print(responseBody);
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(responseBody);
@@ -231,9 +324,33 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
     }
   }
 
+  List<String> vehicleCategoryOptions = [
+    "Commercial",
+    "Private",
+  ];
+
+  List<String> wheelOptions = [
+    "2 Wheeler",
+    "3 Wheeler",
+    "4 Wheeler",
+    "6 Wheeler",
+    "8 Wheeler",
+  ];
+
+  String? selectedCategory;
+  String? selectedWheeler;
+
+  List<String> fuelOptions = [
+    "Petrol",
+    "Diesel",
+    "CNG",
+    "EV",
+  ];
+
+  String? selectedFuel;
+
   Future<void> pickMultipleImages() async {
     final pickedFiles = await picker.pickMultiImage(imageQuality: 75);
-
     if (pickedFiles != null && pickedFiles.isNotEmpty) {
       carMultipleImages = pickedFiles.map((e) => File(e.path)).toList();
       setState(() {});
@@ -468,36 +585,155 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
       ),
     );
   }
-  Widget buildDateField() {
+
+  Widget buildVehicleCategoryDropdown() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: GestureDetector(
-        onTap: pickExpiryDate,
-        child: AbsorbPointer(
-          child: buildTextField(
-            "Expiry Date",
-            expiryDateController,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Vehicle Category *",
+          style: TextStyle(
+            fontFamily: "PoppinsMedium",
+            fontSize: 13,
           ),
         ),
-      ),
-    );
-  }
-  Future<void> pickExpiryDate() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
-    );
+        const SizedBox(height: 8),
 
-    if (date != null) {
-      expiryDateController.text =
-          DateFormat("dd-MM-yyyy").format(date); // format tera choice 😎
-      setState(() {});
-    }
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: selectedCategory,
+              hint: const Text("Select Category"),
+              isExpanded: true,
+              items: vehicleCategoryOptions.map((value) {
+                return DropdownMenuItem(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedCategory = value;
+                  selectedWheeler = null; // reset wheeler
+                  vehicleTypeController.clear();
+                });
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
   }
+
+  Widget buildWheelerDropdown() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Wheeler Type *",
+          style: TextStyle(
+            fontFamily: "PoppinsMedium",
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: selectedWheeler,
+              hint: Text(
+                selectedCategory == null
+                    ? "Select category first"
+                    : "Select Wheeler",
+              ),
+              isExpanded: true,
+              items: wheelOptions.map((value) {
+                return DropdownMenuItem(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: selectedCategory == null
+                  ? null
+                  : (value) {
+                setState(() {
+                  selectedWheeler = value;
+                  vehicleTypeController.text =
+                  "${selectedCategory!} | ${selectedWheeler!}";
+                });
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget buildFuelDropdown() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Fuel Type *",
+          style: TextStyle(
+            fontFamily: "PoppinsMedium",
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: selectedFuel,
+              hint: const Text("Select Fuel Type"),
+              isExpanded: true,
+              items: fuelOptions.map((value) {
+                return DropdownMenuItem(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedFuel = value;
+                });
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -556,12 +792,11 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
                     isRequired: true,
                   ),
 
-                  buildTextField(
-                      "Vehicle Type", vehicleTypeController,
-                    isRequired: true,
-                  ),
+                  buildVehicleCategoryDropdown(),
+                  buildWheelerDropdown(),
+                  buildFuelDropdown(),
 
-                  const SizedBox(height: 10),
+                   SizedBox(height: 10),
                   buildTextField(
                     "Email ID",
                     emailController,
@@ -577,16 +812,6 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
                   ),
 
                   buildTextField("Nominee Relation", nomineeRelationController),
-                  GestureDetector(
-                    onTap: pickExpiryDate,
-                    child: AbsorbPointer(
-                      child: buildTextField(
-                        "Expiry Date",
-                        expiryDateController,
-                      ),
-                    ),
-                  ),
-
                   buildRadioRow(
                     "Pollution",
                     pollutionStatus,
@@ -632,6 +857,12 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
                   buildImagePicker(
                       "Vehicle Photo", carPhoto,
                           () => pickImage((f) => carPhoto = f)),
+
+                  buildImagePicker(
+                    "PAN Card Photo",
+                    panCardPhoto,
+                        () => pickImage((f) => panCardPhoto = f),
+                  ),
 
                   buildImagePicker(
                       "Old Policy (Optional)", oldPolicy,

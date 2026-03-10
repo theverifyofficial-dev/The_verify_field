@@ -22,32 +22,70 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
   void initState() {
     super.initState();
     fetchMultipleImages();
+
     final item = widget.item;
 
+    // 🔹 TEXT FIELDS
     nameController.text = item.name ?? "";
     numberController.text = item.number ?? "";
     vehicleNumberController.text = item.vehicleNumber ?? "";
     fieldWorkerNameController.text = item.fieldWorkerName ?? "";
     fieldWorkerNumberController.text = item.fieldWorkerNumber ?? "";
-    vehicleTypeController.text = item.vehicleType ?? "";
-
-    nameController.text = item.name ?? "";
-    numberController.text = item.number ?? "";
-    vehicleNumberController.text = item.vehicleNumber ?? "";
-    fieldWorkerNameController.text = item.fieldWorkerName ?? "";
-    fieldWorkerNumberController.text = item.fieldWorkerNumber ?? "";
-    vehicleTypeController.text = item.vehicleType ?? "";
-
     emailController.text = item.emailId ?? "";
     nomineeNameController.text = item.nomineeName ?? "";
     nomineeAgeController.text = item.nomineeAge ?? "";
     nomineeRelationController.text = item.nomineeRelation ?? "";
 
-    expiryDateController.text = item.expiryDate ?? "";
-
     claimStatus = item.claim ?? "No";
     pollutionStatus = item.pollutionYesNo ?? "No";
 
+    // ✅ CATEGORY FIX
+    if (item.vehicle_category != null &&
+        item.vehicle_category!.trim().isNotEmpty) {
+
+      selectedCategory = vehicleCategoryOptions.firstWhere(
+            (e) =>
+        e.toLowerCase().trim() ==
+            item.vehicle_category!.toLowerCase().trim(),
+        orElse: () => "",
+      );
+
+      if (selectedCategory == "") {
+        selectedCategory = null;
+      }
+    }
+
+    // ✅ WHEELER FIX
+    if (item.vehicleType != null &&
+        item.vehicleType!.trim().isNotEmpty) {
+
+      selectedWheeler = wheelOptions.firstWhere(
+            (e) =>
+        e.toLowerCase().trim() ==
+            item.vehicleType!.toLowerCase().trim(),
+        orElse: () => "",
+      );
+
+      if (selectedWheeler == "") {
+        selectedWheeler = null;
+      }
+    }
+
+    // ✅ FUEL FIX
+    if (item.fuelType != null &&
+        item.fuelType!.trim().isNotEmpty) {
+
+      selectedFuel = fuelOptions.firstWhere(
+            (e) =>
+        e.toLowerCase().trim() ==
+            item.fuelType!.toLowerCase().trim(),
+        orElse: () => "",
+      );
+
+      if (selectedFuel == "") {
+        selectedFuel = null;
+      }
+    }
   }
 
   final _formKey = GlobalKey<FormState>();
@@ -65,6 +103,7 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
   File? rcBack;
   File? carPhoto;
   File? oldPolicy;
+  File? panCardPhoto;
 
   final emailController = TextEditingController();
   final nomineeNameController = TextEditingController();
@@ -81,9 +120,7 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
   Future<void> fetchMultipleImages() async {
     try {
       final response = await http.get(Uri.parse(
-          "https://verifyserve.social/PHP_Files/"
-              "insurance_insert_api/insurance_details/"
-              "show_insurance_multiple_image.php?subid=${widget.item.id}"));
+          "https://verifyserve.social/PHP_Files/insurance_insert_api/insurance_details/show_insurance_multiple_image.php?subid=${widget.item.id}"));
 
       final decoded = jsonDecode(response.body);
 
@@ -134,6 +171,32 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
       setState(() {});
     }
   }
+
+  List<String> vehicleCategoryOptions = [
+    "Commercial",
+    "Private",
+  ];
+
+  List<String> wheelOptions = [
+    "2 Wheeler",
+    "3 Wheeler",
+    "4 Wheeler",
+    "6 Wheeler",
+    "8 Wheeler",
+  ];
+
+  String? selectedCategory;
+  String? selectedWheeler;
+
+  List<String> fuelOptions = [
+    "Petrol",
+    "Diesel",
+    "CNG",
+    "EV",
+  ];
+
+  String? selectedFuel;
+
   Future<void> submitForm() async {
 
     if (!_formKey.currentState!.validate()) return;
@@ -151,24 +214,61 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
       );
 
       request.fields['id'] = widget.item.id.toString();
-
       request.fields['name_'] = nameController.text;
       request.fields['number'] = numberController.text;
       request.fields['vehicle_number'] = vehicleNumberController.text;
       request.fields['fieldworkar_name'] = widget.item.fieldWorkerName.toString();
       request.fields['fieldworkar_number'] = widget.item.fieldWorkerNumber.toString();
-      request.fields['vehicle_type'] = vehicleTypeController.text;
+      // ✅ NOW SAFE
+      if (selectedCategory == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select vehicle category")),
+        );
+        setState(() => isLoading = false);
+        return;
+      }
+      request.fields['vehicle_category'] = selectedCategory!;
+
+      if (selectedWheeler == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select wheeler type")),
+        );
+        setState(() => isLoading = false);
+        return;
+      }
+      request.fields['vehicle_type'] = selectedWheeler!;
+
+      // ✅ VALIDATE FIRST
+      if (selectedFuel == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please select fuel type")),
+        );
+        setState(() => isLoading = false);
+        return;
+      }
+      request.fields['petrol_desiel'] = selectedFuel!;
+
+      request.fields['current_dates'] =
+          DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
 
       request.fields['email_id'] = emailController.text;
       request.fields['Nominie_name'] = nomineeNameController.text;
       request.fields['Nominie_age'] = nomineeAgeController.text;
       request.fields['Nominie_relation'] = nomineeRelationController.text;
-
       request.fields['claim'] = claimStatus;
       request.fields['polution_yes_no'] = pollutionStatus;
-      request.fields['expiry_date'] = expiryDateController.text;
+
 
       /// ✅ DOCUMENTS
+
+
+      /// 🔹 PAN FILE
+      if (panCardPhoto != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'pan_card_photo',
+          panCardPhoto!.path,
+        ));
+      }
 
       if (pollutionPhoto != null) {
         request.files.add(await http.MultipartFile.fromPath(
@@ -230,11 +330,20 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
         );
       }
 
-      /// ✅ DELETE IMAGES
 
-      for (var image in deleteImages) {
-        request.fields['delete_images[]'] = image;
+      /// ✅ DELETE IMAGES
+      print("Delete Images List Length: ${deleteImages.length}");
+      print("Delete Images List Data: $deleteImages");
+
+      for (int i = 0; i < deleteImages.length; i++) {
+        request.fields['delete_images[$i]'] = deleteImages[i];
       }
+
+      print("Final Request Fields: ${request.fields}");
+
+
+
+      print("Final Request Fields: ${request.fields}");
 
       var response = await request.send();
       final responseBody = await response.stream.bytesToString();
@@ -259,20 +368,7 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
       setState(() => isLoading = false);
     }
   }
-  Future<void> pickExpiryDate() async {
-    final date = await showDatePicker(
-      context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2100),
-    );
 
-    if (date != null) {
-      expiryDateController.text =
-          DateFormat("dd-MM-yyyy").format(date);
-      setState(() {});
-    }
-  }
   Widget buildTextField(
       String label,
       TextEditingController controller, {
@@ -425,7 +521,6 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
     nomineeNameController.dispose();
     nomineeAgeController.dispose();
     nomineeRelationController.dispose();
-    expiryDateController.dispose();
     super.dispose();
   }
   /// ✅ PREMIUM IMAGE PICKER WITH PREVIEW
@@ -492,6 +587,154 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
     );
   }
 
+  Widget buildVehicleCategoryDropdown() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Vehicle Category *",
+          style: TextStyle(
+            fontFamily: "PoppinsMedium",
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: selectedCategory,
+              hint: const Text("Select Category"),
+              isExpanded: true,
+              items: vehicleCategoryOptions.map((value) {
+                return DropdownMenuItem(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedCategory = value;
+                  selectedWheeler = null; // reset wheeler
+                  vehicleTypeController.clear();
+                });
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget buildWheelerDropdown() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Wheeler Type *",
+          style: TextStyle(
+            fontFamily: "PoppinsMedium",
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: selectedWheeler,
+              hint: Text(
+                selectedCategory == null
+                    ? "Select category first"
+                    : "Select Wheeler",
+              ),
+              isExpanded: true,
+              items: wheelOptions.map((value) {
+                return DropdownMenuItem(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: selectedCategory == null
+                  ? null
+                  : (value) {
+                setState(() {
+                  selectedWheeler = value;
+                  vehicleTypeController.text =
+                  "${selectedCategory!} | ${selectedWheeler!}";
+                });
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  Widget buildFuelDropdown() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Fuel Type *",
+          style: TextStyle(
+            fontFamily: "PoppinsMedium",
+            fontSize: 13,
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: selectedFuel,
+              hint: const Text("Select Fuel Type"),
+              isExpanded: true,
+              items: fuelOptions.map((value) {
+                return DropdownMenuItem(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedFuel = value;
+                });
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
   String? _getNetworkUrl(String title) {
     final item = widget.item;
 
@@ -519,6 +762,12 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
 
       case "Pollution Photo":
         return item.pollutionPhotoUrl;
+
+      case "PAN Card Photo":
+        return item.panCardPhotoUrl;
+
+      case "Vehicle Photo":
+        return item.carPhotoUrl;
     }
 
     return null;
@@ -587,10 +836,11 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
                       isRequired: true
                   ),
 
-                  buildTextField(
-                      "Vehicle Type", vehicleTypeController,
-                      isRequired: true
-                  ),
+
+                  buildVehicleCategoryDropdown(),
+                  buildWheelerDropdown(),
+                  buildFuelDropdown(),
+
 
                   buildTextField("Nominee Name", nomineeNameController),
 
@@ -627,14 +877,6 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
                         }
                       });
                     },
-                  ),
-
-
-                  GestureDetector(
-                    onTap: pickExpiryDate,
-                    child: AbsorbPointer(
-                      child: buildTextField("Expiry Date", expiryDateController),
-                    ),
                   ),
 
                   const SizedBox(height: 20),
@@ -678,6 +920,12 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
                     "Vehicle Photo",
                     carPhoto,
                         () => pickImage((f) => carPhoto = f),
+                  ),
+
+                  buildImagePicker(
+                    "PAN Card Photo",
+                    panCardPhoto,
+                        () => pickImage((f) => panCardPhoto = f),
                   ),
 
                   buildImagePicker(
@@ -817,18 +1065,17 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
                                   child: GestureDetector(
                                     onTap: () {
 
-                                      /// ✅ ADD TO DELETE LIST
-                                      final relativePath =
-                                      imageUrl.replaceFirst(insuranceBaseUrl, "");
+                                      final fileName = imageUrl.split('/').last;
+                                      final dbPath = "insurance_uploads/$fileName";
 
-                                      deleteImages.add(relativePath);
+                                      deleteImages.add(dbPath);
 
-                                      /// ✅ REMOVE FROM UI
                                       serverMultipleImages.removeAt(index);
 
                                       setState(() {});
                                     },
-                                    child: Container(
+
+                                      child: Container(
                                       padding: const EdgeInsets.all(4),
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,

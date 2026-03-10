@@ -2,9 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
-import 'Insurance Form Screen.dart';
-import 'InsuranceDetail.dart';
+import '../../Custom_Widget/constant.dart';
+import '../../Insurance/InsuranceDetail.dart';
 
 const String insuranceBaseUrl =
     "https://verifyserve.social/PHP_Files/insurance_insert_api/insurance_details/";
@@ -145,22 +144,28 @@ class InsuranceResponse {
   }
 }
 
-class InsuranceListScreen extends StatefulWidget {
+class AdminListInsurance extends StatefulWidget {
   final String fieldWorkerNumber;
-  final String fieldWorkerName;
 
-
-  const InsuranceListScreen({
+  const AdminListInsurance({
     super.key,
     required this.fieldWorkerNumber,
-    required this.fieldWorkerName,
   });
 
   @override
-  State<InsuranceListScreen> createState() => _InsuranceListScreenState();
+  State<AdminListInsurance> createState() => _AdminListInsuranceState();
 }
 
-class _InsuranceListScreenState extends State<InsuranceListScreen> {
+class _AdminListInsuranceState extends State<AdminListInsurance> {
+
+
+
+  TextEditingController searchController = TextEditingController();
+  List<InsuranceModel> filteredList = [];
+
+  int totalMissingFields = 0;
+  bool isLoading = true;
+  List<InsuranceModel> insuranceList = [];
 
   bool _blank(String? v) {
     return v == null || v.trim().isEmpty;
@@ -191,13 +196,6 @@ class _InsuranceListScreenState extends State<InsuranceListScreen> {
 
     return m;
   }
-
-  TextEditingController searchController = TextEditingController();
-  List<InsuranceModel> filteredList = [];
-
-  int totalMissingFields = 0;
-  bool isLoading = true;
-  List<InsuranceModel> insuranceList = [];
 
   @override
   void initState() {
@@ -235,6 +233,11 @@ class _InsuranceListScreenState extends State<InsuranceListScreen> {
     for (var item in insuranceList) {
       if (item.vehicleNumber == null || item.vehicleNumber!.isEmpty) totalMissingFields++;
       if (item.vehicleType == null || item.vehicleType!.isEmpty) totalMissingFields++;
+      if (item.number == null || item.number!.isEmpty) totalMissingFields++;
+      if (item.emailId == null || item.emailId!.isEmpty) totalMissingFields++;
+      if (item.nomineeName == null || item.nomineeName!.isEmpty) totalMissingFields++;
+      if (item.name == null || item.name!.isEmpty) totalMissingFields++;
+      if (item.carPhoto == null || item.carPhoto!.isEmpty) totalMissingFields++;
     }
   }
 
@@ -296,277 +299,82 @@ class _InsuranceListScreenState extends State<InsuranceListScreen> {
       //   surfaceTintColor: Colors.transparent, // 🔥 important
       //   scrolledUnderElevation: 0, // 🔥 important
       //
-      //   automaticallyImplyLeading: true,
+      //   automaticallyImplyLeading: false,
       //   title: const Text(
       //     "Insurance Records",
       //     style: TextStyle(fontFamily: "PoppinsBold"),
       //   ),
       //   elevation: 0,
       // ),
-      floatingActionButton: GestureDetector(
-        onTap: () {
-
-          String workerName = widget.fieldWorkerName??"";
-          String workerNumber = widget.fieldWorkerNumber ?? "";
-
-          if (insuranceList.isNotEmpty) {
-            final worker = insuranceList.first;
-            workerName = worker.fieldWorkerName ?? workerName;
-            workerNumber = worker.fieldWorkerNumber ?? workerNumber;
-
-          } else {
-            print("⚠️ No worker data found, opening form anyway");
-          }
-          debugPrint("------ NAVIGATION DATA ------");
-          debugPrint("Worker Name: $workerName");
-          debugPrint("Worker Number: $workerNumber");
-          debugPrint("-----------------------------");
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => InsuranceFormScreen(
-                fieldWorkerName: workerName,
-                fieldWorkerNumber: workerNumber,
-              ),
-            ),
-          ).then((value) {
-            refreshInsurance();
-          });
-
-        },
-        child: Container(
-          height: 58,
-          padding: const EdgeInsets.symmetric(horizontal: 22),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(30),
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF4F46E5),
-                Color(0xFF3B82F6),
-              ],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.25),
-                blurRadius: 14,
-                offset: const Offset(0, 6),
-              )
-            ],
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-              Icon(
-                Icons.add_rounded,
-                color: Colors.white,
-                size: 28,
-              ),
-              SizedBox(width: 10),
-              Text(
-                "Add Insurance",
-                style: TextStyle(
-                  fontSize: 15,
-                  fontFamily: "PoppinsBold",
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-
-
-      // body: isLoading
-      //     ? const Center(child: CircularProgressIndicator())
-      //     : Column(
-      //   children: [
-      //
-      //     _premiumHeader(isDark),
-      //     /// 🔎 PREMIUM SEARCH BAR
-      //     Padding(
-      //       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      //       child: Container(
-      //         decoration: BoxDecoration(
-      //           borderRadius: BorderRadius.circular(30),
-      //           boxShadow: [
-      //             BoxShadow(
-      //               color: Colors.black.withOpacity(0.06),
-      //               blurRadius: 20,
-      //               offset: const Offset(0, 8),
-      //             ),
-      //           ],
-      //         ),
-      //         child:
-      //         TextField(
-      //           controller: searchController,
-      //           style: const TextStyle(
-      //             fontFamily: "PoppinsMedium",
-      //             fontSize: 14,
-      //           ),
-      //           decoration: InputDecoration(
-      //             hintText: "Search",
-      //             hintStyle: TextStyle(
-      //               color: Colors.grey.shade500,
-      //               fontSize: 13,
-      //             ),
-      //
-      //             prefixIcon: Container(
-      //               padding: const EdgeInsets.all(12),
-      //               child: Icon(
-      //                 Icons.search_rounded,
-      //                 color: Colors.grey.shade600,
-      //                 size: 22,
-      //               ),
-      //             ),
-      //
-      //             suffixIcon: searchController.text.isNotEmpty
-      //                 ? IconButton(
-      //               icon: const Icon(Icons.close_rounded),
-      //               onPressed: () {
-      //                 searchController.clear();
-      //               },
-      //             )
-      //                 : null,
-      //
-      //             filled: true,
-      //             fillColor: Theme.of(context).brightness == Brightness.dark
-      //                 ? const Color(0xFF1A1A1A)
-      //                 : Colors.white,
-      //
-      //             contentPadding:
-      //             const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-      //
-      //             enabledBorder: OutlineInputBorder(
-      //               borderRadius: BorderRadius.circular(30),
-      //               borderSide: BorderSide(
-      //                 color: Colors.grey.shade300,
-      //               ),
-      //             ),
-      //
-      //             focusedBorder: OutlineInputBorder(
-      //               borderRadius: BorderRadius.circular(30),
-      //               borderSide: const BorderSide(
-      //                 color: Color(0xFF4F46E5),
-      //                 width: 1.5,
-      //               ),
-      //             ),
-      //
-      //             border: OutlineInputBorder(
-      //               borderRadius: BorderRadius.circular(30),
-      //             ),
-      //           ),
-      //         ),
-      //       ),
-      //     ),
 
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : Column(
-        children: [
+          children: [
 
           /// HEADER
           _premiumHeader(isDark),
 
-          /// 📊 COUNT SECTION
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+      /// 📊 COUNT SECTION
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
 
-                Text(
-                  "Total Records: ${filteredList.length}",
-                  style: const TextStyle(
-                    fontFamily: "PoppinsBold",
-                    fontSize: 13,
-                  ),
-                ),
-
-                Text(
-                  "Showing: ${filteredList.length}",
-                  style: TextStyle(
-                    fontFamily: "PoppinsMedium",
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-
-              ],
-            ),
-          ),
-
-          /// 📄 LIST
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: refreshInsurance,
-              child: filteredList.isEmpty
-                  ? ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(height: 200),
-                  Center(
-                    child: Text(
-                      "No Insurance Records Found",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontFamily: "PoppinsMedium",
-                      ),
-                    ),
-                  ),
-                ],
-              )
-                  : ListView.builder(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                itemCount: filteredList.length,
-                itemBuilder: (context, index) {
-                  final item = filteredList[index];
-                  return _insuranceCard(item, isDark, context);
-                },
+            Text(
+              "Total Records: ${filteredList.length}",
+              style: const TextStyle(
+                fontFamily: "PoppinsBold",
+                fontSize: 13,
               ),
             ),
-          ),
 
-          /// 📊 COUNT SECTION
-          // Padding(
-          //   padding: const EdgeInsets.symmetric(horizontal: 16),
-          //   child: Row(
-          //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //     children: [
-          //       Text(
-          //         "Total Records: ${filteredList.length}",
-          //         style: const TextStyle(
-          //           fontFamily: "PoppinsBold",
-          //           fontSize: 13,
-          //         ),
-          //       ),
-          //
-          //     ],
-          //   ),
-          // ),
-          //
-          // const SizedBox(height: 10),
-          //
-          // /// 📄 LIST
-          // Expanded(
-          //   child: filteredList.isEmpty
-          //       ? _buildEmptyState(isDark)
-          //       : RefreshIndicator(
-          //     color: Colors.blue,
-          //     onRefresh: refreshInsurance,
-          //     child: ListView.builder(
-          //       padding: const EdgeInsets.all(16),
-          //       itemCount: filteredList.length,
-          //       itemBuilder: (context, index) {
-          //         final item = filteredList[index];
-          //         return _insuranceCard(item, isDark, context);
-          //       },
-          //     ),
-          //   ),
-          // ),
-        ],
+            Text(
+              "Showing: ${filteredList.length}",
+              style: TextStyle(
+                fontFamily: "PoppinsMedium",
+                fontSize: 12,
+                color: Colors.grey.shade600,
+              ),
+            ),
+
+          ],
+        ),
+      ),
+
+      /// 📄 LIST
+      Expanded(
+        child: RefreshIndicator(
+          onRefresh: refreshInsurance,
+          child: filteredList.isEmpty
+              ? ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: const [
+              SizedBox(height: 200),
+              Center(
+                child: Text(
+                  "No Insurance Records Found",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontFamily: "PoppinsMedium",
+                  ),
+                ),
+              ),
+            ],
+          )
+              : ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            itemCount: filteredList.length,
+            itemBuilder: (context, index) {
+              final item = filteredList[index];
+              return _insuranceCard(item, isDark, context);
+            },
+          ),
+        ),
+      ),
+        ]
       ),
     );
   }
@@ -686,71 +494,70 @@ class _InsuranceListScreenState extends State<InsuranceListScreen> {
                 borderRadius: BorderRadius.circular(30),
               ),
               child: TextField(
-                          controller: searchController,
-                          style: const TextStyle(
-                            fontFamily: "PoppinsMedium",
-                            fontSize: 14,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: "Search",
-                            hintStyle: TextStyle(
-                              color: Colors.grey.shade500,
-                              fontSize: 13,
-                            ),
+                controller: searchController,
+                style: const TextStyle(
+                  fontFamily: "PoppinsMedium",
+                  fontSize: 14,
+                ),
+                decoration: InputDecoration(
+                  hintText: "Search",
+                  hintStyle: TextStyle(
+                    color: Colors.grey.shade500,
+                    fontSize: 13,
+                  ),
 
-                            prefixIcon: Container(
-                              padding: const EdgeInsets.all(12),
-                              child: Icon(
-                                Icons.search_rounded,
-                                color: Colors.grey.shade600,
-                                size: 22,
-                              ),
-                            ),
+                  prefixIcon: Container(
+                    padding: const EdgeInsets.all(12),
+                    child: Icon(
+                      Icons.search_rounded,
+                      color: Colors.grey.shade600,
+                      size: 22,
+                    ),
+                  ),
 
-                            suffixIcon: searchController.text.isNotEmpty
-                                ? IconButton(
-                              icon: const Icon(Icons.close_rounded),
-                              onPressed: () {
-                                searchController.clear();
-                              },
-                            )
-                                : null,
+                  suffixIcon: searchController.text.isNotEmpty
+                      ? IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () {
+                      searchController.clear();
+                    },
+                  )
+                      : null,
 
-                            filled: true,
-                            fillColor: Theme.of(context).brightness == Brightness.dark
-                                ? const Color(0xFF1A1A1A)
-                                : Colors.white,
+                  filled: true,
+                  fillColor: Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xFF1A1A1A)
+                      : Colors.white,
 
-                            contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                  contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
 
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(30),
-                              borderSide: BorderSide(
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide(
+                      color: Colors.grey.shade300,
+                    ),
+                  ),
 
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(30),
-                              borderSide: const BorderSide(
-                                color: Color(0xFF4F46E5),
-                                width: 1.5,
-                              ),
-                            ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF4F46E5),
+                      width: 1.5,
+                    ),
+                  ),
 
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                          ),
-                        ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                ),
               ),
+            ),
           ),
         ],
       ),
     );
   }
-
 
   /// ✅ PREMIUM INSURANCE CARD
   Widget _insuranceCard(InsuranceModel item, bool isDark, BuildContext context) {

@@ -1544,7 +1544,9 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (_) =>  InsuranceListScreen(fieldWorkerNumber: number,)));
+                  builder: (_) =>  InsuranceListScreen(
+                    fieldWorkerNumber: number,
+                    fieldWorkerName: userName ?? "",)));
         },
         "gradient": cardGradients[9],
       },

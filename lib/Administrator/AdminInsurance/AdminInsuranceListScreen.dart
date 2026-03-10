@@ -3,12 +3,11 @@
   import 'package:http/http.dart' as http;
   import 'package:intl/intl.dart';
   import 'package:shared_preferences/shared_preferences.dart';
-
-  import '../../Insurance/Insurance Form Screen.dart';
+import 'package:verify_feild_worker/Administrator/AdminInsurance/Admin_insurance_list.dart';
   import '../../Insurance/InsuranceDetail.dart';
-import '../../main.dart';
-import '../Administrator_HomeScreen.dart';
-import '../SubAdmin/SubAdminAccountant_Home.dart';
+  import '../../main.dart';
+  import '../Administrator_HomeScreen.dart';
+  import '../SubAdmin/SubAdminAccountant_Home.dart';
 
   const String insuranceBaseUrl =
       "https://verifyserve.social/PHP_Files/insurance_insert_api/insurance_details/";
@@ -175,6 +174,35 @@ import '../SubAdmin/SubAdminAccountant_Home.dart';
 
   class _AdminInsuranceListScreenState extends State<AdminInsuranceListScreen> {
 
+    bool _blank(String? v) {
+      return v == null || v.trim().isEmpty;
+    }
+
+    List<String> _missingFieldsFor(InsuranceModel i) {
+      final m = <String>[];
+
+      final checks = <String, String?>{
+        "Customer Name": i.name,
+        "Customer Number": i.number,
+        "Vehicle Number": i.vehicleNumber,
+        "Vehicle Type": i.vehicleType,
+        "Fuel Type": i.fuelType,
+        "Email": i.emailId,
+        "Nominee Name": i.nomineeName,
+        "Nominee Relation": i.nomineeRelation,
+        "Nominee Age": i.nomineeAge,
+        "Field Worker Name": i.fieldWorkerName,
+        "Field Worker Number": i.fieldWorkerNumber,
+        "Car Photo": i.carPhoto,
+        "Pollution Status": i.pollutionYesNo,
+      };
+
+      checks.forEach((k, v) {
+        if (_blank(v)) m.add(k);
+      });
+
+      return m;
+    }
 
     @override
     void initState() {
@@ -203,7 +231,6 @@ import '../SubAdmin/SubAdminAccountant_Home.dart';
       {"name": "Sumit", "id": "9711775300"},
       {"name": "Ravi", "id": "9711275300"},
       {"name": "Faizan", "id": "9971172204"},
-      {"name": "avjit", "id": "11"},
       {"name": "Manish", "id": "8130209217"},
       {"name": "Abhey", "id": "9675383184"},
     ];
@@ -397,36 +424,78 @@ import '../SubAdmin/SubAdminAccountant_Home.dart';
     }
 
     Widget _workerSection({
+
       required String workerName,
       required List<InsuranceModel> data,
       required bool isDark,
     }) {
       final screenWidth = MediaQuery.of(context).size.width;
 
-      return Column(
+      return
+        Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
 
-          Text(
-            workerName,
-            style: TextStyle(
-              fontSize: 18,
-              fontFamily: "PoppinsBold",
-              color: isDark ? Colors.white : Colors.black,
-            ),
+              /// 🔹 Worker Name (Left)
+              Text(
+                workerName,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontFamily: "PoppinsBold",
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
+
+              /// 🔹 View All (Right)
+              TextButton(
+                onPressed: () {
+                  final worker = fieldWorkers.firstWhere(
+                        (w) => w['name'] == workerName,
+                  );
+
+                  final workerNumber = worker['id'];
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AdminListInsurance(
+                        fieldWorkerNumber: workerNumber!,
+                      ),
+                    ),
+                  );
+                },
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(0, 0),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: const Text(
+                  "View All",
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontFamily: "PoppinsBold",
+                    color: Color(0xFF4F46E5),
+                  ),
+                ),
+              ),
+            ],
           ),
-
           const SizedBox(height: 12),
 
           /// ✅ RESPONSIVE HEIGHT
-          SizedBox(
-            height: screenWidth * 0.55,   // 🔥 dynamic height
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: data.length,
-              itemBuilder: (context, index) {
-                return _insuranceMiniCard(data[index], isDark);
-              },
+          IntrinsicHeight(
+            child: SizedBox(
+              height: data.length > 2 ? 320 : 260,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: data.length,
+                itemBuilder: (context, index) {
+                  return _insuranceMiniCard(data[index], isDark);
+                },
+              ),
             ),
           ),
 
@@ -435,6 +504,9 @@ import '../SubAdmin/SubAdminAccountant_Home.dart';
       );
     }
     Widget _insuranceMiniCard(InsuranceModel item, bool isDark) {
+
+      final missingFields = _missingFieldsFor(item);
+      final hasMissingFields = missingFields.isNotEmpty;
       final screenWidth = MediaQuery.of(context).size.width;
 
       return GestureDetector(
@@ -560,10 +632,11 @@ import '../SubAdmin/SubAdminAccountant_Home.dart';
                 _modernInfo("Vehicle Type", item.vehicleType, isDark),
                 const SizedBox(height: 6),
 
-                _modernInfo("Expiry Date",
-                    formatExpiryDate(item.expiryDate), isDark),
+                _modernInfo("ID", item.id.toString(), isDark),
 
-                const Spacer(),
+                const SizedBox(height: 6),
+
+                SizedBox(height: 12),
 
                 /// ✅ BADGES
                 Row(
@@ -572,7 +645,36 @@ import '../SubAdmin/SubAdminAccountant_Home.dart';
                     const SizedBox(width: 8),
                     _modernBadge("Pollution", item.pollutionYesNo),
                   ],
-                )
+                ),
+                if (hasMissingFields)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.errorContainer,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                      ),
+                      child: Text(
+                        "⚠ Missing: ${missingFields.join(', ')}",
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(
+                          color: Theme.of(context).colorScheme.error,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

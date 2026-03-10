@@ -419,20 +419,31 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   }
 
   Future<List<DocumentMainModel_F>> fetchCarouselData() async {
-    final response = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/display_future_property_multiple_images?subid=${widget.idd}'));
-    print(widget.idd);
+    final response = await http.get(
+      Uri.parse(
+        'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_multiple_image_in_future_property.php?subid=${widget.idd}',
+      ),
+    );
+
+    print("SUBID: ${widget.idd}");
+    print("API RESPONSE: ${response.body}");
+
     if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((item) {
-        return DocumentMainModel_F(
-          dimage: item['img'],
-        );
-      }).toList();
+      final decoded = jsonDecode(response.body);
+
+      if (decoded['success'] == true) {
+        final List data = decoded['data'];
+
+        return data
+            .map((item) => DocumentMainModel_F.fromJson(item))
+            .toList();
+      } else {
+        return [];
+      }
     } else {
       throw Exception('Failed to load data');
     }
   }
-
   List<String> name = [];
   late Future<Map<String, dynamic>> _allDataFuture;
 

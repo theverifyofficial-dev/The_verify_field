@@ -1,18 +1,18 @@
 class DocumentMainModel_F {
-  int? id;
+  String? subid;
   String? dimage;
 
-  DocumentMainModel_F({this.id, this.dimage});
+  DocumentMainModel_F({this.subid, this.dimage});
 
   DocumentMainModel_F.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
+    subid = json['subid'];
     dimage = json['img'];
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['img'] = this.dimage;
-    return data;
+    return {
+      "subid": subid,
+      "img": dimage,
+    };
   }
 }

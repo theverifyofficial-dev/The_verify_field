@@ -11,6 +11,7 @@ import '../Administrator/Admin_future _property/Future_Property_Details.dart';
 import '../Custom_Widget/property_preview.dart';
 import '../Demand_2/Demand_detail.dart';
 import '../Future_Property_OwnerDetails_section/Future_Property.dart';
+import '../Future_Property_OwnerDetails_section/Future_Property_Tabbar.dart';
 import '../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../Future_Property_OwnerDetails_section/New_Update/under_flats_infutureproperty.dart';
 import '../Future_Property_OwnerDetails_section/Owner_Call/All_contact.dart';
@@ -1479,7 +1480,11 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
   List<BookedTenantVisit> _bookedTenantVisits = [];
   List<UpcomingFlat> _upcomingFlats = [];
   List<CallingReminder> _callingReminders = [];
+  int agreementTarget = 120;
+  int agreementDone = 0;
 
+  int policeVerificationTarget = 200;
+  int policeVerificationDone = 0;
   // month/year state & lists
   final List<int> _years = List.generate(10, (i) => 2022 + i);
   final List<String> _months = const [
@@ -1507,8 +1512,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
   int totalBuildings = 0;
   int buildingsWithFlat = 0;
   int emptyBuildings = 0;
-  String? userName;
-  String? userNumber;
+
 
   String _monthName(int m) => _months[m - 1];
   List<WebsiteVisit> _websiteVisits = [];
@@ -1523,9 +1527,6 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
     _selectedDay = _focusedDay;
     _selectedYear = _focusedDay.year;
     _selectedMonth = _focusedDay.month;
-
-    _initUserAndFetch();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       loadUserName();
     });
@@ -1598,44 +1599,92 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
     return null;
   }
+  Future<void> fetchAgreementYearly() async {
+    try {
+      final res = await http.get(
+        Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/count_api_agreement_yealry_with_reward.php?Fieldwarkarnumber=$userNumber",
+        ),
+      );
 
+      if (res.statusCode == 200 && res.body.isNotEmpty) {
+        final decoded = jsonDecode(res.body);
 
-  Future<void> _initUserAndFetch() async {
+        if (decoded['status'] == true) {
+          setState(() {
+
+            /// total agreements completed
+            agreementDone = decoded['total_agreement'] ?? 0;
+
+            /// your yearly target (set manually)
+            agreementTarget = 120;
+
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Agreement yearly API error: $e");
+    }
+  }
+
+  Future<void> _fetchPoliceYearly() async {
+    try {
+      final res = await http.get(
+        Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/police_verification_yearly.php?Fieldwarkarnumber=$userNumber",
+        ),
+      );
+
+      if (res.statusCode == 200 && res.body.isNotEmpty) {
+        final decoded = jsonDecode(res.body);
+
+        if (decoded['status'] == true) {
+          setState(() {
+
+            /// completed police verification
+            policeVerificationDone =
+                decoded['total_police_verification'] ?? 0;
+
+            /// yearly target (set manually)
+            policeVerificationTarget = 200;
+
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Police yearly API error: $e");
+    }
+  }
+
+  
+
+  String? userName;
+  String? userNumber;
+  Future<void> loadUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+
     final storedName = prefs.getString('name');
     final storedNumber = prefs.getString('number');
+
+    if (!mounted) return;
 
     setState(() {
       userName = storedName;
       userNumber = storedNumber;
     });
 
-    if (userNumber != null && userNumber!.isNotEmpty) {
-      _fetchOverviewBuildingDetail();
-      await fetchAgreementYearly();
-      await _fetchPoliceYearly();
-      await _fetchData(_focusedDay);
-    } else {
-      debugPrint("⚠️ userNumber not found in SharedPreferences");
+    if (userNumber == null || userNumber!.isEmpty) {
+      debugPrint("❌ userNumber is NULL");
+      return;
     }
-  }
 
-  String? userName;
-  String? userNumber;
-  Future<void> loadUserName() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final storedName = prefs.getString('name');
-    final storedNumber = prefs.getString('number');
+    debugPrint("✅ USER NUMBER: $userNumber");
 
-    if (mounted) {
-      setState(() {
-        userName = storedName;
-        userNumber = storedNumber;
-      });
-    }
-  }
-
-  Future<List<CalendarAddFlat>> fetchCalendarAddFlats({
+    await fetchAgreementYearly();
+    await _fetchPoliceYearly();
+    await _fetchOverviewBuildingDetail();
+    await _fetchData(_selectedDay ?? _focusedDay);
+  }  Future<List<CalendarAddFlat>> fetchCalendarAddFlats({
     required String date,
     required String fieldWorkerNumber,
   })
@@ -2753,7 +2802,10 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           final decoded = jsonDecode(responses[9].body);
           print(responses[9].body);
 
-          print("Calling Reminder Count: ${cr?.data.length}");
+          if (decoded['status'] == 'success') {
+            cr = CallingReminderResponse.fromJson(decoded);
+            print("Calling Reminder Count: ${cr.data.length}");
+          }
 
           if (decoded['status'] == 'success') {
             cr = CallingReminderResponse.fromJson(decoded);
@@ -3990,212 +4042,191 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
               blurRadius: 10,
-              offset: Offset(0, 4),
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: Column(
+
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            /// 🔹 IMAGE + DETAILS ROW
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            /// IMAGE
+            if (buildingData != null && buildingData.image.isNotEmpty)
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PropertyPreview(
+                        ImageUrl:
+                        "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
+                      ),
+                    ),
+                  );
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.network(
+                    "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
+                    width: 110,
+                    height: 100,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
 
-                /// 🖼 IMAGE
-                if (buildingData != null &&
-                    buildingData.image.isNotEmpty)
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => PropertyPreview(
-                            ImageUrl:
-                            "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
+            if (buildingData != null && buildingData.image.isNotEmpty)
+              const SizedBox(width: 12),
+
+            /// DETAILS
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                  /// ADDRESS
+                  Row(
+                    children: [
+                      Icon(
+                        PhosphorIcons.buildings,
+                        size: 16,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          buildingData?.address ?? f.propertyAddress,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
                           ),
                         ),
-                      );
-                    },
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.network(
-                        "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
-                        width: 110,
-                        height: 100,
-                        fit: BoxFit.cover,
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  /// BUY / RENT
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      f.buyRent,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
                       ),
                     ),
                   ),
 
-                if (buildingData != null &&
-                    buildingData.image.isNotEmpty)
-                  const SizedBox(width: 12),
+                  const SizedBox(height: 6),
 
-                /// 📋 DETAILS
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  /// LOCATION
+                  Text(
+                    "${f.place} • ${f.residenceType}",
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  /// METRO + FLOOR
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
                     children: [
+                      if (f.metroName.isNotEmpty)
+                        _miniChip(
+                          icon: PhosphorIcons.train,
+                          text: "${f.metroName} ${f.metroDistance}",
+                          isDark: isDark,
+                        ),
 
-                      /// TITLE + BUY/RENT
-                      Row(
+                      _miniChip(
+                        icon: PhosphorIcons.star_fill,
+                        text: "${f.totalFloor}",
+                        isDark: isDark,
+                      ),
+                    ],
+                  ),
+                  /// NEXT CALL DATE
+                  if (nextDate != null &&
+                      nextDate.isNotEmpty &&
+                      nextDate.toLowerCase() != "null") ...[
+                    const SizedBox(height: 8),
+
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                            color: Colors.white.withOpacity(0.4)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            PhosphorIcons.buildings,
-                            size: 16,
-                            color: Colors.white,
-                          ),
+                          const Icon(Icons.calendar_today,
+                              size: 14, color: Colors.white),
                           const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              buildingData?.address ??
-                                  f.propertyAddress,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
+                          Text(
+                            "Next Call: ${formatDate(nextDate)}",
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
                         ],
                       ),
+                    ),
 
+                    if (reason.isNotEmpty &&
+                        reason.toLowerCase() != "null") ...[
                       const SizedBox(height: 6),
-
-                      /// BUY/RENT CHIP
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
+                      Text(
+                        "Reason: $reason",
+                        style: const TextStyle(
+                          fontSize: 12,
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          f.buyRent,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
                         ),
                       ),
+                    ],
+                  ],
 
-            const SizedBox(height: 6),
-
-            /// 📍 LOCATION
-            Text(
-              "${f.place}  •  ${f.residenceType}",
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-
-            const SizedBox(height: 8),
-
-            /// 🚆 METRO + FLOORS
-            Row(
-              children: [
-                if (f.metroName.isNotEmpty)
-                  _miniChip(
-                    icon: PhosphorIcons.train,
-                    text: "${f.metroName} ${f.metroDistance}",
-                    isDark: isDark,
-                  ),
-                if (f.metroName.isNotEmpty) const SizedBox(width: 6),
-                _miniChip(
-                  icon: PhosphorIcons.star_fill,
-                  text: "${f.totalFloor}",
-                  isDark: isDark,
-                ),
-              ],
-            ),
-
-            /// ✅ NEXT CALL SECTION (Only if valid)
-            if (nextDate != null &&
-                nextDate.isNotEmpty &&
-                nextDate.toLowerCase() != "null") ...[
-
-              const SizedBox(height: 8),
-
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withOpacity(0.4)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.calendar_today,
-                        size: 14, color: Colors.white),
-                    const SizedBox(width: 6),
+                  /// FIELDWORKER
+                  if (f.fieldWorkerName.isNotEmpty) ...[
+                    const SizedBox(height: 6),
                     Text(
-                      "Next Call: ${formatDate(nextDate)}",
+                      "${f.fieldWorkerName} • ${f.fieldWorkerNumber}",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         color: Colors.white,
                       ),
                     ),
                   ],
-                ),
+                ],
               ),
-
-              if (reason.isNotEmpty &&
-                  reason.toLowerCase() != "null") ...[
-                const SizedBox(height: 6),
-                Text(
-                  "Reason: $reason",
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ],
-            const SizedBox(height: 6),
-
-            Row(
-              children: [
-                if (f.metroName.isNotEmpty)
-                  _miniChip(
-                    icon: PhosphorIcons.train,
-                    text:
-                    "${f.metroName} ${f.metroDistance}",
-                    isDark: isDark,
-                  ),
-                if (f.metroName.isNotEmpty)
-                  const SizedBox(width: 6),
-                _miniChip(
-                  icon: PhosphorIcons.star_fill,
-                  text: "${f.totalFloor}",
-                  isDark: isDark,
-                ),
-              ],
             ),
-            /// 👷 FIELDWORKER
-            if (f.fieldWorkerName.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                "${f.fieldWorkerName} • ${f.fieldWorkerNumber}",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ],
           ],
         ),
       ),

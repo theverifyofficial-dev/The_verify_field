@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 
 class InsuranceFormScreen extends StatefulWidget {
   final String fieldWorkerName;
@@ -47,6 +48,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
   List<File> carMultipleImages = [];
   File? pollutionPhoto;
   final expiryDateController = TextEditingController();
+
   Future<void> pickImage(Function(File) onSelected) async {
     final picked = await picker.pickImage(
       source: ImageSource.gallery,
@@ -68,11 +70,35 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
   }
 
   Future<void> submitForm() async {
+
     if (!_formKey.currentState!.validate()) return;
+
+    /// VALIDATIONS FIRST
+    if (selectedCategory == null) {
+      showSnack("Please select vehicle category");
+      return;
+    }
+
+    if (selectedWheeler == null) {
+      showSnack("Please select wheeler type");
+      return;
+    }
+
+    if (selectedFuel == null) {
+      showSnack("Please select fuel type");
+      return;
+    }
+
+    if (pollutionStatus == "Yes" && pollutionPhoto == null) {
+      showSnack("Upload Pollution Photo");
+      return;
+    }
+
 
     setState(() => isLoading = true);
 
     try {
+
       var request = http.MultipartRequest(
         'POST',
         Uri.parse(
@@ -80,23 +106,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
         ),
       );
 
-      /// 🔹 FIELDS
-      if (selectedCategory == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select vehicle category")),
-        );
-        setState(() => isLoading = false);
-        return;
-      }
-
-      if (selectedWheeler == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select wheeler type")),
-        );
-        setState(() => isLoading = false);
-        return;
-      }
-
+      /// FIELDS
       request.fields['name_'] = nameController.text.trim();
       request.fields['number'] = numberController.text.trim();
       request.fields['vehicle_number'] = vehicleNumberController.text.trim();
@@ -108,60 +118,29 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
       request.fields['email_id'] = emailController.text.trim();
       request.fields['Nominie_name'] = nomineeNameController.text.trim();
       request.fields['Nominie_age'] = nomineeAgeController.text.trim();
-      request.fields['Nominie_relation'] =
-          nomineeRelationController.text.trim();
+      request.fields['Nominie_relation'] = nomineeRelationController.text.trim();
       request.fields['claim'] = claimStatus;
       request.fields['polution_yes_no'] = pollutionStatus;
       request.fields['expiry_date'] = expiryDateController.text.trim();
-      /// AUTO CURRENT DATE
+
       request.fields['current_dates'] =
           DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
 
-      /// 🔹 PAN FILE
+      /// FILE UPLOADS
+
       if (panCardPhoto != null) {
         request.files.add(await http.MultipartFile.fromPath(
           'pan_card_photo',
           panCardPhoto!.path,
         ));
       }
-      if (selectedFuel == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select fuel type")),
-        );
-        return;
-      }
 
-      if (selectedCategory == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select vehicle category")),
-        );
-        return;
-      }
-
-      if (selectedWheeler == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select wheeler type")),
-        );
-        return;
-      }
-
-      /// 🔹 Pollution validation
-      if (pollutionStatus == "Yes" && pollutionPhoto == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Upload Pollution Photo')),
-        );
-        setState(() => isLoading = false);
-        return;
-      }
-
-      /// 🔹 FILES (Optional)
       if (pollutionPhoto != null) {
         request.files.add(await http.MultipartFile.fromPath(
           'polution_photo',
           pollutionPhoto!.path,
         ));
       }
-
 
       if (aadharFront != null) {
         request.files.add(await http.MultipartFile.fromPath(
@@ -205,13 +184,13 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
         ));
       }
 
+      /// MULTIPLE CAR IMAGES
 
       print("Total Multiple Images Selected: ${carMultipleImages.length}");
 
-      for (int i = 0; i < carMultipleImages.length; i++) {
-        File image = carMultipleImages[i];
+      for (var image in carMultipleImages) {
 
-        print("Uploading Image ${i + 1}: ${image.path}");
+        print("Uploading Image: ${image.path}");
 
         request.files.add(
           await http.MultipartFile.fromPath(
@@ -221,21 +200,8 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
         );
       }
 
-      /// JSON Preview
-      print("------ MULTIPLE IMAGES JSON PREVIEW ------");
+      /// DEBUG FILES
 
-      List<String> imagesJson = [];
-
-      for (var file in request.files) {
-        if (file.field == "car_multiple_images[]") {
-          imagesJson.add(file.filename ?? "");
-        }
-      }
-
-      print(jsonEncode({
-        "car_multiple_images[]": imagesJson
-      }));
-      /// DEBUG
       print("------ FILES GOING TO API ------");
 
       for (var file in request.files) {
@@ -247,19 +213,17 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
 
       /// SEND REQUEST
 
-
-      /// 🔹 SEND REQUEST
       var response = await request.send();
       final responseBody = await response.stream.bytesToString();
 
       print("STATUS CODE: ${response.statusCode}");
-      print("RESPONSE BODY FULL:");
-      print(responseBody);
+      print("RESPONSE BODY: $responseBody");
 
       if (response.statusCode == 200) {
+
         final decoded = jsonDecode(responseBody);
 
-        /// ✅ SUCCESS CASE
+        /// SUCCESS
         if (decoded["status"] == true) {
 
           setState(() => isLoading = false);
@@ -271,7 +235,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
           Navigator.pop(context, true);
         }
 
-        /// ❌ DUPLICATE VEHICLE CASE
+        /// DUPLICATE VEHICLE
         else if (decoded["status"] == false &&
             decoded["vehicle_number"] != null) {
 
@@ -279,13 +243,11 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
 
           final vehicleNumber = decoded["vehicle_number"];
           final addedByName = decoded["added_by_fieldworker_name"];
-          final addedByNumber = decoded["added_by_fieldworker_number"];
 
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                "Vehicle $vehicleNumber already exists\n"
-                    "Added by: $addedByName",
+                "Vehicle $vehicleNumber already exists\nAdded by: $addedByName",
                 style: const TextStyle(color: Colors.white),
               ),
               backgroundColor: Colors.red,
@@ -297,8 +259,9 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
           vehicleNumberController.clear();
         }
 
-        /// ⚠️ OTHER FAILURE
+        /// OTHER FAILURE
         else {
+
           setState(() => isLoading = false);
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -307,7 +270,9 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
             ),
           );
         }
+
       } else {
+
         setState(() => isLoading = false);
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -316,6 +281,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
       }
 
     } catch (e) {
+
       setState(() => isLoading = false);
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -323,6 +289,269 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
       );
     }
   }
+
+  void showSnack(String message) {
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+  // Future<void> submitForm() async {
+  //   if (!_formKey.currentState!.validate()) return;
+  //
+  //
+  //   setState(() => isLoading = true);
+  //
+  //   try {
+  //     var request = http.MultipartRequest(
+  //       'POST',
+  //       Uri.parse(
+  //         'https://verifyserve.social/PHP_Files/insurance_insert_api/insurance_details/insert.php',
+  //       ),
+  //     );
+  //
+  //     /// 🔹 FIELDS
+  //     if (selectedCategory == null) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text("Please select vehicle category")),
+  //       );
+  //       setState(() => isLoading = false);
+  //       return;
+  //     }
+  //
+  //     if (selectedWheeler == null) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text("Please select wheeler type")),
+  //       );
+  //       setState(() => isLoading = false);
+  //       return;
+  //     }
+  //
+  //     request.fields['name_'] = nameController.text.trim();
+  //     request.fields['number'] = numberController.text.trim();
+  //     request.fields['vehicle_number'] = vehicleNumberController.text.trim();
+  //     request.fields['vehicle_category'] = selectedCategory!;
+  //     request.fields['vehicle_type'] = selectedWheeler!;
+  //     request.fields['petrol_desiel'] = selectedFuel!;
+  //     request.fields['fieldworkar_name'] = widget.fieldWorkerName;
+  //     request.fields['fieldworkar_number'] = widget.fieldWorkerNumber;
+  //     request.fields['email_id'] = emailController.text.trim();
+  //     request.fields['Nominie_name'] = nomineeNameController.text.trim();
+  //     request.fields['Nominie_age'] = nomineeAgeController.text.trim();
+  //     request.fields['Nominie_relation'] =
+  //         nomineeRelationController.text.trim();
+  //     request.fields['claim'] = claimStatus;
+  //     request.fields['polution_yes_no'] = pollutionStatus;
+  //     request.fields['expiry_date'] = expiryDateController.text.trim();
+  //
+  //     /// AUTO CURRENT DATE
+  //     request.fields['current_dates'] =
+  //         DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
+  //
+  //     /// 🔹 PAN FILE
+  //     if (panCardPhoto != null) {
+  //       request.files.add(await http.MultipartFile.fromPath(
+  //         'pan_card_photo',
+  //         panCardPhoto!.path,
+  //       ));
+  //     }
+  //     if (selectedFuel == null) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text("Please select fuel type")),
+  //       );
+  //       return;
+  //     }
+  //
+  //     if (selectedCategory == null) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text("Please select vehicle category")),
+  //       );
+  //       return;
+  //     }
+  //
+  //     if (selectedWheeler == null) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text("Please select wheeler type")),
+  //       );
+  //       return;
+  //     }
+  //
+  //     /// 🔹 Pollution validation
+  //     if (pollutionStatus == "Yes" && pollutionPhoto == null) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         const SnackBar(content: Text('Upload Pollution Photo')),
+  //       );
+  //       setState(() => isLoading = false);
+  //       return;
+  //     }
+  //
+  //     /// 🔹 FILES (Optional)
+  //     if (pollutionPhoto != null) {
+  //       request.files.add(await http.MultipartFile.fromPath(
+  //         'polution_photo',
+  //         pollutionPhoto!.path,
+  //       ));
+  //     }
+  //
+  //
+  //     if (aadharFront != null) {
+  //       request.files.add(await http.MultipartFile.fromPath(
+  //         'Aadhar_front',
+  //         aadharFront!.path,
+  //       ));
+  //     }
+  //
+  //     if (aadharBack != null) {
+  //       request.files.add(await http.MultipartFile.fromPath(
+  //         'Aadhar_back',
+  //         aadharBack!.path,
+  //       ));
+  //     }
+  //
+  //     if (rcFront != null) {
+  //       request.files.add(await http.MultipartFile.fromPath(
+  //         'Rc_front',
+  //         rcFront!.path,
+  //       ));
+  //     }
+  //
+  //     if (rcBack != null) {
+  //       request.files.add(await http.MultipartFile.fromPath(
+  //         'Rc_back',
+  //         rcBack!.path,
+  //       ));
+  //     }
+  //
+  //     if (carPhoto != null) {
+  //       request.files.add(await http.MultipartFile.fromPath(
+  //         'car_photo',
+  //         carPhoto!.path,
+  //       ));
+  //     }
+  //
+  //     if (oldPolicy != null) {
+  //       request.files.add(await http.MultipartFile.fromPath(
+  //         'old_policy_docement',
+  //         oldPolicy!.path,
+  //       ));
+  //     }
+  //
+  //
+  //     print("Total Multiple Images Selected: ${carMultipleImages.length}");
+  //
+  //     for (int i = 0; i < carMultipleImages.length; i++) {
+  //       File image = carMultipleImages[i];
+  //
+  //       print("Uploading Image ${i + 1}: ${image.path}");
+  //
+  //       request.files.add(
+  //         await http.MultipartFile.fromPath(
+  //           'car_images[]',
+  //           image.path,
+  //         ),
+  //       );
+  //     }
+  //
+  //     /// JSON Preview
+  //     print("------ MULTIPLE IMAGES JSON PREVIEW ------");
+  //
+  //     List<String> imagesJson = [];
+  //
+  //     for (var file in request.files) {
+  //       if (file.field == "car_multiple_images[]") {
+  //         imagesJson.add(file.filename ?? "");
+  //       }
+  //     }
+  //
+  //     print(jsonEncode({
+  //       "car_multiple_images[]": imagesJson
+  //     }));
+  //
+  //     /// DEBUG
+  //     print("------ FILES GOING TO API ------");
+  //
+  //     for (var file in request.files) {
+  //       print("FIELD: ${file.field}");
+  //       print("FILE NAME: ${file.filename}");
+  //     }
+  //
+  //     print("TOTAL FILES SENT: ${request.files.length}");
+  //
+  //     /// SEND REQUEST
+  //
+  //
+  //     /// 🔹 SEND REQUEST
+  //     var response = await request.send();
+  //     final responseBody = await response.stream.bytesToString();
+  //
+  //     print("STATUS CODE: ${response.statusCode}");
+  //     print("RESPONSE BODY FULL:");
+  //     print(responseBody);
+  //
+  //     if (response.statusCode == 200) {
+  //       final decoded = jsonDecode(responseBody);
+  //
+  //       /// ✅ SUCCESS CASE
+  //       if (decoded["status"] == true) {
+  //         setState(() => isLoading = false);
+  //
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           const SnackBar(content: Text('Submitted Successfully')),
+  //         );
+  //
+  //         Navigator.pop(context, true);
+  //       }
+  //
+  //       /// ❌ DUPLICATE VEHICLE CASE
+  //       else if (decoded["status"] == false &&
+  //           decoded["vehicle_number"] != null) {
+  //         setState(() => isLoading = false);
+  //
+  //         final vehicleNumber = decoded["vehicle_number"];
+  //         final addedByName = decoded["added_by_fieldworker_name"];
+  //         final addedByNumber = decoded["added_by_fieldworker_number"];
+  //
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(
+  //             content: Text(
+  //               "Vehicle $vehicleNumber already exists\n"
+  //                   "Added by: $addedByName",
+  //               style: const TextStyle(color: Colors.white),
+  //             ),
+  //             backgroundColor: Colors.red,
+  //             behavior: SnackBarBehavior.floating,
+  //             duration: const Duration(seconds: 4),
+  //           ),
+  //         );
+  //
+  //         vehicleNumberController.clear();
+  //       }
+  //
+  //       /// ⚠️ OTHER FAILURE
+  //       else {
+  //         setState(() => isLoading = false);
+  //
+  //         ScaffoldMessenger.of(context).showSnackBar(
+  //           SnackBar(
+  //             content: Text(decoded["message"] ?? "Something went wrong"),
+  //           ),
+  //         );
+  //       }
+  //     } else {
+  //       setState(() => isLoading = false);
+  //
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //         SnackBar(content: Text('Server Error: ${response.statusCode}')),
+  //       );
+  //     }
+  //   } catch (e) {
+  //     setState(() => isLoading = false);
+  //
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Error: $e')),
+  //     );
+  //   }
+  // }
 
   List<String> vehicleCategoryOptions = [
     "Commercial",
@@ -341,6 +570,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
   String? selectedWheeler;
 
   List<String> fuelOptions = [
+    "Petrol / CNG",
     "Petrol",
     "Diesel",
     "CNG",
@@ -357,90 +587,92 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
     }
   }
 
-  Widget buildTextField(
-      String label,
+  Widget buildTextField(String label,
       TextEditingController controller, {
         TextInputType keyboardType = TextInputType.text,
         int? maxLength,
-        bool isRequired = false, // ✅ NEW
+        bool isRequired = false,
       }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          color: isDark ? Colors.white10 : Colors.white,
-          border: Border.all(
-            color: isDark
-                ? Colors.white.withOpacity(0.08)
-                : Colors.grey.shade200,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.25 : 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            )
-          ],
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        maxLength: maxLength,
+
+        validator: (value) {
+          if (isRequired) {
+            if (value == null || value
+                .trim()
+                .isEmpty) {
+              return 'Required';
+            }
+          }
+
+          if (keyboardType == TextInputType.phone &&
+              value != null &&
+              value.isNotEmpty) {
+            if (value.length != 10) {
+              return 'Enter valid 10-digit number';
+            }
+          }
+
+          if (label.toLowerCase().contains("vehicle number") &&
+              value != null &&
+              value.isNotEmpty) {
+            if (value.length < 6) {
+              return 'Enter valid vehicle number';
+            }
+          }
+
+          return null;
+        },
+
+        style: theme.textTheme.bodyMedium?.copyWith(
+          fontFamily: "PoppinsMedium",
         ),
-        child: TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          maxLength: maxLength,
 
-          validator: (value) {
+        decoration: InputDecoration(
 
-            /// ✅ REQUIRED CHECK ONLY WHEN NEEDED
-            if (isRequired) {
-              if (value == null || value.trim().isEmpty) {
-                return 'Required';
-              }
-            }
+          counterText: "",
 
-            /// ✅ MOBILE VALIDATION
-            if (keyboardType == TextInputType.phone &&
-                value != null &&
-                value.isNotEmpty) {
-              if (value.length != 10) {
-                return 'Enter valid 10-digit number';
-              }
-            }
+          labelText: label,
 
-            /// ✅ VEHICLE NUMBER BASIC CHECK
-            if (label.toLowerCase().contains("vehicle number") &&
-                value != null &&
-                value.isNotEmpty) {
-              if (value.length < 6) {
-                return 'Enter valid vehicle number';
-              }
-            }
-
-            return null;
-          },
-
-          style: TextStyle(
-            color: isDark ? Colors.white : Colors.black,
+          labelStyle: theme.textTheme.bodySmall?.copyWith(
+            color: theme.hintColor,
             fontFamily: "PoppinsMedium",
           ),
 
-          decoration: InputDecoration(
-            counterText: "",
-            labelText: label,
-            labelStyle: TextStyle(
-              fontFamily: "PoppinsMedium",
-              color: isDark ? Colors.white70 : Colors.black54,
+          filled: true,
+
+          fillColor: theme.cardColor,
+
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 12,
+          ),
+
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(
+              color: theme.dividerColor,
             ),
-            filled: true,
-            fillColor: isDark ? Colors.white10 : Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(18),
-              borderSide: BorderSide.none,
+          ),
+
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(
+              color: theme.dividerColor,
             ),
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
+          ),
+
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(
+              color: theme.colorScheme.primary,
+              width: 1.4,
             ),
           ),
         ),
@@ -448,289 +680,415 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
     );
   }
 
-  Widget buildRadioRow(String title, String groupValue,
-      Function(String) onChanged) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget buildRadioRow(
+      String title,
+      String groupValue,
+      Function(String) onChanged,
+      ) {
+
+    final theme = Theme.of(context);
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          color: isDark ? Colors.white10 : Colors.white,
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(10),
+
           border: Border.all(
-            color: isDark
-                ? Colors.white.withOpacity(0.08)
-                : Colors.grey.shade200,
+            color: groupValue.isNotEmpty
+                ? theme.colorScheme.primary
+                : theme.dividerColor,
           ),
+
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            )
+          ],
         ),
+
         child: Row(
           children: [
-            Text(title,
-                style: const TextStyle(fontFamily: "PoppinsMedium")),
-            const Spacer(),
-            Radio(
-              value: "Yes",
-              groupValue: groupValue,
-              onChanged: (v) => onChanged(v!),
+
+            /// TITLE
+            Expanded(
+              child: Text(
+                title,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontFamily: "PoppinsMedium",
+                ),
+              ),
             ),
-            const Text("Yes"),
-            Radio(
-              value: "No",
-              groupValue: groupValue,
-              onChanged: (v) => onChanged(v!),
+
+            /// YES
+            Row(
+              children: [
+                Radio<String>(
+                  value: "Yes",
+                  groupValue: groupValue,
+                  activeColor: theme.colorScheme.primary,
+                  visualDensity: VisualDensity.compact,
+                  onChanged: (v) => onChanged(v!),
+                ),
+
+                Text(
+                  "Yes",
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
             ),
-            const Text("No"),
+
+            /// NO
+            Row(
+              children: [
+                Radio<String>(
+                  value: "No",
+                  groupValue: groupValue,
+                  activeColor: theme.colorScheme.primary,
+                  visualDensity: VisualDensity.compact,
+                  onChanged: (v) => onChanged(v!),
+                ),
+
+                Text(
+                  "No",
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
   /// ✅ PREMIUM IMAGE PICKER WITH PREVIEW
-  Widget buildImagePicker(
-      String title, File? file, VoidCallback onTap) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget buildUploadCard(String title, File? file, VoidCallback onTap) {
 
+    final theme = Theme.of(context);
+    final isUploaded = file != null;
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
-        padding: const EdgeInsets.all(14),
-
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          color: isDark ? Colors.white10 : Colors.white,
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(10),
 
           border: Border.all(
-            color: isDark
-                ? Colors.white.withOpacity(0.08)
-                : Colors.grey.shade200,
+            color: isUploaded
+                ? theme.colorScheme.primary
+                : theme.dividerColor,
+            width: 1,
           ),
 
           boxShadow: [
             BoxShadow(
-              color: Colors.black
-                  .withOpacity(isDark ? 0.25 : 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 6,
+              offset: const Offset(0,2),
             )
           ],
         ),
 
-        child: Row(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
 
-            /// PREVIEW
+            /// ICON / IMAGE
             Container(
-              height: 56,
-              width: 56,
+              height: 40,
+              width: 40,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(14),
-                color: Colors.indigo.withOpacity(0.12),
+                color: theme.colorScheme.surface,
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: file == null
-                  ? const Icon(Icons.upload_rounded,
-                  color: Colors.indigo)
-                  : ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: Image.file(file,
-                    fit: BoxFit.cover),
-              ),
-            ),
 
-            const SizedBox(width: 14),
-
-            /// TEXT
-            Expanded(
-              child: Column(
-                crossAxisAlignment:
-                CrossAxisAlignment.start,
-                children: [
-
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontFamily: "PoppinsMedium",
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? Colors.white
-                          : Colors.black87,
-                    ),
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  Text(
-                    file == null
-                        ? "Tap to upload"
-                        : "Image selected",
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontFamily: "PoppinsMedium",
-                      color: isDark
-                          ? Colors.white54
-                          : Colors.black45,
-                    ),
-                  ),
-                ],
+              child: file != null
+                  ? ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(
+                  file,
+                  fit: BoxFit.cover,
+                ),
+              )
+                  : Icon(
+                Icons.upload_file,
+                size: 20,
+                color: theme.iconTheme.color,
               ),
             ),
 
-            if (file != null)
-              const Icon(Icons.check_circle,
-                  color: Colors.green),
+            const SizedBox(height: 6),
+
+            /// TITLE
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+
+            const SizedBox(height: 2),
+
+            /// STATUS
+            Text(
+              isUploaded ? "Uploaded" : "Upload",
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: isUploaded
+                    ? Colors.green
+                    : theme.hintColor,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget buildVehicleCategoryDropdown() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget buildDropdownField({
+    required String label,
+    required String? value,
+    required List<String> items,
+    Function(String?)? onChanged,
+    String hint = "Select",
+  }) {
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Vehicle Category *",
-          style: TextStyle(
-            fontFamily: "PoppinsMedium",
-            fontSize: 13,
-          ),
-        ),
-        const SizedBox(height: 8),
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: selectedCategory,
-              hint: const Text("Select Category"),
-              isExpanded: true,
-              items: vehicleCategoryOptions.map((value) {
-                return DropdownMenuItem(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedCategory = value;
-                  selectedWheeler = null; // reset wheeler
-                  vehicleTypeController.clear();
-                });
-              },
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              fontFamily: "PoppinsMedium",
             ),
           ),
-        ),
-        const SizedBox(height: 16),
-      ],
+
+          const SizedBox(height: 6),
+
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            decoration: BoxDecoration(
+              color: theme.cardColor,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: value == null
+                    ? theme.dividerColor
+                    : theme.colorScheme.primary,
+              ),
+            ),
+
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: value,
+                isExpanded: true,
+
+                /// 👇 Theme Based Dropdown Background
+                dropdownColor: isDark
+                    ? const Color(0xFF020617)   // dark dropdown
+                    : Colors.white,            // light dropdown
+
+                hint: Text(
+                  hint,
+                  style: theme.textTheme.bodySmall,
+                ),
+
+                items: items.map((item) {
+                  return DropdownMenuItem(
+                    value: item,
+                    child: Text(
+                      item,
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                    ),
+                  );
+                }).toList(),
+
+                icon: Icon(
+                  Icons.keyboard_arrow_down,
+                  color: theme.iconTheme.color,
+                ),
+
+                onChanged: onChanged,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildVehicleCategoryDropdown() {
+    return buildDropdownField(
+      label: "Vehicle Category *",
+      value: selectedCategory,
+      items: vehicleCategoryOptions,
+      hint: "Select Category",
+      onChanged: (value) {
+        setState(() {
+          selectedCategory = value;
+          selectedWheeler = null;
+          vehicleTypeController.clear();
+        });
+      },
     );
   }
 
   Widget buildWheelerDropdown() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Wheeler Type *",
-          style: TextStyle(
-            fontFamily: "PoppinsMedium",
-            fontSize: 13,
-          ),
-        ),
-        const SizedBox(height: 8),
-
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: selectedWheeler,
-              hint: Text(
-                selectedCategory == null
-                    ? "Select category first"
-                    : "Select Wheeler",
-              ),
-              isExpanded: true,
-              items: wheelOptions.map((value) {
-                return DropdownMenuItem(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: selectedCategory == null
-                  ? null
-                  : (value) {
-                setState(() {
-                  selectedWheeler = value;
-                  vehicleTypeController.text =
-                  "${selectedCategory!} | ${selectedWheeler!}";
-                });
-              },
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-      ],
+    return buildDropdownField(
+      label: "Wheeler Type *",
+      value: selectedWheeler,
+      items: wheelOptions,
+      hint: selectedCategory == null
+          ? "Select category first"
+          : "Select Wheeler",
+      onChanged: selectedCategory == null
+          ? null
+          : (value) {
+        setState(() {
+          selectedWheeler = value;
+          vehicleTypeController.text =
+          "${selectedCategory!} | ${selectedWheeler!}";
+        });
+      },
     );
   }
 
   Widget buildFuelDropdown() {
+    return buildDropdownField(
+      label: "Fuel Type *",
+      value: selectedFuel,
+      items: fuelOptions,
+      hint: "Select Fuel Type",
+      onChanged: (value) {
+        setState(() {
+          selectedFuel = value;
+        });
+      },
+    );
+  }
+
+  Widget buildPremiumHeader() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFF0F172A),
+            Color(0xFF020617),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          /// TOP ROW
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+
+              /// 🔝 TOP ROW (Back + Logo)
+              Row(
+                children: [
+
+                  /// BACK BUTTON
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      height: 40,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E293B),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.arrow_back_ios_new,
+                        color: Colors.white,
+                        size: 18,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 250),
+
+                  /// LOGO
+                  CircleAvatar(
+                    radius: 26,
+                    backgroundColor: Colors.white,
+                    child: CircleAvatar(
+                      radius: 23,
+                      backgroundImage: AssetImage(AppImages.logo),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 18),
+
+              /// 📝 FORM TITLE
+              const Text(
+                "Insurance Form",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const Text(
+                "Application",
+                style: TextStyle(
+                  color: Color(0xFFFACC15),
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget buildSectionTitle(String title) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
       children: [
-        const Text(
-          "Fuel Type *",
-          style: TextStyle(
-            fontFamily: "PoppinsMedium",
-            fontSize: 13,
-          ),
-        ),
-        const SizedBox(height: 8),
 
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1A1A1A) : Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: selectedFuel,
-              hint: const Text("Select Fuel Type"),
-              isExpanded: true,
-              items: fuelOptions.map((value) {
-                return DropdownMenuItem(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  selectedFuel = value;
-                });
-              },
-            ),
+        const Icon(
+          Icons.folder,
+          size: 18,
+          color: Color(0xFFFACC15),
+        ),
+
+        const SizedBox(width: 8),
+
+        Text(
+          title,
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black87,
+            fontSize: 15,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 16),
       ],
     );
   }
@@ -742,20 +1100,20 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
     return Scaffold(
       backgroundColor:
       isDark ? const Color(0xFF020617) : Colors.grey.shade50,
-      appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF020617) : Colors.grey.shade100,
-        surfaceTintColor:
-        isDark ? const Color(0xFF020617) : Colors.grey.shade100,
-        title: const Text("Insurance Details",style: TextStyle(fontFamily: "PoppinsMedium"),),
-        elevation: 0,
-      ),
 
-      body:
-        Stack(
-        children: [
+        body: Stack(
+            children: [
 
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(18),
+            Column(
+            children: [
+
+            /// 🔥 PREMIUM HEADER
+            buildPremiumHeader(),
+
+        /// 🔥 FORM AREA
+        Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(18),
 
             child: Form(
               key: _formKey,
@@ -813,6 +1171,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
                   ),
 
                   buildTextField("Nominee Relation", nomineeRelationController),
+
                   buildRadioRow(
                     "Pollution",
                     pollutionStatus,
@@ -820,75 +1179,88 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
                   ),
 
                   if (pollutionStatus == "Yes")
-                    buildImagePicker(
+                    buildUploadCard(
                       "Pollution Photo",
                       pollutionPhoto,
                           () => pickImage((f) => pollutionPhoto = f),
                     ),
 
-                  const SizedBox(height: 20),
-
                   /// ✅ SECTION: DOCUMENTS
-                  const Text(
-                    "Upload Documents",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontFamily: "PoppinsBold",
-                    ),
+                  SizedBox(height: 16,),
+
+                  buildSectionTitle("Document Uploads"),
+
+
+                  GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 14,
+                    mainAxisSpacing: 14,
+                    childAspectRatio: 1.1,
+
+                    children: [
+
+                      buildUploadCard(
+                        "Aadhar Front",
+                        aadharFront,
+                            () => pickImage((f) => aadharFront = f),
+                      ),
+
+                      buildUploadCard(
+                        "Aadhar Back",
+                        aadharBack,
+                            () => pickImage((f) => aadharBack = f),
+                      ),
+
+                      buildUploadCard(
+                        "RC Front",
+                        rcFront,
+                            () => pickImage((f) => rcFront = f),
+                      ),
+
+                      buildUploadCard(
+                        "RC Back",
+                        rcBack,
+                            () => pickImage((f) => rcBack = f),
+                      ),
+
+                      buildUploadCard(
+                        "Vehicle Photo",
+                        carPhoto,
+                            () => pickImage((f) => carPhoto = f),
+                      ),
+
+                      buildUploadCard(
+                        "PAN Card",
+                        panCardPhoto,
+                            () => pickImage((f) => panCardPhoto = f),
+                      ),
+
+                      buildUploadCard(
+                        "Old Policy",
+                        oldPolicy,
+                            () => pickImage((f) => oldPolicy = f),
+                      ),
+                    ],
                   ),
-
-                  const SizedBox(height: 12),
-
-                  buildImagePicker(
-                      "Aadhar Front", aadharFront,
-                          () => pickImage((f) => aadharFront = f)),
-
-                  buildImagePicker(
-                      "Aadhar Back", aadharBack,
-                          () => pickImage((f) => aadharBack = f)),
-
-                  buildImagePicker(
-                      "RC Front", rcFront,
-                          () => pickImage((f) => rcFront = f)),
-
-                  buildImagePicker(
-                      "RC Back", rcBack,
-                          () => pickImage((f) => rcBack = f)),
-
-                  buildImagePicker(
-                      "Vehicle Photo", carPhoto,
-                          () => pickImage((f) => carPhoto = f)),
-
-                  buildImagePicker(
-                    "PAN Card Photo",
-                    panCardPhoto,
-                        () => pickImage((f) => panCardPhoto = f),
-                  ),
-
-                  buildImagePicker(
-                      "Old Policy (Optional)", oldPolicy,
-                          () => pickImage((f) => oldPolicy = f)),
-
+                  SizedBox(height: 20,),
                   GestureDetector(
                     onTap: pickMultipleImages,
                     child: Container(
-                      margin: const EdgeInsets.only(bottom: 14),
                       padding: const EdgeInsets.all(14),
-
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(18),
-                        color: isDark ? Colors.white10 : Colors.white,
-
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: isDark
-                              ? Colors.white.withOpacity(0.08)
-                              : Colors.grey.shade200,
+                          color: Theme.of(context).dividerColor,
+                          width: 0.8,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(isDark ? 0.25 : 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
                           )
                         ],
                       ),
@@ -896,63 +1268,45 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
                       child: Row(
                         children: [
 
-                          /// ✅ PREVIEW STACK
+                          /// ICON BOX
                           Container(
-                            height: 56,
-                            width: 56,
+                            height: 48,
+                            width: 48,
                             decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(14),
-                              color: Colors.indigo.withOpacity(0.12),
+                              color: Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: Theme.of(context).dividerColor,
+                              ),
                             ),
-                            child: carMultipleImages.isEmpty
-                                ? const Icon(Icons.upload_rounded, color: Colors.indigo)
-                                : Stack(
-                              children: carMultipleImages.take(3).map((file) {
-                                final index = carMultipleImages.indexOf(file);
-
-                                return Positioned(
-                                  left: index * 10,
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Image.file(
-                                      file,
-                                      height: 56,
-                                      width: 56,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                );
-                              }).toList(),
+                            child: Icon(
+                              Icons.upload_file,
+                              color: Theme.of(context).iconTheme.color,
                             ),
                           ),
 
-                          const SizedBox(width: 14),
+                          const SizedBox(width: 12),
 
+                          /// TEXT
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
 
-                                const Text(
+                                Text(
                                   "Car Multiple Images",
-                                  style: TextStyle(
-                                    fontSize: 13,
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     fontFamily: "PoppinsMedium",
-                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
 
-                                const SizedBox(height: 4),
+                                const SizedBox(height: 2),
 
                                 Text(
                                   carMultipleImages.isEmpty
-                                      ? "Tap to upload"
+                                      ? "Tap to upload vehicle images"
                                       : "${carMultipleImages.length} images selected",
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontFamily: "PoppinsMedium",
-                                    color: isDark ? Colors.white54 : Colors.black45,
-                                  ),
+                                  style: Theme.of(context).textTheme.bodySmall,
                                 ),
                               ],
                             ),
@@ -964,6 +1318,9 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
                       ),
                     ),
                   ),
+
+                  SizedBox(height: 20,),
+
                   if (carMultipleImages.isNotEmpty)
                     SizedBox(
                       height: 90,
@@ -971,16 +1328,16 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
                         scrollDirection: Axis.horizontal,
                         itemCount: carMultipleImages.length,
                         itemBuilder: (context, index) {
+
                           final file = carMultipleImages[index];
 
-                          return Container(
-                            margin: const EdgeInsets.only(right: 12),
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 12),
                             child: Stack(
                               children: [
 
-                                /// ✅ IMAGE
                                 ClipRRect(
-                                  borderRadius: BorderRadius.circular(14),
+                                  borderRadius: BorderRadius.circular(12),
                                   child: Image.file(
                                     file,
                                     height: 90,
@@ -989,7 +1346,6 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
                                   ),
                                 ),
 
-                                /// ✅ REMOVE BUTTON 🔥
                                 Positioned(
                                   top: 4,
                                   right: 4,
@@ -1001,8 +1357,8 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
                                     child: Container(
                                       padding: const EdgeInsets.all(4),
                                       decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
                                         color: Colors.black.withOpacity(0.6),
+                                        shape: BoxShape.circle,
                                       ),
                                       child: const Icon(
                                         Icons.close,
@@ -1011,7 +1367,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
                                       ),
                                     ),
                                   ),
-                                ),
+                                )
                               ],
                             ),
                           );
@@ -1028,7 +1384,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
                       onPressed: submitForm,
                       style: ElevatedButton.styleFrom(
                         backgroundColor:
-                        const Color(0xFF4F46E5),
+                        const Color(0xFFE6C47A),
                         shape: RoundedRectangleBorder(
                           borderRadius:
                           BorderRadius.circular(20),
@@ -1038,7 +1394,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
                       child: const Text(
                         "SUBMIT DETAILS",
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Colors.black,
                           fontFamily: "PoppinsBold",
                           fontSize: 14,
                           letterSpacing: 0.6,
@@ -1052,7 +1408,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
               ),
             ),
           ),
-
+        ),
           /// ✅ LOADING OVERLAY
           if (isLoading)
             Container(
@@ -1063,6 +1419,8 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
             )
         ],
       ),
+    ]),
     );
   }
 }
+

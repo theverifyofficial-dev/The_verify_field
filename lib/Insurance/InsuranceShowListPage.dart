@@ -343,8 +343,10 @@ class _InsuranceListScreenState extends State<InsuranceListScreen> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Color(0xFF4F46E5),
-                Color(0xFF3B82F6),
+                //Color(0xFF4F46E5),
+                Color(0xFFE6C47A),
+                Color(0xFFD4AF37),
+                //Color(0xFF3B82F6),
               ],
             ),
             boxShadow: [
@@ -360,7 +362,7 @@ class _InsuranceListScreenState extends State<InsuranceListScreen> {
             children: const [
               Icon(
                 Icons.add_rounded,
-                color: Colors.white,
+                color: Colors.black,
                 size: 28,
               ),
               SizedBox(width: 10),
@@ -369,7 +371,7 @@ class _InsuranceListScreenState extends State<InsuranceListScreen> {
                 style: TextStyle(
                   fontSize: 15,
                   fontFamily: "PoppinsBold",
-                  color: Colors.white,
+                  color: Colors.black,
                 ),
               ),
             ],
@@ -483,9 +485,6 @@ class _InsuranceListScreenState extends State<InsuranceListScreen> {
                     fontSize: 13,
                   ),
                 ),
-
-
-
               ],
             ),
           ),

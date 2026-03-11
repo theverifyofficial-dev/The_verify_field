@@ -616,13 +616,13 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
 
     final docs = [
 
-      {"title": "Car Photo", "url": item.carPhotoUrl, "tag": "VEHICLE"},
-      {"title": "RC Front", "url": item.rcFrontUrl, "tag": "REGISTRATION"},
-      {"title": "RC Back", "url": item.rcBackUrl, "tag": "REGISTRATION"},
-      {"title": "Aadhar Front", "url": item.aadharFrontUrl, "tag": "IDENTITY"},
-      {"title": "Aadhar Back", "url": item.aadharBackUrl, "tag": "IDENTITY"},
-      {"title": "Old Policy", "url": item.oldPolicyUrl, "tag": "INSURANCE"}, // ✅ ADD THIS
-      {"title": "Pollution", "url": item.pollutionPhotoUrl, "tag": "COMPLIANCE"},
+      {"title": "Vehicle Photo", "url": item.carPhotoUrl, "tag": ""},
+      {"title": "RC Front", "url": item.rcFrontUrl, "tag": ""},
+      {"title": "RC Back", "url": item.rcBackUrl, "tag": ""},
+      {"title": "Aadhar Front", "url": item.aadharFrontUrl, "tag": ""},
+      {"title": "Aadhar Back", "url": item.aadharBackUrl, "tag": ""},
+      {"title": "Old Policy", "url": item.oldPolicyUrl, "tag": ""}, // ✅ ADD THIS
+      {"title": "Pollution", "url": item.pollutionPhotoUrl, "tag": ""},
 
     ];
     return GridView.builder(

@@ -168,7 +168,6 @@ import 'package:verify_feild_worker/Home_Screen.dart';
 import 'package:verify_feild_worker/Z-Screen/Login_page.dart';
 import 'package:http/http.dart' as http;
 import '../Administrator/SubAdmin/SubAdminAccountant_Home.dart';
-import '../SocialMediaHandler/SocialMediaHomePage.dart';
 import '../SocialMediaHandler/video_home.dart';
 import '../ui_decoration_tools/app_images.dart';
 
@@ -176,17 +175,22 @@ class User {
   final String F_Name;
   final String F_Number;
   final String F_AadhaarCard;
+  final String? FCM; // ✅ Add this
 
-  User(
-      {required this.F_Name,
-        required this.F_Number,
-        required this.F_AadhaarCard});
+  User({
+    required this.F_Name,
+    required this.F_Number,
+    required this.F_AadhaarCard,
+    this.FCM,
+  });
 
   factory User.FromJson(Map<String, dynamic> json) {
     return User(
-        F_Name: json['FName'],
-        F_Number: json['FNumber'],
-        F_AadhaarCard: json['FAadharCard']);
+      F_Name: json['FName'],
+      F_Number: json['FNumber'],
+      F_AadhaarCard: json['FAadharCard'],
+      FCM: json['FCM'], // ✅ Add this
+    );
   }
 }
 
@@ -199,13 +203,19 @@ class Splash extends StatefulWidget {
 }
 
 class _SplashState extends State<Splash> {
+
   Future<List<User>> fetchData_account(llogin) async {
     var url = Uri.parse(
-        "https://verifyserve.social/WebService3_ServiceWork.asmx/account_FeildWorkers_Register?num=${llogin}");
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/home_screen.php?FNumber=${llogin}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
-      List listresponce = json.decode(responce.body);
-      return listresponce.map((data) => User.FromJson(data)).toList();
+      Map<String, dynamic> jsonResponse = json.decode(responce.body); // ✅ Decode as Map
+      if (jsonResponse['success'] == true) {
+        List listresponce = jsonResponse['data'];                      // ✅ Extract 'data' list
+        return listresponce.map((data) => User.FromJson(data)).toList();
+      } else {
+        throw Exception('API returned success: false');
+      }
     } else {
       throw Exception('Unexpected error occured!');
     }

@@ -5,16 +5,12 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../Future_Property_OwnerDetails_section/add_flat_form.dart';
 import '../../Custom_Widget/constant.dart';
 import '../../Custom_Widget/property_preview.dart';
 import 'Admin_under_flats.dart';
-import '../Update_Future_Property.dart';
 
 class FutureProperty2 {
   final int id;
@@ -560,69 +556,6 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
     _loadAllData(); // Centralized fetch
   }
 
-  void _handleMenuItemClick(String value) async {
-    print("You clicked: $value");
-    if (value == 'Edit Property') {
-      if (_propertyList.isNotEmpty) {
-        final property = _propertyList.first;
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => Update_FutureProperty(
-              id: '${property.id}',
-              ownername: '${property.ownerName}',
-              ownernumber: '${property.ownerNumber}',
-              caretakername: '${property.caretakerName}',
-              caretakernumber: '${property.caretakerNumber}',
-              place: '${property.place}',
-              buy_rent: '${property.buyRent}',
-              typeofproperty: '${property.typeOfProperty}',
-              select_bhk: '${property.selectBhk}',
-              floor_number: '${property.floorNumber}',
-              sqyare_feet: '${property.squareFeet}',
-              propertyname_address: '${property.propertyNameAddress}',
-              building_information_facilitys: '${property.buildingInformationFacilities}',
-              property_address_for_fieldworkar: '${property.propertyAddressForFieldworker}',
-              owner_vehical_number: '${property.ownerVehicleNumber}',
-              your_address: '${property.yourAddress}',
-            ),
-          ),
-        );
-      } else {
-        Fluttertoast.showToast(
-          msg: 'Property data not loaded',
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.red,
-          textColor: Colors.white,
-          fontSize: 16.0,
-        );
-      }
-    }
-    if (value == 'Add Property Images') {
-      Fluttertoast.showToast(
-        msg: 'Add Property Images',
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.grey,
-        textColor: Colors.white,
-        fontSize: 16.0,
-      );
-    }
-    if (value == 'Delete Added Images') {
-      Fluttertoast.showToast(
-        msg: 'Delete Added Images',
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.grey,
-        textColor: Colors.white,
-        fontSize: 16.0,
-      );
-    }
-  }
 
   void _showCallDialog(BuildContext context, String number, String type) {
     showDialog(

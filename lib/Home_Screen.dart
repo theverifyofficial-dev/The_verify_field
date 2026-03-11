@@ -304,10 +304,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   String? userName;
   String? userNumber;
 
-  int rentPropertiesCount = 0;
-  int futurePropertiesCount = 0;
-  int agreementCount = 0;
-  int targetCount = 85; // Example target percentage
 
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
@@ -445,7 +441,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       final results = await Future.wait([
         _fetchMonthly(),
         _fetchYearly(),
-        _loadStats(),
         fetchTodayCounts(), // IMPORTANT
       ]);
 
@@ -1188,80 +1183,8 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     super.dispose();
   }
 
-  Future<void> _loadStats() async {
-    try {
-      final rentData = await fetchData().timeout(const Duration(seconds: 10));
-      final futureData = await fetchData_Logg().timeout(const Duration(seconds: 10));
-      final agreementData = await fetchData_aggrement().timeout(const Duration(seconds: 10));
-      if (mounted) {
-        setState(() {
-          rentPropertiesCount = rentData.isNotEmpty ? rentData.first.id : 0;
-          futurePropertiesCount = futureData.length;
-          agreementCount = agreementData.isNotEmpty ? agreementData.first.id : 0;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error loading stats: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Stats load error: $e')),
-        );
-      }
-    }
-  }
 
-  Future<void> _saveLocationToPrefs(double latitude, double longitude) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('latitude', latitude);
-    await prefs.setDouble('longitude', longitude);
-  }
 
-  Future<void> _requestLocationPermissionAndGetLocation() async {
-    try {
-      final status = await Permission.location.request().timeout(const Duration(seconds: 5));
-
-      if (status.isGranted) {
-        Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-        ).timeout(const Duration(seconds: 10));
-        if (mounted) {
-          setState(() {
-            _latitude = position.latitude;
-            _longitude = position.longitude;
-            debugPrint("Latitude: ${position.latitude}");
-            debugPrint("Longitude: ${position.longitude}");
-          });
-        }
-        await _saveLocationToPrefs(_latitude!, _longitude!);
-      } else if (status.isDenied) {
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: const Text("Permission Required"),
-            content: const Text("Location permission is required to proceed."),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text("Cancel"),
-              ),
-              TextButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  await Permission.location.request();
-                },
-                child: const Text("Allow"),
-              ),
-            ],
-          ),
-        );
-      } else if (status.isPermanentlyDenied) {
-        openAppSettings();
-      }
-    } catch (e) {
-      debugPrint('Location error: $e');
-      // Non-blocking, continue without location
-    }
-  }
 
   Future<List<id_model>> fetchData() async {
     var url = Uri.parse(
@@ -1404,7 +1327,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       await Future.wait([
         _fetchMonthly(),
         _fetchYearly(),
-        _loadStats(),
       ]);
 
       if (mounted) {

@@ -74,7 +74,6 @@ class _TenantDemandState extends State<SubadminDisclose> {
       print("Response: ${response.body}");
 
 
-
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
 
@@ -86,7 +85,7 @@ class _TenantDemandState extends State<SubadminDisclose> {
               .toList();
 
           if (newList.length < _limit) {
-            _hasMore = false; // 🚫 no more pages
+            _hasMore = false;
           }
 
           _page++;

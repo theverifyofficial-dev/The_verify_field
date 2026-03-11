@@ -872,18 +872,6 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                     overflow: TextOverflow.ellipsis,
                   ),
 
-                  const SizedBox(height: 10),
-
-                  /// ARROW BUTTON
-                  CircleAvatar(
-                    radius: 14,
-                    backgroundColor: Colors.white.withOpacity(0.25),
-                    child: const Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      size: 12,
-                      color: Colors.white,
-                    ),
-                  ),
                 ],
               ),
             ),

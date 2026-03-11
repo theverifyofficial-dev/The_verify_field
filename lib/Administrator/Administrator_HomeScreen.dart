@@ -8,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Administrator/Admin_upcoming.dart';
 import '../Adminisstrator_Target_details/Targets.dart';
 import '../Calender/CalenderForAdmin.dart';
-import '../Dashboard/Dashoard.dart';
 import '../Home_Screen.dart' hide AgreementTaskResponse, FuturePropertyResponse, WebsiteVisitResponse;
 import '../Web_query/web_query.dart' hide SlideAnimation;
 import '../Z-Screen/Social_Media_links.dart';
@@ -481,7 +480,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 8,
+                        itemCount: 7,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
@@ -495,18 +494,6 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                 );
                               },
                               "count": pendingCount,
-                            },
-                            {
-                              "image": AppImages.dashboard,
-                              "title": "Dashboard",
-                              "gradient": AppGradients.green(),
-                              "onTap": () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => DashboardScreen()),
-                                );
-                              },
-                              "count": 0,
                             },
                             {
                               "image": AppImages.propertysale,
@@ -860,10 +847,9 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
     ];
 
     int agreements = todayCounts?.agreements ?? 0;
-    int futureProps = todayCounts?.futureProperties ?? 0;
     int websiteVisits = todayCounts?.websiteVisits ?? 0;
 
-    int totalToday = agreements + futureProps + websiteVisits;
+    int totalToday = agreements + websiteVisits;
 
     return GestureDetector(
       onTap: () {
@@ -1038,15 +1024,6 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                     "Agreements",
                     agreements,
                     const Color(0xFFEF4444),
-                    isDark,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _modernCountCard(
-                    "Future",
-                    futureProps,
-                    const Color(0xFF3B82F6),
                     isDark,
                   ),
                 ),
@@ -1275,7 +1252,6 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
         setState(() {
           todayCounts = TodayCounts(
             agreements: agreements,
-            futureProperties: future,
             websiteVisits: website,
           );
         });

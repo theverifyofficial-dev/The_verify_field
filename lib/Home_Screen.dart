@@ -29,12 +29,10 @@ import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
 
 class TodayCounts {
   final int agreements;
-  final int futureProperties;
   final int websiteVisits;
 
   TodayCounts({
     required this.agreements,
-    required this.futureProperties,
     required this.websiteVisits,
   });
 }
@@ -168,26 +166,7 @@ class AgreementTask {
   }
 }
 
-class FuturePropertyResponse {
-  final List<FutureProperty> data;
 
-  FuturePropertyResponse({required this.data});
-
-  factory FuturePropertyResponse.fromRawJson(String str) {
-    final jsonData = json.decode(str);
-
-    if (jsonData is! List) {
-      return FuturePropertyResponse(data: []);
-    }
-
-    final dataList = jsonData
-        .map<FutureProperty>(
-            (e) => FutureProperty.fromJson(e as Map<String, dynamic>))
-        .toList();
-
-    return FuturePropertyResponse(data: dataList);
-  }
-}
 
 class WebsiteVisit {
   final int id;
@@ -320,7 +299,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   bool _isLoadingData = false; // Start with false for immediate UI render
 
   List<AgreementTask> todayAgreements = [];
-  List<FutureProperty> todayFutureProperties = [];
   List<WebsiteVisit> todayWebsiteVisits = [];
   List<TomorrowEvent> tomorrowEvents = [];
 
@@ -459,7 +437,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         setState(() {
           todayCounts = TodayCounts(
             agreements: 0,
-            futureProperties: 0,
             websiteVisits: 0,
           );
           todayLoading = false;
@@ -521,9 +498,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       );
     }
 
-    int totalToday = todayCounts!.agreements +
-        todayCounts!.futureProperties +
-        todayCounts!.websiteVisits;
+    int totalToday = todayCounts!.agreements + todayCounts!.websiteVisits;
 
     return GestureDetector(
       onTap: (){
@@ -771,15 +746,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                             Icons.handshake,
                             isDark,
                           ),
-                          _enhancedCountBox(
-                            "Future",
-                            todayCounts!.futureProperties,
-                            LinearGradient(
-                              colors: [Colors.blueAccent, Colors.indigoAccent],
-                            ),
-                            Icons.fitbit_outlined,
-                            isDark,
-                          ),
+
                           _enhancedCountBox(
                             "Web Visit",
                             todayCounts!.websiteVisits,
@@ -1116,10 +1083,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
           "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$today&Fieldwarkarnumber=$fieldNo",
         )).timeout(const Duration(seconds: 10)),
 
-        // ✅ CORRECT FUTURE PROPERTY API
-        http.get(Uri.parse(
-          "https://verifyserve.social/WebService4.asmx/show_futureproperty_by_fieldworkarnumber?current_date_=$today&fieldworkarnumber=$fieldNo",
-        )).timeout(const Duration(seconds: 10)),
 
         // WEBSITE VISIT
         http.get(Uri.parse(
@@ -1135,21 +1098,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
           AgreementTaskResponse.fromRawJson(res[0].body).data;
       debugPrint("✅ Parsed agreements count: ${todayAgreements.length}");
 
-      // ---------------- FUTURE PROPERTY ----------------
-      debugPrint("🟡 Future Property API STATUS: ${res[1].statusCode}");
-      debugPrint("🟡 Future Property API BODY: ${res[1].body}");
-
-      final allFuture =
-          FuturePropertyResponse.fromRawJson(res[1].body).data;
-
-      // 🔥 FILTER ONLY TODAY
-      todayFutureProperties = allFuture.where((e) {
-        return e.date.startsWith(today);
-      }).toList();
-
-      debugPrint(
-          "✅ Parsed future properties (TODAY) count: ${todayFutureProperties.length}");
-
       // ---------------- WEBSITE VISIT ----------------
       debugPrint("🔵 Website Visit API STATUS: ${res[2].statusCode}");
       debugPrint("🔵 Website Visit API BODY: ${res[2].body}");
@@ -1158,19 +1106,15 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
           WebsiteVisitResponse.fromRawJson(res[2].body).data;
       debugPrint("✅ Parsed website visits count: ${todayWebsiteVisits.length}");
 
-      debugPrint(
-          "📊 FINAL COUNTS → Agreement: ${todayAgreements.length}, Future: ${todayFutureProperties.length}, Website: ${todayWebsiteVisits.length}");
 
       return TodayCounts(
         agreements: todayAgreements.length,
-        futureProperties: todayFutureProperties.length,
         websiteVisits: todayWebsiteVisits.length,
       );
     } catch (e) {
       debugPrint('🔥 Error in fetchTodayCounts(): $e');
       return TodayCounts(
         agreements: 0,
-        futureProperties: 0,
         websiteVisits: 0,
       );
     }

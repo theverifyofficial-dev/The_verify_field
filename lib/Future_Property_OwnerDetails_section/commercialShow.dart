@@ -279,7 +279,6 @@ class _CommercialListPageState extends State<CommercialListPage> {
                     'Office',
                     'Retail shop',
                     'Warehouse',
-                    'Plot',
                   ]
                       .map((label) {
                     final isSelected = label == selectedLabel;

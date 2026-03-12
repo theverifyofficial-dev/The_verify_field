@@ -289,36 +289,20 @@ class Home_Screen extends StatefulWidget {
 class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin {
   late String formattedDate;
   DateTime now = DateTime.now();
-
   String number = '';
-
   bool demandLoading = true;
-
   int newCount = 0;
   int progressingCount = 0;
   int disclosedCount = 0;
   int redemandCount = 0;
-
   List<Map<String, dynamic>> todayDemands = [];
-
   String? userName;
   String? userNumber;
-
-
   late AnimationController _controller;
-  late Animation<double> _fadeAnimation;
-  late Animation<Offset> _slideAnimation;
-
   int monthlyAchieved = 0;
   int yearlyAchieved = 0;
   static const int monthlyTarget = 15;
   static const int yearlyTarget = 100;
-
-  double? _latitude;
-  double? _longitude;
-
-  bool _isLoadingData = false; // Start with false for immediate UI render
-
   List<AgreementTask> todayAgreements = [];
   List<FutureProperty> todayFutureProperties = [];
   List<WebsiteVisit> todayWebsiteVisits = [];
@@ -327,7 +311,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   TodayCounts? todayCounts;
   bool todayLoading = false; // Start with false
 
-  Timer? _loadingTimer; // Timer to force stop loading if stuck
+  Timer? _loadingTimer;
 
   @override
   void initState() {
@@ -338,12 +322,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-    _slideAnimation = Tween<Offset>(begin: const Offset(-0.3, 0), end: Offset.zero).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-    );
 
     // Start animations
     _controller.forward();
@@ -352,7 +330,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     _loadingTimer = Timer(const Duration(seconds: 5), () {
       if (mounted) {
         setState(() {
-          _isLoadingData = false;
           todayLoading = false;
         });
       }
@@ -362,11 +339,11 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     _initializeData();
   }
 
-
   Future<int> _fetchCountByStatus({
     required String fieldworkerName,
     required String status,
-  }) async {
+  })
+  async {
     try {
       final url =
           "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/"
@@ -386,7 +363,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     }
     return 0;
   }
-
 
   Future<void> _loadCustomerDemandCard() async {
     try {
@@ -423,9 +399,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       if (mounted) setState(() => demandLoading = false);
     }
   }
-
-
-
 
   Future<void> _initializeData() async {
     await _loaduserdata();
@@ -1017,7 +990,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     return "${t.year}-${t.month.toString().padLeft(2, '0')}-${t.day.toString().padLeft(2, '0')}";
   }
 
-
   Future<void> fetchTomorrowData() async {
     final tomorrow = _tomorrowString();
     final fieldNo = number;
@@ -1183,9 +1155,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     super.dispose();
   }
 
-
-
-
   Future<List<id_model>> fetchData() async {
     var url = Uri.parse(
         "https://verifyserve.social/WebService4.asmx/count_rent_proerty?feildworkar_number=$number&random_text=${formattedDate.toString()}");
@@ -1311,6 +1280,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       }
     }
   }
+
   Future<void> _onRefresh() async {
     if (mounted) {
       setState(() {

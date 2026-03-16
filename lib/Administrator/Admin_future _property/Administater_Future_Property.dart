@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import '../../ui_decoration_tools/app_images.dart';
 import '../Administrator_HomeScreen.dart';
+import 'Admin_SeeAll_Tabbar.dart';
 import 'Future_Property_Details.dart';
 import 'See_All_Futureproperty.dart';
 
@@ -264,7 +265,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
 
   Future<List<Catid>> _fetchDataByNumber(String number) async {
     final url = Uri.parse(
-        "https://verifyrealestateandservices.in/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=$number");
+        "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=$number");
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -415,7 +416,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
   List<String> _buildMultipleImages(Catid p) {
     final List<String> imgs = [];
     if (p.images != null && p.images!.trim().isNotEmpty) {
-      final base = 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/';
+      final base = 'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/';
       imgs.add('$base${p.images!.trim()}');
     }
     return imgs;
@@ -777,12 +778,13 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
             children: [
               Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               GestureDetector(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) =>
-                    SeeAll_FutureProperty(number: id))
-                ),
-                child:  Text('See All →', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
-              ),
-            ],
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return TabBarPage(number: int.tryParse(id) ?? 0);
+                  }));
+                },
+                child: Text('See All →', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
+              ),            ],
           ),
         ),
         SizedBox(

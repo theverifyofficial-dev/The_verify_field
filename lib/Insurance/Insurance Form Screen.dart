@@ -19,8 +19,8 @@ class InsuranceFormScreen extends StatefulWidget {
 }
 
 class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
-  final _formKey = GlobalKey<FormState>();
 
+  final _formKey = GlobalKey<FormState>();
   final nameController = TextEditingController();
   final numberController = TextEditingController();
   final vehicleNumberController = TextEditingController();

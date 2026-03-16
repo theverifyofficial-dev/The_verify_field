@@ -49,21 +49,23 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
 
   // Dropdown options
   List<String> listingTypes = ['Rent', 'Sell'];
+
   List<String> propertyTypes = [
     'Office',
     'Retail Shop',
     'Showroom',
-    'Plot',
     'Warehouse',
-    'Other'
   ];
+
   List<String> parkingTypes = ['Public', 'Private', 'Both', 'None'];
+
   List<String> warehouseTypes = [
     'Small (<1000 sq ft)',
     'Medium (1000-5000 sq ft)',
     'Large (5000-10000 sq ft)',
     'Very Large (>10000 sq ft)'
   ];
+
   List<String> rentMeterTypes = [
     'Per Sq Ft/Month',
     'Per Sq Ft/Year',
@@ -71,6 +73,7 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
     'Total Yearly Rent'
   ];
   List<String> totalFloors = ['Ground', '1', '2', '3', '4', '5', '6+'];
+
   List<String> amenities = [
     'Water Storage',
     'Power Backup',

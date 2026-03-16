@@ -74,8 +74,8 @@ class _TenantDetailsState extends State<TenantDetails> {
 
   Future<void> fetchdata(Tenant_Name,Tenant_Rented_Amount,Tenant_Rented_Date,Tenant_Number,Tenant_Email,Tenant_WorkProfile,Tenant_Members) async{
     final responce = await http.get(Uri.parse
-      ('https://verifyserve.social/WebService4.asmx/insert_Verify_AddTenant_Under_Property_Table?Property_Image=$_property_image&Property_Number=$_Property_Number&PropertyAddress=$_PropertyAddress&Looking_Prop_=$_Looking_Prop_&maintence=$_maintence&FLoorr=$_FLoorr&Flat=$_Flat&Tenant_Name=$Tenant_Name&Tenant_Rented_Amount=$Tenant_Rented_Amount&Tenant_Rented_Date=$Tenant_Rented_Date&bhk=$_bhk_bhk&Tenant_Number=$Tenant_Number&Tenant_Email=$Tenant_Email&Tenant_WorkProfile=$Tenant_WorkProfile&Tenant_Members=$Tenant_Members&Owner_Name=$_Owner_Name&Owner_Number=$_Owner_Number&Subid=$data1&fieldworkarname=$_fieldworkarname&fieldworkarnumber=$_fieldworkarnumber'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+      ('https://verifyrealestateandservices.in/WebService4.asmx/insert_Verify_AddTenant_Under_Property_Table?Property_Image=$_property_image&Property_Number=$_Property_Number&PropertyAddress=$_PropertyAddress&Looking_Prop_=$_Looking_Prop_&maintence=$_maintence&FLoorr=$_FLoorr&Flat=$_Flat&Tenant_Name=$Tenant_Name&Tenant_Rented_Amount=$Tenant_Rented_Amount&Tenant_Rented_Date=$Tenant_Rented_Date&bhk=$_bhk_bhk&Tenant_Number=$Tenant_Number&Tenant_Email=$Tenant_Email&Tenant_WorkProfile=$Tenant_WorkProfile&Tenant_Members=$Tenant_Members&Owner_Name=$_Owner_Name&Owner_Number=$_Owner_Number&Subid=$data1&fieldworkarname=$_fieldworkarname&fieldworkarnumber=$_fieldworkarnumber'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);
@@ -93,8 +93,8 @@ class _TenantDetailsState extends State<TenantDetails> {
   //for target
   Future<void> fetchdata_target(owner_name,owner_number,tenant_name,tanant_number,property_address,rent_amount,building_id,feildworkar_name,feildworkar_number,random_text) async{
     final responce = await http.get(Uri.parse
-      ('https://verifyserve.social/WebService4.asmx/add_rent_property?owner_name=$owner_name&owner_number=$owner_number&tenant_name=$tenant_name&tanant_number=$tanant_number&property_address=$property_address&rent_amount=$rent_amount&building_id=$building_id&feildworkar_name=$feildworkar_name&feildworkar_number=$feildworkar_number&random_text=$random_text'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+      ('https://verifyrealestateandservices.in/WebService4.asmx/add_rent_property?owner_name=$owner_name&owner_number=$owner_number&tenant_name=$tenant_name&tanant_number=$tanant_number&property_address=$property_address&rent_amount=$rent_amount&building_id=$building_id&feildworkar_name=$feildworkar_name&feildworkar_number=$feildworkar_number&random_text=$random_text'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);
@@ -111,8 +111,8 @@ class _TenantDetailsState extends State<TenantDetails> {
 
   Future<void> fetchdata_update() async{
     final responce = await http.get(Uri.parse
-      ('https://verifyserve.social/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=$data1&looking=Tenant_Added'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+      ('https://verifyrealestateandservices.in/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=$data1&looking=Tenant_Added'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);

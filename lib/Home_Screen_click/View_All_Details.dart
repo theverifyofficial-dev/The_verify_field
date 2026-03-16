@@ -190,7 +190,7 @@ class View_Details extends StatefulWidget {
 
 class _View_DetailsState extends State<View_Details> {
   Future<void> Book_property() async {
-    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=$_id&looking=Book'));
+    final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=$_id&looking=Book'));
     if (responce.statusCode == 200) {
       print(responce.body);
       if (mounted) {
@@ -202,7 +202,7 @@ class _View_DetailsState extends State<View_Details> {
   }
 
   Future<List<RealEstateSlider>> fetchCarouselData(int id) async {
-    final url = 'https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$id';
+    final url = 'https://verifyrealestateandservices.in/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$id';
     final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 30));
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
@@ -229,7 +229,7 @@ class _View_DetailsState extends State<View_Details> {
     print("live detail page id: ${id}");
     print("live detail page id: ${widget.id}");
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id",
     );
     final response = await http.get(url).timeout(const Duration(seconds: 30));
     if (response.statusCode != 200) {
@@ -260,7 +260,7 @@ class _View_DetailsState extends State<View_Details> {
   bool _isDeleting = false;
   //Delete api
   Future<void> DeletePropertybyid(itemId) async {
-    final url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
+    final url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
     final response = await http.get(url).timeout(const Duration(seconds: 30));
     // await Future.delayed(Duration(seconds: 1));
     if (response.statusCode == 200) {
@@ -365,7 +365,7 @@ class _View_DetailsState extends State<View_Details> {
 
               try {
                 final apiUrl = Uri.parse(
-                    "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_video_in_main_realetstae.php");
+                    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/add_video_in_main_realetstae.php");
                 final response = await http.post(apiUrl, body: {
                   "P_id": propertyId.toString(),
                   "video_link": link,
@@ -856,7 +856,7 @@ class _View_DetailsState extends State<View_Details> {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (context) => PropertyPreview(
-                                        ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
+                                        ImageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
                                       ),
                                     ),
                                   );
@@ -870,7 +870,7 @@ class _View_DetailsState extends State<View_Details> {
                                   child: VideoPlayerWidget(videoUrl: prop.videoLink!),
                                 )
                                     : CachedNetworkImage(
-                                  imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
+                                  imageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
                                   fit: BoxFit.cover,
                                   placeholder: (context, url) => Container(
                                     color: Colors.grey[300],
@@ -1066,7 +1066,7 @@ class _View_DetailsState extends State<View_Details> {
                                               Navigator.of(context).push(
                                                 MaterialPageRoute(
                                                   builder: (context) => PropertyPreview(
-                                                    ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.mImages}",
+                                                    ImageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.mImages}",
                                                   ),
                                                 ),
                                               );
@@ -1076,7 +1076,7 @@ class _View_DetailsState extends State<View_Details> {
                                               child: ClipRRect(
                                                 borderRadius: BorderRadius.circular(8),
                                                 child: CachedNetworkImage(
-                                                  imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.mImages}",
+                                                  imageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.mImages}",
                                                   fit: BoxFit.cover,
                                                   width: double.infinity,
                                                 ),

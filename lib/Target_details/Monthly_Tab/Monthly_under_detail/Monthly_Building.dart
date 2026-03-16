@@ -149,7 +149,7 @@ class MonthlyBuilding {
 
 Future<List<MonthlyBuilding>> fetchLiveMonthlyBuy(String number) async {
   final url = Uri.parse(
-    "https://verifyserve.social/Second%20PHP%20FILE/"
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/"
         "Target_New_2026/builidng_monthly_data.php"
         "?fieldworkarnumber=$number",
   );
@@ -283,7 +283,7 @@ class _BuildingMonthlyListScreenState
 
                             /// IMAGE
                             Image.network(
-                              "https://verifyserve.social/Second%20PHP%20FILE/"
+                              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/"
                                   "new_future_property_api_with_multile_images_store/${b.image}",
                               height: 210,
                               width: double.infinity,

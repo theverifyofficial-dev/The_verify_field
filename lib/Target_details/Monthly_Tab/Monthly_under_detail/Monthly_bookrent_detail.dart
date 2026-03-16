@@ -127,7 +127,7 @@ class _MonthlyBookRentDetailScreenState
             ClipRRect(
               borderRadius: BorderRadius.circular(18),
               child: Image.network(
-                "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${widget.b.propertyPhoto}",
+                "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${widget.b.propertyPhoto}",
                 height: 220,
                 width: double.infinity,
                 fit: BoxFit.cover,

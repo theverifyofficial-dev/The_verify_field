@@ -20,7 +20,7 @@ class _MultiImagePickerPageState extends State<MultiImagePickerPage> {
   List<String> deletedImages = [];
   bool isLoading = true;
 
-  final String baseUrl = 'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/only_multiple_image_update.php';
+  final String baseUrl = 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/only_multiple_image_update.php';
 
   @override
   void initState() {
@@ -43,7 +43,7 @@ class _MultiImagePickerPageState extends State<MultiImagePickerPage> {
         setState(() {
           existingImages = (data['images'] as List)
               .map((item) =>
-          'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.toString()}')
+          'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.toString()}')
               .toList();
           isLoading = false;
         });

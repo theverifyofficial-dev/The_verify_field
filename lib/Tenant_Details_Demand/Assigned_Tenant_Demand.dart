@@ -67,7 +67,7 @@ class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
   }
 
   Future<List<Catid>> fetchData() async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/show_assign_tanant_demand_2nd_table');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/show_assign_tanant_demand_2nd_table');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -80,7 +80,7 @@ class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
   }
 
   Future<void> Deletedemand(itemId) async {
-    final url = Uri.parse('https://verifyserve.social/WebService4.asmx/delete_assign_tanant_demand_2nd_table_by_id?id=$itemId');
+    final url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/delete_assign_tanant_demand_2nd_table_by_id?id=$itemId');
     final response = await http.get(url);
     // await Future.delayed(Duration(seconds: 1));
     if (response.statusCode == 200) {
@@ -100,8 +100,8 @@ class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
   String _location = '';
 
   Future<void> insurtMaintable(FN,FNO,Name,Number,buyrent,Additional_Info,refrence,bhk,date,time) async{
-    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/add_assign_tenant_demand_?fieldworkar_name=$FN&fieldworkar_number=$FNO&demand_name=$Name&demand_number=$Number&buy_rent=$buyrent&add_info=$Additional_Info&location_=sultanpur&reference=$refrence&feedback=blank&looking_type=Pending&bhk=$bhk&dates=$date&times=$time'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+    final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/add_assign_tenant_demand_?fieldworkar_name=$FN&fieldworkar_number=$FNO&demand_name=$Name&demand_number=$Number&buy_rent=$buyrent&add_info=$Additional_Info&location_=sultanpur&reference=$refrence&feedback=blank&looking_type=Pending&bhk=$bhk&dates=$date&times=$time'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);

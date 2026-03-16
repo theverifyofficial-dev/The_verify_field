@@ -42,7 +42,7 @@ class _RedemandDetailPageState extends State<field_RedemandDetailPage> {
   Future<void> _fetchRedemandDetails() async {
     try {
       final res = await http.get(Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?id=${widget.redemandId}",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?id=${widget.redemandId}",
       ));
 
       if (res.statusCode == 200) {
@@ -60,7 +60,7 @@ class _RedemandDetailPageState extends State<field_RedemandDetailPage> {
       }
       else{
         await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?id=${widget.redemandId}",
+          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?id=${widget.redemandId}",
           error: res.body.toString(),
           statusCode: res.statusCode ?? 0,
         );
@@ -68,7 +68,7 @@ class _RedemandDetailPageState extends State<field_RedemandDetailPage> {
     } catch (e) {
       _isLoading = false;
       await BugLogger.log(
-        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?id=${widget.redemandId}",
+        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?id=${widget.redemandId}",
         error: e.toString(),
         statusCode: 500,
       );
@@ -83,7 +83,7 @@ class _RedemandDetailPageState extends State<field_RedemandDetailPage> {
   Future<List<dynamic>> _fetchLogs(String id) async {
     try {
       final url =
-          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_redemand.php?subid=$id";
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_redemand.php?subid=$id";
 
       final res = await http.get(Uri.parse(url));
 
@@ -95,14 +95,14 @@ class _RedemandDetailPageState extends State<field_RedemandDetailPage> {
       }
       else{
         await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_redemand.php?subid=$id",
+          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_redemand.php?subid=$id",
           error: res.body.toString(),
           statusCode: res.statusCode ?? 0,
         );
       }
     } catch (e) {
       await BugLogger.log(
-        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_redemand.php?subid=$id",
+        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_redemand.php?subid=$id",
         error: e.toString(),
         statusCode: 500,
       );
@@ -504,7 +504,7 @@ class _RedemandDetailPageState extends State<field_RedemandDetailPage> {
     final time = "${now.hour}:${now.minute}";
 
     const apiUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/add_redemand_call_optiom.php";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/add_redemand_call_optiom.php";
 
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -904,7 +904,7 @@ class _RedemandDetailPageState extends State<field_RedemandDetailPage> {
     try {
       final response = await http.post(
         Uri.parse(
-            "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/update_api_redemand.php"),
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/update_api_redemand.php"),
         body: {
           "id": _redemand!["id"].toString(),
           "finishing_date": finishingDateTime,
@@ -931,7 +931,7 @@ class _RedemandDetailPageState extends State<field_RedemandDetailPage> {
         ),
       );
       await BugLogger.log(
-        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/update_api_redemand.php",
+        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/update_api_redemand.php",
         error: e.toString(),
         statusCode: 500,
       );

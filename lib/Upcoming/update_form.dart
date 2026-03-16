@@ -345,7 +345,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
         _careTakerNumberController.text = data.caretakerNumber;
         _Google_Location.text = data.fieldWorkerCurrentLocation;
         _networkImageUrl =
-            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/" +
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/" +
                 data.propertyPhoto; // or whatever the field name is
 
         double? latitude = double.tryParse(data.latitude);
@@ -388,7 +388,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
 
   Future<List<PropertyModel2>> fetchData() async {
     var url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_details_urgent_flat.php?P_id=${widget.propertyId.toString()}");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_details_urgent_flat.php?P_id=${widget.propertyId.toString()}");
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -564,7 +564,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
 
   Future<void> uploadCompressedImage(File imageFile) async {
     final uri = Uri.parse(
-        "https://verifyserve.social/PHP_Files/Main_Realestate/insert_property.php");
+        "https://verifyrealestateandservices.in/PHP_Files/Main_Realestate/insert_property.php");
 
     var request = http.MultipartRequest('POST', uri);
     request.headers.addAll({
@@ -2849,7 +2849,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
       await provider.fetchLatestPropertyId();
 
       final uri = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/urgent_flat_update_api.php"
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/urgent_flat_update_api.php"
       );
 
       var request = http.MultipartRequest('POST', uri);

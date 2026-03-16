@@ -544,7 +544,7 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
 
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_admin.php");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_admin.php");
     print("User Name :"+"${userName}");
     print("User Number :"+"${userNumber}");
     final response = await http.get(url);
@@ -564,7 +564,7 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
   Future<List<Tenant>> fetchTenants(int subId) async {
     final response = await http.get(
       Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_pending_rentout_api_tenant_owner.php?subid=$subId",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_pending_rentout_api_tenant_owner.php?subid=$subId",
       ),
     );
 
@@ -652,7 +652,7 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
 
   Future<List<FirstPaymentRecord>> fetchFirstPaymentsBySubId(int subid) async {
     final uri = Uri.parse(
-      'https://verifyserve.social/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php?subid=$subid',
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php?subid=$subid',
     );
 
     final r = await http.get(uri);
@@ -702,7 +702,7 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
     final sw = Stopwatch()..start();
     try {
       final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/Change_payment_2nd_status.php",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/Change_payment_2nd_status.php",
       );
 
       final res = await http.post(
@@ -753,7 +753,7 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
     final sw = Stopwatch()..start();
     try {
       final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/change_final_amount.php",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/change_final_amount.php",
       );
 
       final res = await http.post(
@@ -877,7 +877,7 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                               borderRadius: BorderRadius.circular(10),
                               child: CachedNetworkImage(
                                 imageUrl:
-                                "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
+                                "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
                                 height: 64,
                                 width: 64,
                                 fit: BoxFit.cover,
@@ -1070,7 +1070,7 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                                 try {
                                   final response = await http.post(
                                     Uri.parse(
-                                      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/new_complete_payment.php",
+                                      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/new_complete_payment.php",
                                     ),
                                     headers: {
                                       "Content-Type": "application/x-www-form-urlencoded",

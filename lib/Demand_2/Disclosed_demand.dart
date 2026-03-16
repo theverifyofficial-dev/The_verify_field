@@ -64,7 +64,7 @@ class _TenantDemandState extends State<DisclosedDemand> {
       final encodedName = Uri.encodeQueryComponent(name);
 
       final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/"
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/"
             "Tenant_demand/show_api_for_new_tenant_demand_for_fieldworkar_and_status.php"
             "?Status=disclosed"
             "&assigned_fieldworker_name=$encodedName"
@@ -140,7 +140,7 @@ class _TenantDemandState extends State<DisclosedDemand> {
       final q = Uri.encodeQueryComponent(query);
 
       final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/"
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/"
             "Tenant_demand/search_api_for_fieldworkar.php"
             "?q=$q"
             "&assigned_fieldworker_name=$name"

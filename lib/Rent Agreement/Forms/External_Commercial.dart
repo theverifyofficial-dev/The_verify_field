@@ -42,18 +42,18 @@ class DirectorBlock {
 
 }
 
-class CommercialWizardPage extends StatefulWidget {
+class ExternalCommercialWizardPage extends StatefulWidget {
   final String? agreementId;
   final RewardStatus rewardStatus;
 
 
-  const CommercialWizardPage({Key? key, this.agreementId,required this.rewardStatus}) : super(key: key);
+  const ExternalCommercialWizardPage({Key? key, this.agreementId,required this.rewardStatus}) : super(key: key);
 
   @override
-  State<CommercialWizardPage> createState() => _CommercialWizardPageState();
+  State<ExternalCommercialWizardPage> createState() => _CommercialWizardPageState();
 }
 
-class _CommercialWizardPageState extends State<CommercialWizardPage> with TickerProviderStateMixin {
+class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> with TickerProviderStateMixin {
   final PageController _pageController = PageController();
   int _currentStep = 0;
 
@@ -1003,7 +1003,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         "is_Police": isPolice,
         "is_agreement_hide": isAgreementHide ? "1" : "0",
         "gst_type": gstType,
-        "agreement_type": "Commercial Agreement",
+        "agreement_type": "External Commercial Agreement",
       };
 
       request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
@@ -1519,8 +1519,10 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF00C853), Color(0xFF64DD17)],
-                        ),
+                          colors: [Color(0xFF4F46E5), Color(0xFF3B82F6)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          ),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
@@ -1837,63 +1839,50 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
   }
 
   Widget _buildBackground(bool isDark) {
-    const kGoldDark1 = Color(0xFF1B1300);
-    const kGoldDark2 = Color(0xFF0D0A00);
 
-    // ✨ Rich golden tones for light theme
-    const kGoldLight1 = Color(0xFFFFE7A0); // warm gold highlight
-    const kGoldLight2 = Color(0xFFFFF2C2); // soft pale gold
-    const kGoldLight3 = Color(0xFFFFFAE5); // cream gold base
+    const light1 = Color(0xFFEFF6FF);
+    const light2 = Color(0xFFDBEAFE);
+    const light3 = Color(0xFFBFDBFE);
+
+    const dark1 = Color(0xFF020617);
+    const dark2 = Color(0xFF0F172A);
 
     return Container(
       decoration: BoxDecoration(
-        gradient: isDark
-            ? const LinearGradient(
-          colors: [kGoldDark1, kGoldDark2],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        )
-            : const LinearGradient(
-          colors: [kGoldLight1, kGoldLight2, kGoldLight3],
+        gradient: LinearGradient(
+          colors: isDark
+              ? [dark1, dark2]
+              : [light1, light2, light3],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
       ),
       child: Stack(
         children: [
-          // Top glow — soft golden beam
           Positioned(
             top: -80,
-            left: -50,
+            left: -60,
             child: _glowCircle(
-              280,
-              isDark
-                  ? Colors.amberAccent.withOpacity(0.20)
-                  : Colors.amber.withOpacity(0.28),
+              260,
+              const Color(0xFF6366F1).withOpacity(0.25),
             ),
           ),
 
-          // Bottom glow — deeper orange-gold warmth
           Positioned(
-            bottom: -100,
+            bottom: -120,
             right: -60,
             child: _glowCircle(
-              320,
-              isDark
-                  ? Colors.deepOrangeAccent.withOpacity(0.18)
-                  : Colors.orangeAccent.withOpacity(0.22),
+              300,
+              const Color(0xFF3B82F6).withOpacity(0.25),
             ),
           ),
 
-          // Center soft glow — inner richness
           Positioned(
             top: 220,
-            left: 100,
+            left: 120,
             child: _glowCircle(
-              180,
-              isDark
-                  ? Colors.yellowAccent.withOpacity(0.12)
-                  : Colors.amberAccent.withOpacity(0.15),
+              160,
+              const Color(0xFF06B6D4).withOpacity(0.2),
             ),
           ),
         ],
@@ -1918,10 +1907,8 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
     final stepLabels = ['Owner', 'Director', 'Property', 'Preview'];
     final stepIcons = [Icons.person, Icons.person_outline, Icons.home, Icons.preview];
 
-    const kGoldGradient = LinearGradient(
-      colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
+    const kPrimaryGradient = LinearGradient(
+      colors: [Color(0xFF4F46E5), Color(0xFF3B82F6)],
     );
 
     return Row(
@@ -1955,7 +1942,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                     width: gap * _currentStep,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
-                      gradient: kGoldGradient,
+                      gradient: kPrimaryGradient,
                     ),
                   ),
                 ),
@@ -1976,11 +1963,11 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                           height: isActive ? 56 : 48,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: isDone || isActive ? kGoldGradient : null,
+                            gradient: isDone || isActive ? kPrimaryGradient : null,
                             color: isDone || isActive ? null : Colors.transparent,
                             border: Border.all(
                               color: isActive
-                                  ? const Color(0xFFFFD700)
+                                  ? const Color(0xFF4F46E5)
                                   : Theme.of(context).brightness == Brightness.dark
                                   ? Colors.white
                                   : Colors.grey,
@@ -2017,7 +2004,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: i == _currentStep
-                                  ? const Color(0xFFFFC107)
+                                  ? const Color(0xFF4F46E5)
                                   : Theme.of(context).brightness == Brightness.dark
                                   ? Colors.white
                                   : Colors.black,
@@ -2065,7 +2052,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                     borderRadius: BorderRadius.circular(12),
                   ),
                   elevation: 4,
-                  backgroundColor: Colors.amber.shade700, // needed for gradient
+                  backgroundColor: const Color(0xFF4F46E5)
                 ),
               ),
             ),
@@ -2224,7 +2211,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                             icon: const Icon(Icons.search, color: Colors.white, size: 18),
                             label: const Text('Auto fetch'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.amber.shade700,
+                              backgroundColor: const Color(0xFF4F46E5),
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -2303,21 +2290,21 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                               onChanged: (v) => setState(() {
                                 directors[index].relation = v ?? 'S/O';
                               }),
-                                decoration: _fieldDecoration('Relation').copyWith(
-                                  labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
-                                  hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(color: Colors.black), // ✅ border black
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(color: Colors.black, width: 1.5),
-                                  ),
+                              decoration: _fieldDecoration('Relation').copyWith(
+                                labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
+                                hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(color: Colors.black), // ✅ border black
                                 ),
-                                iconEnabledColor: Colors.black, // ✅ dropdown arrow black
-                                dropdownColor: Colors.white, // ✅ menu background white (good contrast)
-                                style: const TextStyle(color: Colors.black),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                                ),
+                              ),
+                              iconEnabledColor: Colors.black, // ✅ dropdown arrow black
+                              dropdownColor: Colors.white, // ✅ menu background white (good contrast)
+                              style: const TextStyle(color: Colors.black),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -2540,13 +2527,13 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFFFFD700), Color(0xFFFFA500)], // gold → amber
-                ),
+              gradient: const LinearGradient(
+              colors: [Color(0xFF6366F1), Color(0xFF3B82F6)],
+    ),
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.amber.withOpacity(0.35),
+                    color: Colors.blue.withOpacity(0.25),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -2611,7 +2598,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
               ),
               style: ElevatedButton.styleFrom(
                 elevation: 0,
-                backgroundColor: Colors.amber.shade700, // gradient visible
+                backgroundColor: const Color(0xFF4F46E5),
                 shadowColor: Colors.transparent,
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -3287,217 +3274,217 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
 
   Widget _previewStep() {
     return _glassContainer(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text('Preview', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
-          Row(children: [
-            IconButton(onPressed: () {
-              // _jumpToStep(0); //Currently, not important!!
-            }, icon: const Icon(Icons.edit)),
-          ])
-        ]),
-        const SizedBox(height: 12),
-        _sectionCard(title: '*Owner', children: [
-          _kv('Name', ownerName.text),
-          _kv('Relation', ownerRelation),
-          _kv('Relation Person', ownerRelationPerson.text),
-          _kv('Mobile', ownerMobile.text),
-          _kv('Aadhaar', ownerAadhaar.text),
-          _kv('Address', ownerAddress.text),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text('Aadhaar Images',style: TextStyle(color: Colors.black),),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(children: [
-            _imageTile(file: ownerAadhaarFront, url: ownerAadharFrontUrl, hint: 'Front'),
-            const SizedBox(width: 8),
-            _imageTile(file: ownerAadhaarBack, url: ownerAadharBackUrl, hint: 'Back'),
-            const Spacer(),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Text('Preview', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+            Row(children: [
+              IconButton(onPressed: () {
+                // _jumpToStep(0); //Currently, not important!!
+              }, icon: const Icon(Icons.edit)),
+            ])
           ]),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(onPressed: () => _jumpToStep(0),style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFFFFD700), // Pure gold
-              ), child: const Text('Edit')),
-            ],
-          )
-
-        ]),
-        const SizedBox(height: 12),
-        _sectionCard(
-          title: '*Directors',
-          children: List.generate(directors.length, (index) {
-            final d = directors[index];
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 12),
+          _sectionCard(title: '*Owner', children: [
+            _kv('Name', ownerName.text),
+            _kv('Relation', ownerRelation),
+            _kv('Relation Person', ownerRelationPerson.text),
+            _kv('Mobile', ownerMobile.text),
+            _kv('Aadhaar', ownerAadhaar.text),
+            _kv('Address', ownerAddress.text),
+            const SizedBox(height: 8),
+            Row(
               children: [
-                Text(
-                  'Director ${index + 1}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                Text('Aadhaar Images',style: TextStyle(color: Colors.black),),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(children: [
+              _imageTile(file: ownerAadhaarFront, url: ownerAadharFrontUrl, hint: 'Front'),
+              const SizedBox(width: 8),
+              _imageTile(file: ownerAadhaarBack, url: ownerAadharBackUrl, hint: 'Back'),
+              const Spacer(),
+            ]),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(onPressed: () => _jumpToStep(0),style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF4F46E5), // Pure gold
+                ), child: const Text('Edit')),
+              ],
+            )
+
+          ]),
+          const SizedBox(height: 12),
+          _sectionCard(
+            title: '*Directors',
+            children: List.generate(directors.length, (index) {
+              final d = directors[index];
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Director ${index + 1}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
+                  const SizedBox(height: 6),
 
-                _kv('Name', d.name.text),
-                _kv('Relation', d.relation),
-                _kv('Relation Person', d.relationPerson.text),
-                _kv('Mobile', d.mobile.text),
-                _kv('Aadhaar', d.aadhaar.text),
-                _kv('Address', d.address.text),
+                  _kv('Name', d.name.text),
+                  _kv('Relation', d.relation),
+                  _kv('Relation Person', d.relationPerson.text),
+                  _kv('Mobile', d.mobile.text),
+                  _kv('Aadhaar', d.aadhaar.text),
+                  _kv('Address', d.address.text),
 
-                if (index == 0) ...[
-                  _kv('Company Name', CompanyName.text),
-                  _kv('GST Type', gstType),
-                  _kv('GST No.', d.gstNo.text),
-                  _kv('PAN No.', d.panNo.text),
+                  if (index == 0) ...[
+                    _kv('Company Name', CompanyName.text),
+                    _kv('GST Type', gstType),
+                    _kv('GST No.', d.gstNo.text),
+                    _kv('PAN No.', d.panNo.text),
 
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        _imageTile(
+                          file: d.gstPhoto,
+                          url: d.gstPhotoUrl,
+                          hint: 'GST',
+                        ),
+                        const SizedBox(width: 8),
+                        _imageTile(
+                          file: d.panPhoto,
+                          url: d.panPhotoUrl,
+                          hint: 'PAN',
+                        ),
+                      ],
+                    ),
+                  ],
+
+                  const SizedBox(height: 12),
+                  const Divider(),
+                ],
+              );
+            }),
+          ),
+
+
+
+          const SizedBox(height: 8),
+
+          _sectionCard(
+            title: '*Directors Documents',
+            children: List.generate(directors.length, (index) {
+              final d = directors[index];
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Director ${index + 1}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
                   const SizedBox(height: 8),
+
+                  /// Aadhaar
+                  const Text('Director Aadhaar',style: TextStyle(color: Colors.black),),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       _imageTile(
-                        file: d.gstPhoto,
-                        url: d.gstPhotoUrl,
-                        hint: 'GST',
+                        file: d.aadhaarFront,
+                        url: d.aadhaarFrontUrl,
+                        hint: 'Front',
                       ),
                       const SizedBox(width: 8),
                       _imageTile(
-                        file: d.panPhoto,
-                        url: d.panPhotoUrl,
-                        hint: 'PAN',
+                        file: d.aadhaarBack,
+                        url: d.aadhaarBackUrl,
+                        hint: 'Back',
                       ),
                     ],
                   ),
-                ],
 
-                const SizedBox(height: 12),
-                const Divider(),
-              ],
-            );
-          }),
-        ),
+                  const SizedBox(height: 10),
 
-
-
-        const SizedBox(height: 8),
-
-        _sectionCard(
-          title: '*Directors Documents',
-          children: List.generate(directors.length, (index) {
-            final d = directors[index];
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Director ${index + 1}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                  /// Photo
+                  const Text('Director Photo',style: TextStyle(color: Colors.black),),
+                  const SizedBox(height: 6),
+                  _imageTile(
+                    file: d.photo,
+                    url: d.photoUrl,
+                    hint: 'Photo',
                   ),
+
+                  const SizedBox(height: 16),
+                  const Divider(),
+                ],
+              );
+            }),
+          ),
+
+          const SizedBox(height: 12),
+          _sectionCard(title: '*Property', children: [
+            _kv('Property ID', propertyID.text),
+            _kv('Sqft', Sqft.text),
+            _kv('Floor', selectedFloor ?? ''),
+            _kv('Address', Address.text),
+            _kv('Notary Price', Notary_price),
+            _kv('Agreement price', '${Agreement_price.text} (${AgreementAmountInWords})'),
+            _kv('Rent', '${rentAmount.text} (${rentAmountInWords})'),
+            _kv('Security', '${securityAmount.text} (${securityAmountInWords})'),
+            if (securityInstallment) _kv('Installment', '${installmentAmount.text} (${installmentAmountInWords})'),
+            _kv('Meter Info', meterInfo),
+            if (meterInfo.startsWith('Custom')) _kv('Custom Unit', '${customUnitAmount.text} (${customUnitAmountInWords})'),
+            _kv('Shifting', shiftingDate == null ? '' : shiftingDate!.toLocal().toString().split(' ')[0]),
+            _kv('Parking', parking),
+            _kv('Maintenance', maintenance),
+            if (maintenance.startsWith('Excluding')) _kv('Maintenance', '${customMaintanceAmount.text} (${customMaintanceAmountInWords})'),
+
+            const SizedBox(height: 8),
+            Row(children: [const Spacer(),
+              TextButton(
+                onPressed: () => _jumpToStep(2),
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFF4F46E5), // Pure gold
                 ),
-                const SizedBox(height: 8),
+                child: const Text('Edit'),
+              )
+            ])
+          ]),
+          const SizedBox(height: 12),
 
-                /// Aadhaar
-                const Text('Director Aadhaar',style: TextStyle(color: Colors.black),),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    _imageTile(
-                      file: d.aadhaarFront,
-                      url: d.aadhaarFrontUrl,
-                      hint: 'Front',
-                    ),
-                    const SizedBox(width: 8),
-                    _imageTile(
-                      file: d.aadhaarBack,
-                      url: d.aadhaarBackUrl,
-                      hint: 'Back',
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 10),
-
-                /// Photo
-                const Text('Director Photo',style: TextStyle(color: Colors.black),),
-                const SizedBox(height: 6),
-                _imageTile(
-                  file: d.photo,
-                  url: d.photoUrl,
-                  hint: 'Photo',
-                ),
-
-                const SizedBox(height: 16),
-                const Divider(),
-              ],
-            );
-          }),
-        ),
-
-        const SizedBox(height: 12),
-        _sectionCard(title: '*Property', children: [
-          _kv('Property ID', propertyID.text),
-          _kv('Sqft', Sqft.text),
-          _kv('Floor', selectedFloor ?? ''),
-          _kv('Address', Address.text),
-          _kv('Notary Price', Notary_price),
-          _kv('Agreement price', '${Agreement_price.text} (${AgreementAmountInWords})'),
-          _kv('Rent', '${rentAmount.text} (${rentAmountInWords})'),
-          _kv('Security', '${securityAmount.text} (${securityAmountInWords})'),
-          if (securityInstallment) _kv('Installment', '${installmentAmount.text} (${installmentAmountInWords})'),
-          _kv('Meter Info', meterInfo),
-          if (meterInfo.startsWith('Custom')) _kv('Custom Unit', '${customUnitAmount.text} (${customUnitAmountInWords})'),
-          _kv('Shifting', shiftingDate == null ? '' : shiftingDate!.toLocal().toString().split(' ')[0]),
-          _kv('Parking', parking),
-          _kv('Maintenance', maintenance),
-          if (maintenance.startsWith('Excluding')) _kv('Maintenance', '${customMaintanceAmount.text} (${customMaintanceAmountInWords})'),
-
-          const SizedBox(height: 8),
-          Row(children: [const Spacer(),
-            TextButton(
-              onPressed: () => _jumpToStep(2),
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFFFFD700), // Pure gold
+          CheckboxListTile(
+            value: isAgreementHide,
+            onChanged: (v) {
+              setState(() {
+                isAgreementHide = v ?? false;
+              });
+            },
+            title: const Text(
+              'Hide Aadhaar',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
               ),
-              child: const Text('Edit'),
-            )
-          ])
-        ]),
-        const SizedBox(height: 12),
-
-        CheckboxListTile(
-          value: isAgreementHide,
-          onChanged: (v) {
-            setState(() {
-              isAgreementHide = v ?? false;
-            });
-          },
-          title: const Text(
-            'Hide Aadhaar',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Colors.black,
             ),
+            subtitle: const Text(
+              'Aadhaar images & number will be hidden in agreement PDF',
+              style: TextStyle(fontSize: 12,color: Colors.black),
+            ),
+            activeColor: Colors.redAccent,
+            checkColor: Colors.white,
           ),
-          subtitle: const Text(
-            'Aadhaar images & number will be hidden in agreement PDF',
-            style: TextStyle(fontSize: 12,color: Colors.black),
-          ),
-          activeColor: Colors.redAccent,
-          checkColor: Colors.white,
-        ),
 
-        const SizedBox(height: 12),
-        Text('* IMPORTANT : When you tap Submit we send data & uploaded Aadhaar images to server for Approval from the Admin.',style: TextStyle(color: Colors.red),),
-      ]
-    )
+          const SizedBox(height: 12),
+          Text('* IMPORTANT : When you tap Submit we send data & uploaded Aadhaar images to server for Approval from the Admin.',style: TextStyle(color: Colors.red),),
+        ]
+        )
     );
   }
 
@@ -3511,7 +3498,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
             title,
             style: const TextStyle(
               fontWeight: FontWeight.w700,
-              color: Color(0xFFB8860B), // rich golden brown for headings
+              color: Color(0xFF4F46E5), // rich golden brown for headings
             ),
           ),
           const SizedBox(height: 8),
@@ -3591,14 +3578,14 @@ class ElevatedGradientButton extends StatelessWidget {
         height: 48,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFFFFD700), Color(0xFFFFA500)], // Gold → Amber
+            colors: [Color(0xFF4F46E5), Color(0xFF3B82F6)],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.amber.withOpacity(0.3),
+              color: Colors.blue.withOpacity(0.25),
               blurRadius: 10,
               offset: const Offset(4,4),
             ),

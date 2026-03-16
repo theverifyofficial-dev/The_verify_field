@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 
 class MetroAPI {
   static const base =
-      "https://verifyserve.social/Second%20PHP%20FILE/Metro_name/new_metro_name_api.php";
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Metro_name/new_metro_name_api.php";
 
   static const city = "all";
   static const stationLimit = 20;

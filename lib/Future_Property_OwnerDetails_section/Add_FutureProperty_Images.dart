@@ -20,7 +20,7 @@ class _FuturePropertyFileUploadPageState extends State<FuturePropertyFileUploadP
   List<String> deletedImages = [];
   bool isLoading = true;
 
-  final String baseUrl = 'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/update_multiple_image_future_property.php';
+  final String baseUrl = 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/update_multiple_image_future_property.php';
 
   @override
   void initState() {
@@ -43,7 +43,7 @@ class _FuturePropertyFileUploadPageState extends State<FuturePropertyFileUploadP
         setState(() {
           existingImages = (data['images'] as List)
               .map((item) =>
-          'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${item.toString()}')
+          'https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${item.toString()}')
               .toList();
           isLoading = false;
         });

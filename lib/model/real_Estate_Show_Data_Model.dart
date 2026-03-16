@@ -112,7 +112,7 @@ class Property {
   factory Property.fromJson(Map<String, dynamic> json) {
     return Property(
       id: int.tryParse(json['P_id'].toString()) ?? 0,
-      photo: "https://verifyserve.social/PHP_Files/Main_Realestate/"+json['property_photo'] ?? '',
+      photo: "https://verifyrealestateandservices.in/PHP_Files/Main_Realestate/"+json['property_photo'] ?? '',
       location: json['locations'] ?? '',
       propertyNumber: json['property_number'] ?? '',
       buyOrRent: json['Buy_Rent'] ?? '',

@@ -68,7 +68,7 @@ class BookRentDetailScreen extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(22),
               child: Image.network(
-                "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${b.propertyPhoto}",
+                "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${b.propertyPhoto}",
                 height: 230,
                 width: double.infinity,
                 fit: BoxFit.cover,

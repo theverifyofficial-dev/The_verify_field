@@ -192,7 +192,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
     setState(() { _ytLoading = true; _ytError = null; });
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_for_book_flat_yearly.php?field_workar_number=$_number',
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target/count_for_book_flat_yearly.php?field_workar_number=$_number',
       );
       final resp = await http.get(uri);
       if (resp.statusCode != 200) {
@@ -228,7 +228,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
     setState(() { _mtLoading = true; _mtError = null; });
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_for_book_flat_for_month.php?field_workar_number=$_number',
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target/count_api_for_book_flat_for_month.php?field_workar_number=$_number',
       );
       final resp = await http.get(uri);
       if (resp.statusCode != 200) {
@@ -274,7 +274,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
     required int fieldWorkerNumber,
   }) async {
     final uri = Uri.parse(
-      'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_for_book_flat_for_month.php?field_workar_number=$_number',
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target/count_api_for_book_flat_for_month.php?field_workar_number=$_number',
     );
     final resp = await http.get(uri);
     if (resp.statusCode != 200) {
@@ -290,7 +290,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
   Future<void> _fetchBuildingCount() async {
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_for_building.php?fieldworkarnumber=${_number}',
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target/count_api_for_building.php?fieldworkarnumber=${_number}',
       );
 
       final res = await http.get(uri).timeout(const Duration(seconds: 8));
@@ -321,7 +321,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
   Future<void> _fetchBuyLiveCount() async {
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_buy_field.php?field_workar_number=$_number',
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target/count_api_live_flat_for_buy_field.php?field_workar_number=$_number',
       );
 
       final res = await http.get(uri).timeout(const Duration(seconds: 8));
@@ -367,7 +367,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
 
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_field.php?field_workar_number=$_number',
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target/count_api_live_flat_for_field.php?field_workar_number=$_number',
       );
 
       final res = await http.get(uri).timeout(const Duration(seconds: 8));
@@ -403,7 +403,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
   Future<void> _fetchCommercialLiveCount() async {
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_commercial_space.php?field_workar_number=$_number',
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target/count_api_live_commercial_space.php?field_workar_number=$_number',
       );
 
       final res = await http.get(uri).timeout(const Duration(seconds: 8));
@@ -446,7 +446,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
   Future<void> _fetchAgreementCount() async {
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_for_agreement.php?Fieldwarkarnumber=$_number',
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target/count_api_for_agreement.php?Fieldwarkarnumber=$_number',
       );
 
       final res = await http.get(uri).timeout(const Duration(seconds: 8));
@@ -501,7 +501,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
     setState(() { _yrRentLoading = true; _yrRentError = null; });
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_live_flat_rent_yearly.php?field_workar_number=$_number',
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target/count_live_flat_rent_yearly.php?field_workar_number=$_number',
       );
 
       final resp = await http.get(uri);
@@ -540,7 +540,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
     setState(() { _yrBuyLoading = true; _yrBuyError = null; });
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_for_buy_live_flat_yearly.php?field_workar_number=$_number',
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target/count_api_for_buy_live_flat_yearly.php?field_workar_number=$_number',
       );
       final resp = await http.get(uri);
       if (resp.statusCode != 200) throw Exception('HTTP ${resp.statusCode}');
@@ -574,7 +574,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
     setState(() { _yrComLoading = true; _yrComError = null; });
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/commerical_count_yearly.php?field_workar_number=$_number',
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target/commerical_count_yearly.php?field_workar_number=$_number',
       );
       final resp = await http.get(uri);
       if (resp.statusCode != 200) throw Exception('HTTP ${resp.statusCode}');
@@ -620,7 +620,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
     setState(() { _yrAgrLoading = true; _yrAgrError = null; });
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_agreement_yarly.php?Fieldwarkarnumber=$_number',
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target/count_api_agreement_yarly.php?Fieldwarkarnumber=$_number',
       );
       final resp = await http.get(uri);
       if (resp.statusCode != 200) throw Exception('HTTP ${resp.statusCode}');

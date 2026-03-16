@@ -216,7 +216,7 @@ class Agreement {
 /// =======================
 Future<List<Agreement>> fetchAgreements(String num) async {
   final url = Uri.parse(
-    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/agreement_external_yearly_show.php?Fieldwarkarnumber=$num",
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/agreement_external_yearly_show.php?Fieldwarkarnumber=$num",
   );
 
   final res = await http.get(url);
@@ -317,7 +317,7 @@ class AgreementYearly extends StatelessWidget {
                           child: Stack(
                             children: [
                               Image.network(
-                                "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/${a.tenantImage}",
+                                "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/${a.tenantImage}",
                                 height: 190,
                                 width: double.infinity,
                                 fit: BoxFit.cover,
@@ -535,7 +535,7 @@ class _DocBtn extends StatelessWidget {
       label: Text(title, style: const TextStyle(fontSize: 12)),
       onPressed: () {
         final url =
-            "https://verifyserve.social/Second%20PHP%20FILE/$path";
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/$path";
         // yahan tum url_launcher ya PDF viewer open kara sakte ho
         debugPrint("OPEN: $url");
       },

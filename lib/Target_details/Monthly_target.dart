@@ -87,7 +87,7 @@ class _MonthlyTargetScreenState extends State<MonthlyTargetScreen> {
   List<dynamic> monthlyBuildingsList = [];
   Future<void> _fetchBuildingMonthly() async {
     final uri = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/"
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/"
           "builidng_monthly_data.php?fieldworkarnumber=$fieldWorkerNumber",
     );
 
@@ -112,7 +112,7 @@ class _MonthlyTargetScreenState extends State<MonthlyTargetScreen> {
 
   Future<void> _fetchBookMonthly() async {
     final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/book_monthly_show.php?field_workar_number=$fieldWorkerNumber");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/book_monthly_show.php?field_workar_number=$fieldWorkerNumber");
 
     final res = await http.get(uri);
     if (res.statusCode != 200) throw Exception("Book Monthly API Error");
@@ -134,7 +134,7 @@ class _MonthlyTargetScreenState extends State<MonthlyTargetScreen> {
 
   Future<void> _fetchLiveMonthly() async {
     final uri = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/live_monthly_show.php?field_workar_number=$fieldWorkerNumber",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/live_monthly_show.php?field_workar_number=$fieldWorkerNumber",
     );
 
     final res = await http.get(uri);
@@ -155,7 +155,7 @@ class _MonthlyTargetScreenState extends State<MonthlyTargetScreen> {
 
   Future<void> _fetchAgreementMonthly() async {
     final uri = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/count_api_for_all_agreement_with_reword_monthly.php?Fieldwarkarnumber=$fieldWorkerNumber",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/count_api_for_all_agreement_with_reword_monthly.php?Fieldwarkarnumber=$fieldWorkerNumber",
     );
 
     final res = await http.get(uri);
@@ -174,7 +174,7 @@ class _MonthlyTargetScreenState extends State<MonthlyTargetScreen> {
 
   Future<void> _fetchPoliceMonthly() async {
     final uri = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/police_verification_monthly.php?Fieldwarkarnumber=$fieldWorkerNumber",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/police_verification_monthly.php?Fieldwarkarnumber=$fieldWorkerNumber",
     );
 
     final res = await http.get(uri);
@@ -193,7 +193,7 @@ class _MonthlyTargetScreenState extends State<MonthlyTargetScreen> {
 
   Future<void> _fetchCommercialMonthly() async {
     final uri = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/commercial_month.php?field_workar_number=$fieldWorkerNumber",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/commercial_month.php?field_workar_number=$fieldWorkerNumber",
     );
 
     final res = await http.get(uri);

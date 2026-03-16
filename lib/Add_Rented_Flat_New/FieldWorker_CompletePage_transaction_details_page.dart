@@ -29,7 +29,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
   Future<_PageData> _loadAll() async {
     // ================== 1️⃣ PROPERTY LIST ==================
     final propUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_complete_page_for_admin.php";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_complete_page_for_admin.php";
 
     debugPrint("🟡 PROPERTY API URL: $propUrl");
 
@@ -60,7 +60,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
 
     // ================== 2️⃣ PAYMENT HISTORY ==================
     final payUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_final_payment_api_for_complete.php?subid=${property.id}";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_final_payment_api_for_complete.php?subid=${property.id}";
 
     debugPrint("🟡 PAYMENT API URL: $payUrl");
 
@@ -342,7 +342,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
       child: Column(
         children: [
           Image.network(
-            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${p.propertyPhoto}",
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${p.propertyPhoto}",
             height: 160,
             width: double.infinity,
             fit: BoxFit.cover,

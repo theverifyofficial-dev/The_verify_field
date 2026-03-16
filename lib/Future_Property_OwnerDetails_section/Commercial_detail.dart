@@ -60,7 +60,7 @@ class CommercialPropertyData {
 
   factory CommercialPropertyData.fromJson(Map<String, dynamic> json) {
     const baseUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/";
 
     return CommercialPropertyData(
       id: json['id'],
@@ -171,7 +171,7 @@ class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
 
 
   final String  baseUrl =
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/commercial_mulitple_image/";
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/commercial_mulitple_image/";
 
 
   @override
@@ -183,7 +183,7 @@ class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
 
   Future<void> fetchMultipleImages(int id) async {
     final url =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_commercial_multiple_image.php?sub_id=$id&t=${DateTime.now().millisecondsSinceEpoch}";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_commercial_multiple_image.php?sub_id=$id&t=${DateTime.now().millisecondsSinceEpoch}";
 
     final response = await http.get(Uri.parse(url));
 
@@ -194,7 +194,7 @@ class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
         List imgs = data['data'];
 
         const baseUrl =
-            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/";
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/";
 
         List<String> imageUrls = [];
 
@@ -214,7 +214,7 @@ class _CommercialUnderPropertyState extends State<CommercialUnderProperty> {
   Future<void> _refreshProperty() async {
     try {
       var uri = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/get_single_commercial.php?id=${property.id}&t=${DateTime.now().millisecondsSinceEpoch}");
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/get_single_commercial.php?id=${property.id}&t=${DateTime.now().millisecondsSinceEpoch}");
 
       var response = await http.get(uri);
 

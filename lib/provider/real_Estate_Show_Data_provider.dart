@@ -18,7 +18,7 @@ class RealEstateShowDataProvider with ChangeNotifier {
     _errorMessage = '';
     notifyListeners();
 
-    const url = 'https://verifyserve.social/PHP_Files/Show_api_in_main_realestate/show_api_in_mainrealestate.php';
+    const url = 'https://verifyrealestateandservices.in/PHP_Files/Show_api_in_main_realestate/show_api_in_mainrealestate.php';
 
     try {
       final response = await http.get(Uri.parse(url));

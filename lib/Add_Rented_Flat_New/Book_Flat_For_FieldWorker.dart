@@ -31,7 +31,7 @@ class _RentedPropertyPageState extends State<RentedPropertyPage> {
           "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
 
       final url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/book_flat_for_fieldworkar.php");
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/book_flat_for_fieldworkar.php");
 
       // Step 1
       final copy = await http.post(url, body: {

@@ -187,7 +187,7 @@ class MonthlyCommercialModel {
 
 Future<List<MonthlyCommercialModel>> fetchMonthlyCommercial(String number) async {
   final url = Uri.parse(
-    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/commercial_month.php?field_workar_number=$number",
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/commercial_month.php?field_workar_number=$number",
   );
 
   final res = await http.get(url);
@@ -294,7 +294,7 @@ class _MonthlyCommercialState extends State<MonthlyCommercial> {
 
                               /// IMAGE
                               Image.network(
-                                "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${b.image}",
+                                "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${b.image}",
                                 height: 210,
                                 width: double.infinity,
                                 fit: BoxFit.cover,

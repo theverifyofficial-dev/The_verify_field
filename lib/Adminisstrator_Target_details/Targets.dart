@@ -372,7 +372,7 @@ class _TargetState extends State<Target> {
   }
   Future<void> _fetchBuildingMonthly(String number) async {
     final uri = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/builidng_monthly_data.php?fieldworkarnumber=$number",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/builidng_monthly_data.php?fieldworkarnumber=$number",
     );
 
     final res = await http.get(uri);
@@ -423,7 +423,7 @@ class _TargetState extends State<Target> {
   int emptyBuildings = 0;
   Future<void> _fetchOverviewBuildingDetail(String number) async {
     final uri = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/building_over_view.php?fieldworkarnumber=$number",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/building_over_view.php?fieldworkarnumber=$number",
     );
 
     final res = await http.get(uri);
@@ -535,7 +535,7 @@ class _TargetState extends State<Target> {
 
   Future<void> _fetchOverviewAgreement(String number) async {
     final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target/show_tatal_agreement.php?Fieldwarkarnumber=$number");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target/show_tatal_agreement.php?Fieldwarkarnumber=$number");
 
     final j = jsonDecode((await http.get(uri)).body);
     userData[number]!.ovAgreement =
@@ -544,7 +544,7 @@ class _TargetState extends State<Target> {
 
   Future<void> _fetchOverviewBuilding(String number) async {
     final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_for_building.php?fieldworkarnumber=$number");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target/count_api_for_building.php?fieldworkarnumber=$number");
 
     final j = jsonDecode((await http.get(uri)).body);
     userData[number]!.ovBuilding =
@@ -553,7 +553,7 @@ class _TargetState extends State<Target> {
 
   Future<void> _fetchOverviewTotalFlats(String number) async {
     final uri = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/GetTotalFlats_under_building?field_workar_number=$number");
+        "https://verifyrealestateandservices.in/WebService4.asmx/GetTotalFlats_under_building?field_workar_number=$number");
 
     final res = await http.get(uri);
 
@@ -570,7 +570,7 @@ class _TargetState extends State<Target> {
 
   Future<void> _fetchOverviewLiveAndUnLiveFlats(String number) async {
     final uri = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/GetTotalFlats_Live_under_building?field_workar_number=$number");
+        "https://verifyrealestateandservices.in/WebService4.asmx/GetTotalFlats_Live_under_building?field_workar_number=$number");
 
     final res = await http.get(uri);
     final decoded = jsonDecode(res.body);
@@ -607,7 +607,7 @@ class _TargetState extends State<Target> {
       print("📡 Trying period from $number");
 
       final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/book_monthly_show.php?field_workar_number=$number",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/book_monthly_show.php?field_workar_number=$number",
       );
 
       final res = await http.get(uri);
@@ -636,7 +636,7 @@ class _TargetState extends State<Target> {
 
   Future<void> _fetchBookMonthly(String number) async {
     final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/book_monthly_show.php?field_workar_number=$number");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/book_monthly_show.php?field_workar_number=$number");
     final list = jsonDecode((await http.get(uri)).body)["data"] as List? ?? [];
     if (list.isNotEmpty) {
       userData[number]!.bookRent =
@@ -696,7 +696,7 @@ class _TargetState extends State<Target> {
 
   Future<void> _fetchLiveMonthly(String number) async {
     final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/live_monthly_show.php?field_workar_number=$number");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/live_monthly_show.php?field_workar_number=$number");
     final decoded = jsonDecode((await http.get(uri)).body);
     if (decoded["counts"] != null) {
       userData[number]!.liveRent =
@@ -708,7 +708,7 @@ class _TargetState extends State<Target> {
 
   Future<void> _fetchAgreementMonthly(String number) async {
     final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/agreement_external_monthly_show.php?Fieldwarkarnumber=$number");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/agreement_external_monthly_show.php?Fieldwarkarnumber=$number");
     final decoded = jsonDecode((await http.get(uri)).body);
     userData[number]!.agreement =
         int.tryParse(decoded["total_agreement"].toString()) ?? 0;
@@ -716,7 +716,7 @@ class _TargetState extends State<Target> {
 
   Future<void> _fetchPoliceMonthly(String number) async {
     final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/police_verification_monthly.php?Fieldwarkarnumber=$number");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/police_verification_monthly.php?Fieldwarkarnumber=$number");
     final decoded = jsonDecode((await http.get(uri)).body);
     userData[number]!.police =
         int.tryParse(decoded["total_police_verification"].toString()) ?? 0;
@@ -724,7 +724,7 @@ class _TargetState extends State<Target> {
 
   Future<void> _fetchCommercialMonthly(String number) async {
     final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/commercial_month.php?field_workar_number=$number");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/commercial_month.php?field_workar_number=$number");
     final decoded = jsonDecode((await http.get(uri)).body);
     userData[number]!.commercial =
         int.tryParse(decoded["counts"]["total_commercial"].toString()) ?? 0;
@@ -734,7 +734,7 @@ class _TargetState extends State<Target> {
 
   Future<void> _fetchBookYearly(String number) async {
     final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/book_yearly_show.php?field_workar_number=$number");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/book_yearly_show.php?field_workar_number=$number");
     final list = jsonDecode((await http.get(uri)).body)["data"] as List? ?? [];
     if (list.isNotEmpty) {
       userData[number]!.bookRent =
@@ -746,7 +746,7 @@ class _TargetState extends State<Target> {
 
   Future<void> _fetchAgreementYearly(String number) async {
     final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/agreement_external_yearly_show.php?Fieldwarkarnumber=$number");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/agreement_external_yearly_show.php?Fieldwarkarnumber=$number");
     final decoded = jsonDecode((await http.get(uri)).body);
     userData[number]!.agreement =
         int.tryParse(decoded["total_agreement"].toString()) ?? 0;
@@ -754,7 +754,7 @@ class _TargetState extends State<Target> {
 
   Future<void> _fetchPoliceYearly(String number) async {
     final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/police_verification_yearly.php?Fieldwarkarnumber=$number");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/police_verification_yearly.php?Fieldwarkarnumber=$number");
     final decoded = jsonDecode((await http.get(uri)).body);
     userData[number]!.police =
         int.tryParse(decoded["total_police_verification"].toString()) ?? 0;
@@ -762,7 +762,7 @@ class _TargetState extends State<Target> {
 
   Future<void> _fetchCommercialYearly(String number) async {
     final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/commercial_yearly.php?field_workar_number=$number");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/commercial_yearly.php?field_workar_number=$number");
     final list = jsonDecode((await http.get(uri)).body)["data"] as List? ?? [];
     if (list.isNotEmpty) {
       userData[number]!.commercial =
@@ -772,7 +772,7 @@ class _TargetState extends State<Target> {
 
   Future<void> _fetchBuildingYearly(String number) async {
     final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/building_data_yearly.php?fieldworkarnumber=$number");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/building_data_yearly.php?fieldworkarnumber=$number");
     final json = jsonDecode((await http.get(uri)).body);
     final list = json["data"] as List? ?? [];
     if (list.isNotEmpty) {

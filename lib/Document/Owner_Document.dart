@@ -117,7 +117,7 @@ class _Owner_DocumentState extends State<Owner_Document> {
       final mimeTypeData2 = lookupMimeType(_PasportSize_Photo!.path, headerBytes: [0xFF, 0xD8])?.split('/');
       final imageUploadRequest = http.MultipartRequest(
         'POST',
-        Uri.parse('https://verifyserve.social/PHP_Files/Main_Document/Add_Document_api/insert.php'), // Replace with your API endpoint
+        Uri.parse('https://verifyrealestateandservices.in/PHP_Files/Main_Document/Add_Document_api/insert.php'), // Replace with your API endpoint
       );
 
       final file = await http.MultipartFile.fromPath(
@@ -226,7 +226,7 @@ class _Owner_DocumentState extends State<Owner_Document> {
       final mimeTypeData2 = lookupMimeType(_PasportSize_Photo!.path, headerBytes: [0xFF, 0xD8])?.split('/');
       final imageUploadRequest = http.MultipartRequest(
         'POST',
-        Uri.parse('https://verifyserve.social/PHP_Files/Main_Document/Add_Document_api/insert.php'), // Replace with your API endpoint
+        Uri.parse('https://verifyrealestateandservices.in/PHP_Files/Main_Document/Add_Document_api/insert.php'), // Replace with your API endpoint
       );
 
       final file = await http.MultipartFile.fromPath(

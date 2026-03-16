@@ -67,7 +67,7 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
 
   Future<void> fetchPropertyDetails() async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_details_page.php?P_id=${widget.id}");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/upcoming_flat_details_page.php?P_id=${widget.id}");
 
     final response = await http.get(url);
     print('${widget.id}');
@@ -89,7 +89,7 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
 
   Future<List<UpcomingPropertyImage>> fetchUpcomingPropertyImages(int id) async {
     final url =
-        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_show_mumlitiple_image_api.php?subid=$id';
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/upcoming_flat_show_mumlitiple_image_api.php?subid=$id';
 
     final response = await http.get(Uri.parse(url));
 
@@ -221,7 +221,7 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
     setState(() => _isLoading = true);
 
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcomin_update_api.php");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/upcomin_update_api.php");
 
     final response = await http.post(url, body: {
       "P_id": widget.id.toString(),
@@ -277,7 +277,7 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
     }
 
     final data = propertyData!;
-    final imageUrl = "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${data['property_photo']}";
+    final imageUrl = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${data['property_photo']}";
     List<String> localityChips = [];
 
     final rawLocality = data['locality_list'];
@@ -366,7 +366,7 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
                                   MaterialPageRoute(
                                     builder: (_) => PropertyPreview(
                                       ImageUrl:
-                                      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${image.imagePath}",
+                                      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${image.imagePath}",
                                     ),
                                   ),
                                 );
@@ -375,7 +375,7 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
                                 borderRadius: BorderRadius.circular(8),
                                 child: CachedNetworkImage(
                                   imageUrl:
-                                  "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${image.imagePath}",
+                                  "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${image.imagePath}",
                                   width: 120, // width of each thumbnail
                                   height: 100,
                                   fit: BoxFit.cover,

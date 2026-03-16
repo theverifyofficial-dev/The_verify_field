@@ -60,7 +60,7 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
     try {
       // NOTE: details API uses id = redemand id
       final response = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?id=${widget.redemandId}"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?id=${widget.redemandId}"));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonRes = jsonDecode(response.body);
@@ -76,7 +76,7 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
         }
       } else {
         await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?id=",
+          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?id=",
           error: response.body.toString(),
           statusCode: response.statusCode ?? 0,
         );
@@ -88,7 +88,7 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
             SnackBar(content: Text("Error fetching details: $e")));
       }
       await BugLogger.log(
-        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?id=",
+        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?id=",
         error: e.toString(),
         statusCode: 500,
       );
@@ -118,7 +118,7 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
   //     print(widget.subid);
   //
   //     final response = await http.post(
-  //       Uri.parse('https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/redemand_assign_to_subadmin.php'),
+  //       Uri.parse('https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/redemand_assign_to_subadmin.php'),
   //       headers: {"Content-Type": "application/json"},
   //       body: body,
   //     );
@@ -143,7 +143,7 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
   //     }
   //     else {
   //       await BugLogger.log(
-  //         apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/redemand_assign_to_subadmin.php",
+  //         apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/redemand_assign_to_subadmin.php",
   //         error: response.body.toString(),
   //         statusCode: response.statusCode ?? 0,
   //       );
@@ -152,7 +152,7 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
   //   } catch (e) {
   //     if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
   //     await BugLogger.log(
-  //       apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/redemand_assign_to_subadmin.php",
+  //       apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/redemand_assign_to_subadmin.php",
   //       error: e.toString(),
   //       statusCode: 500,
   //     );
@@ -180,7 +180,7 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
 
       final response = await http.post(
         Uri.parse(
-            "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/redemand_assign_to_fieldworkar.php"),
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/redemand_assign_to_fieldworkar.php"),
         headers: {"Content-Type": "application/json"},
         body: body,
       );
@@ -200,7 +200,7 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
         await _fetchRedemandDetails();
       } else {
         await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/redemand_assign_to_fieldworkar.php",
+          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/redemand_assign_to_fieldworkar.php",
           error: response.body.toString(),
           statusCode: response.statusCode ?? 0,
         );
@@ -209,7 +209,7 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
       }
     } catch (e) {
       await BugLogger.log(
-        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/redemand_assign_to_fieldworkar.php",
+        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/redemand_assign_to_fieldworkar.php",
         error: e.toString(),
         statusCode: 500,
       );
@@ -737,7 +737,7 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
   Future<List<dynamic>> _fetchLogs(String id) async {
     try {
       final url =
-          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id";
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id";
 
       print("📡 Fetching Logs: $url");
 
@@ -752,7 +752,7 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
       }
       else{
         await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id",
+          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id",
           error: res.body.toString(),
           statusCode: res.statusCode ?? 0,
         );
@@ -760,7 +760,7 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
     } catch (e) {
       print("❌ Error fetching logs: $e");
       await BugLogger.log(
-        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id",
+        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id",
         error: e.toString(),
         statusCode: 500,
       );

@@ -155,7 +155,7 @@ class View_Detailsdocs extends StatefulWidget {
 class _View_DetailsdocsState extends State<View_Detailsdocs> {
 
   Future<List<T_detailmodel>> fetchData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=${widget.SUbid}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=${widget.SUbid}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -167,7 +167,7 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
   }
 
   Future<List<Catid_details>> fetchData_Tenant_Detail() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/Show_Verify_AddTenant_Under_Property_Table_by_id_?TUP_id=${widget.iidd}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/Show_Verify_AddTenant_Under_Property_Table_by_id_?TUP_id=${widget.iidd}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -179,7 +179,7 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
   }
 
   Future<List<DocumentMainModel>> fetchCarouselData() async {
-    final response = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/Show_Image_under_Realestatet?id_num=${widget.SUbid}'));
+    final response = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Show_Image_under_Realestatet?id_num=${widget.SUbid}'));
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((item) {
@@ -193,8 +193,8 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
   }
 
   Future<void> Book_property() async{
-    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=${widget.SUbid}&looking=Flat'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+    final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=${widget.SUbid}&looking=Flat'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);
@@ -211,7 +211,7 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
 
   //Delete api
   Future<void> DeletePropertybyid(itemId) async {
-    final url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=${widget.SUbid}');
+    final url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=${widget.SUbid}');
     final response = await http.get(url);
     // await Future.delayed(Duration(seconds: 1));
     if (response.statusCode == 200) {
@@ -323,7 +323,7 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
                             context,
                             MaterialPageRoute(
                               builder: (_) => PropertyPreview(
-                                ImageUrl: "https://www.verifyserve.social/${item.dimage}",
+                                ImageUrl: "https://www.verifyrealestateandservices.in/${item.dimage}",
                               ),
                             ),
                           );
@@ -343,7 +343,7 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
                             child: CachedNetworkImage(
-                              imageUrl: "https://www.verifyserve.social/${item.dimage}",
+                              imageUrl: "https://www.verifyrealestateandservices.in/${item.dimage}",
                               fit: BoxFit.cover,
                               placeholder: (context, url) => Container(
                                 color: Colors.grey[200],

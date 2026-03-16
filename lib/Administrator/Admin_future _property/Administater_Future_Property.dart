@@ -264,7 +264,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
 
   Future<List<Catid>> _fetchDataByNumber(String number) async {
     final url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=$number");
+        "https://verifyrealestateandservices.in/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=$number");
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -326,7 +326,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
 
     final futures = allProperties.map((p) async {
       try {
-        final resp1 = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=${p.id}'));
+        final resp1 = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/count_api_for_avability_for_building?subid=${p.id}'));
         if (resp1.statusCode == 200) {
           final body = jsonDecode(resp1.body);
           if (body is List && body.isNotEmpty) {
@@ -334,7 +334,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
           }
         }
 
-        final resp2 = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${p.id}'));
+        final resp2 = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/live_unlive_flat_under_building?subid=${p.id}'));
         if (resp2.statusCode == 200) {
           final body = jsonDecode(resp2.body);
           if (body is List) {
@@ -415,7 +415,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
   List<String> _buildMultipleImages(Catid p) {
     final List<String> imgs = [];
     if (p.images != null && p.images!.trim().isNotEmpty) {
-      final base = 'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/';
+      final base = 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/';
       imgs.add('$base${p.images!.trim()}');
     }
     return imgs;

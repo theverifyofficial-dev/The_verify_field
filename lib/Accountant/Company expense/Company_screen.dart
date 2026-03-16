@@ -74,7 +74,7 @@ class _ExpenseListScreenState extends State<CompanyScreen> {
 
   Future<List<Expense>> _fetchExpenses() async {
     final url = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Expanse/display_paymenti_information.php');
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Expanse/display_paymenti_information.php');
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -125,14 +125,14 @@ class _ExpenseListScreenState extends State<CompanyScreen> {
                       MaterialPageRoute(
                         builder: (_) => PropertyPreview(
                           ImageUrl:
-                          "https://verifyserve.social/Second%20PHP%20FILE/Expanse/${expense.paymentSnapshot}",
+                          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Expanse/${expense.paymentSnapshot}",
                         ),
                       ),
                     );
                   },
                   child: CachedNetworkImage(
                     imageUrl:
-                    'https://verifyserve.social/Second%20PHP%20FILE/Expanse/${expense.paymentSnapshot}',
+                    'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Expanse/${expense.paymentSnapshot}',
                     height: 200,
                     width: double.infinity,
                     fit: BoxFit.cover,

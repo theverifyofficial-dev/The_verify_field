@@ -42,7 +42,7 @@ class _image_UpdateState extends State<image_Update> {
   }
 
   Future<void> uploadImageWithTitle(File imageFile, String title) async {
-    String uploadUrl = 'https://verifyserve.social/phprealstateimages.php'; // Replace with your API endpoint
+    String uploadUrl = 'https://verifyrealestateandservices.in/phprealstateimages.php'; // Replace with your API endpoint
 
     FormData formData = FormData.fromMap({
       "PVR_id": title,

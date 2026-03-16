@@ -112,8 +112,8 @@ class _Edit_Page_realestateState extends State<Edit_Page_realestate> {
   Future<void> fetchdata(propertyNumber_,address_,place_,sqft_,price_,Sell_price_,Verify_Price_,maintenance_,Buy_Rent_,Residentiol_Commercial_,floor_,
       flat_,furnished_,furnished_details_,Ownername_,Owner_number_,Building_information_,Balcony_,kitchen_,Bathroom_,Parking_,Typeofproperty_,BHK_,Address_apnehisaabka_,
       CareTaker_name_,CareTaker_number_) async{
-    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/Update_realstatedata?iddd=$_id&property_num=$propertyNumber_&Address_=$address_&Place_=$place_&sqft=$sqft_&Price=$price_&Sell_price=$Sell_price_&Persnol_price=$Verify_Price_&maintenance=$maintenance_&Buy_Rent=$Buy_Rent_&Residence_Commercial=$Residentiol_Commercial_&floor_=$floor_&flat_=$flat_&Furnished=$furnished_&Details=$furnished_details_&Ownername=$Ownername_&Owner_number=$Owner_number_&Building_information=$Building_information_&balcony=$Balcony_&kitchen=$kitchen_&Baathroom=$Bathroom_&Parking=$Parking_&Looking_Property_=Flat&Typeofproperty=$Typeofproperty_&Bhk_Squarefit=$BHK_&Address_apnehisaabka=$Address_apnehisaabka_&Caretaker_name=$CareTaker_name_&Caretaker_number=$CareTaker_number_'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+    final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Update_realstatedata?iddd=$_id&property_num=$propertyNumber_&Address_=$address_&Place_=$place_&sqft=$sqft_&Price=$price_&Sell_price=$Sell_price_&Persnol_price=$Verify_Price_&maintenance=$maintenance_&Buy_Rent=$Buy_Rent_&Residence_Commercial=$Residentiol_Commercial_&floor_=$floor_&flat_=$flat_&Furnished=$furnished_&Details=$furnished_details_&Ownername=$Ownername_&Owner_number=$Owner_number_&Building_information=$Building_information_&balcony=$Balcony_&kitchen=$kitchen_&Baathroom=$Bathroom_&Parking=$Parking_&Looking_Property_=Flat&Typeofproperty=$Typeofproperty_&Bhk_Squarefit=$BHK_&Address_apnehisaabka=$Address_apnehisaabka_&Caretaker_name=$CareTaker_name_&Caretaker_number=$CareTaker_number_'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);
@@ -127,7 +127,7 @@ class _Edit_Page_realestateState extends State<Edit_Page_realestate> {
   }
 
   Future<List<Catid>> fetchData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=$_id");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=$_id");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);

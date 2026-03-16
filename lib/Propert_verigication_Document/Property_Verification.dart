@@ -93,7 +93,7 @@ class _Book_PropertyState extends State<Book_Property> {
 
   Future<List<V_model>> fetchData(id) async{
 
-    var url=Uri.parse("https://verifyserve.social/WebService4.asmx/show_propertyverifycation_by_lookingproperty_fieldworkarnumber?Looking_Property_=Book&fieldworkarnumber=$_number");
+    var url=Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/show_propertyverifycation_by_lookingproperty_fieldworkarnumber?Looking_Property_=Book&fieldworkarnumber=$_number");
     final responce=await http.get(url);
     if(responce.statusCode==200){
 
@@ -207,7 +207,7 @@ class _Book_PropertyState extends State<Book_Property> {
                                                 width: 120,
                                                 child: CachedNetworkImage(
                                                   imageUrl:
-                                                  "https://verifyserve.social/"+abc.data![len].Building_image,
+                                                  "https://verifyrealestateandservices.in/"+abc.data![len].Building_image,
                                                   fit: BoxFit.cover,
                                                   placeholder: (context, url) => Image.asset(
                                                     AppImages.loading,

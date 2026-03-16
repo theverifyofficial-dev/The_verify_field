@@ -53,8 +53,8 @@ class _assign_demand_formState extends State<assign_demand_form> {
 
 
   Future<void> fetchdata(FN,FNO,Name,Number,buyrent,Additional_Info,refrence,bhk) async{
-    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/add_assign_tanant_demand_2nd_table?fieldworkar_name=$FN&fieldworkar_number=$FNO&demand_name=$Name&demand_number=$Number&buy_rent=$buyrent&add_info=$Additional_Info&location_=$_location&reference=$refrence&feedback=Pending&looking_type=Blank&bhk=$bhk'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+    final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/add_assign_tanant_demand_2nd_table?fieldworkar_name=$FN&fieldworkar_number=$FNO&demand_name=$Name&demand_number=$Number&buy_rent=$buyrent&add_info=$Additional_Info&location_=$_location&reference=$refrence&feedback=Pending&looking_type=Blank&bhk=$bhk'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);

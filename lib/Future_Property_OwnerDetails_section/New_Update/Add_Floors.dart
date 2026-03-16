@@ -118,7 +118,7 @@ class _Add_FutureProperty_forflatsState extends State<Add_FutureProperty_forflat
   }
 
   Future<void> uploadImageWithTitle(File imageFile) async {
-    String uploadUrl = 'https://verifyserve.social/PHP_Files/Under_flat_future_property/Flat_Under_Future_Property.php'; // Replace with your API endpoint
+    String uploadUrl = 'https://verifyrealestateandservices.in/PHP_Files/Under_flat_future_property/Flat_Under_Future_Property.php'; // Replace with your API endpoint
     formattedDate = "${now.day}-${now.month}-${now.year}";
     FormData formData = FormData.fromMap({
       "images": await MultipartFile.fromFile(imageFile.path, filename: imageFile.path.split('/').last),

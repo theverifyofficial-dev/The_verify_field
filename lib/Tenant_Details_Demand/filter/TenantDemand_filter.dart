@@ -276,7 +276,7 @@ class Show_tenatdemand_filter extends StatefulWidget {
 class _Show_tenatdemand_filterState extends State<Show_tenatdemand_filter> {
 
   Future<List<Catid>> fetchData(id) async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/filter_tenant_demand_by_bhk_buy_rent_area_?bhk=${widget.Bhk_Squarefit}&Buy_rent=${widget.Buy_Rent}&place=${widget.Place_}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/filter_tenant_demand_by_bhk_buy_rent_area_?bhk=${widget.Bhk_Squarefit}&Buy_rent=${widget.Buy_Rent}&place=${widget.Place_}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       /*print(by_rt);

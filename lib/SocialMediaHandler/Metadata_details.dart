@@ -22,7 +22,7 @@ class _MetaAdsDetailPageState extends State<MetaAdsDetailPage> {
 
   Future<Map<String, dynamic>?> fetchMetaAds(String subId) async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_api_meta_ads.php?subid=$subId",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_api_meta_ads.php?subid=$subId",
     );
 
     final response = await http.get(url);

@@ -1602,7 +1602,7 @@ class _EditCommercialFormState extends State<EditCommercialForm> {
 
     try {
       var uri = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_api_commercial.php");
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/update_api_commercial.php");
 
       var request = http.MultipartRequest("POST", uri);
 

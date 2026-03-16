@@ -579,7 +579,7 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
 
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_complete_page_for_fieldworkar.php?field_workar_number=$_fieldworkarnumber");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_complete_page_for_fieldworkar.php?field_workar_number=$_fieldworkarnumber");
     print("User Name :"+"${userName}");
     print("User Number :"+"${userNumber}");
     print("User Number :"+"${_fieldworkarnumber}");
@@ -599,7 +599,7 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
   }
   Future<List<Tenant>> fetchTenants(int subId) async {
     final response = await http.get(
-      Uri.parse("https://verifyserve.social/PHP_Files/show_tenant_api.php?sub_id=$subId"),
+      Uri.parse("https://verifyrealestateandservices.in/PHP_Files/show_tenant_api.php?sub_id=$subId"),
     );
 
     if (response.statusCode == 200) {
@@ -616,7 +616,7 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
     }
   }
   Future<List<OwnerData>> fetchPersonDetail(int subid) async {
-    final url = Uri.parse('https://verifyserve.social/PHP_Files/owner_tenant_api.php?subid=$subid');
+    final url = Uri.parse('https://verifyrealestateandservices.in/PHP_Files/owner_tenant_api.php?subid=$subid');
     final response = await http.get(url);
 
     print("API Response: ${response.body}");
@@ -660,7 +660,7 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
   /// ---------- FETCH (by subid) ----------
   Future<List<FirstPaymentRecord>> fetchFirstPaymentsBySubId(int subid) async {
     final uri = Uri.parse(
-      'https://verifyserve.social/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php?subid=$subid',
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php?subid=$subid',
     );
 
     final r = await http.get(uri);
@@ -778,7 +778,7 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
                           borderRadius: BorderRadius.circular(10),
                           child: CachedNetworkImage(
                             imageUrl:
-                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
+                            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
                             height: 160,
                             width: double.infinity,
                             fit: BoxFit.cover,
@@ -1220,7 +1220,7 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
     final sw = Stopwatch()..start();
     try {
       final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/Change_payment_2nd_status.php",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/Change_payment_2nd_status.php",
       );
 
       final res = await http.post(
@@ -1273,7 +1273,7 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
     final sw = Stopwatch()..start();
     try {
       final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/change_final_amount.php",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/change_final_amount.php",
       );
 
       final res = await http.post(

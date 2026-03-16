@@ -9,7 +9,7 @@ import '../Police_verification.dart';
 
 Future<List<PoliceyearlyModel>> fetchPoliceYearly() async {
   final url = Uri.parse(
-    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/police_verification_yearly.php?Fieldwarkarnumber=11",
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/police_verification_yearly.php?Fieldwarkarnumber=11",
   );
 
   final res = await http.get(url);
@@ -63,13 +63,13 @@ class PoliceVerificationDetailScreen extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (_) => ImagePreviewScreen(
                         imageUrl:
-                        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/${p.tenantImage}",
+                        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/${p.tenantImage}",
                       ),
                     ),
                   );
                 },
                 child: Image.network(
-                  "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/${p.tenantImage}",
+                  "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/${p.tenantImage}",
                   height: 240,
                   width: double.infinity,
                   fit: BoxFit.cover,
@@ -278,7 +278,7 @@ class PoliceVerificationDetailScreen extends StatelessWidget {
     }
 
     final url =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$path";
 
     return GestureDetector(
       onTap: () {
@@ -319,4 +319,4 @@ Widget row(String t, String v) {
   );
 }
 String img(String path) =>
-    "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$path";

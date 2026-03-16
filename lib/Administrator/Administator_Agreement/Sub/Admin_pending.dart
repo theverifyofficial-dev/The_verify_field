@@ -39,7 +39,7 @@ class _AdminPendingState extends State<AdminPending> {
 
   Future<List<AgreementModel2>> fetchAgreements() async {
     final url = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement_data_for_admin.php');
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/agreement_data_for_admin.php');
 
     final response = await http.get(url);
 

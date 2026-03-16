@@ -340,7 +340,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
 
   Future<List<NewRealEstateShowDateModel>> fetchData(String number) async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
           "?field_workar_number=$number&live_unlive=Live",
     );
 
@@ -499,7 +499,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
             )
                 : CachedNetworkImage(
               imageUrl:
-              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/$imageUrl",
+              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/$imageUrl",
               fit: BoxFit.cover,
               placeholder: (_, __) =>
               const Center(child: CircularProgressIndicator(strokeWidth: 2)),

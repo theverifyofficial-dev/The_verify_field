@@ -50,7 +50,7 @@ class _AddOwnerPageState extends State<AddOwnerPage> {
   Future<void> _fetchAdvanceAmount() async {
     try {
       final response = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_fieldworkar.php?field_workar_number=${_fieldworkarnumber}"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_fieldworkar.php?field_workar_number=${_fieldworkarnumber}"));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -95,7 +95,7 @@ class _AddOwnerPageState extends State<AddOwnerPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final url = Uri.parse(
-        "https://verifyserve.social/PHP_Files/add_owner_in_futuere_property/insert.php");
+        "https://verifyrealestateandservices.in/PHP_Files/add_owner_in_futuere_property/insert.php");
 
     try {
       final response = await http.post(url, body: {

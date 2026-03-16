@@ -96,7 +96,7 @@ class LiveMonthlyBuyDetailScreen extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
         image: DecorationImage(
-          image: NetworkImage("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${p.image}"),
+          image: NetworkImage("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${p.image}"),
           fit: BoxFit.cover,
         ),
       ),

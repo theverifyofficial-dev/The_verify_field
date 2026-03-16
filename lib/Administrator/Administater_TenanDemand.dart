@@ -4,8 +4,8 @@ import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:verify_feild_worker/Administrator/Add_Assign_Tenant_Demand/Show_Unexpected_Demand.dart';
 import '../Tenant_Details_Demand/Feedback_Details_Page.dart';
+import 'Add_Assign_Tenant_Demand/Show_Unexpected_Demand.dart';
 
 
 class AdmiinistaterAssignd_Tenant_details extends StatefulWidget {
@@ -18,7 +18,7 @@ class AdmiinistaterAssignd_Tenant_details extends StatefulWidget {
 class _AdmiinistaterAssignd_Tenant_detailsState extends State<AdmiinistaterAssignd_Tenant_details> {
 
   Future<List<Demand_model>> fetchData() async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_assign_tenant_demand_by_looking_type_location_?looking_type=Re_Demand&location_=sultanpur');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/display_assign_tenant_demand_by_looking_type_location_?looking_type=Re_Demand&location_=sultanpur');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -31,7 +31,7 @@ class _AdmiinistaterAssignd_Tenant_detailsState extends State<AdmiinistaterAssig
   }
 
   Future<List<Demand_model>> fetchData_pendinhg(id) async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_assign_tenant_demand_by_looking_type_location_?looking_type=Pending&location_=sultanpur');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/display_assign_tenant_demand_by_looking_type_location_?looking_type=Pending&location_=sultanpur');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);

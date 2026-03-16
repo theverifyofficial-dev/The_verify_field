@@ -64,7 +64,7 @@ class _TenantDemandState extends State<SubadminDisclose> {
 
 
       final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_subadmin_status_api.php?Status=disclosed&assigned_subadmin_name=$encodedName&page=$_page&limit=$_limit",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_subadmin_status_api.php?Status=disclosed&assigned_subadmin_name=$encodedName&page=$_page&limit=$_limit",
       );
 
       print("📡 Fetching page $_page");
@@ -137,7 +137,7 @@ class _TenantDemandState extends State<SubadminDisclose> {
       final q = Uri.encodeQueryComponent(query);
 
       final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/"
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/"
             "Tenant_demand/search_api_for_subadmin_page.php"
             "?q=$q"
             "&page=$_page"

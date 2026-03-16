@@ -200,7 +200,7 @@ class _Owner_detailsState extends State<Owner_details> {
   bool _isLoading = false;
 
   Future<List<detailModel>> fetchData() async{
-    var url=Uri.parse("https://verifyserve.social/WebService4.asmx/show_store_document_by_number_?number=${_number_Owner.toString()}");
+    var url=Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/show_store_document_by_number_?number=${_number_Owner.toString()}");
     final responce=await http.get(url);
     if(responce.statusCode==200){
       List listresponce=json.decode(responce.body);
@@ -212,7 +212,7 @@ class _Owner_detailsState extends State<Owner_details> {
   }
 
   Future<List<Catid_Tenant>> fetchData_Tenant() async{
-    var url=Uri.parse("https://verifyserve.social/WebService4.asmx/show_store_document_by_number_?number=${_number_Tenant.toString()}");
+    var url=Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/show_store_document_by_number_?number=${_number_Tenant.toString()}");
     final responce=await http.get(url);
     if(responce.statusCode==200){
       List listresponce=json.decode(responce.body);
@@ -224,7 +224,7 @@ class _Owner_detailsState extends State<Owner_details> {
   }
 
   Future<List<Realestate>> _demoji() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=${widget.iid}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=${widget.iid}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -236,7 +236,7 @@ class _Owner_detailsState extends State<Owner_details> {
   }
 
   Future<List<Realestate>> Tenanted_Property_Details(id) async{
-    var url=Uri.parse("https://verifyserve.social/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=${widget.iid}");
+    var url=Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=${widget.iid}");
     final responce=await http.get(url);
     if(responce.statusCode==200){
 
@@ -250,8 +250,8 @@ class _Owner_detailsState extends State<Owner_details> {
 
   Future<void> Insurt_Document(ownername,ownernumber,tanantname,tanantnumber,floor_number_tanant,flat_number_tanant,rent_amount_tanat,owner_fathername,tanant_fathername,owner_occupation,tanant_occupation,owner_dateofbirth,tanant_dateofbirth,owner_permanant_address,tanant_permanant_address,owner_district,tanant_district,owner_permanant_address_police_station,tanant_permanant_address_police_station,owner_permanant_address_pincode,tanant_permanant_address_pincode,owner_place,tanant_place,tananted_address,tananted_address_district,tananted_address_police_station,tananted_address_pincode,tananted_place,current_date_,owner_document_id,tanant_document_id,document_type,amount) async{
     final responce = await http.get(Uri.parse
-      ('https://verifyserve.social/WebService4.asmx/add_police_verification_and_rent_document_?ownername=$ownername&ownernumber=$ownernumber&tanantname=$tanantname&tanantnumber=$tanantnumber&floor_number_tanant=$floor_number_tanant&flat_number_tanant=$flat_number_tanant&rent_amount_tanat=$rent_amount_tanat&owner_fathername=$owner_fathername&tanant_fathername=$tanant_fathername&owner_occupation=$owner_occupation&tanant_occupation=$tanant_occupation&owner_dateofbirth=$owner_dateofbirth&tanant_dateofbirth=$tanant_dateofbirth&owner_permanant_address=$owner_permanant_address&tanant_permanant_address=$tanant_permanant_address&owner_district=$owner_district&tanant_district=$tanant_district&owner_permanant_address_police_station=$owner_permanant_address_police_station&tanant_permanant_address_police_station=$tanant_permanant_address_police_station&owner_permanant_address_pincode=$owner_permanant_address_pincode&tanant_permanant_address_pincode=$tanant_permanant_address_pincode&owner_place=$owner_place&tanant_place=$tanant_place&tananted_address=$tananted_address&tananted_address_district=$tananted_address_district&tananted_address_police_station=$tananted_address_police_station&tananted_address_pincode=$tananted_address_pincode&tananted_place=$tananted_place&current_date_=$current_date_&owner_document_id=$owner_document_id&tanant_document_id=$tanant_document_id&document_type=$document_type&building_subid=$_Subid&looking_type=Payment Pending&amount=$amount'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+      ('https://verifyrealestateandservices.in/WebService4.asmx/add_police_verification_and_rent_document_?ownername=$ownername&ownernumber=$ownernumber&tanantname=$tanantname&tanantnumber=$tanantnumber&floor_number_tanant=$floor_number_tanant&flat_number_tanant=$flat_number_tanant&rent_amount_tanat=$rent_amount_tanat&owner_fathername=$owner_fathername&tanant_fathername=$tanant_fathername&owner_occupation=$owner_occupation&tanant_occupation=$tanant_occupation&owner_dateofbirth=$owner_dateofbirth&tanant_dateofbirth=$tanant_dateofbirth&owner_permanant_address=$owner_permanant_address&tanant_permanant_address=$tanant_permanant_address&owner_district=$owner_district&tanant_district=$tanant_district&owner_permanant_address_police_station=$owner_permanant_address_police_station&tanant_permanant_address_police_station=$tanant_permanant_address_police_station&owner_permanant_address_pincode=$owner_permanant_address_pincode&tanant_permanant_address_pincode=$tanant_permanant_address_pincode&owner_place=$owner_place&tanant_place=$tanant_place&tananted_address=$tananted_address&tananted_address_district=$tananted_address_district&tananted_address_police_station=$tananted_address_police_station&tananted_address_pincode=$tananted_address_pincode&tananted_place=$tananted_place&current_date_=$current_date_&owner_document_id=$owner_document_id&tanant_document_id=$tanant_document_id&document_type=$document_type&building_subid=$_Subid&looking_type=Payment Pending&amount=$amount'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);
@@ -385,7 +385,7 @@ class _Owner_detailsState extends State<Owner_details> {
                 child: GestureDetector(
                   onTap: () async {
 
-                    final responce = await http.get(Uri.parse("https://verifyserve.social/WebService4.asmx/show_store_count_document?number=${_number_Owner.toString()}"));
+                    final responce = await http.get(Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/show_store_count_document?number=${_number_Owner.toString()}"));
 
                     print(responce.body);
 
@@ -463,7 +463,7 @@ class _Owner_detailsState extends State<Owner_details> {
                 child: GestureDetector(
                   onTap: () async {
 
-                    final responce = await http.get(Uri.parse("https://verifyserve.social/WebService4.asmx/show_store_count_document?number=${_number_Tenant.toString()}"));
+                    final responce = await http.get(Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/show_store_count_document?number=${_number_Tenant.toString()}"));
 
                     print(responce.body);
 

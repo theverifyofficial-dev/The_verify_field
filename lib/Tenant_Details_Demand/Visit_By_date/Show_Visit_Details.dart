@@ -63,7 +63,7 @@ class Show_Visit_Details extends StatefulWidget {
 class _Show_Visit_DetailsState extends State<Show_Visit_Details> {
 
   Future<List<Catid>> fetchData() async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_Verify_Tenant_Demands_by_id_?VTD_id=${widget.id}');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/display_Verify_Tenant_Demands_by_id_?VTD_id=${widget.id}');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);

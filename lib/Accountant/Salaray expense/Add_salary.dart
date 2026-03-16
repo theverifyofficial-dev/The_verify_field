@@ -84,7 +84,7 @@ class _AddExpensesState extends State<AddSalary> {
 
   Future<void> _uploadExpense(File imageFile) async {
     const uploadUrl =
-        'https://verifyserve.social/Second%20PHP%20FILE/Expanse/salary_expanse.php';
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Expanse/salary_expanse.php';
     Dio dio = Dio();
 
 

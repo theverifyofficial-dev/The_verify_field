@@ -29,7 +29,7 @@ class _Login_pageState extends State<Login_page> {
   bool _isPasswordVisible = false;
 
   Future<List<UserModel>> fetchData_account() async {
-    var url = Uri.parse("https://verifyserve.social/WebService3_ServiceWork.asmx/account_FeildWorkers_Register?num=${_mobileController.text}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService3_ServiceWork.asmx/account_FeildWorkers_Register?num=${_mobileController.text}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -212,7 +212,7 @@ class _Login_pageState extends State<Login_page> {
 
       // API call with number, password, and token
       final response = await http.get(Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/new_login_api_for_field_and_admin?FNumber=$number&Password=$password&FCM=$fcmToken",
+        "https://verifyrealestateandservices.in/WebService4.asmx/new_login_api_for_field_and_admin?FNumber=$number&Password=$password&FCM=$fcmToken",
       ));
 
       print("📩 Raw Response: ${response.body}");

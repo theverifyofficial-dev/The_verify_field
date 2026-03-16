@@ -71,12 +71,12 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
     try {
       final Uri url = _isSearching
           ? Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/search_api_in_tenant_demand.php"
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/search_api_in_tenant_demand.php"
             "?q=${Uri.encodeQueryComponent(_currentQuery)}"
             "&page=$_page&limit=$_limit",
       )
           : Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php"
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php"
             "?Status=disclosed&page=$_page&limit=$_limit",
       );
 

@@ -213,7 +213,7 @@ class _FrontPage_FuturePropertyState
     final int totalFlats = status["totalFlats"] ?? 0;
 
     const baseUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/";
 
     final imageUrl =
     (property.images != null && property.images!.isNotEmpty)

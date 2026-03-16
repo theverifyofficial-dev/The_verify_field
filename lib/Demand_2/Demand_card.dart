@@ -30,7 +30,7 @@ Future<List<Map<String, dynamic>>> fetchTodayDemands(String fieldworkerName,) as
     final today = DateFormat('yyyy-MM-dd').format(DateTime.now()); // ✅ FIXED
 
     final url =
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/"
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/"
         "show_data_base_on_current_date_for_fieldworkar.php"
         "?fieldworker_name=${Uri.encodeQueryComponent(fieldworkerName)}"
         "&date=$today";

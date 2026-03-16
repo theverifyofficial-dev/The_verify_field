@@ -45,7 +45,7 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
 
   Future<void> fetchAdditionalTenants(String agreementId) async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/show_api_for_addtional_tenant.php?agreement_id=$agreementId",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_api_addional_tenant_final.php?agreement_id=$agreementId",
     );
 
     final response = await http.get(url);
@@ -85,7 +85,7 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
   Future<void> _fetchAgreementDetail() async {
     try {
       final response = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_application/detail_page_main_agreement.php?id=${widget.agreementId}"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/detail_page_main_agreement.php?id=${widget.agreementId}"));
 
       print(widget.agreementId);
 
@@ -518,7 +518,7 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
                     final pdf = agreement?["police_verification_pdf"];
                     if (pdf != null && pdf.toString().isNotEmpty) {
                       _launchURL(
-                        'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$pdf',
+                        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$pdf',
                       );
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -549,7 +549,7 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
                           MaterialPageRoute(
                             builder: (context) => ImagePreviewScreen(
                               imageUrl:
-                              'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$notary',
+                              'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$notary',
                             ),
                           ),
                         );
@@ -581,7 +581,7 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
                   ElevatedButton(
                     onPressed: () =>
                         _launchURL(
-                            'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/${agreement?["agreement_pdf"]}'),
+                            'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/${agreement?["agreement_pdf"]}'),
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue, foregroundColor: Colors.black),
                     child: const Text('View Agreement PDF'),
@@ -692,7 +692,7 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
           MaterialPageRoute(
             builder: (_) => ImagePreviewScreen(
               imageUrl:
-              'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$imageUrl',
+              'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$imageUrl',
             ),
           ),
         );
@@ -704,7 +704,7 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: Image.network(
-            "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$imageUrl",
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$imageUrl",
             width: 160,   // force same as container
             height: 120,  // force same as container
             fit: BoxFit.cover, // ensures full fill
@@ -739,7 +739,7 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
 
     try {
       final response = await http.post(
-        Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
+        Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
         body: {"P_id": propertyId},
       );
 
@@ -768,7 +768,7 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
 
   Widget _propertyCard(Map<String, dynamic> data) {
     final String imageUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${data['property_photo'] ?? ''}";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${data['property_photo'] ?? ''}";
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),

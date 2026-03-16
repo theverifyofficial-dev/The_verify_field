@@ -62,7 +62,7 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
     try {
       final response = await http.get(
         Uri.parse(
-          'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/all_agreement_count_for_fieldworkar.php?Fieldwarkarnumber=$mobileNumber',
+          'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/all_agreement_count_for_fieldworkar.php?Fieldwarkarnumber=$mobileNumber',
         ),
       );
 
@@ -86,7 +86,7 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
   }
 
   _launchURL() async {
-    final Uri url = Uri.parse('https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/fetch_data.php');
+    final Uri url = Uri.parse('https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/fetch_data.php');
     if (!await launchUrl(url)) {
       throw Exception('Could not launch $url');
     }
@@ -102,7 +102,7 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
 
     final res = await http.get(
       Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/count_api_for_all_agreement_with_reword.php"
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/count_api_for_all_agreement_with_reword.php"
             "?Fieldwarkarnumber=$number",
       ),
     );

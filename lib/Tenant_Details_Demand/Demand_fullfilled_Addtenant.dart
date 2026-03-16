@@ -21,8 +21,8 @@ class _Add_tenant_under_demandfullfilledState extends State<Add_tenant_under_dem
 
   Future<void> fetchdata(feild_name,feild_number,tenantid,document_id,tenant_name,tenant_number) async{
     final responce = await http.get(Uri.parse
-      ('https://verifyserve.social/WebService4.asmx/add_tenant_under_book_table?fieldwarkar_name=$feild_name&fieldwarkar_number=$feild_number&tenant_id=$tenantid&demand_id=$document_id&tenant_name=$tenant_name&tenant_number=$tenant_number'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+      ('https://verifyrealestateandservices.in/WebService4.asmx/add_tenant_under_book_table?fieldwarkar_name=$feild_name&fieldwarkar_number=$feild_number&tenant_id=$tenantid&demand_id=$document_id&tenant_name=$tenant_name&tenant_number=$tenant_number'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);

@@ -348,7 +348,7 @@ class Admin_underflat_futureproperty extends StatefulWidget {
 
 class Admin_underflat_futurepropertyState extends State<Admin_underflat_futureproperty> {
   Future<List<RealEstateSlider1>> fetchCarouselData() async {
-    final response = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/display_flat_in_future_property_multiple_images?subid=${widget.id}'));
+    final response = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/display_flat_in_future_property_multiple_images?subid=${widget.id}'));
     print(" Multi Image ID: ${widget.id}");
 
     if (response.statusCode == 200) {
@@ -366,7 +366,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
   Property? property;
 
   Future<List<Property>> fetchData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/display_flat_in_future_property_details_page?id=${widget.id}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/display_flat_in_future_property_details_page?id=${widget.id}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -377,7 +377,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
   }
 
   Future<List<Catid1>> fetchData1() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/display_tenant_in_future_property?sub_id=${widget.id}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/display_tenant_in_future_property?sub_id=${widget.id}");
     final Response = await http.get(url);
     print("Tenant : ${Response.body}");
     if (Response.statusCode == 200) {
@@ -1191,14 +1191,14 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (context) => PropertyPreview(
-                                        ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
+                                        ImageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
                                       ),
                                     ),
                                   );
                                 },
                                 child: CachedNetworkImage(
                                   key: ValueKey('${prop.pId}_${prop.propertyPhoto}'),
-                                  imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
+                                  imageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
                                   fit: BoxFit.cover,
                                   placeholder: (context, url) => Container(
                                     color: Colors.grey[300],
@@ -1365,7 +1365,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
                                               Navigator.of(context).push(
                                                 MaterialPageRoute(
                                                   builder: (context) => PropertyPreview(
-                                                    ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.rimg}",
+                                                    ImageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.rimg}",
                                                   ),
                                                 ),
                                               );
@@ -1375,7 +1375,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
                                               child: ClipRRect(
                                                 borderRadius: const BorderRadius.all(Radius.circular(10)),
                                                 child: CachedNetworkImage(
-                                                  imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.rimg}",
+                                                  imageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.rimg}",
                                                   fit: BoxFit.cover,
                                                   placeholder: (context, url) => Container(
                                                     color: Colors.grey[300],

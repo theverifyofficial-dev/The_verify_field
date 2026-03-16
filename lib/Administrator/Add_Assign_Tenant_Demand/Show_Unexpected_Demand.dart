@@ -1,17 +1,10 @@
 import 'dart:convert';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../Custom_Widget/constant.dart';
 import '../number_repeat_page/number_repeat_page.dart';
-import 'Add_Assign_Demand_form.dart';
 import 'Edit_Asign_Demand.dart';
 
 class Demand_model {
@@ -54,7 +47,7 @@ class Administater_Assignd_Tenant_details extends StatefulWidget {
 class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assignd_Tenant_details> {
 
   Future<List<Demand_model>> fetchData() async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/show_assign_tanant_demand_2nd_table');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/show_assign_tanant_demand_2nd_table');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);

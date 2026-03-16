@@ -631,7 +631,7 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
 
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_complete_page_for_admin.php");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_complete_page_for_admin.php");
     print("User Name :"+"${userName}");
     print("User Number :"+"${userNumber}");
     final response = await http.get(url);
@@ -657,7 +657,7 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
   Future<List<Tenant>> fetchTenants(int subId) async {
     final response = await http.get(
       Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_api_for_owner_tenant_api_for_complete_api.php?subid=$subId",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_api_for_owner_tenant_api_for_complete_api.php?subid=$subId",
       ),
     );
 
@@ -679,7 +679,7 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
     }
   }
   Future<List<OwnerData>> fetchPersonDetail(int subid) async {
-    final url = Uri.parse('https://verifyserve.social/Second%20PHP%20FILE/Payment/show_api_for_owner_tenant_api_for_complete_api.php?subid=$subid');
+    final url = Uri.parse('https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_api_for_owner_tenant_api_for_complete_api.php?subid=$subid');
     final response = await http.get(url);
 
     print("API Response: ${response.body}");
@@ -724,7 +724,7 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
   /// ---------- FETCH (by subid) ----------
   Future<List<FirstPaymentRecord>> fetchFirstPaymentsBySubId(int subid) async {
     final uri = Uri.parse(
-      'https://verifyserve.social/Second%20PHP%20FILE/Payment/show_final_payment_api_for_complete.php?subid=$subid',
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_final_payment_api_for_complete.php?subid=$subid',
     );
 
     final r = await http.get(uri);
@@ -918,7 +918,7 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
                       borderRadius: BorderRadius.circular(10),
                       child: CachedNetworkImage(
                         imageUrl:
-                        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
+                        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
                         height: 72,
                         width: 72,
                         fit: BoxFit.cover,

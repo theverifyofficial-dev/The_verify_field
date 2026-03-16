@@ -23,7 +23,7 @@ class _add_Tenant_numState extends State<add_Tenant_num> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   Future<List<Catid>> fetchData() async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Tenant_show_by_V_number_?V_number=${_number.text}');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Verify_Tenant_show_by_V_number_?V_number=${_number.text}');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -138,7 +138,7 @@ class _add_Tenant_numState extends State<add_Tenant_num> {
 
                 // Proceed if valid
                 final response = await http.get(Uri.parse(
-                    "https://verifyserve.social/WebService4.asmx/Verify_Tenant_Countapi_by_V_number_?V_number=${_number.text}"));
+                    "https://verifyrealestateandservices.in/WebService4.asmx/Verify_Tenant_Countapi_by_V_number_?V_number=${_number.text}"));
 
                 print(response.body);
 

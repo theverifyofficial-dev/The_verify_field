@@ -50,7 +50,7 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
 
     final res = await http.get(
       Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/count_api_for_all_agreement_with_reword.php"
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/count_api_for_all_agreement_with_reword.php"
             "?Fieldwarkarnumber=$number",
       ),
     );
@@ -127,7 +127,7 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
   Future<void> _fetchRentalAgreements() async {
     try {
       final response = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/display_preview_agreemet.php?Fieldwarkarnumber=$mobileNumber"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/display_preview_agreemet.php?Fieldwarkarnumber=$mobileNumber"));
 
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);

@@ -181,7 +181,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
     final filterParam = getFilterKey(selectedLabel);
 
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/future_property_pagination.php"
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/future_property_pagination.php"
           "?fieldworkarnumber=${widget.number}"
           "&filter=$filterParam"
           "&page=$_currentPage"
@@ -257,7 +257,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
       });
 
       final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/search_in_future_builing.php"
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/search_in_future_builing.php"
             "?fieldworkarnumber=${widget.number}"
             "&search=$query",
       );
@@ -330,7 +330,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
   Future<void> fetchFlatsStatus() async {
     try {
       final url = Uri.parse(
-        'https://verifyserve.social/WebService4.asmx/GetTotalFlats_Live_under_building?field_workar_number=${widget.number}',
+        'https://verifyrealestateandservices.in/WebService4.asmx/GetTotalFlats_Live_under_building?field_workar_number=${widget.number}',
       );
 
       final response = await http.get(url);
@@ -370,7 +370,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
   Future<void> fetchTotalFlats() async {
     try {
       final url = Uri.parse(
-        'https://verifyserve.social/WebService4.asmx/GetTotalFlats_under_building?field_workar_number=${widget.number}',
+        'https://verifyrealestateandservices.in/WebService4.asmx/GetTotalFlats_under_building?field_workar_number=${widget.number}',
       );
 
       final response = await http.get(url);
@@ -601,7 +601,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
   List<String> _buildMultipleImages(PropertyModel p) {
     final List<String> imgs = [];
     if (p.images != null && p.images!.isNotEmpty) {
-      imgs.add('https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${p.images}');
+      imgs.add('https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${p.images}');
     }
     return imgs;
   }

@@ -53,7 +53,7 @@ class _Delete_ImageState extends State<Delete_Image> {
 
   Future<void> DeleteVehicleNumbers(String itemId) async {
     final url = Uri.parse(
-        'https://verifyserve.social/WebService4.asmx/Delete_Added_images_realestate?idd=$itemId');
+        'https://verifyrealestateandservices.in/WebService4.asmx/Delete_Added_images_realestate?idd=$itemId');
     final response = await http.get(url);
     if (response.statusCode == 200) {
       print('Item deleted successfully: $itemId');
@@ -65,7 +65,7 @@ class _Delete_ImageState extends State<Delete_Image> {
 
   Future<List<ShowVehicleModel>> ShowVehicleNumbers(int id) async {
     final url = Uri.parse(
-        'https://verifyserve.social/WebService4.asmx/Show_Image_under_Realestatet?id_num=$id');
+        'https://verifyrealestateandservices.in/WebService4.asmx/Show_Image_under_Realestatet?id_num=$id');
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final List result = json.decode(response.body);
@@ -245,7 +245,7 @@ class _Delete_ImageState extends State<Delete_Image> {
                               // width: 120,
                               child: CachedNetworkImage(
                                 imageUrl:
-                                "https://verifyserve.social/${item.image_ji}",
+                                "https://verifyrealestateandservices.in/${item.image_ji}",
                                 fit: BoxFit.cover,
                                 placeholder: (context, url) => Image.asset(
                                     AppImages.loading,

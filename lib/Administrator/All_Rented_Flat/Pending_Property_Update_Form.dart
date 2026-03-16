@@ -62,7 +62,7 @@ class _UpdateOwnerPageState extends State<UpdateOwnerPage> {
 
   Future<void> _fetchOwnerData() async {
     final url = Uri.parse(
-        "https://verifyserve.social/PHP_Files/owner_tenant_api.php?subid=${widget.propertyId}");
+        "https://verifyrealestateandservices.in/PHP_Files/owner_tenant_api.php?subid=${widget.propertyId}");
 
     try {
       final response = await http.get(url);
@@ -98,7 +98,7 @@ class _UpdateOwnerPageState extends State<UpdateOwnerPage> {
     setState(() => _isSubmitting = true);
 
     final url = Uri.parse(
-        "https://verifyserve.social/PHP_Files/add_owner_in_futuere_property/update.php");
+        "https://verifyrealestateandservices.in/PHP_Files/add_owner_in_futuere_property/update.php");
 
     try {
       final response = await http.post(url, body: {

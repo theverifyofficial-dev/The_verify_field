@@ -33,7 +33,7 @@ class _AddTenantPageNewState extends State<AddTenantPageNew> {
     if (!_formKey.currentState!.validate()) return;
 
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Payment/add_owner_and_tenant_details.php",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/add_owner_and_tenant_details.php",
     );
 
     final response = await http.post(url, body: {

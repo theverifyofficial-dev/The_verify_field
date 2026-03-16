@@ -250,7 +250,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
 
   Future<List<RealestateModel>> fetchData(String id) async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id",
     );
 
     final response = await http.get(url);
@@ -283,7 +283,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
 
   Future<List<RealEstateSlider>> fetchCarouselData(String id) async {
     final url =
-        'https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$id';
+        'https://verifyrealestateandservices.in/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$id';
 
     print('multiple image subid${id}');
 
@@ -675,7 +675,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                   Navigator.of(context).push(
                                     MaterialPageRoute(
                                       builder: (context) => PropertyPreview(
-                                        ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
+                                        ImageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
                                       ),
                                     ),
                                   );
@@ -686,7 +686,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                     bottomRight: Radius.circular(20),
                                   ),
                                   child: CachedNetworkImage(
-                                    imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
+                                    imageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
                                     fit: BoxFit.cover,
                                     placeholder: (context, url) => Container(
                                       color: Colors.grey[300],
@@ -885,7 +885,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                               Navigator.of(context).push(
                                                 MaterialPageRoute(
                                                   builder: (context) => PropertyPreview(
-                                                    ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.mImages}",
+                                                    ImageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.mImages}",
                                                   ),
                                                 ),
                                               );
@@ -895,7 +895,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                               child: ClipRRect(
                                                 borderRadius: BorderRadius.circular(8),
                                                 child: CachedNetworkImage(
-                                                  imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.mImages}",
+                                                  imageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.mImages}",
                                                   fit: BoxFit.cover,
                                                   width: double.infinity,
                                                 ),

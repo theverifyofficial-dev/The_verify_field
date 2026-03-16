@@ -314,7 +314,7 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
 
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_book_flat_for_admin.php");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_book_flat_for_admin.php");
 
     final response = await http.get(url);
     if (response.statusCode == 200) {
@@ -329,7 +329,7 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
   Future<List<Tenant>> fetchTenants(int subId) async {
     final response = await http.get(
       Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_tenant_and_owner_api.php?subid=$subId",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_tenant_and_owner_api.php?subid=$subId",
       ),
     );
 
@@ -383,7 +383,7 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
     });
   }
   Future<List<OwnerData>> fetchPersonDetail(int subid) async {
-    final url = Uri.parse('https://verifyserve.social/PHP_Files/owner_tenant_api.php?subid=$subid');
+    final url = Uri.parse('https://verifyrealestateandservices.in/PHP_Files/owner_tenant_api.php?subid=$subid');
     final response = await http.get(url);
 
     print("API Response: ${response.body}");
@@ -528,7 +528,7 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
                     borderRadius: BorderRadius.circular(10),
                     child: CachedNetworkImage(
                       imageUrl:
-                      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
+                      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
                       height: 72,
                       width: 72,
                       fit: BoxFit.cover,
@@ -711,7 +711,7 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
                       try {
                         final response = await http.post(
                           Uri.parse(
-                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/new_pending_rentout_api.php",
+                            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/new_pending_rentout_api.php",
                           ),
                           body: {
                             "P_id": item.pId.toString(),

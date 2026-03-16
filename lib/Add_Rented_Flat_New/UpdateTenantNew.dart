@@ -44,7 +44,7 @@ class _UpdateTenantPageNewState extends State<UpdateTenantPageNew> {
   /// Fetch Tenant Data
   Future<void> _fetchTenantData() async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_tenant_and_owner_api.php?subid=${widget.propertyId}",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_tenant_and_owner_api.php?subid=${widget.propertyId}",
     );
 
     try {
@@ -81,7 +81,7 @@ class _UpdateTenantPageNewState extends State<UpdateTenantPageNew> {
   /// Update Tenant API Call
   Future<void> _updateTenant() async {
     var uri = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Payment/update_api_owner_tenant_api.php",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/update_api_owner_tenant_api.php",
     );
 
     var request = http.MultipartRequest("POST", uri);

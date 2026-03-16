@@ -55,7 +55,7 @@ class _TenantDemandState extends State<AcceptedField> {
       final encodedName = Uri.encodeQueryComponent(FName);
       final encodedLoc = Uri.encodeQueryComponent(FLocation);
 
-      final url = Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/display_accept_demand.php?assigned_fieldworker_name=$encodedName");
+      final url = Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/display_accept_demand.php?assigned_fieldworker_name=$encodedName");
       final response = await http.get(url);
 
       // final crossRedemands = await _loadCrossRedemand();
@@ -90,7 +90,7 @@ class _TenantDemandState extends State<AcceptedField> {
 
     } catch (e) {
       await BugLogger.log(
-        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_fieldworkar_page.php?assigned_fieldworker_name=encodedName&Location=encodedLoc",
+        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_fieldworkar_page.php?assigned_fieldworker_name=encodedName&Location=encodedLoc",
         error: e.toString(),
         statusCode: 500,
       );
@@ -118,7 +118,7 @@ class _TenantDemandState extends State<AcceptedField> {
   //     final encodedLoc = Uri.encodeQueryComponent(location);
   //
   //     final url =
-  //         "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/"
+  //         "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/"
   //         "share_demand_one_field_two_fieldwoarkar.php"
   //         "?assigned_fieldworker_location=$encodedLoc"
   //         "&assigned_fieldworker_name=$encodedName";

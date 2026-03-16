@@ -200,7 +200,7 @@ Future<List<yearlyBookRentModel>> fetchRentBookedBuildings() async {
   final FNumber = prefs.getString('number') ?? "";
   print(FNumber);
   final url = Uri.parse(
-    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/book_yearly_show.php?field_workar_number=$FNumber",
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/book_yearly_show.php?field_workar_number=$FNumber",
   );
 
   final res = await http.get(url);
@@ -305,7 +305,7 @@ class _YearlyBookrentScreenState extends State<YearlyBookrentScreen> {
                             borderRadius:
                             const BorderRadius.vertical(top: Radius.circular(22)),
                             child: Image.network(
-                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${b.propertyPhoto}",
+                              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${b.propertyPhoto}",
                               height: 210,
                               width: double.infinity,
                               fit: BoxFit.cover,

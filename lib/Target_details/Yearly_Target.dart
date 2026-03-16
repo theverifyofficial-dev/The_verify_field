@@ -62,7 +62,7 @@ class _YearlyTargetScreenState extends State<YearlyTargetScreen> {
 
   Future<void> _fetchBookYearly() async {
     final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/book_yearly_show.php?field_workar_number=$fieldWorkerNumber");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/book_yearly_show.php?field_workar_number=$fieldWorkerNumber");
 
     print("Number from shared: $fieldWorkerNumber");
 
@@ -79,7 +79,7 @@ class _YearlyTargetScreenState extends State<YearlyTargetScreen> {
 
   Future<void> _fetchLiveYearly() async {
     final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/live_yearly_show.php?field_workar_number=$fieldWorkerNumber");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/live_yearly_show.php?field_workar_number=$fieldWorkerNumber");
 
     final res = await http.get(uri);
     if (res.statusCode != 200)
@@ -95,7 +95,7 @@ class _YearlyTargetScreenState extends State<YearlyTargetScreen> {
 
   Future<void> _fetchAgreementYearly() async {
     final uri = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/count_api_agreement_yealry_with_reward.php?Fieldwarkarnumber=$fieldWorkerNumber",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/count_api_agreement_yealry_with_reward.php?Fieldwarkarnumber=$fieldWorkerNumber",
     );
 
     final res = await http.get(uri);
@@ -119,7 +119,7 @@ class _YearlyTargetScreenState extends State<YearlyTargetScreen> {
 
   Future<void> _fetchPoliceYearly() async {
     final uri = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/police_verification_yearly.php?Fieldwarkarnumber=$fieldWorkerNumber",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/police_verification_yearly.php?Fieldwarkarnumber=$fieldWorkerNumber",
     );
 
     final res = await http.get(uri);
@@ -141,7 +141,7 @@ class _YearlyTargetScreenState extends State<YearlyTargetScreen> {
 
   Future<void> _fetchCommercialYearly() async {
     final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/commercial_yearly.php?field_workar_number=$fieldWorkerNumber");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/commercial_yearly.php?field_workar_number=$fieldWorkerNumber");
 
     final res = await http.get(uri);
     if (res.statusCode != 200)
@@ -157,7 +157,7 @@ class _YearlyTargetScreenState extends State<YearlyTargetScreen> {
 
   Future<void> _fetchBuildingYearly() async {
     final uri = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/building_data_yearly.php?fieldworkarnumber=$fieldWorkerNumber",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/building_data_yearly.php?fieldworkarnumber=$fieldWorkerNumber",
     );
 
     final res = await http.get(uri);
@@ -352,7 +352,7 @@ class _YearlyTargetScreenState extends State<YearlyTargetScreen> {
   Future<void> _fetchOverviewBuildingDetail() async {
 
     final uri = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/building_over_view.php?fieldworkarnumber=$fieldWorkerNumber",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/building_over_view.php?fieldworkarnumber=$fieldWorkerNumber",
     );
 
     final res = await http.get(uri);

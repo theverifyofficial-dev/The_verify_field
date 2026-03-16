@@ -6,7 +6,7 @@ import '../../Custom_Widget/constant.dart';
 import '../../Insurance/InsuranceDetail.dart';
 
 const String insuranceBaseUrl =
-    "https://verifyserve.social/PHP_Files/insurance_insert_api/insurance_details/";
+    "https://verifyrealestateandservices.in/PHP_Files/insurance_insert_api/insurance_details/";
 
 class InsuranceModel {
   final int id;
@@ -247,7 +247,7 @@ class _AdminListInsuranceState extends State<AdminListInsurance> {
     try {
       final response = await http.get(
         Uri.parse(
-          "https://verifyserve.social/PHP_Files/insurance_insert_api/"
+          "https://verifyrealestateandservices.in/PHP_Files/insurance_insert_api/"
               "insurance_details/show_insurance_api_base_on_fieldwoakr_number.php"
               "?fieldworkar_number=${widget.fieldWorkerNumber}",
         ),

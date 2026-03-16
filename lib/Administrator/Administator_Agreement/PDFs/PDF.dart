@@ -193,7 +193,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
     final agreementId = data['id']?.toString();
     if (agreementId != null && agreementId.isNotEmpty) {
       final response = await http.get(Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/show_api_for_addtional_tenant.php?agreement_id=$agreementId",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_api_for_addtional_tenant.php?agreement_id=$agreementId",
       ));
 
       if (response.statusCode == 200) {

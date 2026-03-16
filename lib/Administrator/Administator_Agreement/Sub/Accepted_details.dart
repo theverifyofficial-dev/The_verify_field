@@ -65,7 +65,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
 
   Future<void> fetchAdditionalTenants(String agreementId) async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/show_api_for_addtional_tenant.php?agreement_id=$agreementId",
+      "http://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_api_addional_tenant_accept.php?agreement_id=$agreementId",
     );
 
     final response = await http.get(url);
@@ -95,7 +95,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
 
     try {
       final response = await http.post(
-        Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
+        Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
         body: {"P_id": propertyId},
       );
 
@@ -270,7 +270,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
     print(widget.agreementId);
     try {
       final response = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/details_api_for_accect_agreement.php?id=${widget.agreementId}"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/details_api_for_accect_agreement.php?id=${widget.agreementId}"));
 
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
@@ -365,7 +365,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
 
     try {
       final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/insert.php",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/insert.php",
       );
 
       final request = http.MultipartRequest('POST', uri);
@@ -448,7 +448,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         if (imgPath == null || imgPath.isEmpty) return null;
 
         final url =
-            "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$imgPath";
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$imgPath";
 
         final response = await http.get(Uri.parse(url));
         if (response.statusCode != 200) return null;
@@ -566,7 +566,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
       if (type == "Furnished Agreement") {
         file = await generateFurnishedAgreementPdf(agreement!);
       }
-      else if (type == "Commercial Agreement") {
+      else if (type == "Commercial Agreement" || type == "External Commercial Agreement" ) {
         file = await generateCommercialAgreementPdf(agreement!);
       } else {
         file = await generateAgreementPdf(agreement!);
@@ -915,7 +915,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
           MaterialPageRoute(
             builder: (_) => ImagePreviewScreen(
               imageUrl:
-              'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$imageUrl',
+              'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$imageUrl',
             ),
           ),
         );
@@ -927,7 +927,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: Image.network(
-            "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$imageUrl",
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$imageUrl",
             width: 160,   // force same as container
             height: 120,  // force same as container
             fit: BoxFit.cover, // ensures full fill
@@ -1147,7 +1147,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
     final isDark = theme.brightness == Brightness.dark;
 
     final String imageUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${data['property_photo'] ?? ''}";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${data['property_photo'] ?? ''}";
 
     Color textPrimary = isDark ? Colors.white : Colors.black87;
     Color textSecondary = isDark ? Colors.grey[400]! : Colors.grey[700]!;

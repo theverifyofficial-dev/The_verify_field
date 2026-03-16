@@ -45,7 +45,7 @@ class _UpdateActionFormNewState extends State<UpdateActionFormNew> {
 
   Future<void> _loadPropertyData() async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_book_flat_by_fieldworkar.php?field_workar_number=${widget.userNumber}",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_book_flat_by_fieldworkar.php?field_workar_number=${widget.userNumber}",
     );
 
     try {
@@ -127,7 +127,7 @@ class _UpdateActionFormNewState extends State<UpdateActionFormNew> {
     final formattedTime = DateFormat('HH:mm:ss').format(now);
 
     final uri = Uri.parse(
-      'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/book_flat_update_api_for_field_workar.php',
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/book_flat_update_api_for_field_workar.php',
     );
 
     try {

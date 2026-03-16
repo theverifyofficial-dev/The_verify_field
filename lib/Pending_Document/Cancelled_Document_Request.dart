@@ -35,7 +35,7 @@ class Cancelled_Document extends StatefulWidget {
 class _Cancelled_DocumentState extends State<Cancelled_Document> {
 
   Future<List<Doc>> fetchData() async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_data_by_looking_property_police_verifycation_document?building_subid=Cancelled');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/display_data_by_looking_property_police_verifycation_document?building_subid=Cancelled');
     final response = await http.get(url);
     if (response.statusCode == 200) {
       //await Future.delayed(Duration(seconds: 1));

@@ -66,8 +66,8 @@ class _Add_Assigned_TenantDemandsState extends State<Add_Assigned_TenantDemands>
   late String formattedDate;
 
   Future<void> fetchdata(Name,Number,BHK,Budget,Place,Floor_option,Family_Members,Additional_Info,Shifting_date,Parking,Gadi_Number,FeildWorker_Name,FeildWorker_Number,Current__Date,Buy_rent) async{
-    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Tenant_Demands_insurt?V_name=$Name&V_number=$Number&bhk=$BHK&budget=$Budget&place=$Place&floor_option=$Floor_option&Family_Members=$Family_Members&Additional_Info=$Additional_Info&Shifting_date=$Shifting_date&Parking=$Parking&Gadi_Number=$Gadi_Number&FeildWorker_Name=$FeildWorker_Name&FeildWorker_Number=$FeildWorker_Number&Current__Date=$Current__Date&Buy_rent=$Buy_rent'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+    final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Verify_Tenant_Demands_insurt?V_name=$Name&V_number=$Number&bhk=$BHK&budget=$Budget&place=$Place&floor_option=$Floor_option&Family_Members=$Family_Members&Additional_Info=$Additional_Info&Shifting_date=$Shifting_date&Parking=$Parking&Gadi_Number=$Gadi_Number&FeildWorker_Name=$FeildWorker_Name&FeildWorker_Number=$FeildWorker_Number&Current__Date=$Current__Date&Buy_rent=$Buy_rent'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);
@@ -82,7 +82,7 @@ class _Add_Assigned_TenantDemandsState extends State<Add_Assigned_TenantDemands>
   }
 
   Future<void> Delete(itemId) async {
-    final url = Uri.parse('https://verifyserve.social/WebService4.asmx/Delete_assign_tenant_demand_?id=$itemId');
+    final url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Delete_assign_tenant_demand_?id=$itemId');
     final response = await http.get(url);
     // await Future.delayed(Duration(seconds: 1));
     if (response.statusCode == 200) {

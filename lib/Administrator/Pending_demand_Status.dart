@@ -48,7 +48,7 @@ class Pending_demand_Status extends StatefulWidget {
 class _Pending_demand_StatusState extends State<Pending_demand_Status> {
 
   Future<List<TenantModel>> fetchData() async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Tenant_show_by_V_number_?V_number=${widget.id}');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Verify_Tenant_show_by_V_number_?V_number=${widget.id}');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -61,7 +61,7 @@ class _Pending_demand_StatusState extends State<Pending_demand_Status> {
   }
 
   Future<List<Catid_pending>> fetchData_pendinhg(id) async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/assign_tenant_demand_show_by_demand_number_?demand_number=${widget.id}');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/assign_tenant_demand_show_by_demand_number_?demand_number=${widget.id}');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -75,8 +75,8 @@ class _Pending_demand_StatusState extends State<Pending_demand_Status> {
 
   Future<void> fetchdata_action(idddd,looking,fedback) async{
     final responce = await http.get(Uri.parse
-      ('https://verifyserve.social/WebService4.asmx/update_assign_tenant_demand_by_id_looking_feedback_?id=$idddd&looking_type=$looking&feedback=$fedback'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+      ('https://verifyrealestateandservices.in/WebService4.asmx/update_assign_tenant_demand_by_id_looking_feedback_?id=$idddd&looking_type=$looking&feedback=$fedback'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);

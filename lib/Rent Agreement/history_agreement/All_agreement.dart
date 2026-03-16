@@ -27,6 +27,11 @@ class _AllAgreementState extends State<AllAgreement> {
   FieldWorkerPayment? myPayment;
   bool isPaymentLoading = false;
 
+  // Add alongside your existing state variables
+  final ScrollController _scrollController = ScrollController();
+  double _savedScrollOffset = 0.0;
+  String? _activeFilterMonth;
+
   @override
   void initState() {
     super.initState();
@@ -59,6 +64,12 @@ class _AllAgreementState extends State<AllAgreement> {
     }
   }
 
+  @override
+  void dispose() {
+    _scrollController.dispose(); // ← ADD
+    searchController.dispose();
+    super.dispose();
+  }
 
   Future<void> fetchMyPayment() async {
     if (mobileNumber == null || mobileNumber!.isEmpty) return;
@@ -68,7 +79,7 @@ class _AllAgreementState extends State<AllAgreement> {
 
       final res = await http.get(
         Uri.parse(
-          'https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/payment_count_new_api.php?fieldworker=$mobileNumber',
+          'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/payment_count_new_api.php?fieldworker=$mobileNumber',
         ),
       );
 
@@ -88,12 +99,55 @@ class _AllAgreementState extends State<AllAgreement> {
   }
 
 
+  Future<void> _silentRefresh() async {
+    try {
+      // If month filter is active, re-apply it
+      if (_activeFilterMonth != null) {
+        await fetchAgreementsByMonth(month: _activeFilterMonth!);
+        return;
+      }
+
+      // Otherwise silently reload full list
+      final url = Uri.parse(
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/show_agreement_by_fieldworkar.php?Fieldwarkarnumber=$mobileNumber',
+      );
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map && decoded['success'] == true && decoded['data'] is List) {
+          final freshList = (decoded['data'] as List)
+              .map((e) => AdminAllAgreementModel.fromJson(e))
+              .toList()
+              .reversed
+              .toList();
+
+          if (!mounted) return;
+
+          setState(() {
+            agreements = freshList;
+            final query = searchController.text.toLowerCase();
+            filteredAgreements = query.isEmpty
+                ? agreements
+                : agreements.where((a) {
+              return a.ownerName.toLowerCase().contains(query) ||
+                  a.tenantName.toLowerCase().contains(query) ||
+                  a.id.toString().contains(query);
+            }).toList();
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("❌ Silent refresh error: $e");
+    }
+  }
+
   Future<void> _refreshAgreements() async {
     try {
+      _activeFilterMonth = null; // ← ADD THIS LINE
       monthlyPaymentSummary = null;
       isMonthFiltered = false;
-      await fetchMyPayment(); // back to yearly
-
+      await fetchMyPayment();
       setState(() => isLoading = true);
       await fetchAgreements();
     } catch (e) {
@@ -106,7 +160,7 @@ class _AllAgreementState extends State<AllAgreement> {
   Future<void> fetchAgreements() async {
     try {
       final url = Uri.parse(
-          'https://verifyserve.social/Second%20PHP%20FILE/main_application/show_agreement_by_fieldworkar.php?Fieldwarkarnumber=$mobileNumber');
+          'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/show_agreement_by_fieldworkar.php?Fieldwarkarnumber=$mobileNumber');
       final response = await http.get(url);
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -131,7 +185,6 @@ class _AllAgreementState extends State<AllAgreement> {
     }
   }
 
-  // 🔹 CARD COLOR LOGIC (Police Verification)
   List<Color> _getCardColors(String? type, bool isDark) {
     if (type == "Police Verification") {
       return isDark
@@ -179,7 +232,6 @@ class _AllAgreementState extends State<AllAgreement> {
     }
   }
 
-
   String _formatDateTime(DateTime date) {
     return "${_twoDigits(date.day)} ${_monthName(date.month)} ${date.year}";
   }
@@ -196,9 +248,13 @@ class _AllAgreementState extends State<AllAgreement> {
 
   Future<void> fetchAgreementsByMonth({
     required String month,
-  }) async {
+  })
+  async {
+
+    _activeFilterMonth = month; // ← ADD THIS LINE
+
     final url = Uri.parse(
-      'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/month_wise_agreement.php'
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/month_wise_agreement.php'
           '?month=$month&fw=$mobileNumber',
     );
 
@@ -255,6 +311,8 @@ class _AllAgreementState extends State<AllAgreement> {
             child: CircularProgressIndicator(color: Colors.green),
           )
               : CustomScrollView(
+            controller: _scrollController, // ← ADD THIS
+
             slivers: [
 
               // 🔷 HEADER
@@ -533,7 +591,6 @@ class _AllAgreementState extends State<AllAgreement> {
     );
   }
 
-
   Widget _buildAgreementCard(
       AdminAllAgreementModel item,
       int index,
@@ -562,7 +619,10 @@ class _AllAgreementState extends State<AllAgreement> {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
+
         onTap: () async {
+          _savedScrollOffset = _scrollController.offset; // save position
+
           await Navigator.push(
             context,
             MaterialPageRoute(
@@ -571,7 +631,14 @@ class _AllAgreementState extends State<AllAgreement> {
               ),
             ),
           );
-          _refreshAgreements();
+
+          await _silentRefresh(); // refresh without resetting
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (_scrollController.hasClients) {
+              _scrollController.jumpTo(_savedScrollOffset); // restore position
+            }
+          });
         },
         child: Padding(
           padding: const EdgeInsets.all(14.0),
@@ -878,6 +945,7 @@ class _AllAgreementState extends State<AllAgreement> {
     );
   }
 }
+
 class _MissingBadge extends StatelessWidget {
   final String label;
   const _MissingBadge({required this.label});

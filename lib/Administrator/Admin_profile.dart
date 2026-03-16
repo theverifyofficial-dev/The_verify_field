@@ -35,7 +35,7 @@ class _ProfilePageState extends State<AdminProfile> {
       return;
     }
 
-    final String url = 'https://verifyserve.social/WebService3_ServiceWork.asmx/account_FeildWorkers_Register?num=$number';
+    final String url = 'https://verifyrealestateandservices.in/WebService3_ServiceWork.asmx/account_FeildWorkers_Register?num=$number';
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -129,7 +129,7 @@ class _ProfilePageState extends State<AdminProfile> {
     try {
       final response = await http.post(
         Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_application/logout_device.php",
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/logout_device.php",
         ),
         body: {
           "FNumber": number,

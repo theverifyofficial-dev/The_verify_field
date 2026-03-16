@@ -158,7 +158,7 @@ class PoliceyearlyModel {
 
 Future<List<PoliceyearlyModel>> fetchPoliceYearly(String number) async {
   final url = Uri.parse(
-    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/police_verification_yearly.php?Fieldwarkarnumber=$number",
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/police_verification_yearly.php?Fieldwarkarnumber=$number",
   );
 
   final res = await http.get(url);
@@ -260,7 +260,7 @@ class _YearlyPoliceVerificationScreenState
                           children: [
 
                             Image.network(
-                              "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/${v.tenantImage}",
+                              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/${v.tenantImage}",
                               height: 190,
                               width: double.infinity,
                               fit: BoxFit.cover,

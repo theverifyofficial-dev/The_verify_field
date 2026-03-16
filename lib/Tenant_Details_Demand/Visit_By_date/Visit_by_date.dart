@@ -41,7 +41,7 @@ class visit_by_date extends StatefulWidget {
 class _visit_by_dateState extends State<visit_by_date> {
 
   Future<List<Catid_visit>> fetchData1() async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_tenant_demand_visit_info_by_date_?visit_date=22/09/2024');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/display_tenant_demand_visit_info_by_date_?visit_date=22/09/2024');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);

@@ -69,7 +69,7 @@ class _AddRentedFlatTabbarNewState extends State<AddRentedFlatTabbarNew>
     try {
       final response = await http.get(
         Uri.parse(
-          'https://verifyserve.social/Second%20PHP%20FILE/Payment/all_payment_count_for_fieldworkar.php?field_workar_number=$mobileNumber',
+          'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/all_payment_count_for_fieldworkar.php?field_workar_number=$mobileNumber',
         ),
       );
 

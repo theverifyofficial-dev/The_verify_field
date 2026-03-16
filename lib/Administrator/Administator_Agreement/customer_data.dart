@@ -60,7 +60,7 @@ class AgreementCustomer extends StatefulWidget {
 
 class _AgreementCustomerState extends State<AgreementCustomer> {
 
-  final String baseImageUrl = "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/";
+  final String baseImageUrl = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/";
   List<AgreementUser> allData = [];
   List<AgreementUser> filteredData = [];
   bool loading = true;
@@ -74,7 +74,7 @@ class _AgreementCustomerState extends State<AgreementCustomer> {
 
   Future<void> fetchAllData() async {
     const apiUrl =
-        'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/show_api_for_fetch_api.php';
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_api_for_fetch_api.php';
 
     try {
       final res = await http.get(Uri.parse(apiUrl));

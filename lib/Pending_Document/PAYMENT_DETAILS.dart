@@ -112,7 +112,7 @@ class _View_Details_PaymentState extends State<View_Details_Payment> {
 
   Future<List<RealEstateSlider>> fetchCarouselData() async {
     final response = await http.get(Uri.parse(
-        'https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$_id'));
+        'https://verifyrealestateandservices.in/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$_id'));
 
     if (response.statusCode == 200) {
       // Extract JSON string from XML SOAP response
@@ -127,7 +127,7 @@ class _View_Details_PaymentState extends State<View_Details_Payment> {
   }
 
   Future<List<PaymentModel>> fetchData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=${widget.id}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=${widget.id}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -264,7 +264,7 @@ class _View_Details_PaymentState extends State<View_Details_Payment> {
                                                   width: 120,
                                                   child: CachedNetworkImage(
                                                     imageUrl:
-                                                    "https://verifyserve.social/"+abc.data![len].Building_image,
+                                                    "https://verifyrealestateandservices.in/"+abc.data![len].Building_image,
                                                     fit: BoxFit.cover,
                                                     placeholder: (context, url) => Image.asset(
                                                       AppImages.loading,

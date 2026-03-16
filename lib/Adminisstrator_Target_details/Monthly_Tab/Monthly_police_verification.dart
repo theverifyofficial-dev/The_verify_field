@@ -177,7 +177,7 @@ Future<List<PoliceMonthlyModel>> fetchPoliceMonthly() async {
   final FNumber = prefs.getString('number') ?? "";
   print(FNumber);
   final url = Uri.parse(
-    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/police_verification_monthly.php?Fieldwarkarnumber=$FNumber",
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/police_verification_monthly.php?Fieldwarkarnumber=$FNumber",
   );
 
   final res = await http.get(url);
@@ -297,7 +297,7 @@ class _MonthlyPoliceVerificationScreenState
                           child: Stack(
                             children: [
                               Image.network(
-                                "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/${v.tenantImage}",
+                                "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/${v.tenantImage}",
                                 height: 210,
                                 width: double.infinity,
                                 fit: BoxFit.cover,

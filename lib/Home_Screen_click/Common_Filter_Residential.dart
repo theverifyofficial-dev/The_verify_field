@@ -422,7 +422,7 @@ class Show_CommonFilter extends StatefulWidget {
 class _Show_CommonFilterState extends State<Show_CommonFilter> {
 
   Future<List<Catid>> fetchData(by_rt,bhk,plc,type) async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/filter_Residental_api_?Buy_Rent=$by_rt&Bhk_Squarefit=$bhk&Place_=$plc&Typeofproperty=$type&Looking_Property_=Flat");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/filter_Residental_api_?Buy_Rent=$by_rt&Bhk_Squarefit=$bhk&Place_=$plc&Typeofproperty=$type&Looking_Property_=Flat");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       print(by_rt);
@@ -557,7 +557,7 @@ class _Show_CommonFilterState extends State<Show_CommonFilter> {
                                                           width: 120,
                                                           child: CachedNetworkImage(
                                                             imageUrl:
-                                                            "https://verifyserve.social/"+abc.data![len].Building_image,
+                                                            "https://verifyrealestateandservices.in/"+abc.data![len].Building_image,
                                                             fit: BoxFit.cover,
                                                             placeholder: (context, url) => Image.asset(
                                                               AppImages.loading,

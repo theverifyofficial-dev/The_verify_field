@@ -148,7 +148,7 @@ Future<List<AgreementMonthlyModel>> fetchAgreementMonthly() async {
   final FNumber = prefs.getString('number') ?? "";
   print(FNumber);
   final url = Uri.parse(
-    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/agreement_external_monthly_show.php?Fieldwarkarnumber=$FNumber",
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/agreement_external_monthly_show.php?Fieldwarkarnumber=$FNumber",
   );
 
   final res = await http.get(url);
@@ -268,7 +268,7 @@ class _MonthlyAgreementExternalScreenState
                           child: Stack(
                             children: [
                               Image.network(
-                                "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/${a.tenantImage}",
+                                "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/${a.tenantImage}",
                                 height: 210,
                                 width: double.infinity,
                                 fit: BoxFit.cover,

@@ -116,7 +116,7 @@ class _Edit_Building_futurepropertyState extends State<Edit_Building_futureprope
   }
 
   Future<void> uploadImageWithTitle(File imageFile) async {
-    String uploadUrl = 'https://verifyserve.social/PHP_Files/EDIT_FUTURE_PROPERTY/futureproperty_update.php'; // Replace with your API endpoint
+    String uploadUrl = 'https://verifyrealestateandservices.in/PHP_Files/EDIT_FUTURE_PROPERTY/futureproperty_update.php'; // Replace with your API endpoint
     formattedDate = "${now.day}-${now.month}-${now.year}";
     FormData formData = FormData.fromMap({
       "id": widget.id,

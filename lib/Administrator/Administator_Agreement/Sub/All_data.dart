@@ -43,6 +43,10 @@ class AllData extends StatefulWidget {
 
 class _AgreementDetailsState extends State<AllData> {
 
+  // Add these alongside your other state variables
+  String? _activeFilterMonth;    // e.g. "2025-03", null = no filter
+  String? _activeFilterWorker;   // e.g. "9711775300", null = all
+
   List<AgreementModel> agreements = [];
   List<AgreementModel> filteredAgreements = [];
   bool isLoading = true;
@@ -50,9 +54,13 @@ class _AgreementDetailsState extends State<AllData> {
   late Future<List<FieldWorkerPayment>> _paymentsFuture;
   FieldWorkerPayment? monthlyPaymentSummary;
 
+  ScrollController _scrollController = ScrollController();
+  double _savedScrollOffset = 0.0;
+
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController(); // ← ADD THIS
     fetchAgreements();
     _paymentsFuture = fetchAllFieldWorkersPayments();
     searchController.addListener(_onSearchChanged);
@@ -60,6 +68,7 @@ class _AgreementDetailsState extends State<AllData> {
 
   @override
   void dispose() {
+    _scrollController.dispose(); // ← ADD THIS
     searchController.dispose();
     super.dispose();
   }
@@ -68,8 +77,8 @@ class _AgreementDetailsState extends State<AllData> {
     {"number": "9711775300", "name": "Sumit"},
     {"number": "9711275300", "name": "Ravi Kumar"},
     {"number": "9971172204", "name": "Faizan Khan"},
-    {"number": "9675383184", "name": "Abhay"},
-    {"number": "8130209217", "name": "Manish"},
+    // {"number": "9675383184", "name": "Abhay"},
+    // {"number": "8130209217", "name": "Manish"},
   ];
 
   Future<FieldWorkerPayment> fetchPaymentForWorker({
@@ -79,7 +88,7 @@ class _AgreementDetailsState extends State<AllData> {
   async {
     final res = await http.get(
       Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/payment_count_new_api.php?fieldworker=$number',
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/payment_count_new_api.php?fieldworker=$number',
       ),
     );
 
@@ -117,12 +126,59 @@ class _AgreementDetailsState extends State<AllData> {
     });
   }
 
+  /// Silent background refresh — preserves filter state and scroll position
+  Future<void> _silentRefresh() async {
+    try {
+      // If a month filter is active, re-fetch filtered data instead
+      if (_activeFilterMonth != null) {
+        await fetchAgreementsByMonth(
+          month: _activeFilterMonth!,
+          fieldWorker: _activeFilterWorker,
+        );
+        return;
+      }
+
+      // Otherwise fetch full list silently
+      final response = await http.get(
+        Uri.parse('https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php'),
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map && decoded.containsKey('data')) {
+          final freshList = (decoded['data'] as List)
+              .map((e) => AgreementModel.fromJson(e))
+              .toList()
+              .reversed
+              .toList();
+
+          if (!mounted) return;
+
+          setState(() {
+            agreements = freshList;
+            final query = searchController.text.toLowerCase();
+            filteredAgreements = query.isEmpty
+                ? agreements
+                : agreements.where((a) {
+              return a.ownerName.toLowerCase().contains(query) ||
+                  a.tenantName.toLowerCase().contains(query) ||
+                  a.id.toString().contains(query);
+            }).toList();
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("❌ Silent refresh error: $e");
+    }
+  }
+// Keep _refreshAgreements for the pull-to-refresh use case (resets everything)
   Future<void> _refreshAgreements() async {
     try {
+      _activeFilterMonth = null;   // ← ADD
+      _activeFilterWorker = null;  // ← ADD
       setState(() => isLoading = true);
       await fetchAgreements();
       monthlyPaymentSummary = null;
-
     } catch (e) {
       debugPrint("❌ Error refreshing agreements: $e");
     } finally {
@@ -133,7 +189,7 @@ class _AgreementDetailsState extends State<AllData> {
   Future<void> fetchAgreements() async {
     try {
       final response = await http.get(
-        Uri.parse('https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php'),
+        Uri.parse('https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php'),
       );
 
       if (response.statusCode == 200) {
@@ -173,7 +229,6 @@ class _AgreementDetailsState extends State<AllData> {
         : [Colors.black, Colors.green.shade400];
   }
 
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -181,7 +236,11 @@ class _AgreementDetailsState extends State<AllData> {
       child: Scaffold(
         body: isLoading
             ? const Center(child: CircularProgressIndicator())
-            : CustomScrollView(
+            : RefreshIndicator(          // ← WRAP HERE
+            onRefresh: _refreshAgreements,  // ← pulls down to reset everything
+            color: Colors.green,
+            child: CustomScrollView(
+          controller: _scrollController,           // ← ADD THIS
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverToBoxAdapter(
@@ -230,8 +289,6 @@ class _AgreementDetailsState extends State<AllData> {
                 ),
               ),
             ),
-
-
 
             SliverToBoxAdapter(
               child: Padding(
@@ -496,6 +553,9 @@ class _AgreementDetailsState extends State<AllData> {
                     child: InkWell(
                       borderRadius: BorderRadius.circular(18),
                       onTap: () async {
+                        // Save scroll position before leaving
+                        _savedScrollOffset = _scrollController.offset;
+
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -504,7 +564,15 @@ class _AgreementDetailsState extends State<AllData> {
                             ),
                           ),
                         );
-                        _refreshAgreements();
+
+                        await _silentRefresh();  // ← ADD THIS
+
+                        // Restore scroll position after returning — no list reset
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (_scrollController.hasClients) {
+                            _scrollController.jumpTo(_savedScrollOffset);
+                          }
+                        });
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(14.0),
@@ -520,11 +588,14 @@ class _AgreementDetailsState extends State<AllData> {
                                     CircleAvatar(
                                       radius: 15,
                                       backgroundColor: _getRenewalDateColor(renewalDate),
-                                      child: Text(
-                                        '${filteredAgreements.length - index}',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
+                                      child: FittedBox(
+                                        child: Text(
+                                          '${(filteredAgreements.length - index).clamp(1, filteredAgreements.length)}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -644,7 +715,7 @@ class _AgreementDetailsState extends State<AllData> {
                                   ),
                                 ),
                                 Text(
-                                  "Filled On ${_formatDate(item.currentDate)}",
+                                  "On ${_formatDate(item.currentDate)}",
                                   style: const TextStyle(
                                     fontStyle: FontStyle.italic,
                                     fontSize: 12,
@@ -682,7 +753,7 @@ class _AgreementDetailsState extends State<AllData> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   Future<void> _confirmAndUpdateOfficeReceived({
@@ -762,7 +833,7 @@ class _AgreementDetailsState extends State<AllData> {
     try {
       final response = await http.post(
         Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/update_payment_field.php",
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/update_payment_field.php",
         ),
         body: {
           "id": agreementId,
@@ -788,7 +859,7 @@ class _AgreementDetailsState extends State<AllData> {
           ),
         );
 
-        _refreshAgreements(); // 🔄 refresh list
+        _silentRefresh(); // 🔄 refresh without losing position/filter
       } else {
         throw decoded["message"];
       }
@@ -851,6 +922,10 @@ class _AgreementDetailsState extends State<AllData> {
     String? fieldWorker, // nullable
   })
   async {
+
+    _activeFilterMonth = month;
+    _activeFilterWorker = fieldWorker;
+
     final Map<String, String> queryParams = {
       "month": month,
     };
@@ -862,7 +937,7 @@ class _AgreementDetailsState extends State<AllData> {
     }
 
     final uri = Uri.parse(
-      'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/month_wise_agreement.php',
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/month_wise_agreement.php',
     ).replace(queryParameters: queryParams);
 
     debugPrint("📡 Month Filter API: $uri");
@@ -1087,7 +1162,6 @@ class _AgreementDetailsState extends State<AllData> {
   String _twoDigits(int n) => n.toString().padLeft(2, '0');
 }
 
-// 🔹 Info Row (Key-Value Style)
 Widget _InfoRow({required String title, required String value, Color? valueColor}) {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 2),
@@ -1178,8 +1252,3 @@ Widget _statusTick({
     ],
   );
 }
-
-
-
-
-

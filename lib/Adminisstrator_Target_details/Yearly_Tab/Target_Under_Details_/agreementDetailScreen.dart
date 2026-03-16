@@ -53,7 +53,7 @@ class AgreementExternalDetail extends StatelessWidget {
           : Colors.black54;
 
   String img(String path) =>
-      "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$path";
 
   /// ================= URL ACTION =================
 

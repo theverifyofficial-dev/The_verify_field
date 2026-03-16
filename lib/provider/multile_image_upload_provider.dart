@@ -10,7 +10,7 @@ class MultiImageUploadProvider with ChangeNotifier {
   bool get isUploading => _isUploading;
 
   Future<bool> uploadMultipleImages({required int pId, required List<File> images}) async {
-    final uri = Uri.parse("https://verifyserve.social/PHP_Files/multiple_image_main_realestate/multiple_image.php");
+    final uri = Uri.parse("https://verifyrealestateandservices.in/PHP_Files/multiple_image_main_realestate/multiple_image.php");
 
     final request = http.MultipartRequest('POST', uri);
     request.fields['P_id'] = pId.toString();

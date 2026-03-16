@@ -54,7 +54,7 @@ class _Feedback_demandState extends State<Feedback_demand> {
 
 
   Future<List<Catid>> fetchData(id) async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_assign_tenant_demand_by_feild_num_looking_location_?fieldworkar_number=$_num&looking_type=Pending&location_=SultanPur');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/display_assign_tenant_demand_by_feild_num_looking_location_?fieldworkar_number=$_num&looking_type=Pending&location_=SultanPur');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);

@@ -135,7 +135,7 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
 
   Future<void> _fetchAgreementDetails(String id) async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=$id");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=$id");
 
     final response = await http.get(url);
     if (response.statusCode == 200) {
@@ -299,7 +299,7 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
 
     try {
       final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/"
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/"
             "display_owner_and_tenant_addhar_document.php?$queryKey=$queryValue",
       );
 
@@ -371,7 +371,7 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
       print("⏳ Uploading...");
 
       final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement.php",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/agreement.php",
       );
       final request = http.MultipartRequest("POST", uri);
 
@@ -419,7 +419,7 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
           print("✅ File added: $key (${file.path})");
         } else if (existingUrl != null && existingUrl.isNotEmpty) {
           final relativePath = existingUrl.replaceAll(
-            RegExp(r"^https?:\/\/(theverify\.in|verifyserve\.social)\/(Second%20PHP%20FILE\/main_application\/agreement\/)?"),
+            RegExp(r"^https?:\/\/verifyrealestateandservices\.in\/(Second%20PHP%20FILE\/main_application\/agreement\/)?"),
             "",
           );
           request.fields[key] = relativePath;
@@ -495,7 +495,7 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
       print("⏳ Updating...");
 
       final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement_update.php",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/agreement_update.php",
       );
       final request = http.MultipartRequest("POST", uri);
 
@@ -542,7 +542,7 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
           print("✅ File added: $key (${file.path})");
         } else if (existingUrl != null && existingUrl.isNotEmpty) {
           final relativePath = existingUrl.replaceAll(
-            RegExp(r"^https?:\/\/(theverify\.in|verifyserve\.social)\/(Second%20PHP%20FILE\/main_application\/agreement\/)?"),
+            RegExp(r"^https?:\/\/verifyrealestateandservices\.in\/(Second%20PHP%20FILE\/main_application\/agreement\/)?"),
             "",
           );
           request.fields[key] = relativePath;
@@ -735,7 +735,7 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
             ? Image.file(file, fit: BoxFit.cover)
             : (url != null && url.isNotEmpty)
             ? Image.network(
-          'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$url',
+          'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$url',
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => const Center(
             child: Text('Error', style: TextStyle(fontSize: 12)),

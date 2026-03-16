@@ -216,7 +216,7 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
     return '0';
   }
 
-  static const String _apiUrl = "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/plot_add_api.php";
+  static const String _apiUrl = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/plot_add_api.php";
 
   static String _stripUnits(String? s) => (s ?? '').replaceAll(RegExp(r'[^0-9.]'), '').trim();
 

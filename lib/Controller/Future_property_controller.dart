@@ -175,7 +175,7 @@ class FuturePropertyController extends ChangeNotifier {
     print("Loading Page: $currentPage | Filter: $currentFilter");
 
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/future_property_pagination.php"
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/future_property_pagination.php"
           "?fieldworkarnumber=$fieldWorkerNumber"
           "&filter=$currentFilter"
           "&page=$currentPage"
@@ -239,10 +239,10 @@ class FuturePropertyController extends ChangeNotifier {
   Future<Map<String, dynamic>> _fetchStatus(int subid) async {
     try {
       final response2 = await http.get(Uri.parse(
-          "https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=$subid"));
+          "https://verifyrealestateandservices.in/WebService4.asmx/count_api_for_avability_for_building?subid=$subid"));
 
       final response3 = await http.get(Uri.parse(
-          "https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=$subid"));
+          "https://verifyrealestateandservices.in/WebService4.asmx/live_unlive_flat_under_building?subid=$subid"));
 
       int liveCount = 0;
       int totalFlats = 0;
@@ -275,11 +275,11 @@ class FuturePropertyController extends ChangeNotifier {
   Future<void> _fetchFlatsSummary() async {
     try {
       final totalUrl = Uri.parse(
-        'https://verifyserve.social/WebService4.asmx/GetTotalFlats_under_building?field_workar_number=$fieldWorkerNumber',
+        'https://verifyrealestateandservices.in/WebService4.asmx/GetTotalFlats_under_building?field_workar_number=$fieldWorkerNumber',
       );
 
       final liveUrl = Uri.parse(
-        'https://verifyserve.social/WebService4.asmx/GetTotalFlats_Live_under_building?field_workar_number=$fieldWorkerNumber',
+        'https://verifyrealestateandservices.in/WebService4.asmx/GetTotalFlats_Live_under_building?field_workar_number=$fieldWorkerNumber',
       );
 
       final totalResponse = await http.get(totalUrl);
@@ -376,7 +376,7 @@ class FuturePropertyController extends ChangeNotifier {
       notifyListeners();
 
       final url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/search_in_future_builing.php"
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/search_in_future_builing.php"
               "?fieldworkarnumber=$fieldWorkerNumber"
               "&search=$query"
       );

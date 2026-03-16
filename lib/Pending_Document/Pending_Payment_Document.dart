@@ -18,7 +18,7 @@ class Pending_Payment extends StatefulWidget {
 class _Pending_PaymentState extends State<Pending_Payment> {
 
   Future<List<Doc>> fetchData() async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_data_by_looking_property_police_verifycation_document?building_subid=Payment Pending');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/display_data_by_looking_property_police_verifycation_document?building_subid=Payment Pending');
     final response = await http.get(url);
     if (response.statusCode == 200) {
       //await Future.delayed(Duration(seconds: 1));

@@ -9,6 +9,7 @@ import 'package:verify_feild_worker/Administrator/Admin_upcoming.dart';
 import '../Adminisstrator_Target_details/Targets.dart';
 import '../Calender/CalenderForAdmin.dart';
 import '../Home_Screen.dart' hide AgreementTaskResponse, FuturePropertyResponse, WebsiteVisitResponse;
+import '../Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
 import '../Web_query/web_query.dart' hide SlideAnimation;
 import '../Z-Screen/Social_Media_links.dart';
 import '../main.dart';
@@ -144,7 +145,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
 
   Future<void> hitAgreementRenewalAPI() async {
 
-    const String url = "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement_renewal_cron.php";
+    const String url = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/agreement_renewal_cron.php";
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -195,7 +196,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
     try {
       final response = await http.get(
         Uri.parse(
-          'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/all_agreement_count.php',
+          'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/all_agreement_count.php',
         ),
       );
 
@@ -219,7 +220,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
     try {
       final response = await http.get(
         Uri.parse(
-          'https://verifyserve.social/Second%20PHP%20FILE/Payment/all_payment_count_for_admin.php',
+          'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/all_payment_count_for_admin.php',
         ),
       );
 
@@ -562,12 +563,25 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                             // },
                             {
                               "image": AppImages.demand_2,
-                              "title": "Costumer Demands 2.O",
+                              "title": "Costumer Demands 2.0",
                               "gradient": AppGradients.redCyan(),
                               "onTap": () {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (_) => const AdminTabbar()),
+                                );
+                              },
+                              "count": 0,
+                            },
+
+                            {
+                              "image": AppImages.tenant,
+                              "title": "Costumer Demands",
+                              "gradient": AppGradients.blue(),
+                              "onTap": () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const MainPage_TenandDemand()),
                                 );
                               },
                               "count": 0,
@@ -1195,13 +1209,13 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
 
     try {
       final agreementUrl =
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_agreement_for_admin.php?current_dates=$today";
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/task_agreement_for_admin.php?current_dates=$today";
 
       final futureUrl =
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_building_for_admin.php?current_date_=$today";
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/task_building_for_admin.php?current_date_=$today";
 
       final websiteUrl =
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/web_visit_for_admin.php?dates=$today";
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/web_visit_for_admin.php?dates=$today";
 
       final responses = await Future.wait([
         http.get(Uri.parse(agreementUrl)),

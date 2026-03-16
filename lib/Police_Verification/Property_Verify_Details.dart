@@ -114,7 +114,7 @@ class _Property_Verify_DetailsState extends State<Property_Verify_Details> {
 
   Future<List<RealEstateSlider>> fetchCarouselData() async {
     final response = await http.get(Uri.parse(
-        'https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$_id'));
+        'https://verifyrealestateandservices.in/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$_id'));
 
     if (response.statusCode == 200) {
       // Extract JSON string from XML SOAP response
@@ -129,7 +129,7 @@ class _Property_Verify_DetailsState extends State<Property_Verify_Details> {
   }
 
   Future<List<P_detailModel>> fetchData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=${widget.id}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=${widget.id}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -141,8 +141,8 @@ class _Property_Verify_DetailsState extends State<Property_Verify_Details> {
   }
 
   Future<void> Book_property() async{
-    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=${widget.id}&looking=Flat'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+    final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=${widget.id}&looking=Flat'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);
@@ -159,7 +159,7 @@ class _Property_Verify_DetailsState extends State<Property_Verify_Details> {
 
   //Delete api
   Future<void> DeletePropertybyid(itemId) async {
-    final url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
+    final url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
     final response = await http.get(url);
     // await Future.delayed(Duration(seconds: 1));
     if (response.statusCode == 200) {
@@ -358,8 +358,8 @@ class _Property_Verify_DetailsState extends State<Property_Verify_Details> {
                                                         borderRadius: const BorderRadius.all(Radius.circular(0)),
                                                         child: CachedNetworkImage(
                                                           imageUrl:
-                                                          //'https://verifyserve.social/uploads/IMG-20240802-WA0008.jpg',
-                                                          "https://www.verifyserve.social/${item.mImages}",
+                                                          //'https://verifyrealestateandservices.in/uploads/IMG-20240802-WA0008.jpg',
+                                                          "https://www.verifyrealestateandservices.in/${item.mImages}",
                                                           fit: BoxFit.fill,
                                                           placeholder: (context, url) => Image.asset(
                                                             AppImages.loading,
@@ -397,7 +397,7 @@ class _Property_Verify_DetailsState extends State<Property_Verify_Details> {
                                                   width: 120,
                                                   child: CachedNetworkImage(
                                                     imageUrl:
-                                                    "https://verifyserve.social/"+abc.data![len].Building_image,
+                                                    "https://verifyrealestateandservices.in/"+abc.data![len].Building_image,
                                                     fit: BoxFit.cover,
                                                     placeholder: (context, url) => Image.asset(
                                                       AppImages.loading,

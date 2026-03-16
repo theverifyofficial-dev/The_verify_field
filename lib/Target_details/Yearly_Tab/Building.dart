@@ -124,7 +124,7 @@ Future<List<BuildingModel>> fetchBuildings() async {
   final FNumber = prefs.getString('number') ?? "";
   print(FNumber);
   final url = Uri.parse(
-    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/building_data_yearly.php?fieldworkarnumber=$FNumber",
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/building_data_yearly.php?fieldworkarnumber=$FNumber",
   );
 
   final res = await http.get(url);
@@ -228,7 +228,7 @@ class _YearlyBuildingScreenState extends State<YearlyBuildingScreen> {
                             borderRadius:
                             const BorderRadius.vertical(top: Radius.circular(22)),
                             child: Image.network(
-                              "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${b.image}",
+                              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${b.image}",
                               height: 210,
                               width: double.infinity,
                               fit: BoxFit.cover,

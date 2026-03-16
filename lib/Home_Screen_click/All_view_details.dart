@@ -180,7 +180,7 @@ class AllViewDetails extends StatefulWidget {
 class _View_DetailsState extends State<AllViewDetails> {
   Future<List<RealEstateSlider>> fetchCarouselData(int subid) async {
     final url =
-        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mutliple_image_in_mainrealestate.php?subid=$subid';
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_mutliple_image_in_mainrealestate.php?subid=$subid';
 
     print('Fetching gallery for subid: $subid');
 
@@ -210,7 +210,7 @@ class _View_DetailsState extends State<AllViewDetails> {
   }
 
   Future<List<Catid>> fetchData(int id) async {
-    final url = Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id");
+    final url = Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id");
     print('Fetching property for id: $id');
     final response = await http.get(url).timeout(const Duration(seconds: 30));
     print('Property Response status: ${response.statusCode}');
@@ -360,7 +360,7 @@ class _View_DetailsState extends State<AllViewDetails> {
                     child: GestureDetector(
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) => PropertyPreview(ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}"),
+                          builder: (context) => PropertyPreview(ImageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}"),
                         ),
                       ),
                       child: prop.videoLink.isNotEmpty
@@ -371,7 +371,7 @@ class _View_DetailsState extends State<AllViewDetails> {
                           : ClipRRect(
                         borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
                         child: CachedNetworkImage(
-                          imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
+                          imageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
                           fit: BoxFit.cover,
                           placeholder: (context, url) => Container(color: Colors.grey[300], child: const Center(child: CircularProgressIndicator())),
                           errorWidget: (context, url, error) => Container(
@@ -491,7 +491,7 @@ class _View_DetailsState extends State<AllViewDetails> {
                           return GestureDetector(
                             onTap: () => Navigator.of(context).push(
                               MaterialPageRoute(
-                                builder: (context) => PropertyPreview(ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.mImages}"),
+                                builder: (context) => PropertyPreview(ImageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.mImages}"),
                               ),
                             ),
                             child: Container(
@@ -499,7 +499,7 @@ class _View_DetailsState extends State<AllViewDetails> {
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(8),
                                 child: CachedNetworkImage(
-                                  imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.mImages}",
+                                  imageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.mImages}",
                                   fit: BoxFit.cover,
                                   width: double.infinity,
                                 ),

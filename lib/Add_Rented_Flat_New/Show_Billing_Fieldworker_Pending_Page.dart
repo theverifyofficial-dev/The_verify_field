@@ -450,14 +450,14 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
 // toggle visitor availability (you can later bind from API)
 
 
-  static const _propListEndpoint = "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_complete_page_for_admin.php";
-  static const _statusEndpoint  = "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_final_payment_api_for_complete.php";
+  static const _propListEndpoint = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_complete_page_for_admin.php";
+  static const _statusEndpoint  = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_final_payment_api_for_complete.php";
   bool _s2Submitting = false;
 
-  static const _step1Endpoint   = "https://verifyserve.social/Second%20PHP%20FILE/Payment/paymet_inset.php";
+  static const _step1Endpoint   = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/paymet_inset.php";
 
   static const _step2Endpoint =
-      "https://verifyserve.social/Second%20PHP%20FILE/Payment/add_second_setp_amount.php";
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/add_second_setp_amount.php";
   late double commissionBothSide;
   double apiNum(String? v) {
     if (v == null) return 0;
@@ -494,7 +494,7 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
 
   Future<PaymentRecord?> _fetchPaymentStatusBySubId(int subid) async {
     final uri = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php?subid=$subid",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php?subid=$subid",
     );
 
     final res = await http.get(uri);
@@ -584,7 +584,7 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
   }
   Future<List<Tenant>> fetchTenants(int subId) async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_pending_rentout_api_tenant_owner.php?subid=$subId",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_pending_rentout_api_tenant_owner.php?subid=$subId",
     );
 
     final response = await http.get(url);
@@ -610,7 +610,7 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
   }
   Future<Property> _fetchPropertyById(int id) async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_fieldworkar.php?field_workar_number=${widget.fieldworkerNumber}",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_fieldworkar.php?field_workar_number=${widget.fieldworkerNumber}",
     );
 
 
@@ -649,7 +649,7 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
 
   Future<Map<String, dynamic>?> _fetchBookingBySubId(int subid) async {
     final uri = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php?subid=$subid",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php?subid=$subid",
     );
 
     final res = await http.get(uri);
@@ -800,7 +800,7 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
 
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_fieldworkar.php?field_workar_number=${widget.fieldworkerNumber}",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_fieldworkar.php?field_workar_number=${widget.fieldworkerNumber}",
     );
 
     final response = await http.get(url);
@@ -972,7 +972,7 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
     try {
       final response = await http.post(
         Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/book_flat_2nd_table_update_api.php",
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/book_flat_2nd_table_update_api.php",
         ),
         body: {
           "P_id": propertyId.toString(),
@@ -2355,7 +2355,7 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
       children: [
         p != null && p.propertyPhoto.isNotEmpty
             ? Image.network(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${p.propertyPhoto}",
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${p.propertyPhoto}",
           height: 220,
           width: double.infinity,
           fit: BoxFit.cover,

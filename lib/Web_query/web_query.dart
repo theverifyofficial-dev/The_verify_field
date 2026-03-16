@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -51,7 +52,7 @@ class _WebQueryPageState extends State<WebQueryPage> with SingleTickerProviderSt
 
   Future<List<WebQuery>> fetchQueries() async {
     final response = await http.get(Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate_for_website/show_contact.php"));
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate_for_website/show_contact.php"));
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
@@ -81,6 +82,16 @@ class _WebQueryPageState extends State<WebQueryPage> with SingleTickerProviderSt
     } catch (e) {
       return time;
     }
+  }
+
+  void _copyText(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Copied: $text"),
+        duration: const Duration(milliseconds: 800),
+      ),
+    );
   }
 
   Color _getAvatarColor(String name) {
@@ -400,24 +411,43 @@ class _WebQueryPageState extends State<WebQueryPage> with SingleTickerProviderSt
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          q.name,
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: primaryTextColor,
-                          ),
-                        ),
-                        if (q.subid != null) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            "Property ID : ${q.subid!}",
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: tertiaryTextColor,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                q.name,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: primaryTextColor,
+                                ),
+                              ),
                             ),
+                            IconButton(
+                              icon: const Icon(Icons.copy, size: 18),
+                              onPressed: () => _copyText(q.name),
+                            )
+                          ],
+                        ),
+
+                        if (q.subid != null)
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  "Property ID : ${q.subid!}",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: tertiaryTextColor,
+                                  ),
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.copy, size: 16),
+                                onPressed: () => _copyText(q.subid!),
+                              )
+                            ],
                           ),
-                        ],
                       ],
                     ),
                   ),
@@ -543,6 +573,7 @@ class _WebQueryPageState extends State<WebQueryPage> with SingleTickerProviderSt
             size: 18,
           ),
           const SizedBox(width: 8),
+
           Expanded(
             child: Text(
               value,
@@ -552,6 +583,12 @@ class _WebQueryPageState extends State<WebQueryPage> with SingleTickerProviderSt
               ),
             ),
           ),
+
+          IconButton(
+            icon: const Icon(Icons.copy, size: 18),
+            onPressed: () => _copyText(value),
+            tooltip: "Copy",
+          )
         ],
       ),
     );

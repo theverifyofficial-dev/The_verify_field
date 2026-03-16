@@ -7,7 +7,7 @@ import '../Monthly_agreement_external.dart';
 
 Future<List<AgreementMonthlyModel>> fetchAgreementMonthly() async {
   final url = Uri.parse(
-    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/agreement_external_monthly_show.php?Fieldwarkarnumber=11",
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/agreement_external_monthly_show.php?Fieldwarkarnumber=11",
   );
 
   final res = await http.get(url);
@@ -31,7 +31,7 @@ class AgreementMonthlyDetailScreen extends StatelessWidget {
   const AgreementMonthlyDetailScreen({super.key, required this.a});
 
   String img(String path) =>
-      "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$path";
 
   @override
   Widget build(BuildContext context) {
@@ -265,7 +265,7 @@ class AgreementMonthlyDetailScreen extends StatelessWidget {
     }
 
     final url =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$path";
 
     return GestureDetector(
       onTap: () {

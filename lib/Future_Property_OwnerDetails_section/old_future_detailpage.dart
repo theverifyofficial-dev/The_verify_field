@@ -296,7 +296,7 @@ class Future_Property_details extends StatefulWidget {
 class _Future_Property_detailsState extends State<Future_Property_details> {
 
   Future<List<Ground>> fetchData_Ground() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/frist_floor_base_show_mainrealestae?Floor_=G%20Floor&subid=${widget.idd}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/frist_floor_base_show_mainrealestae?Floor_=G%20Floor&subid=${widget.idd}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -308,7 +308,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   }
 
   Future<List<Ground>> fetchData_first() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/frist_floor_base_show_mainrealestae?Floor_=1%20Floor&subid=${widget.idd}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/frist_floor_base_show_mainrealestae?Floor_=1%20Floor&subid=${widget.idd}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -320,7 +320,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   }
 
   Future<List<Ground>> fetchData_second() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/second_floor_base_show_mainrealestae?Floor_=2%20Floor&subid=${widget.idd}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/second_floor_base_show_mainrealestae?Floor_=2%20Floor&subid=${widget.idd}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
 
@@ -333,7 +333,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   }
 
   Future<List<Ground>> fetchData_third() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=3%20Floor&subid=${widget.idd}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=3%20Floor&subid=${widget.idd}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
 
@@ -346,7 +346,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   }
 
   Future<List<Ground>> fetchData_four() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=4%20Floor&subid=${widget.idd}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=4%20Floor&subid=${widget.idd}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
 
@@ -359,7 +359,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   }
 
   Future<List<Ground>> fetchData_five() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=5%20Floor&subid=${widget.idd}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=5%20Floor&subid=${widget.idd}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
 
@@ -372,7 +372,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   }
 
   Future<List<Ground>> fetchData_six() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=6%20Floor&subid=${widget.idd}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=6%20Floor&subid=${widget.idd}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
 
@@ -385,7 +385,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   }
 
   Future<List<Ground>> fetchData_seven() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=7%20Floor&subid=${widget.idd}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=7%20Floor&subid=${widget.idd}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
 
@@ -399,7 +399,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
 
   Future<List<FutureProperty2>> fetchData() async {
     var url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_for_details_page.php?id=${widget.idd}");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_for_details_page.php?id=${widget.idd}");
 
     final response = await http.get(url);
 
@@ -421,7 +421,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   Future<List<DocumentMainModel_F>> fetchCarouselData() async {
     final response = await http.get(
       Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_multiple_image_in_future_property.php?subid=${widget.idd}',
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_multiple_image_in_future_property.php?subid=${widget.idd}',
       ),
     );
 
@@ -809,7 +809,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                                     width: 220,
                                                                     child: CachedNetworkImage(
                                                                       imageUrl:
-                                                                      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
+                                                                      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
                                                                       fit: BoxFit.cover,
                                                                       placeholder: (context, url) => Image.asset(
                                                                         AppImages.loading,
@@ -1244,7 +1244,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                                     width: 220,
                                                                     child: CachedNetworkImage(
                                                                       imageUrl:
-                                                                      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
+                                                                      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
                                                                       fit: BoxFit.cover,
                                                                       placeholder: (context, url) => Image.asset(
                                                                         AppImages.loading,
@@ -1668,7 +1668,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                                     width: 220,
                                                                     child: CachedNetworkImage(
                                                                       imageUrl:
-                                                                      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
+                                                                      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
                                                                       fit: BoxFit.cover,
                                                                       placeholder: (context, url) => Image.asset(
                                                                         AppImages.loading,
@@ -2103,7 +2103,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                                     width: 220,
                                                                     child: CachedNetworkImage(
                                                                       imageUrl:
-                                                                      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
+                                                                      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
                                                                       fit: BoxFit.cover,
                                                                       placeholder: (context, url) => Image.asset(
                                                                         AppImages.loading,
@@ -2521,7 +2521,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                                     width: 220,
                                                                     child: CachedNetworkImage(
                                                                       imageUrl:
-                                                                      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
+                                                                      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
                                                                       fit: BoxFit.cover,
                                                                       placeholder: (context, url) => Image.asset(
                                                                         AppImages.loading,
@@ -2957,7 +2957,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                                     width: 220,
                                                                     child: CachedNetworkImage(
                                                                       imageUrl:
-                                                                      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
+                                                                      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
                                                                       fit: BoxFit.cover,
                                                                       placeholder: (context, url) => Image.asset(
                                                                         AppImages.loading,
@@ -3394,7 +3394,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                                     width: 220,
                                                                     child: CachedNetworkImage(
                                                                       imageUrl:
-                                                                      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
+                                                                      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
                                                                       fit: BoxFit.cover,
                                                                       placeholder: (context, url) => Image.asset(
                                                                         AppImages.loading,
@@ -3831,7 +3831,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                                     width: 220,
                                                                     child: CachedNetworkImage(
                                                                       imageUrl:
-                                                                      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
+                                                                      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
                                                                       fit: BoxFit.cover,
                                                                       placeholder: (context, url) => Image.asset(
                                                                         AppImages.loading,
@@ -4493,7 +4493,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                             context,
                                             MaterialPageRoute(
                                               builder: (_) => PropertyPreview(
-                                                ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${item.dimage}",
+                                                ImageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${item.dimage}",
                                               ),
                                             ),
                                           );
@@ -4506,7 +4506,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                             borderRadius: BorderRadius.circular(15),
                                             child: CachedNetworkImage(
                                               imageUrl:
-                                              "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${item.dimage}",
+                                              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${item.dimage}",
                                               fit: BoxFit.cover,
                                               placeholder: (context, url) => Image.asset(
                                                 AppImages.loading,

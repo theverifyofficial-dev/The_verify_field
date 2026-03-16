@@ -195,7 +195,7 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
     print("🚀 duplicateFlatSubmit() CALLED");
 
     final uploadUrl = Uri.parse(
-      'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_flat_in_future_property.php',
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/add_flat_in_future_property.php',
     );
 
     print("🌍 API URL: $uploadUrl");
@@ -572,11 +572,11 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
     return null;
   }
   static const String imageBaseUrl =
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/";
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/";
 
   Future<List<Property1>> fetchData() async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/fecth_data_dublicate_flat.php?id=${widget.id}"
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/fecth_data_dublicate_flat.php?id=${widget.id}"
     );
 
     final response = await http.get(url);

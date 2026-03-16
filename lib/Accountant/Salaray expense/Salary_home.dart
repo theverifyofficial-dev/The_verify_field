@@ -68,7 +68,7 @@ class _SalaryHomeState extends State<SalaryHome> {
 
   Future<List<SalaryExpense>> _fetchExpenses() async {
     final url = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Expanse/display_salary_expanse.php');
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Expanse/display_salary_expanse.php');
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -129,7 +129,7 @@ class _SalaryHomeState extends State<SalaryHome> {
               borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
               child: CachedNetworkImage(
                 imageUrl:
-                "https://verifyserve.social/Second%20PHP%20FILE/Expanse/${expense.SalarySlip}",
+                "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Expanse/${expense.SalarySlip}",
                 height: 180,
                 width: double.infinity,
                 fit: BoxFit.cover,

@@ -638,7 +638,7 @@ class _NewDesignFieldWorkerCompleteFlatsNewState
 
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_api_complete_page_for_fieldworkar.php?field_workar_number=${_fieldworkarnumber}");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_api_complete_page_for_fieldworkar.php?field_workar_number=${_fieldworkarnumber}");
     print("User Name :" + "${userName}");
     print("User Number :" + "${userNumber}");
     print("User Number :" + "${_fieldworkarnumber}");
@@ -656,7 +656,7 @@ class _NewDesignFieldWorkerCompleteFlatsNewState
   Future<List<Tenant>> fetchTenants(int subId) async {
     final response = await http.get(
       Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_api_for_owner_tenant_api_for_complete_api.php?subid=$subId",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_api_for_owner_tenant_api_for_complete_api.php?subid=$subId",
       ),
     );
 
@@ -680,7 +680,7 @@ class _NewDesignFieldWorkerCompleteFlatsNewState
 
   Future<List<OwnerData>> fetchPersonDetail(int subid) async {
     final url = Uri.parse(
-        'https://verifyserve.social/PHP_Files/owner_tenant_api.php?subid=$subid');
+        'https://verifyrealestateandservices.in/PHP_Files/owner_tenant_api.php?subid=$subid');
     final response = await http.get(url);
 
     print("API Response: ${response.body}");
@@ -725,7 +725,7 @@ class _NewDesignFieldWorkerCompleteFlatsNewState
   /// ---------- FETCH (by subid) ----------
   Future<List<FirstPaymentRecord>> fetchFirstPaymentsBySubId(int subid) async {
     final uri = Uri.parse(
-      'https://verifyserve.social/Second%20PHP%20FILE/Payment/show_final_payment_api_for_complete.php?subid=$subid',
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_final_payment_api_for_complete.php?subid=$subid',
     );
 
     final r = await http.get(uri);
@@ -909,7 +909,7 @@ class _NewDesignFieldWorkerCompleteFlatsNewState
                     borderRadius: BorderRadius.circular(10),
                     child: CachedNetworkImage(
                       imageUrl:
-                      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
+                      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
                       height: 72,
                       width: 72,
                       fit: BoxFit.cover,

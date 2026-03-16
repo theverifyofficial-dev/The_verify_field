@@ -718,7 +718,7 @@ class Show_Aministater_CommercialState extends State<Show_Aministater_Commercial
 
   class CommercialApi {
   static Uri endpoint(String number) {
-  final base = 'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_api_commercial_property.php';
+  final base = 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_api_commercial_property.php';
   return Uri.parse(base).replace(
   queryParameters: {'field_workar_number': number},
   );

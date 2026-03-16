@@ -1,18 +1,10 @@
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
-import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
-import '../Future_Property_OwnerDetails_section/New_Update/under_flats_infutureproperty.dart';
-import '../Home_Screen_click/Add_RealEstate.dart';
-import '../Home_Screen_click/Commercial_property_Filter.dart';
-import '../Home_Screen_click/Filter_Options.dart';
-import '../ui_decoration_tools/app_images.dart';
 import 'Add_Assign_Tenant_Demand/See_All_Realestate.dart';
 import 'Administater_Realestate_Details.dart';
 
@@ -272,7 +264,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
-  // ---- Shared helpers ----
   List<Map<String, dynamic>> _normalizeList(dynamic raw) {
     if (raw is List) {
       return raw.map((e) => Map<String, dynamic>.from(e as Map)).toList();
@@ -393,11 +384,11 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       if (number == '8130209217' || number == '9675383184') {
         // Fallback to PHP endpoint for Manish and Abhey to fetch all properties
         url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php?field_workar_number=$number",
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php?field_workar_number=$number",
         );
       } else {
         url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php?field_workar_number=$number",
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php?field_workar_number=$number",
         );
       }
       futures.add(
@@ -439,7 +430,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       try {
         // Fetch total flats
         final response2 = await http.get(Uri.parse(
-          'https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=$sid',
+          'https://verifyrealestateandservices.in/WebService4.asmx/count_api_for_avability_for_building?subid=$sid',
         )).timeout(const Duration(seconds: 5)); // Added timeout
         String totalStr = "0";
         if (response2.statusCode == 200) {
@@ -625,7 +616,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
           height: imageHeight,
           width: double.infinity,
           child: CachedNetworkImage(
-            imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/$imageUrl",
+            imageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/$imageUrl",
             fit: BoxFit.cover,
             placeholder: (_, __) => const Center(
               child: SizedBox(
@@ -675,7 +666,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     List<String> _buildMultipleImages(Catid p) {
     final List<String> imgs = [];
     if (p.propertyPhoto != null && p.propertyPhoto.isNotEmpty) {
-      imgs.add('https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${p.propertyPhoto}');
+      imgs.add('https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${p.propertyPhoto}');
     }
     return imgs;
   }

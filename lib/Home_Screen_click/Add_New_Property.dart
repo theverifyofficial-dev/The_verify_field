@@ -181,7 +181,7 @@ class _AddPropertiesFirstPageState extends State<AddPropertiesFirstPage> {
   }
 
   Future<void> uploadCompressedImage(File imageFile) async {
-    final uri = Uri.parse("https://verifyserve.social/PHP_Files/Main_Realestate/insert_property.php");
+    final uri = Uri.parse("https://verifyrealestateandservices.in/PHP_Files/Main_Realestate/insert_property.php");
 
     var request = http.MultipartRequest('POST', uri);
     request.headers.addAll({
@@ -1428,7 +1428,7 @@ class _AddPropertiesFirstPageState extends State<AddPropertiesFirstPage> {
 
       final prefs = await SharedPreferences.getInstance();
 
-      final uri = Uri.parse("https://verifyserve.social/PHP_Files/Main_Realestate/insert_property.php");
+      final uri = Uri.parse("https://verifyrealestateandservices.in/PHP_Files/Main_Realestate/insert_property.php");
       var request = http.MultipartRequest('POST', uri);
 
       request.fields['locations'] = _location ?? '';

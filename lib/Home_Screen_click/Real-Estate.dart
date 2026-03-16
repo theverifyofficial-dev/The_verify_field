@@ -136,7 +136,7 @@ class _Show_Real_EstateState extends State<Show_Real_Estate> {
   }
 
   Future<List<RealEstateShowDateModel>> fetchData(id) async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/show_RealEstate_by_fieldworkarnumber?fieldworkarnumber=$_number&looking=Flat");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/show_RealEstate_by_fieldworkarnumber?fieldworkarnumber=$_number&looking=Flat");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
 
@@ -224,7 +224,7 @@ class _Show_Real_EstateState extends State<Show_Real_Estate> {
 
   //Delete api
   Future<void> DeletePropertyById(itemId) async {
-    final url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
+    final url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
     final response = await http.get(url);
     // await Future.delayed(Duration(seconds: 1));
     if (response.statusCode == 200) {
@@ -444,7 +444,7 @@ class _Show_Real_EstateState extends State<Show_Real_Estate> {
                   return StreamBuilder<http.Response>(
                     stream: Stream.periodic(const Duration(seconds: 5))
                         .asyncMap((_) => http.get(Uri.parse(
-                      "https://verifyserve.social/WebService4.asmx/Count_api_flat_under_future_property_by_cctv?CCTV=${property.id}",
+                      "https://verifyrealestateandservices.in/WebService4.asmx/Count_api_flat_under_future_property_by_cctv?CCTV=${property.id}",
                     ))),
                     builder: (context, snapshot) {
                       bool isRedDot = false;
@@ -497,7 +497,7 @@ class _Show_Real_EstateState extends State<Show_Real_Estate> {
                                           borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                                         ),
                                         child: Image.network(
-                                          "https://verifyserve.social/${_filteredProperties[index].Building_image}",
+                                          "https://verifyrealestateandservices.in/${_filteredProperties[index].Building_image}",
                                           fit: BoxFit.cover,
                                           errorBuilder: (context, error, stackTrace) => Center(
                                             child: Icon(Icons.home, size: 50, color: Theme.of(context).hintColor),

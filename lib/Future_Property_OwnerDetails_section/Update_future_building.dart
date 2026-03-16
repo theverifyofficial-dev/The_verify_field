@@ -130,7 +130,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
   Future<List<FutureProperty2>> fetchData() async {
     var url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_for_details_page.php?id=${widget.propertyId}"
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_for_details_page.php?id=${widget.propertyId}"
     );
 
     final res = await http.get(url);
@@ -154,7 +154,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         final data = dataList.first;
 
         // network image
-        _networkImageUrl = "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/" + (data.images.isNotEmpty ? data.images : '');
+        _networkImageUrl = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/" + (data.images.isNotEmpty ? data.images : '');
 
         // regular fields
         _facilityController.text = data.facility;
@@ -234,7 +234,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
   Future<void> updateImageWithTitle(File? imageFile) async {
     String uploadUrl =
-        'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/update_allfeilds_with_single_image.php';
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/update_allfeilds_with_single_image.php';
 
     var uri = Uri.parse(uploadUrl);
     var request = http.MultipartRequest('POST', uri);

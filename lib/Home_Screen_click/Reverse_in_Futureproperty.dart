@@ -39,7 +39,7 @@ class _ReverseInFuturePropertyState extends State<ReverseInFutureProperty> {
 
     try {
       final url = Uri.parse(
-          "https://verifyserve.social/WebService4.asmx/display_future_property_by_id?id=$id");
+          "https://verifyrealestateandservices.in/WebService4.asmx/display_future_property_by_id?id=$id");
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
@@ -83,7 +83,7 @@ class _ReverseInFuturePropertyState extends State<ReverseInFutureProperty> {
 
     try {
       final url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/reverised.php?pid=${widget.id}&subid=$subid");
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/reverised.php?pid=${widget.id}&subid=$subid");
 
       print("🔹 Calling Second API: $url");
 
@@ -255,7 +255,7 @@ class _ReverseInFuturePropertyState extends State<ReverseInFutureProperty> {
           if (propertyData!["images"] != null &&
               propertyData!["images"].toString().isNotEmpty)
             Image.network(
-              "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${propertyData!["images"]}",
+              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${propertyData!["images"]}",
               height: 200,
               width: double.infinity,
               fit: BoxFit.cover,

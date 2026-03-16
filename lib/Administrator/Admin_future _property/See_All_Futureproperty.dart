@@ -90,13 +90,24 @@ class _DetailRow extends StatelessWidget {
 
 class SeeAll_FutureProperty extends StatefulWidget {
   final String number;
-  const SeeAll_FutureProperty({super.key, required this.number});
-
+  final String? subId;
+  final String? flatId;
+  final String? fwName;
+  final String? highlightFlatId;
+  const SeeAll_FutureProperty({
+    super.key,
+    required this.number,
+    this.subId,
+    this.flatId,
+    this.fwName,
+    this.highlightFlatId,
+  });
   @override
   State<SeeAll_FutureProperty> createState() => _SeeAll_FuturePropertyState();
 }
 
 class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
+  String? _highlightedId;
 
   Timer? _debounce;
   final TextEditingController _searchController = TextEditingController();
@@ -121,7 +132,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
     super.initState();
 
     selectedLabel = "All";
-
+    _highlightedId = widget.highlightFlatId;
     _searchController.addListener(_onSearchChanged);
 
     _scrollController.addListener(() {
@@ -132,13 +143,38 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
         _fetchNextPage();
       }
     });
-
-    fetchData(reset: true);
+    fetchData(reset: true).then((_) => _scrollToHighlighted());
     fetchTotalFlats();
     fetchFlatsStatus();
     print("Widget number: ${widget.number}");
   }
 
+  void _scrollToHighlighted() {
+    if (_highlightedId == null) return;
+
+    final index = _properties.indexWhere(
+          (p) => p.id.toString() == _highlightedId,
+    );
+
+    print("🔍 Highlight index: $index for id: $_highlightedId");
+
+    if (index == -1) return;
+
+    final double itemHeight = 450.0; // fixed height better hai
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return; // 👈 ADD THIS
+      _scrollController.animateTo(
+        index * itemHeight,
+        duration: const Duration(milliseconds: 700),
+        curve: Curves.easeInOut,
+      );
+
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) setState(() => _highlightedId = null);
+      });
+    });
+  }
 
   Future<void> fetchData({bool reset = false}) async {
     if (_isFetchingMore) return;
@@ -613,30 +649,11 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
     final screenHeight = size.height;
     final screenWidth = size.width;
     return Scaffold(
-        appBar: AppBar(
-          centerTitle: true,
-          backgroundColor: Colors.black,
-          surfaceTintColor: Colors.black,
-          title: Image.asset(AppImages.verify, height: 75),
-          leading: InkWell(
-            onTap: () => Navigator.pop(context),
-            child: const Row(
-              children: [
-                SizedBox(width: 3),
-                Icon(
-                  PhosphorIcons.caret_left_bold,
-                  color: Colors.white,
-                  size: 30,
-                ),
-              ],
-            ),
-          ),
-        ),
         body:
         Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.only(left: 16,right: 16,bottom: 16,top: 5),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -704,8 +721,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                             borderSide: BorderSide.none,
                           ),
                         ),
-                        // ✅ Complete search + filter logic
-                        onChanged: (_) {}, // Use listener for debounced search
+                        onChanged: (_) {},
                       ),
                     ),
                   ),
@@ -723,21 +739,17 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                           child: ElevatedButton(
                             onPressed: () async {
                               if (selectedLabel == label) return;
-
                               setState(() {
                                 selectedLabel = label;
                                 _currentPage = 1;
                                 _hasMore = true;
-                                _properties.clear();   // clear only list
+                                _properties.clear();
                               });
-
-                              await fetchData(); // ❌ reset: true mat bhejo
+                              await fetchData();
                             },
-
                             style: ElevatedButton.styleFrom(
                               backgroundColor: isSelected ? Colors.blue : Colors.grey[300],
-                              shape:
-                              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                             ),
                             child: Text(
                               label,
@@ -754,7 +766,6 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  // ✅ Property count pill
                   if (totalRecordsFromApi > 0)
                     SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
@@ -773,10 +784,10 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                                 const Icon(Icons.check_circle_outline, size: 20, color: Colors.green),
                                 const SizedBox(width: 6),
                                 Text(
-                                    "$totalRecordsFromApi building found",
+                                  "$totalRecordsFromApi building found",
                                   style: const TextStyle(
                                       fontFamily: "PoppinsMedium",
-                                      fontWeight: FontWeight.w500, fontSize: 14,color: Colors.black),
+                                      fontWeight: FontWeight.w500, fontSize: 14, color: Colors.black),
                                 ),
                                 const SizedBox(width: 6),
                                 GestureDetector(
@@ -794,8 +805,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                           _statsLoading
                               ? const SizedBox.shrink()
                               : Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
                               color: Colors.blue.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(20),
@@ -817,24 +827,20 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                           _statsLoading
                               ? const SizedBox.shrink()
                               : Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment.spaceEvenly,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              // Live Flats Container
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 8),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                 decoration: BoxDecoration(
                                   color: Colors.blue.withOpacity(0.1),
-                                  borderRadius:
-                                  BorderRadius.circular(20),
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Row(
                                   children: [
                                     Text(
                                       "Live Flats: $liveFlats",
-                                      style:  TextStyle(
-                                        fontFamily: "PoppinsMedium",
+                                      style: TextStyle(
+                                          fontFamily: "PoppinsMedium",
                                           fontWeight: FontWeight.w500,
                                           fontSize: 14),
                                     ),
@@ -842,14 +848,11 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                                 ),
                               ),
                               const SizedBox(width: 6),
-                              // Book Flats Container
                               Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 8),
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                 decoration: BoxDecoration(
                                   color: Colors.blue.withOpacity(0.1),
-                                  borderRadius:
-                                  BorderRadius.circular(20),
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Row(
                                   children: [
@@ -888,16 +891,12 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
               )
                   : ListView.builder(
                 controller: _scrollController,
-                itemCount: (_isSearching
-                    ? _searchResults.length
-                    : _properties.length) +
+                itemCount: (_isSearching ? _searchResults.length : _properties.length) +
                     (_isFetchingMore && !_isSearching ? 1 : 0),
                 itemBuilder: (context, index) {
-                  final currentList =
-                  _isSearching ? _searchResults : _properties;
+                  final currentList = _isSearching ? _searchResults : _properties;
 
-                  if (!_isSearching &&
-                      index == _properties.length) {
+                  if (!_isSearching && index == _properties.length) {
                     return const Padding(
                       padding: EdgeInsets.all(16),
                       child: Center(child: CircularProgressIndicator()),
@@ -905,6 +904,12 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                   }
 
                   final property = currentList[index];
+
+                  // ✅ HIGHLIGHT CHECK
+                  final bool isHighlighted =
+                      _highlightedId != null &&
+                          property.id.toString() == _highlightedId;
+
                   final displayIndex = _properties.length - index;
                   final theme = Theme.of(context);
                   final cs = theme.colorScheme;
@@ -914,14 +919,14 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                   final images = _buildMultipleImages(property);
                   final double cardPadding = (screenWidth * 0.03).clamp(8.0, 20.0);
                   final double horizontalMargin = (screenWidth * 0.0).clamp(0.5, 0.8);
-                  final double titleFontSize = isTablet ? 20 : 16; // Increased from 12 to 16 for phones
+                  final double titleFontSize = isTablet ? 20 : 16;
                   final double detailFontSize = isTablet ? 14 : 13;
                   final double imageH = (screenHeight * 0.29).clamp(150.0, 250.0);
                   final double multiH = imageH * 0.8;
-                  // Calculate missing fields
                   final missingFields = _missingFieldsFor(property);
                   final hasMissingFields = missingFields.isNotEmpty;
                   final loggValue2 = property.totalFlats;
+
                   final Widget totalDetail = _DetailRow(
                     icon: Icons.format_list_numbered,
                     label: 'Total Flats',
@@ -951,7 +956,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                     multiImgHeight: multiH,
                     isTablet: isTablet,
                   );
-                  // Priority detail rows: location, buy/rent, residence/commercial, added (removed Building ID)
+
                   final List<Widget> detailRows = [];
                   if ((property.place ?? '').isNotEmpty) {
                     detailRows.add(_DetailRow(
@@ -1002,6 +1007,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                     fontSize: detailFontSize,
                     fontWeight: FontWeight.bold,
                   ));
+
                   final Widget leftColumn = Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1025,10 +1031,8 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                           overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: isTablet ? 16 : 12),
-                        // Render detail rows
                         ...detailRows,
                         const Spacer(),
-                        // Shift Building ID to the right
                         Align(
                           alignment: Alignment.centerRight,
                           child: SizedBox(
@@ -1039,99 +1043,109 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                       ],
                     ),
                   );
-                  return GestureDetector(
-                    onTap: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              Administater_Future_Property_details(
-                                buildingId: property.id.toString(),
-                              ),
+
+                  // ✅ AnimatedContainer wraps Card for highlight effect
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 400),
+                    margin: EdgeInsets.symmetric(horizontal: horizontalMargin, vertical: 4),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      border: isHighlighted
+                          ? Border.all(color: Colors.amber, width: 2.5)
+                          : null,
+                      boxShadow: isHighlighted
+                          ? [BoxShadow(color: Colors.amber.withOpacity(0.4), blurRadius: 12, spreadRadius: 2)]
+                          : [],
+                    ),
+                    child: GestureDetector(
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Administater_Future_Property_details(
+                              buildingId: property.id.toString(),
+                            ),
+                          ),
+                        );
+                      },
+                      child: Card(
+                        margin: EdgeInsets.zero, // ✅ margin AnimatedContainer mein hai
+                        elevation: isDark ? 0 : 6,
+                        color: theme.cardColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(color: theme.dividerColor),
                         ),
-                      );
-                    },
-                    child: Card(
-                      margin: EdgeInsets.symmetric(
-                          horizontal: horizontalMargin,
-                          vertical: 4
-                      ),
-                      elevation: isDark ? 0 : 6,
-                      color: theme.cardColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        side: BorderSide(color: theme.dividerColor),
-                      ),
-                      child: Stack(
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.all(cardPadding),
-                            child: Column(
-                              children: [
-                                IntrinsicHeight(
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        flex: isTablet ? 2 : 2,
-                                        child: leftColumn,
-                                      ),
-                                      SizedBox(width: isTablet ? 20 : 16),
-                                      Expanded(
-                                        flex: isTablet ? 3 : 3,
-                                        child: rightColumn,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                if (hasMissingFields)
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 8.0),
-                                    child: Container(
-                                      width: double.infinity,
-                                      padding: EdgeInsets.all(isTablet ? 8 : 6),
-                                      decoration: BoxDecoration(
-                                        color: cs.errorContainer,
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(color: cs.error),
-                                      ),
-                                      child: Text(
-                                        "⚠ Missing: ${missingFields.join(', ')}",
-                                        textAlign: TextAlign.center,
-                                        style: theme.textTheme.bodySmall?.copyWith(
-                                          color: cs.error,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: detailFontSize,
+                        child: Stack(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.all(cardPadding),
+                              child: Column(
+                                children: [
+                                  IntrinsicHeight(
+                                    child: Row(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          flex: isTablet ? 2 : 2,
+                                          child: leftColumn,
                                         ),
-                                        maxLines: 4,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
+                                        SizedBox(width: isTablet ? 20 : 16),
+                                        Expanded(
+                                          flex: isTablet ? 3 : 3,
+                                          child: rightColumn,
+                                        ),
+                                      ],
                                     ),
                                   ),
-                              ],
-                            ),
-                          ),
-                          // Top right count number badge
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: cs.primary.withOpacity(0.8),
-                                borderRadius: BorderRadius.circular(12),
+                                  if (hasMissingFields)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 8.0),
+                                      child: Container(
+                                        width: double.infinity,
+                                        padding: EdgeInsets.all(isTablet ? 8 : 6),
+                                        decoration: BoxDecoration(
+                                          color: cs.errorContainer,
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(color: cs.error),
+                                        ),
+                                        child: Text(
+                                          "⚠ Missing: ${missingFields.join(', ')}",
+                                          textAlign: TextAlign.center,
+                                          style: theme.textTheme.bodySmall?.copyWith(
+                                            color: cs.error,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: detailFontSize,
+                                          ),
+                                          maxLines: 4,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ),
+                                ],
                               ),
-                              child: Text(
-                                '$displayIndex',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
+                            ),
+                            Positioned(
+                              top: 8,
+                              right: 8,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: cs.primary.withOpacity(0.8),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '$displayIndex',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   );

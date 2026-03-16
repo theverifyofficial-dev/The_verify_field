@@ -497,7 +497,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                             },
                             {
                               "image": AppImages.propertysale,
-                              "title": "Future\n Inventory/Property",
+                              "title": "Future\nInventory/Property",
                               "gradient": AppGradients.orangeRed(),
                               "onTap": () {
                                 Navigator.push(

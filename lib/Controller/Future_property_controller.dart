@@ -35,9 +35,15 @@ class Catid {
   final String? totalFloor;
   final String? residenceCommercial;
   final String? facility;
+  final String totalFlats;
+  final String liveFlats;
+  final String unliveFlats;
 
   Catid({
     required this.id,
+    required this.totalFlats,
+    required this.liveFlats,
+    required this.unliveFlats,
     this.images,
     this.ownerName,
     this.ownerNumber,
@@ -75,6 +81,9 @@ class Catid {
     return Catid(
       id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
       images: json['images']?.toString(),
+      totalFlats: json['total_flats']?.toString() ?? '0',
+      liveFlats: json['live_flats']?.toString() ?? '0',
+      unliveFlats: json['unlive_flats']?.toString() ?? '0',
       ownerName: json['ownername']?.toString(),
       ownerNumber: json['ownernumber']?.toString(),
       caretakerName: json['caretakername']?.toString(),
@@ -217,22 +226,16 @@ class FuturePropertyController extends ChangeNotifier {
     isPaginationLoading = false;
     notifyListeners();
   }
+// Controller mein add karo
+  void updateSingleProperty(int id) async {
+    final index = _all.indexWhere((p) => p.id == id);
+    if (index == -1) return;
 
-  Future<void> _fetchStatusesParallel() async {
-    _statuses.clear();
-
-    final futures = _all.map((p) async {
-      final status = await _fetchStatus(p.id);
-      return MapEntry(p.id, status);
-    }).toList();
-
-    final results = await Future.wait(futures);
-
-    for (final entry in results) {
-      _statuses[entry.key] = entry.value;
-    }
-
-    isStatusLoading = false;
+    final url = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/future_property_pagination.php"
+          "?fieldworkarnumber=$fieldWorkerNumber&filter=all&page=1&limit=1&id=$id",
+    );
+    // ya jo bhi single property fetch API ho
     notifyListeners();
   }
 
@@ -308,6 +311,7 @@ class FuturePropertyController extends ChangeNotifier {
     }
   }
   String currentFilter = "all";
+
   // 🔥 COMPLETE FILTER SYSTEM
   Future<void> applyFilter(String label) async {
 

@@ -14,7 +14,9 @@ import 'package:verify_feild_worker/provider/real_Estate_Show_Data_provider.dart
 import 'package:verify_feild_worker/Notification_demo/routes.dart';
 import 'package:verify_feild_worker/Z-Screen/splash.dart';
 import 'Administrator/AdminInsurance/AdminInsuranceListScreen.dart';
+import 'Administrator/Admin_future _property/Admin_SeeAll_Tabbar.dart';
 import 'Administrator/Admin_future _property/Administater_Future_Tabbar.dart';
+import 'Administrator/Admin_future _property/See_All_Futureproperty.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
 import 'Administrator/SubAdmin/SubAdminAccountant_Home.dart';
 import 'Controller/Cache_memory.dart';
@@ -179,9 +181,28 @@ class _MyAppState extends State<MyApp> {
               (route) => false,
           arguments: {
             "tabIndex": 2,
-            "propertyId": pId,
+            "propertyId": pId
           },
         );
+        return;
+      }
+
+      if (type == "ADMIN_PROPERTY_STATUS") {
+        final String fwNumber   = data['fw_number'] ?? '';
+        final String? subId     = data['subid']?.toString();    // building id
+        final String? flatId    = data['flat_id']?.toString();
+        final String? fwName    = data['fw_name']?.toString();
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          navigatorKey.currentState?.push(
+            MaterialPageRoute(
+              builder: (_) => TabBarPage(
+                number: int.tryParse(fwNumber) ?? 0,
+              ),
+            ),
+          );
+        });
         return;
       }
 

@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import '../../ui_decoration_tools/app_images.dart';
 import '../Administrator_HomeScreen.dart';
+import 'Admin_SeeAll_Tabbar.dart';
 import 'Future_Property_Details.dart';
 import 'See_All_Futureproperty.dart';
 
@@ -212,6 +213,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
     {"name": "Sumit Kasaniya", "id": "9711775300"},
     {"name": "Ravi Kumar", "id": "9711275300"},
     {"name": "Faizan Khan", "id": "9971172204"},
+    {"name": "Avjit", "id": "11"},
     // {"name": "Manish", "id": "8130209217"},
     // {"name": "Abhay", "id": "9675383184"},
   ];
@@ -295,7 +297,8 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
       allowedWorkers = fieldWorkers.where((fw) =>
       fw['name']!.toLowerCase().contains("sumit") ||
           fw['name']!.toLowerCase().contains("ravi") ||
-          fw['name']!.toLowerCase().contains("faizan")
+          fw['name']!.toLowerCase().contains("ravi") ||
+          fw['name']!.toLowerCase().contains("avjit")
       ).toList();
     } else if (loc.contains("rajpur") ||
         loc.contains("chhattarpur") ||
@@ -314,59 +317,6 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
 
     if (mounted) {
       setState(() => _isLoading = false);
-    }
-  }
-
-
-
-
-  Future<void> _prefetchAllPropertyData() async {
-    final allProperties = _groupedData.values.expand((list) => list).toList();
-    if (allProperties.isEmpty) return;
-
-    final futures = allProperties.map((p) async {
-      try {
-        final resp1 = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=${p.id}'));
-        if (resp1.statusCode == 200) {
-          final body = jsonDecode(resp1.body);
-          if (body is List && body.isNotEmpty) {
-            _totalFlatsMap[p.id] = body[0]['logg'].toString();
-          }
-        }
-
-        final resp2 = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${p.id}'));
-        if (resp2.statusCode == 200) {
-          final body = jsonDecode(resp2.body);
-          if (body is List) {
-            for (var item in body) {
-              if (item['live_unlive'] == 'Live') {
-                _liveCountMap[p.id] = (item['logs'] as num?)?.toInt() ?? 0;
-                break;
-              }
-            }
-          }
-        }
-      } catch (_) {}
-    });
-
-    await Future.wait(futures);
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _handleNotification(String buildingId) async {
-    setState(() => _highlightedBuildingId = buildingId);
-    await _fetchAndUpdateData();
-  }
-
-  Future<void> _scrollToHighlighted() async {
-    if (_highlightedBuildingId == null) return;
-    final key = _cardKeys[_highlightedBuildingId!];
-    if (key?.currentContext != null) {
-      await Scrollable.ensureVisible(
-        key!.currentContext!,
-        duration: const Duration(milliseconds: 800),
-        curve: Curves.easeInOut,
-      );
     }
   }
 
@@ -777,12 +727,13 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
             children: [
               Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               GestureDetector(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) =>
-                    SeeAll_FutureProperty(number: id))
-                ),
-                child:  Text('See All →', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
-              ),
-            ],
+                onTap: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                    return TabBarPage(number: int.tryParse(id) ?? 0);
+                  }));
+                },
+                child: Text('See All →', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
+              ),            ],
           ),
         ),
         SizedBox(
@@ -820,6 +771,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
       if (loc.contains("sultanpur")) {
         return nameLower.contains("sumit") ||
             nameLower.contains("ravi") ||
+            nameLower.contains("avjit") ||
             nameLower.contains("faizan");
       }
       if (loc.contains("rajpur") ||

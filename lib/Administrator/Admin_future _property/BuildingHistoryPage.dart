@@ -121,7 +121,7 @@ class _HistoryPageState extends State<HistoryPage> {
     setState(() { _isLoading = true; _error = null; });
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/'
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/'
             'dispay_notification_history_for_fields.php?fw_number=${widget.fwNumber}',
       );
       final res = await http.get(uri).timeout(const Duration(seconds: 15));

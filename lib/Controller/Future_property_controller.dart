@@ -232,7 +232,7 @@ class FuturePropertyController extends ChangeNotifier {
     if (index == -1) return;
 
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/future_property_pagination.php"
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/future_property_pagination.php"
           "?fieldworkarnumber=$fieldWorkerNumber&filter=all&page=1&limit=1&id=$id",
     );
     // ya jo bhi single property fetch API ho

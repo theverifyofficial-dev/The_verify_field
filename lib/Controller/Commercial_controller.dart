@@ -57,7 +57,7 @@ class CommercialPropertyData {
     // Purani model mein baseUrl + image_ tha
     // API se sirf filename aata hai, baseUrl add karna padta hai
     const baseUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/";
 
     String? parseImage(dynamic val) {
       if (val == null) return null;
@@ -258,7 +258,7 @@ class CommercialPropertyController extends ChangeNotifier {
     debugPrint("Commercial Loading Page: $currentPage | Filter: $currentFilter");
 
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/commercial_pagination.php"
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/commercial_pagination.php"
           "?field_workar_number=$fieldWorkerNumber"
           "&filter=$currentFilter"
           "&page=$currentPage"
@@ -343,7 +343,7 @@ class CommercialPropertyController extends ChangeNotifier {
       notifyListeners();
 
       final url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/search_commercial_property.php"
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/search_commercial_property.php"
               "?field_workar_number=$fieldWorkerNumber"
               "&search=$query");
 

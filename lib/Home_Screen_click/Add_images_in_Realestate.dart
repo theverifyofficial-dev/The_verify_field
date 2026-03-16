@@ -69,7 +69,7 @@ class _MultiImageCompressorState extends State<MultiImageCompressor> {
   }
 
   Future<void> uploadImageWithTitle(File imageFile, String title) async {
-    String uploadUrl = 'https://verifyserve.social/upload.php';
+    String uploadUrl = 'https://verifyrealestateandservices.in/upload.php';
 
     FormData formData = FormData.fromMap({
       "name": title,

@@ -307,7 +307,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
   Future<void> _loadData() async {
     try {
       final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
             "?field_workar_number=${widget.id}" /* &live_unlive=Live */ ,
       );
 
@@ -392,7 +392,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
   //     try {
   //       // Fetch total flats
   //       final response2 = await http.get(Uri.parse(
-  //         'https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=$sid',
+  //         'https://verifyrealestateandservices.in/WebService4.asmx/count_api_for_avability_for_building?subid=$sid',
   //       ));
   //       String totalStr = "0";
   //       if (response2.statusCode == 200) {
@@ -404,7 +404,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
   //       _totalFlatsMap[sid] = totalStr;
   //       // Fetch live count
   //       final response3 = await http.get(Uri.parse(
-  //         'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=$sid',
+  //         'https://verifyrealestateandservices.in/WebService4.asmx/live_unlive_flat_under_building?subid=$sid',
   //       ));
   //       int liveC = 0;
   //       if (response3.statusCode == 200) {
@@ -642,7 +642,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
   List<String> _buildMultipleImages(SeeALLModel p) {
     final List<String> imgs = [];
     if (p.propertyPhoto != null && p.propertyPhoto.isNotEmpty) {
-      imgs.add('https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${p.propertyPhoto}');
+      imgs.add('https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${p.propertyPhoto}');
     }
     return imgs;
   }

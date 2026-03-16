@@ -242,7 +242,7 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
 
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_book_flat_for_admin.php");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_book_flat_for_admin.php");
     print("User Name :"+"${userName}");
     print("User Number :"+"${userNumber}");
     final response = await http.get(url);
@@ -261,7 +261,7 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
   }
   Future<List<Tenant>> fetchTenants(int subId) async {
     final response = await http.get(
-      Uri.parse("https://verifyserve.social/PHP_Files/show_tenant_api.php?sub_id=$subId"),
+      Uri.parse("https://verifyrealestateandservices.in/PHP_Files/show_tenant_api.php?sub_id=$subId"),
     );
 
     if (response.statusCode == 200) {
@@ -370,7 +370,7 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
                         borderRadius: BorderRadius.circular(10),
                         child: CachedNetworkImage(
                           imageUrl:
-                          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
+                          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
                           height: 160,
                           width: double.infinity,
                           fit: BoxFit.cover,

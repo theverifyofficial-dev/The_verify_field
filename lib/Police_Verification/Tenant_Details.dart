@@ -105,7 +105,7 @@ class _Tenant_detailsState extends State<Tenant_details> {
                 child: GestureDetector(
                   onTap: () async {
 
-                    final responce = await http.get(Uri.parse("https://verifyserve.social/WebService4.asmx/show_store_count_document?number=123456789"));
+                    final responce = await http.get(Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/show_store_count_document?number=123456789"));
 
                     print(responce.body);
 

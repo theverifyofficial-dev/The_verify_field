@@ -30,8 +30,8 @@ class _Visit_FormState extends State<Visit_Form> {
 
   Future<void> fetchdata(Visit_Date,Visit_Time,aditional_info) async{
     final responce = await http.get(Uri.parse
-      ('https://verifyserve.social/WebService4.asmx/add_tenant_demand_visit_info_?visit_date=$Visit_Date&visit_time=$Visit_Time&number=${widget.NNumber}&subid=${widget.id}&source_click_website=${widget.NName}&ninetynine_acres=${widget.NBHK}&other=$aditional_info'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+      ('https://verifyrealestateandservices.in/WebService4.asmx/add_tenant_demand_visit_info_?visit_date=$Visit_Date&visit_time=$Visit_Time&number=${widget.NNumber}&subid=${widget.id}&source_click_website=${widget.NName}&ninetynine_acres=${widget.NBHK}&other=$aditional_info'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);

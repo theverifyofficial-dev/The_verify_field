@@ -8,7 +8,7 @@ import '../Live_Commercial.dart';
 
 Future<List<MonthlyCommercialModel>> fetchCommercialMonthly() async {
   final url = Uri.parse(
-    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/commercial_month.php?field_workar_number=11",
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/commercial_month.php?field_workar_number=11",
   );
 
   final res = await http.get(url);
@@ -76,7 +76,7 @@ class _MonthluCommercialDetailScreenState extends State<MonthluCommercialDetailS
                 children: [
 
                   Image.network(
-                    "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${c.image}",
+                    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${c.image}",
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(color: Colors.grey),
                   ),

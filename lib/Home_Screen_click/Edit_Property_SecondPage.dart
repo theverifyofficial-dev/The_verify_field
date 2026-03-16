@@ -256,8 +256,8 @@ class _Edit_Realestate_SecondpageState extends State<Edit_Realestate_Secondpage>
 
 
   Future<void> fetc2hdata(_propertyNumber,_address,_place,_sqft,_price,_Sell_price,_Verify_Price,_maintenance,_Buy_Rent,_Residentiol_Commercial,_floor, _flat,_furnished,_furnished_details,_Ownername,_Owner_number,_Building_information,_Balcony,_kitchen,_Bathroom,_Parking,_Typeofproperty,_BHK,_Address_apnehisaabka, _CareTaker_name,_CareTaker_number) async{
-    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/Update_realstatedata?iddd=$_id&property_num=$_propertyNumber&Address_=$_address&Place_=$_place&sqft=$_sqft&Price=$_price&Sell_price=$_Sell_price&Persnol_price=$_Verify_Price&maintenance=$_maintenance&Buy_Rent=$_Buy_Rent&Residence_Commercial=$_Residentiol_Commercial&floor_=$_floor&flat_=$_flat&Furnished=$_furnished&Details=$_furnished_details&Ownername=$_Ownername&Owner_number=$_Owner_number&Building_information=$_Building_information&balcony=$_Balcony&kitchen=$_kitchen&Baathroom=$_Bathroom&Parking=$_Parking&Looking_Property_=Flat&Typeofproperty=$_Typeofproperty&Bhk_Squarefit=$_BHK&Address_apnehisaabka=$_Address_apnehisaabka&Caretaker_name=$_CareTaker_name&Caretaker_number=$_CareTaker_number'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+    final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Update_realstatedata?iddd=$_id&property_num=$_propertyNumber&Address_=$_address&Place_=$_place&sqft=$_sqft&Price=$_price&Sell_price=$_Sell_price&Persnol_price=$_Verify_Price&maintenance=$_maintenance&Buy_Rent=$_Buy_Rent&Residence_Commercial=$_Residentiol_Commercial&floor_=$_floor&flat_=$_flat&Furnished=$_furnished&Details=$_furnished_details&Ownername=$_Ownername&Owner_number=$_Owner_number&Building_information=$_Building_information&balcony=$_Balcony&kitchen=$_kitchen&Baathroom=$_Bathroom&Parking=$_Parking&Looking_Property_=Flat&Typeofproperty=$_Typeofproperty&Bhk_Squarefit=$_BHK&Address_apnehisaabka=$_Address_apnehisaabka&Caretaker_name=$_CareTaker_name&Caretaker_number=$_CareTaker_number'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);
@@ -271,7 +271,7 @@ class _Edit_Realestate_SecondpageState extends State<Edit_Realestate_Secondpage>
   }
 
   Future<List<Catid>> fetchData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=$_id");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=$_id");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -326,7 +326,7 @@ class _Edit_Realestate_SecondpageState extends State<Edit_Realestate_Secondpage>
   final List<String> _bathroom_items = ['Western Style','Indian Style','No','null'];
 
   Future<void> DeletePropertybyid(itemId) async {
-    final url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
+    final url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
     final response = await http.get(url);
     // await Future.delayed(Duration(seconds: 1));
     if (response.statusCode == 200) {
@@ -344,7 +344,7 @@ class _Edit_Realestate_SecondpageState extends State<Edit_Realestate_Secondpage>
   }
 
   Future<List<Catid11>> fetchData22() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=$_id");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=$_id");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);

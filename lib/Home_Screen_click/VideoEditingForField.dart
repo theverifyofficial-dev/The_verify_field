@@ -28,7 +28,7 @@ class _SubmitVideoForFieldState extends State<SubmitVideoForField> {
   final TextEditingController messageController = TextEditingController();
 
   final String apiUrl =
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/video_editor.php";
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/video_editor.php";
 
   bool loading = false;
   bool chatLoading = true;

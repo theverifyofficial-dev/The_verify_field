@@ -195,7 +195,7 @@ class _View_DetailsState extends State<DetailPage> {
 
   Future<List<RealEstateSlider>> fetchCarouselData(int id) async {
     final url =
-        'https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$id';
+        'https://verifyrealestateandservices.in/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$id';
 
     final response = await http.get(Uri.parse(url));
 
@@ -223,7 +223,7 @@ class _View_DetailsState extends State<DetailPage> {
 
   Future<List<D_model>> fetchData(int id) async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id",
     );
 
     final response = await http.get(url);
@@ -261,7 +261,7 @@ class _View_DetailsState extends State<DetailPage> {
 
   //Delete api
   Future<void> DeletePropertybyid(itemId) async {
-    final url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
+    final url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
     final response = await http.get(url);
     // await Future.delayed(Duration(seconds: 1));
     if (response.statusCode == 200) {
@@ -439,14 +439,14 @@ class _View_DetailsState extends State<DetailPage> {
                                       MaterialPageRoute(
                                         builder: (_) => PropertyPreview(
                                           ImageUrl:
-                                          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
+                                          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
                                         ),
                                       ),
                                     );
                                   },
                                   child: CachedNetworkImage(
                                     imageUrl:
-                                    "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
+                                    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
                                     height: MediaQuery.of(context).size.height * 0.25,
                                     width: double.infinity,
                                     fit: BoxFit.cover,
@@ -729,7 +729,7 @@ class _View_DetailsState extends State<DetailPage> {
                                             context,
                                             MaterialPageRoute(
                                               builder: (_) => PropertyPreview(
-                                                ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${image.mImages}",
+                                                ImageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${image.mImages}",
                                               ),
                                             ),
                                           );
@@ -752,7 +752,7 @@ class _View_DetailsState extends State<DetailPage> {
                                               borderRadius: BorderRadiusGeometry.circular(10),
                                               child: CachedNetworkImage(
                                                 imageUrl:
-                                                "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${image.mImages}",
+                                                "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${image.mImages}",
                                                 fit: BoxFit.fill,
                                                 placeholder: (context, url) => Container(
                                                   color: isDarkMode ? Colors.grey[800] : Colors.grey[200],

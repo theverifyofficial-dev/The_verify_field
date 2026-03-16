@@ -58,7 +58,7 @@ class _TenantDemandState extends State<ShowTenantDemandPage> {
       final encodedName = Uri.encodeQueryComponent(subadminName);
       final encodedLoc = Uri.encodeQueryComponent(subadminLocation);
 
-      String link = "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php?Status=new";
+      String link = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php?Status=new";
 
       final url = Uri.parse(link);
       print(link);
@@ -94,7 +94,7 @@ class _TenantDemandState extends State<ShowTenantDemandPage> {
               const SnackBar(content: Text("No demand data found")),
             );
             // await BugLogger.log(
-            //   apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_subadmin_status_api.php?Status=assign%20to%20subadmin&assigned_subadmin_name=$encodedName",
+            //   apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_subadmin_status_api.php?Status=assign%20to%20subadmin&assigned_subadmin_name=$encodedName",
             //   error: response.body.toString(),
             //   statusCode: response.statusCode ?? 0,
             // );
@@ -106,7 +106,7 @@ class _TenantDemandState extends State<ShowTenantDemandPage> {
             SnackBar(content: Text("HTTP Error: ${response.statusCode}")),
           );
           await BugLogger.log(
-            apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_subadmin_status_api.php?Status=assign%20to%20subadmin&assigned_subadmin_name=$encodedName",
+            apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_subadmin_status_api.php?Status=assign%20to%20subadmin&assigned_subadmin_name=$encodedName",
             error: response.body.toString(),
             statusCode: response.statusCode ?? 0,
           );
@@ -120,7 +120,7 @@ class _TenantDemandState extends State<ShowTenantDemandPage> {
           SnackBar(content: Text("Error fetching data: $e")),
         );
         await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_subadmin_status_api.php?Status=assign%20to%20subadmin&assigned_subadmin_name=encodedName",
+          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_subadmin_status_api.php?Status=assign%20to%20subadmin&assigned_subadmin_name=encodedName",
           error: e.toString(),
           statusCode: 500,
         );
@@ -145,7 +145,7 @@ class _TenantDemandState extends State<ShowTenantDemandPage> {
   //     final encodedLoc = Uri.encodeQueryComponent(location);
   //
   //     final url =
-  //         "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/"
+  //         "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/"
   //         "show_redemand_based_on_sub_id_and_name_location.php"
   //         "?assigned_subadmin_location=$encodedLoc"
   //         "&assigned_subadmin_name=$encodedName";
@@ -188,7 +188,7 @@ class _TenantDemandState extends State<ShowTenantDemandPage> {
       final encodedLoc = Uri.encodeQueryComponent(location);
 
       final url =
-          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/"
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/"
           "share_show_api_for_redemand.php"
           "?assigned_subadmin_location=$encodedLoc"
           "&assigned_subadmin_name=$encodedName";

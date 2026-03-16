@@ -28,7 +28,7 @@ class PropertyDetailPage extends StatelessWidget {
                   AspectRatio(
                     aspectRatio: 4 / 3,
                     child: Image.network(
-                      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${data['property_photo']}",
+                      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${data['property_photo']}",
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Container(
                         color: Colors.grey.shade300,

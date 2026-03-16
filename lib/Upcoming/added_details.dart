@@ -65,7 +65,7 @@ class _UpcomingDetailsPageState extends State<AddedDetails> {
 
   Future<void> fetchPropertyDetails() async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_details_urgent_flat.php?P_id=${widget.id}");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_details_urgent_flat.php?P_id=${widget.id}");
 
     final response = await http.get(url);
     if (response.statusCode == 200) {
@@ -86,7 +86,7 @@ class _UpcomingDetailsPageState extends State<AddedDetails> {
 
   Future<List<UpcomingPropertyImage>> fetchUpcomingPropertyImages(int id) async {
     final url =
-        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/multiple_image_for_urgent_flat.php?subid=$id';
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/multiple_image_for_urgent_flat.php?subid=$id';
 
     final response = await http.get(Uri.parse(url));
 
@@ -337,7 +337,7 @@ class _UpcomingDetailsPageState extends State<AddedDetails> {
 
   Future<void> _performAction(String action) async {
     final response = await http.post(
-      Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
+      Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
       body: {"action": action, "P_id": widget.id.toString()},
     );
     if (response.statusCode != 200) throw Exception("Failed $action");
@@ -355,7 +355,7 @@ class _UpcomingDetailsPageState extends State<AddedDetails> {
     }
 
     final data = propertyData!;
-    final imageUrl = "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${data['property_photo']}";
+    final imageUrl = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${data['property_photo']}";
 
     return Scaffold(
       appBar: AppBar(
@@ -456,7 +456,7 @@ class _UpcomingDetailsPageState extends State<AddedDetails> {
                                   MaterialPageRoute(
                                     builder: (_) => PropertyPreview(
                                       ImageUrl:
-                                      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${image.imagePath}",
+                                      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${image.imagePath}",
                                     ),
                                   ),
                                 );
@@ -465,7 +465,7 @@ class _UpcomingDetailsPageState extends State<AddedDetails> {
                                 borderRadius: BorderRadius.circular(8),
                                 child: CachedNetworkImage(
                                   imageUrl:
-                                  "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${image.imagePath}",
+                                  "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${image.imagePath}",
                                   width: 120, // width of each thumbnail
                                   height: 100,
                                   fit: BoxFit.cover,
@@ -577,12 +577,12 @@ class _UpcomingDetailsPageState extends State<AddedDetails> {
                         try {
                           if (_status == "Book") {
                             final updateResponse = await http.post(
-                              Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/urgent_flat_move_to_realestate.php"),
+                              Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/urgent_flat_move_to_realestate.php"),
                               body: {"action": "update", "P_id": widget.id.toString()},
                             );
 
                             final moveResponse = await http.post(
-                              Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/urgent_flat_move_to_realestate.php"),
+                              Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/urgent_flat_move_to_realestate.php"),
                               body: {"action": "copy", "P_id": widget.id.toString()},
                             );
 
@@ -600,12 +600,12 @@ class _UpcomingDetailsPageState extends State<AddedDetails> {
                           } else if (_status == "Live") {
                             // Reupdate + Delete
                             final updateResponse = await http.post(
-                              Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/urgent_flat_move_to_realestate.php"),
+                              Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/urgent_flat_move_to_realestate.php"),
                               body: {"action": "reupdate", "P_id": widget.id.toString()},
                             );
 
                             final deleteResponse = await http.post(
-                              Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/urgent_flat_move_to_realestate.php"),
+                              Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/urgent_flat_move_to_realestate.php"),
                               body: {"action": "delete", "source_id": widget.id.toString()},
                             );
 

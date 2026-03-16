@@ -102,7 +102,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
       var request = http.MultipartRequest(
         'POST',
         Uri.parse(
-          'https://verifyserve.social/PHP_Files/insurance_insert_api/insurance_details/insert.php',
+          'https://verifyrealestateandservices.in/PHP_Files/insurance_insert_api/insurance_details/insert.php',
         ),
       );
 
@@ -306,7 +306,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
   //     var request = http.MultipartRequest(
   //       'POST',
   //       Uri.parse(
-  //         'https://verifyserve.social/PHP_Files/insurance_insert_api/insurance_details/insert.php',
+  //         'https://verifyrealestateandservices.in/PHP_Files/insurance_insert_api/insurance_details/insert.php',
   //       ),
   //     );
   //

@@ -76,7 +76,7 @@ class _AllLiveProperty extends State<AllLiveProperty> {
 
   Future<List<NewRealEstateShowDateModel>> fetchData(String number) async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate_for_website/show_api_main_realestate_all_data.php?all=1",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate_for_website/show_api_main_realestate_all_data.php?all=1",
     );
 
     final response = await http.get(url);
@@ -456,7 +456,7 @@ class _AllLiveProperty extends State<AllLiveProperty> {
           height: imageHeight,
           width: double.infinity,
           child: CachedNetworkImage(
-            imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/$imageUrl",
+            imageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/$imageUrl",
             fit: BoxFit.cover,
             placeholder: (_, __) => const Center(
               child: SizedBox(

@@ -119,7 +119,7 @@ import 'package:intl/intl.dart';
       if (number == null) throw Exception("Field worker number missing");
 
       final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/monthly_history_for_book_flat.php?field_workar_number=$number",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/monthly_history_for_book_flat.php?field_workar_number=$number",
       );
 
       final response = await http.get(url);
@@ -366,7 +366,7 @@ import 'package:intl/intl.dart';
                   borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(20)),
                   child: Image.network(
-                    "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item['property_photo']}",
+                    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item['property_photo']}",
                     height: 220,
                     width: double.infinity,
                     fit: BoxFit.cover,

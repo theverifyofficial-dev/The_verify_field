@@ -25,7 +25,7 @@ class Tenant_ALl_demands extends StatefulWidget {
 class _Tenant_ALl_demandsState extends State<Tenant_ALl_demands> {
 
   Future<List<TenantModel>> fetchData(id) async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/show_StoreP_Verify_Tenant_Demands_Show_SimpleMethod');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/show_StoreP_Verify_Tenant_Demands_Show_SimpleMethod');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);

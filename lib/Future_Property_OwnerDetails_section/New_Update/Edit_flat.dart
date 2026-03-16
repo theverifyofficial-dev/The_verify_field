@@ -167,7 +167,7 @@ class EditFlatState extends State<EditFlat> {
   }
 
   Future<void> updateImageWithTitle(File? imageFile) async {
-    String uploadUrl = 'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_flat_in_future_property.php';
+    String uploadUrl = 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/update_flat_in_future_property.php';
 
     print('Starting update to: $uploadUrl');
     FormData formData = FormData();
@@ -495,7 +495,7 @@ class EditFlatState extends State<EditFlat> {
   }
 
   Future<List<Property1>> fetchData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/display_flat_in_future_property_details_page?id=${widget.id}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/display_flat_in_future_property_details_page?id=${widget.id}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -515,7 +515,7 @@ class EditFlatState extends State<EditFlat> {
       if (dataList.isNotEmpty) {
         print(dataList);
         final data = dataList.first;
-        _networkImageUrl = "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+data.propertyPhoto;
+        _networkImageUrl = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/"+data.propertyPhoto;
         apiImageUrl = data.propertyPhoto;
         _facilityController.text = data.facility;
         _FlatNumber.text = data.flatNumber;

@@ -129,7 +129,7 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
     // 🔥 ADMIN MODE → No location restriction
     if (_FAadharCard.trim() == "Administrator") {
       final url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_show_api_for_subadmin.php"
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/upcoming_show_api_for_subadmin.php"
       );
 
       print("🚀 Admin Mode URL: $url");
@@ -150,7 +150,7 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
     }
 
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_show_api_for_subadmin.php?locations=$finalLocation"
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/upcoming_show_api_for_subadmin.php?locations=$finalLocation"
     );
 
     print("🚀 Sub Admin Location URL: $url");
@@ -398,7 +398,7 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
                   return StreamBuilder<http.Response>(
                     stream: Stream.periodic(const Duration(seconds: 5))
                         .asyncMap((_) => http.get(Uri.parse(
-                      "https://verifyserve.social/WebService4.asmx/Count_api_flat_under_future_property_by_cctv?CCTV=${_filteredProperties[index].pId??0}",
+                      "https://verifyrealestateandservices.in/WebService4.asmx/Count_api_flat_under_future_property_by_cctv?CCTV=${_filteredProperties[index].pId??0}",
                     ))),
                     builder: (context, snapshot) {
                       bool isRedDot = false;
@@ -494,7 +494,7 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
                                               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                                             ),
                                             child: Image.network(
-                                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${_filteredProperties[index].propertyPhoto}",
+                                              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${_filteredProperties[index].propertyPhoto}",
                                               fit: BoxFit.cover,
                                               errorBuilder: (context, error, stackTrace) => Center(
                                                 child: Icon(Icons.home, size: 50, color: Theme.of(context).hintColor),

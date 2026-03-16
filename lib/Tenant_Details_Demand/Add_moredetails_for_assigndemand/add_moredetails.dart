@@ -77,8 +77,8 @@ class _Add_Moredetails_for_assigndemandState extends State<Add_Moredetails_for_a
   late String formattedDate;
 
   Future<void> fetchdata(Name,Number,BHK,Budget,Place,Floor_option,Family_Members,Additional_Info,Shifting_date,Parking,Gadi_Number,FeildWorker_Name,FeildWorker_Number,Current__Date,Buy_rent,subid) async{
-    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/add_verify_pending_visit_tenant_demand?V_name=$Name&V_number=$Number&bhk=$BHK&budget=$Budget&place=$Place&floor_option=$Floor_option&family_members=$Family_Members&additional_info=$Additional_Info&shifting_date=$Shifting_date&parking=$Parking&Gadi_Number=$Gadi_Number&FeildWorkar_Name=$FeildWorker_Name&FeildWorkar_Number=$FeildWorker_Number&Current_Dates=$Current__Date&Buy_rent=$Buy_rent&sub_id=$subid'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+    final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/add_verify_pending_visit_tenant_demand?V_name=$Name&V_number=$Number&bhk=$BHK&budget=$Budget&place=$Place&floor_option=$Floor_option&family_members=$Family_Members&additional_info=$Additional_Info&shifting_date=$Shifting_date&parking=$Parking&Gadi_Number=$Gadi_Number&FeildWorkar_Name=$FeildWorker_Name&FeildWorkar_Number=$FeildWorker_Number&Current_Dates=$Current__Date&Buy_rent=$Buy_rent&sub_id=$subid'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);

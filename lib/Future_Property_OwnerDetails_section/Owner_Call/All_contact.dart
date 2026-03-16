@@ -62,7 +62,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
 
   Future<void> _showLogsBottomSheet(BuildContext context, String flatId) async {
     final apiUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_api_for_calling_api_in_buidling.php?subid=$flatId";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_api_for_calling_api_in_buidling.php?subid=$flatId";
 
     List<dynamic> logs = [];
 
@@ -301,7 +301,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
   }
   Future<void> _updateBuildingStatus(String id, String reason) async {
     const url =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/calling_update_building.php";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/calling_update_building.php";
 
     try {
       final response = await http.post(
@@ -322,7 +322,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
   Future<void> fetchFlats() async {
     setState(() => isLoading = true);
     final apiUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_data_calling_both_of_flat.php?subid=${widget.buildingId}";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_data_calling_both_of_flat.php?subid=${widget.buildingId}";
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
@@ -376,7 +376,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
 
 
     const apiUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/new_future_property_calling_option.php";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/new_future_property_calling_option.php";
 
     try {
       final response = await http.post(
@@ -405,7 +405,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
 
   Future<Map<String, dynamic>?> _fetchLatestCallLog(String subId) async {
     final apiUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_api_for_calling_api_in_buidling.php?subid=$subId";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_api_for_calling_api_in_buidling.php?subid=$subId";
 
     try {
       final response = await http.get(Uri.parse(apiUrl));

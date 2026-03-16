@@ -159,7 +159,7 @@ class _Tenant_Demands_detailsState extends State<Tenant_Demands_details> {
 
 
   Future<List<Catid>> fetchData() async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_Verify_Tenant_Demands_by_id_?VTD_id=${widget.idd}');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/display_Verify_Tenant_Demands_by_id_?VTD_id=${widget.idd}');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -174,7 +174,7 @@ class _Tenant_Demands_detailsState extends State<Tenant_Demands_details> {
 
 
   Future<List<RealstateModel>> fetchCarouselData() async {
-    final response = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/Show_Image_under_Realestatet?id_num=1'));
+    final response = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Show_Image_under_Realestatet?id_num=1'));
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((item) {
@@ -188,8 +188,8 @@ class _Tenant_Demands_detailsState extends State<Tenant_Demands_details> {
   }
 
   Future<void> Book_property() async{
-    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=1&looking=Book'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+    final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=1&looking=Book'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);
@@ -203,7 +203,7 @@ class _Tenant_Demands_detailsState extends State<Tenant_Demands_details> {
   }
 
   Future<List<Catid_review>> fetchData_review(id) async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/showing_under_feedback_tenant_demand_by_subid?subid=$id');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/showing_under_feedback_tenant_demand_by_subid?subid=$id');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -216,7 +216,7 @@ class _Tenant_Demands_detailsState extends State<Tenant_Demands_details> {
   }
 
   Future<List<Catid_visit>> fetchDatavisit(id) async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_tenant_demand_visit_info_by_subid_?subid=${id}');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/display_tenant_demand_visit_info_by_subid_?subid=${id}');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -229,7 +229,7 @@ class _Tenant_Demands_detailsState extends State<Tenant_Demands_details> {
   }
 
   Future<List<Catid_respo>> fetchDataresponce(id) async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/show_add_info_in_tanat_demand?sub_id=${id}');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/show_add_info_in_tanat_demand?sub_id=${id}');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -247,7 +247,7 @@ class _Tenant_Demands_detailsState extends State<Tenant_Demands_details> {
 
   //Delete api
   Future<void> DeletePropertybyid(itemId) async {
-    final url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=1');
+    final url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=1');
     final response = await http.get(url);
     // await Future.delayed(Duration(seconds: 1));
     if (response.statusCode == 200) {
@@ -308,8 +308,8 @@ class _Tenant_Demands_detailsState extends State<Tenant_Demands_details> {
   }
 
   Future<void> fetchdata_insurt(Name,Number,BHK,Budget,Place,Floor_option,Family_Members,Additional_Info,Shifting_date,Parking,Gadi_Number,FeildWorker_Name,FeildWorker_Number,Current__Date) async{
-    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/add_Tanant_demands_book_details_2nd_table?V_name=$Name&V_number=$Number&bhk=$BHK&budget=$Budget&place=$Place&floor_option=$Floor_option&Family_Members=$Family_Members&Additional_Info=$Additional_Info&Shifting_date=$Shifting_date&Parking=$Parking&Gadi_Number=$Gadi_Number&FeildWorker_Name=$FeildWorker_Name&FeildWorker_Number=$FeildWorker_Number&Current__Date=$Current__Date'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+    final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/add_Tanant_demands_book_details_2nd_table?V_name=$Name&V_number=$Number&bhk=$BHK&budget=$Budget&place=$Place&floor_option=$Floor_option&Family_Members=$Family_Members&Additional_Info=$Additional_Info&Shifting_date=$Shifting_date&Parking=$Parking&Gadi_Number=$Gadi_Number&FeildWorker_Name=$FeildWorker_Name&FeildWorker_Number=$FeildWorker_Number&Current__Date=$Current__Date'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);
@@ -324,7 +324,7 @@ class _Tenant_Demands_detailsState extends State<Tenant_Demands_details> {
   }
 
   Future<void> DeleteVehicleNumbers(itemId) async {
-    final url = Uri.parse('https://verifyserve.social/WebService4.asmx/delete_Verify_Tenant_Demands_by_id_?VTD_id=$itemId');
+    final url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/delete_Verify_Tenant_Demands_by_id_?VTD_id=$itemId');
     final response = await http.get(url);
     // await Future.delayed(Duration(seconds: 1));
     if (response.statusCode == 200) {

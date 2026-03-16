@@ -9,7 +9,7 @@ class PoliceMonthlyDetailScreen extends StatelessWidget {
   const PoliceMonthlyDetailScreen({super.key, required this.v});
 
   String img(String path) =>
-      "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$path";
 
   @override
   Widget build(BuildContext context) {
@@ -262,7 +262,7 @@ class PoliceMonthlyDetailScreen extends StatelessWidget {
     }
 
     final url =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$path";
 
     return GestureDetector(
       onTap: () {

@@ -86,8 +86,8 @@ class _Edit_TenantDemandsState extends State<Edit_TenantDemands> {
   late String formattedDate;
 
   Future<void> fetchdata(name,number,bhk,budget,place,floor,familymember,shiftingdate,parking,gadinumber) async{
-    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/update_Verify_Tenant_Demands_?VTD_id=${widget.id}&V_name=${name}&V_number=${number}&bhk=${bhk}&budget=${budget}&place=${place}&floor_option=${floor}&Family_Members=${familymember}&Shifting_date=${shiftingdate}&Parking=${parking}&Gadi_Number=${gadinumber}&FeildWorker_Name=${widget.FeildWorker_Name}&FeildWorker_Number=${widget.FeildWorker_Number}&Current__Date=${widget.Current__Date}'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+    final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/update_Verify_Tenant_Demands_?VTD_id=${widget.id}&V_name=${name}&V_number=${number}&bhk=${bhk}&budget=${budget}&place=${place}&floor_option=${floor}&Family_Members=${familymember}&Shifting_date=${shiftingdate}&Parking=${parking}&Gadi_Number=${gadinumber}&FeildWorker_Name=${widget.FeildWorker_Name}&FeildWorker_Number=${widget.FeildWorker_Number}&Current__Date=${widget.Current__Date}'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);

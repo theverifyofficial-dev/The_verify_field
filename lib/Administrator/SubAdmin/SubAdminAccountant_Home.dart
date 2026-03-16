@@ -79,7 +79,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
     try {
       final response = await http.get(
         Uri.parse(
-          'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/all_agreement_count.php',
+          'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/all_agreement_count.php',
         ),
       );
 
@@ -103,7 +103,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
     try {
       final response = await http.get(
         Uri.parse(
-          'https://verifyserve.social/Second%20PHP%20FILE/Payment/all_payment_count_for_admin.php',
+          'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/all_payment_count_for_admin.php',
         ),
       );
 
@@ -426,17 +426,17 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                             },
                             if (userNumber == "9711779003" || userNumber=="9315016461")
 
-                              // {
-                              //   "image": AppImages.tenant,
-                              //   "title": "Tenant Demands",
-                              //   "onTap": () {
-                              //     Navigator.push(
-                              //         context,
-                              //         MaterialPageRoute(
-                              //             builder: (_) => const MainPage_TenandDemand()));
-                              //   },
-                              //   "count": 0,
-                              // },
+                              {
+                                "image": AppImages.tenant,
+                                "title": "Tenant Demands",
+                                "onTap": () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (_) => const MainPage_TenandDemand()));
+                                },
+                                "count": 0,
+                              },
                             if (userNumber == "9711779003" || userNumber=="9315016461")
 
                               {

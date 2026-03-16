@@ -16,7 +16,7 @@ class Processing_Document extends StatefulWidget {
 class _Processing_DocumentState extends State<Processing_Document> {
 
   Future<List<Doc>> fetchData() async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_data_by_looking_property_police_verifycation_document?building_subid=Processing');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/display_data_by_looking_property_police_verifycation_document?building_subid=Processing');
     final response = await http.get(url);
     if (response.statusCode == 200) {
       //await Future.delayed(Duration(seconds: 1));

@@ -475,14 +475,14 @@ class _CompletePropertyCalculationFieldWorkerState extends State<CompletePropert
 // toggle visitor availability (you can later bind from API)
 
 
-  static const _propListEndpoint = "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_complete_page_for_admin.php";
-  static const _statusEndpoint  = "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_final_payment_api_for_complete.php";
+  static const _propListEndpoint = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_complete_page_for_admin.php";
+  static const _statusEndpoint  = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_final_payment_api_for_complete.php";
   bool _s2Submitting = false;
 
-  static const _step1Endpoint   = "https://verifyserve.social/Second%20PHP%20FILE/Payment/paymet_inset.php";
+  static const _step1Endpoint   = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/paymet_inset.php";
 
   static const _step2Endpoint =
-      "https://verifyserve.social/Second%20PHP%20FILE/Payment/add_second_setp_amount.php";
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/add_second_setp_amount.php";
   late double commissionBothSide;
 
   @override
@@ -527,7 +527,7 @@ class _CompletePropertyCalculationFieldWorkerState extends State<CompletePropert
   }
   Future<List<Tenant>> fetchTenants(int subId) async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Payment/"
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/"
           "show_api_for_owner_tenant_api_for_complete_api.php?subid=$subId",
     );
 
@@ -984,7 +984,7 @@ class _CompletePropertyCalculationFieldWorkerState extends State<CompletePropert
   bool _s3Submitting = false;
 
   static const _step3Endpoint =
-      "https://verifyserve.social/Second%20PHP%20FILE/Payment/third_setp_payment.php";
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/third_setp_payment.php";
 
   Future<bool> _postStep3({
     required int id,
@@ -1154,7 +1154,7 @@ class _CompletePropertyCalculationFieldWorkerState extends State<CompletePropert
   }
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_api_complete_page_for_fieldworkar.php?field_workar_number=${widget.fieldworkerNumber}");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_api_complete_page_for_fieldworkar.php?field_workar_number=${widget.fieldworkerNumber}");
 
     final response = await http.get(url);
     if (response.statusCode == 200) {
@@ -2542,7 +2542,7 @@ class _CompletePropertyCalculationFieldWorkerState extends State<CompletePropert
       children: [
         p != null && p.propertyPhoto.isNotEmpty
             ? Image.network(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${p.propertyPhoto}",
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${p.propertyPhoto}",
           height: 220,
           width: double.infinity,
           fit: BoxFit.cover,

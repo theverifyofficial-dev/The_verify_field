@@ -119,7 +119,7 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
   Future<void> fetchMultipleImages() async {
     try {
       final response = await http.get(Uri.parse(
-          "https://verifyserve.social/PHP_Files/insurance_insert_api/insurance_details/show_insurance_multiple_image.php?subid=${widget
+          "https://verifyrealestateandservices.in/PHP_Files/insurance_insert_api/insurance_details/show_insurance_multiple_image.php?subid=${widget
               .item.id}"));
 
       final decoded = jsonDecode(response.body);
@@ -144,7 +144,7 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
   final picker = ImagePicker();
   bool isLoading = false;
   String insuranceBaseUrl =
-      "https://verifyserve.social/PHP_Files/insurance_insert_api/insurance_details/";
+      "https://verifyrealestateandservices.in/PHP_Files/insurance_insert_api/insurance_details/";
 
   String? _buildUrl(String? path) {
     if (path == null || path.isEmpty) return null;
@@ -210,7 +210,7 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
       var request = http.MultipartRequest(
         'POST',
         Uri.parse(
-          'https://verifyserve.social/PHP_Files/'
+          'https://verifyrealestateandservices.in/PHP_Files/'
               'insurance_insert_api/insurance_details/'
               'insurance_update.php',
         ),

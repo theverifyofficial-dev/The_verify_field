@@ -126,7 +126,7 @@ class _TenantPaymentFlowPageNewState extends State<TenantPaymentFlowPageNew> {
   Future<void> _fetchProperties() async {
     try {
       final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_fieldworkar.php?field_workar_number=$userNumber",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_fieldworkar.php?field_workar_number=$userNumber",
       );
       final response = await http.get(url);
       if (response.statusCode == 200) {

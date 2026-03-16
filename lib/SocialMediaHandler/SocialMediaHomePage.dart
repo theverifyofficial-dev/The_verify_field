@@ -53,10 +53,10 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
 
   Future<List<NewRealEstateShowDateModel>> fetchData(String number) async {
     // final url = Uri.parse(
-    //   "https://verifyserve.social/Second%20PHP%20FILE/main_realestate_for_website/demo_check_ap_for_editor.php",
+    //   "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate_for_website/demo_check_ap_for_editor.php",
     // );
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate_for_website/show_api_main_realestate_all_data.php?all=1",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate_for_website/show_api_main_realestate_all_data.php?all=1",
     );
 
     final response = await http.get(url);
@@ -169,7 +169,7 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
     required String text,
   }) async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/video_editor.php");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/video_editor.php");
 
     try {
       final response = await http.post(url, body: {
@@ -424,7 +424,7 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
                   return StreamBuilder<http.Response>(
                     stream: Stream.periodic(const Duration(seconds: 5))
                         .asyncMap((_) => http.get(Uri.parse(
-                      "https://verifyserve.social/WebService4.asmx/Count_api_flat_under_future_property_by_cctv?CCTV=${_filteredProperties[index].pId??0}",
+                      "https://verifyrealestateandservices.in/WebService4.asmx/Count_api_flat_under_future_property_by_cctv?CCTV=${_filteredProperties[index].pId??0}",
                     ))),
                     builder: (context, snapshot) {
                       bool isRedDot = false;
@@ -534,7 +534,7 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
                                                 borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
 
                                                 child: Image.network(
-                                                  "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${_filteredProperties[index].propertyPhoto}",
+                                                  "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${_filteredProperties[index].propertyPhoto}",
                                                   fit: BoxFit.cover,
                                                   errorBuilder: (context, error, stackTrace) => Center(
                                                     child: Icon(Icons.home, size: 50, color: Theme.of(context).hintColor),

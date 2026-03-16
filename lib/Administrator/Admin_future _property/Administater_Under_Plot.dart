@@ -73,7 +73,7 @@ class PlotPropertyData {
 
   factory PlotPropertyData.fromJson(Map<String, dynamic> json) {
     const baseUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/";
 
     return PlotPropertyData(
       id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
@@ -161,7 +161,7 @@ class PlotPropertyData {
 
 // ------------------ SERVICE ------------------
 class PropertyService {
-  static const String _host = 'verifyserve.social';
+  static const String _host = 'verifyrealestateandservices.in';
   static const String _path =
       'Second PHP FILE/main_realestate/plot_form_show_api_for_feildworkar.php';
 
@@ -275,7 +275,7 @@ class Administater_Under_PlotState
     }
 
     final url =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_plot_multiple_image.php?sub_id=${_currentData!.id}";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_plot_multiple_image.php?sub_id=${_currentData!.id}";
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -288,7 +288,7 @@ class Administater_Under_PlotState
           List imagesData = jsonData['data'] ?? [];
 
           List<String> images = imagesData.map<String>((e) {
-            return "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${e['p_image']}";
+            return "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${e['p_image']}";
           }).toList();
 
           setState(() {

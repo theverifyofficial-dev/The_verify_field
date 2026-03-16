@@ -42,7 +42,6 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
   void initState() {
     super.initState();
     _loadAllData();
-
   }
 
   Future<void> _loadAllData() async {
@@ -62,7 +61,7 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
 
   Future<void> fetchAdditionalTenants(String agreementId) async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/show_api_for_addtional_tenant.php?agreement_id=$agreementId",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_api_for_addtional_tenant.php?agreement_id=$agreementId",
     );
 
     final response = await http.get(url);
@@ -85,7 +84,7 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
   Future<void> _fetchAgreementDetail() async {
     try {
       final response = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=${widget.agreementId}"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=${widget.agreementId}"));
 
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
@@ -203,12 +202,11 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
     );
   }
 
-
   Widget _imageThumb(String path) {
     if ((path ?? '').toString().trim().isEmpty) return const SizedBox.shrink();
 
     final full =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$path";
 
     Future<void> _downloadImage() async {
       try {
@@ -392,7 +390,7 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
 
     final res = await http.get(
       Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/count_api_for_all_agreement_with_reword.php"
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/count_api_for_all_agreement_with_reword.php"
             "?Fieldwarkarnumber=$number",
       ),
     );

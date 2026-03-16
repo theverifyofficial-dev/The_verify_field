@@ -38,8 +38,8 @@ class _FileUploadPageState extends State<FileUploadPage> with WidgetsBindingObse
   bool _isLoading = false;
 
   Future<void> Book_property() async{
-    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=$_id&looking=Book'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+    final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=$_id&looking=Book'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);
@@ -199,7 +199,7 @@ class _FileUploadPageState extends State<FileUploadPage> with WidgetsBindingObse
   }
 
   Future<List<Property_id>> fetchData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/Show_Image_under_Realestatet?id_num=$_id");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/Show_Image_under_Realestatet?id_num=$_id");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -230,7 +230,7 @@ class _FileUploadPageState extends State<FileUploadPage> with WidgetsBindingObse
 
   Future<void> uploadImageWithTitle(File imageFile, String title) async {
 
-    String uploadUrl = 'https://verifyserve.social/upload.php';
+    String uploadUrl = 'https://verifyrealestateandservices.in/upload.php';
 
     FormData formData = FormData.fromMap({
       "name": title,
@@ -538,7 +538,7 @@ class _FileUploadPageState extends State<FileUploadPage> with WidgetsBindingObse
                           return ClipRRect(
                             borderRadius: BorderRadius.circular(12),
                             child: CachedNetworkImage(
-                              imageUrl: "https://www.verifyserve.social/${snapshot.data![index].property_num}",
+                              imageUrl: "https://www.verifyrealestateandservices.in/${snapshot.data![index].property_num}",
                               fit: BoxFit.cover,
                               placeholder: (context, url) => Container(
                                 color: Theme.of(context).colorScheme.surfaceVariant,

@@ -81,7 +81,7 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
 
   Future<List<Upcoming_model>> fetchData(String number) async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_show_api_for_admin.php",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/upcoming_flat_show_api_for_admin.php",
     );
 
     final response = await http.get(url);
@@ -360,7 +360,7 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
                   return StreamBuilder<http.Response>(
                     stream: Stream.periodic(const Duration(seconds: 5))
                         .asyncMap((_) => http.get(Uri.parse(
-                      "https://verifyserve.social/WebService4.asmx/Count_api_flat_under_future_property_by_cctv?CCTV=${_filteredProperties[index].pId??0}",
+                      "https://verifyrealestateandservices.in/WebService4.asmx/Count_api_flat_under_future_property_by_cctv?CCTV=${_filteredProperties[index].pId??0}",
                     ))),
                     builder: (context, snapshot) {
                       bool isRedDot = false;
@@ -456,7 +456,7 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
                                               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                                             ),
                                             child: Image.network(
-                                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${_filteredProperties[index].propertyPhoto}",
+                                              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${_filteredProperties[index].propertyPhoto}",
                                               fit: BoxFit.cover,
                                               errorBuilder: (context, error, stackTrace) => Center(
                                                 child: Icon(Icons.home, size: 50, color: Theme.of(context).hintColor),

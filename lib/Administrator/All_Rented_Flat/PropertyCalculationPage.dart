@@ -368,14 +368,14 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
   bool hasVisitor = false;
   final visitorAmountCtl = TextEditingController();
 
-  static const _propListEndpoint = "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_admin.php";
-  static const _statusEndpoint  = "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php";
+  static const _propListEndpoint = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_admin.php";
+  static const _statusEndpoint  = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php";
   bool _s2Submitting = false;
 
-  static const _step1Endpoint   = "https://verifyserve.social/Second%20PHP%20FILE/Payment/paymet_inset.php";
+  static const _step1Endpoint   = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/paymet_inset.php";
 
   static const _step2Endpoint =
-      "https://verifyserve.social/Second%20PHP%20FILE/Payment/add_second_setp_amount.php";
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/add_second_setp_amount.php";
   late double commissionBothSide;
   final s2OwnerCtl = TextEditingController();
 
@@ -818,7 +818,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
 
 
   static const _step3Endpoint =
-      "https://verifyserve.social/Second%20PHP%20FILE/Payment/third_setp_payment.php";
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/third_setp_payment.php";
 
   Future<bool> _postStep3({
     required int id,
@@ -1009,7 +1009,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
   bool visitorAvailable = false; // 🔒 only from API
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_admin.php");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_admin.php");
 
     final response = await http.get(url);
     if (response.statusCode == 200) {
@@ -1028,7 +1028,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
   Future<List<Tenant>> fetchTenants(int subId) async {
     final response = await http.get(
       Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_pending_rentout_api_tenant_owner.php?subid=$subId",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_pending_rentout_api_tenant_owner.php?subid=$subId",
       ),
     );
 
@@ -2546,7 +2546,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       children: [
         p != null && p.propertyPhoto.isNotEmpty
             ? Image.network(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${p.propertyPhoto}",
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${p.propertyPhoto}",
           height: 220,
           width: double.infinity,
           fit: BoxFit.cover,

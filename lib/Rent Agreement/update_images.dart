@@ -23,10 +23,10 @@ class _MultiImagePickerPageState extends State<UpdateImages> {
 
   // 🔹 Separate endpoints
   late final String fetchUrl =
-      'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_show_mumlitiple_image_api.php?subid=$ID';
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/upcoming_flat_show_mumlitiple_image_api.php?subid=$ID';
 
   late final String updateUrl =
-      'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_upcoming_multiple_image.php';
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/update_upcoming_multiple_image.php';
 
   @override
   void initState() {
@@ -50,7 +50,7 @@ class _MultiImagePickerPageState extends State<UpdateImages> {
         setState(() {
           existingImages = (data['data'] as List)
               .map((item) =>
-          'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item['M_images']}')
+          'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item['M_images']}')
               .toList();
           isLoading = false;
         });

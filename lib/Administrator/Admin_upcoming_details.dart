@@ -57,7 +57,7 @@ class _UpcomingDetailsPageState extends State<AdminUpcomingDetails> {
 
   Future<void> fetchPropertyDetails() async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_details_page.php?P_id=${widget.id}");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/upcoming_flat_details_page.php?P_id=${widget.id}");
 
     final response = await http.get(url);
     if (response.statusCode == 200) {
@@ -75,7 +75,7 @@ class _UpcomingDetailsPageState extends State<AdminUpcomingDetails> {
 
   Future<List<UpcomingPropertyImage>> fetchUpcomingPropertyImages(int id) async {
     final url =
-        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_show_mumlitiple_image_api.php?subid=$id';
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/upcoming_flat_show_mumlitiple_image_api.php?subid=$id';
 
     final response = await http.get(Uri.parse(url));
 
@@ -198,7 +198,7 @@ class _UpcomingDetailsPageState extends State<AdminUpcomingDetails> {
 
     final data = propertyData!;
     final imageUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${data['property_photo']}";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${data['property_photo']}";
 
     return Scaffold(
       appBar: AppBar(
@@ -271,7 +271,7 @@ class _UpcomingDetailsPageState extends State<AdminUpcomingDetails> {
                               MaterialPageRoute(
                                 builder: (_) => PropertyPreview(
                                   ImageUrl:
-                                  "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${image.imagePath}",
+                                  "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${image.imagePath}",
                                 ),
                               ),
                             );
@@ -280,7 +280,7 @@ class _UpcomingDetailsPageState extends State<AdminUpcomingDetails> {
                             borderRadius: BorderRadius.circular(8),
                             child: CachedNetworkImage(
                               imageUrl:
-                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${image.imagePath}",
+                              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${image.imagePath}",
                               width: 120,
                               height: 100,
                               fit: BoxFit.cover,

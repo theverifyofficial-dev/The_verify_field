@@ -425,7 +425,7 @@ class Show_CommonFilter_WithFloor extends StatefulWidget {
 class _Show_CommonFilter_WithFloorState extends State<Show_CommonFilter_WithFloor> {
 
   Future<List<Catid>> fetchData(by_rt,bhk,floo,plc,type) async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/filter_Residental_with_floor_api_?Buy_Rent=$by_rt&Bhk_Squarefit=$bhk&Place_=$plc&floor_=$floo&Typeofproperty=$type&Looking_Property_=Flat");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/filter_Residental_with_floor_api_?Buy_Rent=$by_rt&Bhk_Squarefit=$bhk&Place_=$plc&floor_=$floo&Typeofproperty=$type&Looking_Property_=Flat");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
 
@@ -559,7 +559,7 @@ class _Show_CommonFilter_WithFloorState extends State<Show_CommonFilter_WithFloo
                                                           width: 120,
                                                           child: CachedNetworkImage(
                                                             imageUrl:
-                                                            "https://verifyserve.social/"+abc.data![len].Building_image,
+                                                            "https://verifyrealestateandservices.in/"+abc.data![len].Building_image,
                                                             fit: BoxFit.cover,
                                                             placeholder: (context, url) => Image.asset(
                                                               AppImages.loading,

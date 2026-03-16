@@ -8,6 +8,7 @@ import '../Custom_Widget/constant.dart';
 import '../Custom_Widget/marquee_style.dart';
 import 'Forms/Agreement_Form.dart';
 import 'Forms/Commercial_Form.dart';
+import 'Forms/External_Commercial.dart';
 import 'Forms/External_Form.dart';
 import 'Forms/Furnished_form.dart';
 import 'Forms/Renewal_form.dart';
@@ -90,7 +91,7 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
 
     final res = await http.get(
       Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/count_api_for_all_agreement_with_reword.php"
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/count_api_for_all_agreement_with_reword.php"
             "?Fieldwarkarnumber=$number",
       ),
     );
@@ -210,6 +211,20 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
                         MaterialPageRoute(
                           builder: (context) =>
                               CommercialWizardPage(rewardStatus: safeRewardStatus),
+                        ),
+                      );
+                    },
+                    _rewardStatus?.isDiscounted == true,
+                  ),
+                  _buildSectionItem(
+                    " External Commercial",
+                    Icons.home_repair_service,
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ExternalCommercialWizardPage(rewardStatus: safeRewardStatus),
                         ),
                       );
                     },

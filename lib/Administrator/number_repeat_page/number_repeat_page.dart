@@ -25,7 +25,7 @@ class _add_repet_numState extends State<add_repet_num> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   Future<List<TenantModel>> fetchData() async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Tenant_show_by_V_number_?V_number=${_number.text}');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Verify_Tenant_show_by_V_number_?V_number=${_number.text}');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -143,11 +143,11 @@ class _add_repet_numState extends State<add_repet_num> {
                 if (_formKey.currentState?.validate() == true) {
 
 
-                  final responce_Official_table = await http.get(Uri.parse("https://verifyserve.social/WebService4.asmx/countapi_by_demand_number_assign_tenant_demand?demand_number=${_number.text}"));
+                  final responce_Official_table = await http.get(Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/countapi_by_demand_number_assign_tenant_demand?demand_number=${_number.text}"));
 
-                  final responce_Official_table_SECOND = await http.get(Uri.parse("https://verifyserve.social/WebService4.asmx/countapi_by_demand_no_assign_tanant_demand_2nd_table?demand_number=${_number.text}"));
+                  final responce_Official_table_SECOND = await http.get(Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/countapi_by_demand_no_assign_tanant_demand_2nd_table?demand_number=${_number.text}"));
 
-                  final responce_Official_Maintable = await http.get(Uri.parse("https://verifyserve.social/WebService4.asmx/Verify_Tenant_Countapi_by_V_number_?V_number=${_number.text}"));
+                  final responce_Official_Maintable = await http.get(Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/Verify_Tenant_Countapi_by_V_number_?V_number=${_number.text}"));
 
 
                   print(responce_Official_table.body);

@@ -7,7 +7,7 @@ import '../Book_Buy.dart';
 
 Future<List<BookModel>> fetchYearlyBooked() async {
   final url = Uri.parse(
-    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/book_yearly_show.php?field_workar_number=11",
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/book_yearly_show.php?field_workar_number=11",
   );
 
   final res = await http.get(url);
@@ -83,7 +83,7 @@ class YearlyBookDetailScreen extends StatelessWidget {
             iconTheme: const IconThemeData(color: Colors.white),
             flexibleSpace: FlexibleSpaceBar(
               background: Image.network(
-                "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${book.propertyPhoto}",
+                "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${book.propertyPhoto}",
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(color: Colors.grey),
               ),

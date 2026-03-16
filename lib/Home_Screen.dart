@@ -23,6 +23,7 @@ import 'Future_Property_OwnerDetails_section/Future_Property_Tabbar.dart';
 import 'Insurance/InsuranceShowListPage.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
 import 'Rent Agreement/history_tab.dart';
+import 'Tenant_Details_Demand/Parent_class_TenantDemand.dart';
 import 'Z-Screen/Social_Media_links.dart';
 import 'Target_details/Monthly_target.dart';
 import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
@@ -324,7 +325,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   async {
     try {
       final url =
-          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/"
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/"
           "visit_for_fieldworkar_status.php"
           "?assigned_fieldworker_name=${Uri.encodeQueryComponent(fieldworkerName)}"
           "&Status=${Uri.encodeQueryComponent(status)}";
@@ -967,17 +968,17 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       final res = await Future.wait([
         // AGREEMENT
         http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$tomorrow&Fieldwarkarnumber=$fieldNo",
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$tomorrow&Fieldwarkarnumber=$fieldNo",
         )),
 
         // FUTURE PROPERTY (same API, later filter)
         http.get(Uri.parse(
-          "https://verifyserve.social/WebService4.asmx/show_futureproperty_by_fieldworkarnumber?current_date_=$tomorrow&fieldworkarnumber=$fieldNo",
+          "https://verifyrealestateandservices.in/WebService4.asmx/show_futureproperty_by_fieldworkarnumber?current_date_=$tomorrow&fieldworkarnumber=$fieldNo",
         )),
 
         // WEBSITE VISIT
         http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$tomorrow&field_workar_number=$fieldNo",
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$tomorrow&field_workar_number=$fieldNo",
         )),
       ]);
 
@@ -1052,13 +1053,13 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       final res = await Future.wait([
         // AGREEMENT (date based)
         http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$today&Fieldwarkarnumber=$fieldNo",
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$today&Fieldwarkarnumber=$fieldNo",
         )).timeout(const Duration(seconds: 10)),
 
 
         // WEBSITE VISIT
         http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$today&field_workar_number=$fieldNo",
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$today&field_workar_number=$fieldNo",
         )).timeout(const Duration(seconds: 10)),
       ]);
 
@@ -1101,7 +1102,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
   Future<List<id_model>> fetchData() async {
     var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/count_rent_proerty?feildworkar_number=$number&random_text=${formattedDate.toString()}");
+        "https://verifyrealestateandservices.in/WebService4.asmx/count_rent_proerty?feildworkar_number=$number&random_text=${formattedDate.toString()}");
     final response = await http.get(url).timeout(const Duration(seconds: 10));
     if (response.statusCode == 200) {
       debugPrint(number.toString());
@@ -1115,7 +1116,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
   Future<List<Catid1122>> fetchData_Logg() async {
     var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/show_futureproperty_by_fieldworkarnumber?fieldworkarnumber=$number");
+        "https://verifyrealestateandservices.in/WebService4.asmx/show_futureproperty_by_fieldworkarnumber?fieldworkarnumber=$number");
     final response = await http.get(url).timeout(const Duration(seconds: 10));
     if (response.statusCode == 200) {
       List listresponse = json.decode(response.body);
@@ -1132,7 +1133,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
   Future<List<id_model>> fetchData_aggrement() async {
     var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/count_police_verification_rent_target_by_fnumber_random_text?feildworkar_number=$number&random_text=${formattedDate.toString()}");
+        "https://verifyrealestateandservices.in/WebService4.asmx/count_police_verification_rent_target_by_fnumber_random_text?feildworkar_number=$number&random_text=${formattedDate.toString()}");
     final response = await http.get(url).timeout(const Duration(seconds: 10));
     if (response.statusCode == 200) {
       debugPrint(number.toString());
@@ -1175,7 +1176,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         return;
       }
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_field.php?field_workar_number=$number',
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target/count_api_live_flat_for_field.php?field_workar_number=$number',
       );
       final res = await http.get(uri).timeout(const Duration(seconds: 10));
       debugPrint('Monthly API Response Status: ${res.statusCode}');
@@ -1203,7 +1204,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         return;
       }
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_live_flat_rent_yearly.php?field_workar_number=$number',
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target/count_live_flat_rent_yearly.php?field_workar_number=$number',
       );
       final resp = await http.get(uri).timeout(const Duration(seconds: 10));
       debugPrint('Yearly API Response Status: ${resp.statusCode}');
@@ -1337,6 +1338,14 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
             builder: (context) => const HistoryTab()
         )),
         "gradient": cardGradients[4],
+      },
+      {
+        "image": AppImages.tenant,
+        "title": "Costumer Demand",
+        "onTap": () => Navigator.push(context, MaterialPageRoute(
+            builder: (context) => parent_TenandDemand()
+        )),
+        "gradient": cardGradients[9],
       },
       {
         "image": AppImages.police,
@@ -1860,7 +1869,7 @@ class _TargetProgressCircleState extends State<_TargetProgressCircle> with Singl
       );
   }
 }
-
+//hello
 class _PremiumFeatureCard extends StatefulWidget {
   final String title;
   final Gradient gradient;

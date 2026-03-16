@@ -974,7 +974,7 @@ class _DetailRow extends StatelessWidget {
 class PlotPropertyApi {
   static Uri endpointForFieldworker(String fieldworkerNumber) {
     final base =
-        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/plot_form_show_api_for_feildworkar.php';
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/plot_form_show_api_for_feildworkar.php';
     return Uri.parse(base).replace(
       queryParameters: {'fieldworkar_number': fieldworkerNumber},
     );

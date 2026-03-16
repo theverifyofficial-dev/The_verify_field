@@ -66,7 +66,7 @@ class _AdministatorAddRentedFlatTabbarState extends State<AdministatorAddRentedF
     try {
       final response = await http.get(
         Uri.parse(
-          'https://verifyserve.social/Second%20PHP%20FILE/Payment/all_payment_count_for_admin.php',
+          'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/all_payment_count_for_admin.php',
         ),
       );
 

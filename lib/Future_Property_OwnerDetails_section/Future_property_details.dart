@@ -63,7 +63,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
 
   Future<List<Ground>> fetchAllFlats() async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_building_flat.php?subid=${widget.idd}",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_building_flat.php?subid=${widget.idd}",
     );
 
     final response = await http.get(url);
@@ -80,7 +80,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
 
   Future<List<FutureProperty2>> fetchData() async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_for_details_page.php?id=${widget.idd}",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_for_details_page.php?id=${widget.idd}",
     );
 
     final response = await http.get(url);
@@ -119,7 +119,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   Future<List<DocumentMainModel_F>> fetchCarouselData() async {
     final response = await http.get(
       Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_multiple_image_in_future_property.php?subid=${widget.idd}',
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_multiple_image_in_future_property.php?subid=${widget.idd}',
       ),
     );
 
@@ -371,7 +371,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                               context,
                               MaterialPageRoute(
                                 builder: (_) => PropertyPreview(
-                                  ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${item.dimage}",
+                                  ImageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${item.dimage}",
                                 ),
                               ),
                             );
@@ -383,7 +383,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                               borderRadius: BorderRadius.circular(12),
                               child: CachedNetworkImage(
                                 key: ValueKey(item.dimage), // Added unique key to force distinct caching
-                                imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${item.dimage}",
+                                imageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${item.dimage}",
                                 fit: BoxFit.cover,
                                 placeholder: (context, url) => Container(
                                   color: isDarkMode ? Colors.grey[200] : Colors.grey[200],
@@ -601,7 +601,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                       child: CachedNetworkImage(
                         key: ValueKey('${flat.id}_${flat.propertyPhoto}'),
                         imageUrl: flat.propertyPhoto.isNotEmpty
-                            ? "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${flat.propertyPhoto}"
+                            ? "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${flat.propertyPhoto}"
                             : "",
                         fit: BoxFit.cover,
                         width: double.infinity,
@@ -1190,7 +1190,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
         }
 
         final data = snapshot.data!.first;
-        _networkImageUrl = "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/" + (data.images.isNotEmpty ? data.images : '');
+        _networkImageUrl = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/" + (data.images.isNotEmpty ? data.images : '');
 
 
         return Container(

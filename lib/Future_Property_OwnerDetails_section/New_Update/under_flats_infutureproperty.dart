@@ -262,7 +262,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
   int countdown = 0;
 
   Future<List<RealEstateSlider1>> fetchCarouselData() async {
-    final response = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/display_flat_in_future_property_multiple_images?subid=${widget.id}'));
+    final response = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/display_flat_in_future_property_multiple_images?subid=${widget.id}'));
     print(" Multi Image ID: ${widget.id}");
 
     if (response.statusCode == 200) {
@@ -280,7 +280,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
 
   Future<List<Property>> fetchData() async {
     var url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/detail_page_for_future_property_under_flat.php?P_id=${widget.id}");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/detail_page_for_future_property_under_flat.php?P_id=${widget.id}");
 
     final response = await http.get(url).timeout(const Duration(seconds: 30));
 
@@ -300,7 +300,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
 
   Future<List<Catid1>> fetchData1() async {
     final url = Uri.parse(
-      "https://verifyserve.social/PHP_Files/add_tanant_in_future_property/show_api_add_tenant.php?sub_id=${widget.id}",
+      "https://verifyrealestateandservices.in/PHP_Files/add_tanant_in_future_property/show_api_add_tenant.php?sub_id=${widget.id}",
     );
 
     final response =
@@ -1343,7 +1343,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
     });
     try {
       final url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php");
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php");
 
       if (estateStatus == "Book") {
         final updateBody = {"action": "update", "P_id": widget.id};
@@ -1438,7 +1438,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
     });
     try {
       final upcomingUrl = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php");
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php");
 
       if (upcomingStatus == "Book") {
         final selectedDate = await _pickDate();
@@ -1638,7 +1638,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                       builder: (context) =>
                                           PropertyPreview(
                                             ImageUrl:
-                                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
+                                            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
                                           ),
                                     ),
                                   );
@@ -1648,7 +1648,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                   key: ValueKey(
                                       '${prop.pId}_${prop.propertyPhoto}'),
                                   imageUrl:
-                                  "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
+                                  "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
                                   fit: BoxFit.cover,
                                   placeholder:
                                       (context, url) =>
@@ -2004,7 +2004,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                                   .push(
                                                 MaterialPageRoute(
                                                   builder: (context) => PropertyPreview(
-                                                    ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.rimg}",
+                                                    ImageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.rimg}",
                                                   ),
                                                 ),
                                               );
@@ -2022,7 +2022,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                                     Radius.circular(10)),
                                                 child:
                                                 CachedNetworkImage(
-                                                  imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.rimg}",
+                                                  imageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.rimg}",
                                                   fit: BoxFit.cover,
                                                   placeholder: (context, url) => Container(
                                                     color: Colors.grey[300],

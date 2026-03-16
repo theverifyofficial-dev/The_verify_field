@@ -151,7 +151,7 @@ class _Add_Property_VerificationState extends State<Add_Property_Verification> {
       final mimeTypeData = lookupMimeType(_image!.path, headerBytes: [0xFF, 0xD8])?.split('/');
       final imageUploadRequest = http.MultipartRequest(
         'POST',
-        Uri.parse('https://verifyserve.social/insert.php'), // Replace with your API endpoint
+        Uri.parse('https://verifyrealestateandservices.in/insert.php'), // Replace with your API endpoint
       );
 
       final file = await http.MultipartFile.fromPath(
@@ -266,7 +266,7 @@ class _Add_Property_VerificationState extends State<Add_Property_Verification> {
       final mimeTypeData = lookupMimeType(_image!.path, headerBytes: [0xFF, 0xD8])?.split('/');
       final imageUploadRequest = http.MultipartRequest(
         'POST',
-        Uri.parse('https://verifyserve.social/insert.php'), // Replace with your API endpoint
+        Uri.parse('https://verifyrealestateandservices.in/insert.php'), // Replace with your API endpoint
       );
 
       final file = await http.MultipartFile.fromPath(

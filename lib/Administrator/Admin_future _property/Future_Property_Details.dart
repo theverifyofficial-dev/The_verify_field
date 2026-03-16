@@ -364,7 +364,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
 
   // API Methods - Centralized
   Future<List<Ground>> _fetchGroundData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/frist_floor_base_show_mainrealestae?Floor_=G%20Floor&subid=${widget.buildingId}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/frist_floor_base_show_mainrealestae?Floor_=G%20Floor&subid=${widget.buildingId}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       List listResponse = json.decode(response.body);
@@ -376,7 +376,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
   }
 
   Future<List<Ground>> _fetchFirstData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/frist_floor_base_show_mainrealestae?Floor_=1%20Floor&subid=${widget.buildingId}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/frist_floor_base_show_mainrealestae?Floor_=1%20Floor&subid=${widget.buildingId}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       List listResponse = json.decode(response.body);
@@ -388,7 +388,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
   }
 
   Future<List<Ground>> _fetchSecondData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/second_floor_base_show_mainrealestae?Floor_=2%20Floor&subid=${widget.buildingId}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/second_floor_base_show_mainrealestae?Floor_=2%20Floor&subid=${widget.buildingId}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       List listResponse = json.decode(response.body);
@@ -400,7 +400,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
   }
 
   Future<List<Ground>> _fetchThirdData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=3%20Floor&subid=${widget.buildingId}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=3%20Floor&subid=${widget.buildingId}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       List listResponse = json.decode(response.body);
@@ -412,7 +412,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
   }
 
   Future<List<Ground>> _fetchFourthData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=4%20Floor&subid=${widget.buildingId}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=4%20Floor&subid=${widget.buildingId}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       List listResponse = json.decode(response.body);
@@ -424,7 +424,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
   }
 
   Future<List<Ground>> _fetchFifthData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=5%20Floor&subid=${widget.buildingId}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=5%20Floor&subid=${widget.buildingId}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       List listResponse = json.decode(response.body);
@@ -436,7 +436,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
   }
 
   Future<List<Ground>> _fetchSixthData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=6%20Floor&subid=${widget.buildingId}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=6%20Floor&subid=${widget.buildingId}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       List listResponse = json.decode(response.body);
@@ -448,7 +448,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
   }
 
   Future<List<Ground>> _fetchSeventhData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=7%20Floor&subid=${widget.buildingId}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=7%20Floor&subid=${widget.buildingId}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       List listResponse = json.decode(response.body);
@@ -460,7 +460,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
   }
 
   Future<List<FutureProperty2>> _fetchPropertyData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/display_future_property_by_id?id=${widget.buildingId}");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/display_future_property_by_id?id=${widget.buildingId}");
     print(widget.buildingId);
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
@@ -474,7 +474,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
   }
 
   Future<List<DocumentMainModel_F>> _fetchCarouselData() async {
-    final response = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/display_future_property_addimages_by_subid_?subid=${widget.buildingId}'));
+    final response = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/display_future_property_addimages_by_subid_?subid=${widget.buildingId}'));
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
       return data.map((item) {
@@ -797,7 +797,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
                                   ),
                                   child: CachedNetworkImage(
                                     imageUrl: flat.propertyPhoto.isNotEmpty
-                                        ? "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${flat.propertyPhoto}"
+                                        ? "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${flat.propertyPhoto}"
                                         : "",
                                     fit: BoxFit.cover,
                                     placeholder: (context, url) => Container(
@@ -990,7 +990,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
                         context,
                         MaterialPageRoute(
                           builder: (_) => PropertyPreview(
-                            ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${item.dimage}",
+                            ImageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${item.dimage}",
                           ),
                         ),
                       );
@@ -1002,7 +1002,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
                         borderRadius: BorderRadius.circular(12),
                         child: CachedNetworkImage(
                           key: ValueKey(item.dimage),
-                          imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${item.dimage}",
+                          imageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${item.dimage}",
                           fit: BoxFit.cover,
                           placeholder: (context, url) => Container(
                             color: Colors.grey[200],

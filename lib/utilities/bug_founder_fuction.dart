@@ -21,7 +21,7 @@ class BugLogger {
       });
       print(DateFormat('HH:mm:ss').format(now),);
       await _dio.post(
-        "https://verifyserve.social/Second%20PHP%20FILE/bug_founder/bug_founder.php",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/bug_founder/bug_founder.php",
         data: formData,
       );
     } catch (_) {

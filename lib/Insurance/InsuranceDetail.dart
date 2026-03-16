@@ -67,7 +67,7 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
     fetchMultipleImages();
   }
   String insuranceBaseUrl =
-      "https://verifyserve.social/PHP_Files/"
+      "https://verifyrealestateandservices.in/PHP_Files/"
       "insurance_insert_api/insurance_details/";
 
   List<String> multipleImages = [];
@@ -75,7 +75,7 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
   Future<void> fetchMultipleImages() async {
     try {
       final response = await http.get(Uri.parse(
-          "https://verifyserve.social/PHP_Files/"
+          "https://verifyrealestateandservices.in/PHP_Files/"
               "insurance_insert_api/insurance_details/"
               "show_insurance_multiple_image.php?subid=${widget.insuranceId}"));
 
@@ -98,7 +98,7 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
   Future<void> fetchDetails() async {
     try {
       final response = await http.get(Uri.parse(
-          "https://verifyserve.social/PHP_Files/"
+          "https://verifyrealestateandservices.in/PHP_Files/"
               "insurance_insert_api/insurance_details/"
               "show_api_for_details_page.php?id=${widget.insuranceId}"));
 

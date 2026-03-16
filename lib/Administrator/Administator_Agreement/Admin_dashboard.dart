@@ -35,7 +35,7 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
     try {
       final response = await http.get(
         Uri.parse(
-          'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/all_agreement_count.php',
+          'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/all_agreement_count.php',
         ),
       );
 
@@ -64,7 +64,7 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
   bool isLoadingCount = true;
 
   _launchURL() async {
-    final Uri url = Uri.parse('https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/fetch_data.php');
+    final Uri url = Uri.parse('https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/fetch_data.php');
     if (!await launchUrl(url)) {
       throw Exception('Could not launch $url');
     }

@@ -167,7 +167,7 @@ class _Add_RealestateState extends State<Add_Realestate> {
       String Place_,String Buy_Rent,String Residence_Commercial,String Looking_Property_,String Typeofproperty,String Bhk_Squarefit,String Furnished,String Parking,String balcony,String kitchen,String Baathroom,
       String date_,String fieldworkarname,String fieldworkarnumber,String Longtitude,String Latitude,
       String facility,String blank_one,String Blank_two,String Blank_three,String district,String policestation,String pincode,String Google_Location,String Sell_price,String Verify_Price,String caretaker_name) async {
-    String uploadUrl = 'https://verifyserve.social/insert.php';
+    String uploadUrl = 'https://verifyrealestateandservices.in/insert.php';
     FormData formData = FormData.fromMap({
       "image": await MultipartFile.fromFile(imageFile.path, filename: imageFile.path.split('/').last),
       "Property_Number": propertyNumber,

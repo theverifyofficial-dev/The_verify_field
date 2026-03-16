@@ -74,7 +74,7 @@ class _Police_VerificationState extends State<Police_Verification> {
   }
 
   Future<List<P_model>> fetchData(id) async{
-    var url=Uri.parse("https://verifyserve.social/WebService4.asmx/Verify_AddTenant_show_by_fieldworkar_?fieldworkarnumber=$_number");
+    var url=Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/Verify_AddTenant_show_by_fieldworkar_?fieldworkarnumber=$_number");
     final responce=await http.get(url);
     if(responce.statusCode==200){
       List listresponce=json.decode(responce.body);

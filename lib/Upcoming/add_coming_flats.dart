@@ -2840,7 +2840,7 @@ class _RegisterPropertyState extends State<AddComingFlats> {
       final propertyId = provider.latestPropertyId.toString();
       String? name = prefs.getString('name');
       String? number = prefs.getString('number');
-      final uri = Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_flat_urgent_flat.php");
+      final uri = Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/add_flat_urgent_flat.php");
       var request = http.MultipartRequest('POST', uri);
 
       request.fields['locations'] = _location ?? '';

@@ -209,7 +209,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
 
   Future<void> _fetchMainDemand() async {
     final res = await http.get(Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}",
     ));
 
     if (res.statusCode == 200) {
@@ -225,7 +225,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
   Future<void> _fetchRedemand() async {
     print(" redemand id from add page : ${widget.redemandId}");
     final res = await http.get(Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?id=${widget.redemandId}",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?id=${widget.redemandId}",
     ));
 
     if (res.statusCode == 200) {
@@ -241,7 +241,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
   Future<Response> _updateMainDemand(Map<String, dynamic> payload) async {
     try {
       final res = await _dio.post(
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/edit_tenant_demand_api_for_admin.php",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/edit_tenant_demand_api_for_admin.php",
         data: FormData.fromMap(payload),
         options: Options(
           contentType: Headers.formUrlEncodedContentType,
@@ -250,7 +250,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       return res;
     } on DioException catch (e) {
       await BugLogger.log(
-        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/edit_tenant_demand_api_for_admin.php",
+        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/edit_tenant_demand_api_for_admin.php",
         error: e.response?.data.toString() ?? e.message ?? "Unknown error",
         statusCode: e.response?.statusCode ?? 0,
       );
@@ -261,7 +261,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
   Future<Response> _updateRedemand(Map<String, dynamic> payload) async {
     try {
       final res = await _dio.post(
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/edit_redemand_option.php",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/edit_redemand_option.php",
         data: FormData.fromMap(payload),
         options: Options(
           contentType: Headers.formUrlEncodedContentType,
@@ -270,7 +270,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       return res;
     } on DioException catch (e) {
       await BugLogger.log(
-        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/edit_redemand_option.php",
+        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/edit_redemand_option.php",
         error: e.response?.data.toString() ?? e.message ?? "Unknown error",
         statusCode: e.response?.statusCode ?? 0,
       );
@@ -287,7 +287,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
 
     try {
       final res = await _dio.get(
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/fecth_tenant_number.php?Tnumber=$phone",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/fecth_tenant_number.php?Tnumber=$phone",
       );
 
       if (res.statusCode == 200 && res.data["success"] == true) {
@@ -470,7 +470,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
 
       if (widget.mode == DemandEditMode.add) {
         res = await _dio.post(
-          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
           data: jsonEncode(formData),
           options: Options(headers: {"Content-Type": "application/json"}),
         );
@@ -526,7 +526,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
         );
 
         await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
+          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
           error: res.data.toString(),
           statusCode: res.statusCode ?? 0,
         );
@@ -550,7 +550,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
 
         // 🔍 LOG REAL ERROR
         await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
+          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
           error: data.toString(),
           statusCode: status ?? 0,
         );
@@ -561,7 +561,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
         errorMessage = "Network error. Check internet connection.";
 
         await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
+          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
           error: e.message ?? "Unknown Dio error",
           statusCode: 0,
         );

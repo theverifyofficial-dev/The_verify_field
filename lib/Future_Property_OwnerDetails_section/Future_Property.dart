@@ -18,6 +18,7 @@ class _FrontPage_FuturePropertyState
   late FuturePropertyController controller;
   String _number = '';
   bool _initialized = false;
+  final Map<int, GlobalKey> _cardKeys = {};
   @override
   void initState() {
     super.initState();
@@ -205,23 +206,20 @@ class _FrontPage_FuturePropertyState
   }
 
   Widget _buildingCard(Catid property) {
+    final key = _cardKeys.putIfAbsent(property.id, () => GlobalKey());
 
-    final status =
-        controller.statuses[property.id] ?? {"liveCount": 0, "totalFlats": 0};
-
-    final int liveCount = status["liveCount"] ?? 0;
-    final int totalFlats = status["totalFlats"] ?? 0;
+    final int totalFlats = int.tryParse(property.totalFlats) ?? 0;
+    final int liveCount = int.tryParse(property.liveFlats) ?? 0;
 
     const baseUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/";
 
     final imageUrl =
     (property.images != null && property.images!.isNotEmpty)
         ? baseUrl + property.images!
         : "";
 
-    bool isEmpty(String? value) =>
-        value == null || value.trim().isEmpty;
+    bool isEmpty(String? value) => value == null || value.trim().isEmpty;
 
     final Map<String, String?> fields = {
       "Images": property.images,
@@ -260,9 +258,21 @@ class _FrontPage_FuturePropertyState
                 Future_Property_details(idd: property.id.toString()),
           ),
         );
-        controller.refresh();
+
+        // ✅ Sirf yeh — exact card pe scroll
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final ctx = key.currentContext;
+          if (ctx != null) {
+            Scrollable.ensureVisible(
+              ctx,
+              alignment: 0.1,
+              duration: Duration.zero,
+            );
+          }
+        });
       },
       child: Container(
+        key: key, // ✅ Key sirf yahan
         margin: const EdgeInsets.only(bottom: 18),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
@@ -274,11 +284,9 @@ class _FrontPage_FuturePropertyState
         ),
         child: Column(
           children: [
-
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 Stack(
                   children: [
                     ClipRRect(
@@ -298,25 +306,20 @@ class _FrontPage_FuturePropertyState
                         fit: BoxFit.cover,
                       ),
                     ),
-
                     Positioned(
                       top: 8,
                       left: 8,
-                      child: controller.isStatusLoading
-                          ? const SizedBox.shrink()
-                          : Container(
+                      child: Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: liveCount > 0
-                              ? Colors.green
-                              : Colors.red,
+                          color: liveCount > 0 ? Colors.green : Colors.red,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
                           liveCount > 0
                               ? "Live: $liveCount"
-                              : "Unlive: 0",
+                              : "Unlive: ${int.tryParse(property.unliveFlats) ?? 0}",
                           style: const TextStyle(
                               fontSize: 11,
                               fontFamily: "PoppinsMedium",
@@ -326,9 +329,7 @@ class _FrontPage_FuturePropertyState
                     ),
                   ],
                 ),
-
                 const SizedBox(width: 14),
-
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -355,9 +356,7 @@ class _FrontPage_FuturePropertyState
                 ),
               ],
             ),
-
             const SizedBox(height: 14),
-
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -371,12 +370,10 @@ class _FrontPage_FuturePropertyState
                 Text(
                   "Added: ${property.currentDate ?? '-'}",
                   style: const TextStyle(
-                      fontStyle: FontStyle.italic,
-                      fontSize: 12),
+                      fontStyle: FontStyle.italic, fontSize: 12),
                 ),
               ],
             ),
-
             if (hasMissing) ...[
               const SizedBox(height: 12),
               Container(

@@ -47,7 +47,7 @@ class TenantController extends GetxController {
 
   Future<void> fetchTenants(String num) async {
     final url =
-        'https://verifyserve.social/WebService4.asmx/filter_tenant_demand_by_feildworkar_number_?FeildWorker_Number=$num';
+        'https://verifyrealestateandservices.in/WebService4.asmx/filter_tenant_demand_by_feildworkar_number_?FeildWorker_Number=$num';
 
     print("🌐 API request to: $url");
 

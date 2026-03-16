@@ -108,7 +108,7 @@
 //
 //
 //   Future<List<Catid>> fetchData(id) async {
-//     var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_assign_tenant_demand_by_feild_num_looking_location_?fieldworkar_number=$_num&looking_type=Re_Demand&location_=$_location');
+//     var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/display_assign_tenant_demand_by_feild_num_looking_location_?fieldworkar_number=$_num&looking_type=Re_Demand&location_=$_location');
 //     final responce = await http.get(url);
 //     if (responce.statusCode == 200) {
 //       List listresponce = json.decode(responce.body);
@@ -121,7 +121,7 @@
 //   }
 //
 //   Future<List<Catid>> fetchData_pendinhg(id) async {
-//     var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_assign_tenant_demand_by_feild_num_looking_location_?fieldworkar_number=$_num&looking_type=Pending&location_=$_location');
+//     var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/display_assign_tenant_demand_by_feild_num_looking_location_?fieldworkar_number=$_num&looking_type=Pending&location_=$_location');
 //     final responce = await http.get(url);
 //     if (responce.statusCode == 200) {
 //       List listresponce = json.decode(responce.body);
@@ -134,14 +134,14 @@
 //   }
 //
 //   Future<void> fetchdata_insurt(id,type,feedback) async{
-//     final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/update_assign_tenant_demand_by_id_looking_feedback_?id=$id&looking_type=$type&feedback=$feedback'));
-//     //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+//     final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/update_assign_tenant_demand_by_id_looking_feedback_?id=$id&looking_type=$type&feedback=$feedback'));
+//     //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 //
 //     if(responce.statusCode == 200){
 //       print(responce.body);
 //       Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => parent_TenandDemand(),), (route) => route.isFirst);
 //
-//       /*final delete_respponce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/Delete_assign_tenant_demand_?id=$id'));
+//       /*final delete_respponce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Delete_assign_tenant_demand_?id=$id'));
 //
 //       if(delete_respponce.statusCode == 200){
 //         Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Accept_Feedback_Parent_Page(),), (route) => route.isFirst);

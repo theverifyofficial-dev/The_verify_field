@@ -216,7 +216,7 @@ class _InsertMetaAdsExpenseProState extends State<InsertMetaAdsExpensePro>
     try {
       final res = await http.post(
         Uri.parse(
-            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/insert_meta_ads_expanse.php"),
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/insert_meta_ads_expanse.php"),
         body: {
           "subid": widget.flatId,
           "cost": cost.text.trim(),

@@ -31,7 +31,7 @@ class _RentedPropertyPageNewState extends State<RentedPropertyPageNew> {
     final bookingTime = '${_2(ist.hour)}:${_2(ist.minute)}:${_2(ist.second)}'; // HH:MM:SS
 
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/book_flat_for_fieldworkar.php",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/book_flat_for_fieldworkar.php",
     );
 
     try {

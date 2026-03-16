@@ -63,7 +63,7 @@ class BuildingMonthlyDetailScreen extends StatelessWidget {
                 children: [
 
                   Image.network(
-                    "https://verifyserve.social/Second%20PHP%20FILE/"
+                    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/"
                         "new_future_property_api_with_multile_images_store/${p.image}",
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) =>

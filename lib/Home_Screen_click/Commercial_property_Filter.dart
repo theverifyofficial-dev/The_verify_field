@@ -283,7 +283,7 @@ class Show_Commercial_Filter extends StatefulWidget {
 class _Show_Commercial_FilterState extends State<Show_Commercial_Filter> {
 
   Future<List<Catid>> fetchData(by_rt,type,plc) async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/filter_commercial_api?Buy_Rent=$by_rt&Typeofproperty=$type&Place_=$plc&Looking_Property_=Flat");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/filter_commercial_api?Buy_Rent=$by_rt&Typeofproperty=$type&Place_=$plc&Looking_Property_=Flat");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
 
@@ -417,7 +417,7 @@ class _Show_Commercial_FilterState extends State<Show_Commercial_Filter> {
                                                           width: 120,
                                                           child: CachedNetworkImage(
                                                             imageUrl:
-                                                            "https://verifyserve.social/"+abc.data![len].Building_image,
+                                                            "https://verifyrealestateandservices.in/"+abc.data![len].Building_image,
                                                             fit: BoxFit.cover,
                                                             placeholder: (context, url) => Image.asset(
                                                               AppImages.loading,

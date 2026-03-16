@@ -304,7 +304,7 @@ class _FieldWorkerBookingFinancialDetailPageState
   Future<_PageData> _loadAll() async {
     // ================= PROPERTY API =================
     final propUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_book_flat_by_fieldworkar.php?field_workar_number=${userNumber}";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_book_flat_by_fieldworkar.php?field_workar_number=${userNumber}";
 
     final propRes = await http.get(Uri.parse(propUrl));
 
@@ -334,7 +334,7 @@ class _FieldWorkerBookingFinancialDetailPageState
 
     // ================= TENANT API =================
     final tenantUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_tenant_and_owner_api.php?subid=${property.pId}";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_tenant_and_owner_api.php?subid=${property.pId}";
 
     final tenantRes = await http.get(Uri.parse(tenantUrl));
 
@@ -492,7 +492,7 @@ class _FieldWorkerBookingFinancialDetailPageState
           borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
           child: CachedNetworkImage(
             imageUrl:
-            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${p.propertyPhoto}",
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${p.propertyPhoto}",
             height: 180,
             width: double.infinity,
             fit: BoxFit.cover,

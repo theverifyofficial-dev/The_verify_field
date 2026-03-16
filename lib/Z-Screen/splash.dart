@@ -45,7 +45,7 @@
 // class _SplashState extends State<Splash> {
 //   Future<List<User>> fetchData_account(login) async {
 //     var url = Uri.parse(
-//         "https://verifyserve.social/WebService3_ServiceWork.asmx/account_FeildWorkers_Register?num=${login}");
+//         "https://verifyrealestateandservices.in/WebService3_ServiceWork.asmx/account_FeildWorkers_Register?num=${login}");
 //     final responce = await http.get(url);
 //     if (responce.statusCode == 200) {
 //       List listresponce = json.decode(responce.body);
@@ -206,7 +206,7 @@ class _SplashState extends State<Splash> {
 
   Future<List<User>> fetchData_account(llogin) async {
     var url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/home_screen.php?FNumber=${llogin}");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/home_screen.php?FNumber=${llogin}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       Map<String, dynamic> jsonResponse = json.decode(responce.body); // ✅ Decode as Map

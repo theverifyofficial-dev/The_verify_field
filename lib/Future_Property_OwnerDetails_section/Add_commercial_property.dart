@@ -1759,7 +1759,7 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
 
     try {
       var uri = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_commercial_property.php");
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/add_commercial_property.php");
 
       var request = http.MultipartRequest("POST", uri);
 

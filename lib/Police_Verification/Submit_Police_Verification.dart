@@ -84,7 +84,7 @@ class _Submit_Police_VerificationState extends State<Submit_Police_Verification>
               child: GestureDetector(
                 onTap: () async {
 
-                  final responce = await http.get(Uri.parse("https://verifyserve.social/WebService4.asmx/show_store_count_document?number=9711777018"));
+                  final responce = await http.get(Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/show_store_count_document?number=9711777018"));
 
                   print(responce.body);
 
@@ -166,7 +166,7 @@ class _Submit_Police_VerificationState extends State<Submit_Police_Verification>
               child: GestureDetector(
                 onTap: () async {
 
-                  final responce = await http.get(Uri.parse("https://verifyserve.social/WebService4.asmx/show_store_count_document?number=123456789"));
+                  final responce = await http.get(Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/show_store_count_document?number=123456789"));
 
                   print(responce.body);
 

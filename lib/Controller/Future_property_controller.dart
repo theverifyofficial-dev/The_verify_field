@@ -35,9 +35,15 @@ class Catid {
   final String? totalFloor;
   final String? residenceCommercial;
   final String? facility;
+  final String totalFlats;
+  final String liveFlats;
+  final String unliveFlats;
 
   Catid({
     required this.id,
+    required this.totalFlats,
+    required this.liveFlats,
+    required this.unliveFlats,
     this.images,
     this.ownerName,
     this.ownerNumber,
@@ -75,6 +81,9 @@ class Catid {
     return Catid(
       id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
       images: json['images']?.toString(),
+      totalFlats: json['total_flats']?.toString() ?? '0',
+      liveFlats: json['live_flats']?.toString() ?? '0',
+      unliveFlats: json['unlive_flats']?.toString() ?? '0',
       ownerName: json['ownername']?.toString(),
       ownerNumber: json['ownernumber']?.toString(),
       caretakerName: json['caretakername']?.toString(),
@@ -175,7 +184,7 @@ class FuturePropertyController extends ChangeNotifier {
     print("Loading Page: $currentPage | Filter: $currentFilter");
 
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/future_property_pagination.php"
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/future_property_pagination.php"
           "?fieldworkarnumber=$fieldWorkerNumber"
           "&filter=$currentFilter"
           "&page=$currentPage"
@@ -217,32 +226,26 @@ class FuturePropertyController extends ChangeNotifier {
     isPaginationLoading = false;
     notifyListeners();
   }
+// Controller mein add karo
+  void updateSingleProperty(int id) async {
+    final index = _all.indexWhere((p) => p.id == id);
+    if (index == -1) return;
 
-  Future<void> _fetchStatusesParallel() async {
-    _statuses.clear();
-
-    final futures = _all.map((p) async {
-      final status = await _fetchStatus(p.id);
-      return MapEntry(p.id, status);
-    }).toList();
-
-    final results = await Future.wait(futures);
-
-    for (final entry in results) {
-      _statuses[entry.key] = entry.value;
-    }
-
-    isStatusLoading = false;
+    final url = Uri.parse(
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/future_property_pagination.php"
+          "?fieldworkarnumber=$fieldWorkerNumber&filter=all&page=1&limit=1&id=$id",
+    );
+    // ya jo bhi single property fetch API ho
     notifyListeners();
   }
 
   Future<Map<String, dynamic>> _fetchStatus(int subid) async {
     try {
       final response2 = await http.get(Uri.parse(
-          "https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=$subid"));
+          "https://verifyrealestateandservices.in/WebService4.asmx/count_api_for_avability_for_building?subid=$subid"));
 
       final response3 = await http.get(Uri.parse(
-          "https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=$subid"));
+          "https://verifyrealestateandservices.in/WebService4.asmx/live_unlive_flat_under_building?subid=$subid"));
 
       int liveCount = 0;
       int totalFlats = 0;
@@ -275,11 +278,11 @@ class FuturePropertyController extends ChangeNotifier {
   Future<void> _fetchFlatsSummary() async {
     try {
       final totalUrl = Uri.parse(
-        'https://verifyserve.social/WebService4.asmx/GetTotalFlats_under_building?field_workar_number=$fieldWorkerNumber',
+        'https://verifyrealestateandservices.in/WebService4.asmx/GetTotalFlats_under_building?field_workar_number=$fieldWorkerNumber',
       );
 
       final liveUrl = Uri.parse(
-        'https://verifyserve.social/WebService4.asmx/GetTotalFlats_Live_under_building?field_workar_number=$fieldWorkerNumber',
+        'https://verifyrealestateandservices.in/WebService4.asmx/GetTotalFlats_Live_under_building?field_workar_number=$fieldWorkerNumber',
       );
 
       final totalResponse = await http.get(totalUrl);
@@ -308,6 +311,7 @@ class FuturePropertyController extends ChangeNotifier {
     }
   }
   String currentFilter = "all";
+
   // 🔥 COMPLETE FILTER SYSTEM
   Future<void> applyFilter(String label) async {
 
@@ -376,7 +380,7 @@ class FuturePropertyController extends ChangeNotifier {
       notifyListeners();
 
       final url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/search_in_future_builing.php"
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/search_in_future_builing.php"
               "?fieldworkarnumber=$fieldWorkerNumber"
               "&search=$query"
       );

@@ -288,7 +288,7 @@
 //   }
 //
 //   Future<List<FutureProperty2>> fetchData() async {
-//     var url = Uri.parse("https://verifyserve.social/WebService4.asmx/display_future_property_by_id?id=${widget.propertyId}");
+//     var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/display_future_property_by_id?id=${widget.propertyId}");
 //     final response = await http.get(url);
 //
 //     if (response.statusCode == 200) {
@@ -306,7 +306,7 @@
 //       if (dataList.isNotEmpty) {
 //         print(dataList);
 //         final data = dataList.first;
-//         _networkImageUrl = "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/"+data.images;
+//         _networkImageUrl = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/"+data.images;
 //         _facilityController.text = data.facility;
 //         apiImageUrl = data.images;
 //         _selectedItem = data.place;
@@ -360,7 +360,7 @@
 //
 //   Future<void> uploadCompressedImage(File imageFile) async {
 //     final uri = Uri.parse(
-//         "https://verifyserve.social/PHP_Files/Main_Realestate/insert_property.php");
+//         "https://verifyrealestateandservices.in/PHP_Files/Main_Realestate/insert_property.php");
 //
 //     var request = http.MultipartRequest('POST', uri);
 //     request.headers.addAll({
@@ -415,7 +415,7 @@
 //
 //   Future<void> updateImageWithTitle(File? imageFile) async {
 //
-//     String uploadUrl = 'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/update_allfeilds_with_single_image.php';
+//     String uploadUrl = 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/update_allfeilds_with_single_image.php';
 //
 //     print('Starting update to: $uploadUrl');
 //     FormData formData = FormData();

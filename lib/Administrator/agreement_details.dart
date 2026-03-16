@@ -28,7 +28,7 @@ class _AgreementDetailsState extends State<AgreementDetails> {
   Future<void> fetchAgreements() async {
     try {
       final response = await http.get(Uri.parse(
-          'https://verifyserve.social/WebService4.asmx/show_agreement_data'));
+          'https://verifyrealestateandservices.in/WebService4.asmx/show_agreement_data'));
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);

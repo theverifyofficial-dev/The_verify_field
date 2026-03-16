@@ -27,7 +27,7 @@ class _SubmitVideoPageState extends State<SubmitVideoPage> {
   final TextEditingController messageController = TextEditingController();
 
   final String apiUrl =
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/video_editor.php";
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/video_editor.php";
 
   bool loading = false;
   bool chatLoading = true;
@@ -97,7 +97,7 @@ class _SubmitVideoPageState extends State<SubmitVideoPage> {
     await launchUrl(url, mode: LaunchMode.externalApplication);
   }
   Future<void> uploadVideo() async {
-    final Uri url = Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate_for_website/videos_link.html");
+    final Uri url = Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate_for_website/videos_link.html");
     await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 

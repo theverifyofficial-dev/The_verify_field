@@ -350,7 +350,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         _careTakerNumberController.text = data.caretakerNumber;
         _Google_Location.text = data.fieldWorkerCurrentLocation;
         _networkImageUrl =
-            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/" +
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/" +
                 data.propertyPhoto; // or whatever the field name is
 
         double? latitude = double.tryParse(data.latitude);
@@ -391,7 +391,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
   Future<List<PropertyModel2>> fetchData(int id) async {
     var url = Uri.parse(
-      "https://verifyserve.social/WebService4.asmx/details_page_data_in_main_realestate?P_id=$id",
+      "https://verifyrealestateandservices.in/WebService4.asmx/details_page_data_in_main_realestate?P_id=$id",
     );
     final response = await http.get(url);
 
@@ -440,7 +440,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
   Future<List<RealEstateSlider>> fetchCarouselData(int id) async {
     final url =
-        'https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$id';
+        'https://verifyrealestateandservices.in/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$id';
 
     final response = await http.get(Uri.parse(url));
 
@@ -601,7 +601,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
   Future<void> uploadCompressedImage(File imageFile) async {
     final uri = Uri.parse(
-        "https://verifyserve.social/PHP_Files/Main_Realestate/insert_property.php");
+        "https://verifyrealestateandservices.in/PHP_Files/Main_Realestate/insert_property.php");
 
     var request = http.MultipartRequest('POST', uri);
     request.headers.addAll({
@@ -3077,7 +3077,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       await provider.fetchLatestPropertyId();
 
       final uri = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_main_realestate_property.php?P_id=${widget.propertyId}"
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/update_main_realestate_property.php?P_id=${widget.propertyId}"
       );
 
       var request = http.MultipartRequest('POST', uri);

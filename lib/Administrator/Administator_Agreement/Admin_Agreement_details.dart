@@ -19,7 +19,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
 
   Map<String, dynamic>? agreement;
   bool isLoading = true;
-  File? pdfFile; // store generated PDF
+  File? pdfFile;
   List<AdditionalTenant> additionalTenants = [];
   Widget? propertyCard;
 
@@ -48,7 +48,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
 
     try {
       final response = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=${widget.agreementId}"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=${widget.agreementId}"));
       print('Agreement ID: ${widget.agreementId}');
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
@@ -67,7 +67,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
 
   Future<void> fetchAdditionalTenants(String agreementId) async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/show_api_for_addtional_tenant.php?agreement_id=$agreementId",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_api_for_addtional_tenant.php?agreement_id=$agreementId",
     );
 
     final response = await http.get(url);
@@ -149,7 +149,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     print("Updating agreement status: $action"); // debug
     try {
       final url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/shift_agreement.php");
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/shift_agreement.php");
 
       print("Sending POST request to $url with id=${widget.agreementId}");
       final response = await http.post(
@@ -218,7 +218,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     print("Updating agreement status with message: $action, message: $message");
     try {
       final url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/shift_agreement.php"
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/shift_agreement.php"
       );
 
       print("Sending POST request to $url with id=${widget.agreementId} and message=$message");
@@ -357,7 +357,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                   MaterialPageRoute(
                     builder: (_) => ImagePreviewScreen(
                       imageUrl:
-                      'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$url',
+                      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$url',
                     ),
                   ),
                 );
@@ -369,7 +369,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
                   child: Image.network(
-                    "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$url",
+                    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$url",
                     width: 160,   // force same as container
                     height: 120,  // force same as container
                     fit: BoxFit.cover, // ensures full fill
@@ -767,7 +767,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
 
     try {
       final response = await http.post(
-        Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
+        Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
         body: {"P_id": propertyId},
       );
 
@@ -799,7 +799,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     final isDark = theme.brightness == Brightness.dark;
 
     final String imageUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${data['property_photo'] ?? ''}";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${data['property_photo'] ?? ''}";
 
     Color textPrimary = isDark ? Colors.white : Colors.black87;
     Color textSecondary = isDark ? Colors.grey[400]! : Colors.grey[700]!;

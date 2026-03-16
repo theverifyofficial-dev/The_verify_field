@@ -46,7 +46,7 @@ class _AddTenantUnderFuturePropertyState
     setState(() => _isLoading = true);
 
     final Uri url = Uri.parse(
-      'https://verifyserve.social/PHP_Files/add_tanant_in_future_property/insert.php',
+      'https://verifyrealestateandservices.in/PHP_Files/add_tanant_in_future_property/insert.php',
     );
 
     try {

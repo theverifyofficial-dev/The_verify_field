@@ -88,7 +88,7 @@ class _AddExpensesState extends State<AddExpenses> {
 
   Future<void> _uploadExpense(File imageFile) async {
     const uploadUrl =
-        'https://verifyserve.social/Second%20PHP%20FILE/Expanse/company_expanse.php';
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Expanse/company_expanse.php';
     Dio dio = Dio();
 
     String categoryToSend = _selectedCategory == 'Others'

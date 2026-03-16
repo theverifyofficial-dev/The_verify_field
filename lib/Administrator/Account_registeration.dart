@@ -31,7 +31,7 @@ class _SignUp_pageState extends State<AccountRegisteration> {
       setState(() => _isLoading = true);
 
       final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_application/register_account.php",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/register_account.php",
       );
 
       final response = await http.post(

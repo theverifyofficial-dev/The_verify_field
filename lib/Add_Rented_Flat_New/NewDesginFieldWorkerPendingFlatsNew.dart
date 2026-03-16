@@ -523,7 +523,7 @@ class _NewDesginFieldWorkerPendingFlatsNewState extends State<NewDesginFieldWork
   /// ---------- FETCH (by subid) ----------
   Future<List<FirstPaymentRecord>> fetchFirstPaymentsBySubId(int subid) async {
     final uri = Uri.parse(
-      'https://verifyserve.social/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php?subid=$subid',
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php?subid=$subid',
     );
 
     final r = await http.get(uri);
@@ -552,7 +552,7 @@ class _NewDesginFieldWorkerPendingFlatsNewState extends State<NewDesginFieldWork
 
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_fieldworkar.php?field_workar_number=${userNumber}");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_fieldworkar.php?field_workar_number=${userNumber}");
     print("User Name :"+"${userName}");
     print("User Number :"+"${userNumber}");
     final response = await http.get(url);
@@ -569,7 +569,7 @@ class _NewDesginFieldWorkerPendingFlatsNewState extends State<NewDesginFieldWork
   Future<List<Tenant>> fetchTenants(int subId) async {
     final response = await http.get(
       Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_pending_rentout_api_tenant_owner.php?subid=$subId",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_pending_rentout_api_tenant_owner.php?subid=$subId",
       ),
     );
 
@@ -755,7 +755,7 @@ Widget _transactionCard(BuildContext context, Property item, bool isDarkMode, Vo
                   borderRadius: BorderRadius.circular(10),
                   child: CachedNetworkImage(
                     imageUrl:
-                    "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
+                    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
                     height: 72,
                     width: 72,
                     fit: BoxFit.cover,
@@ -913,7 +913,7 @@ Widget _transactionCard(BuildContext context, Property item, bool isDarkMode, Vo
                             _openAmountSheet(
                               context,
                               item.pId,
-                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_2nd_amount_api.php",
+                              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/update_2nd_amount_api.php",
                               "second_amount",
                               double.tryParse(item.totalBalance) ?? 0,
                               double.tryParse(item.advancePayment) ?? 0,
@@ -941,7 +941,7 @@ Widget _transactionCard(BuildContext context, Property item, bool isDarkMode, Vo
                             _openAmountSheet(
                               context,
                               item.pId,
-                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/final_amount.php",
+                              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/final_amount.php",
                               "final_amount",
                               double.tryParse(item.totalBalance) ?? 0,
                               double.tryParse(item.advancePayment) ?? 0,

@@ -374,7 +374,7 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
     payload.forEach((k, v) => print("   $k → $v"));
 
     final uri = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/update_api_tenant_demand.php",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/update_api_tenant_demand.php",
     );
 
     try {

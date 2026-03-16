@@ -13,7 +13,7 @@ class PropertyIdProvider with ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    final uri = Uri.parse("https://verifyserve.social/PHP_Files/Main_Realestate/show_only_id.php");
+    final uri = Uri.parse("https://verifyrealestateandservices.in/PHP_Files/Main_Realestate/show_only_id.php");
 
     try {
       final response = await http.get(uri);

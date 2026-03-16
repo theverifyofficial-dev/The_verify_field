@@ -119,7 +119,7 @@ class BuildingModel {
 
 Future<List<BuildingModel>> fetchBuildings(String number) async {
   final url = Uri.parse(
-    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/building_data_yearly.php?fieldworkarnumber=$number",
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/building_data_yearly.php?fieldworkarnumber=$number",
   );
 
   final res = await http.get(url);
@@ -217,7 +217,7 @@ class _YearlyBuildingState extends State<YearlyBuilding> {
 
                             /// IMAGE
                             Image.network(
-                              "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${b.image}",
+                              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${b.image}",
                               height: 210,
                               width: double.infinity,
                               fit: BoxFit.cover,

@@ -286,7 +286,7 @@ class Show_tenant_Demand_facility_Filter extends StatefulWidget {
 class _Show_tenant_Demand_facility_FilterState extends State<Show_tenant_Demand_facility_Filter> {
 
   Future<List<Catid>> fetchData(bbhhkk,buy_rent,plc) async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/filter_tenant_demand_by_bhk_buy_rent_area_?bhk=$bbhhkk&Buy_rent=$buy_rent&place=$plc");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/filter_tenant_demand_by_bhk_buy_rent_area_?bhk=$bbhhkk&Buy_rent=$buy_rent&place=$plc");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
 

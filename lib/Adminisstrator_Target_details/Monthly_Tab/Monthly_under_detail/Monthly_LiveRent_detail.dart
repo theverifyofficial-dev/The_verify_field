@@ -33,7 +33,7 @@ class LiveMonthlyRentDetailScreen extends StatelessWidget {
           : Colors.black54;
 
   String img(String path) =>
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/$path";
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/$path";
 
   @override
   Widget build(BuildContext context) {

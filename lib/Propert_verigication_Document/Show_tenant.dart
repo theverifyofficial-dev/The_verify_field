@@ -154,7 +154,7 @@ class _ShowPropertyState extends State<ShowProperty> {
   String _number = '';
 
   Future<List<T_model>> fetchData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/Show_Tenant_Table_by_Feildworker_Number_?fieldworkarnumber=$_number");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/Show_Tenant_Table_by_Feildworker_Number_?fieldworkarnumber=$_number");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -168,7 +168,7 @@ class _ShowPropertyState extends State<ShowProperty> {
 
   Future<List<Catid_real>> fetchData_All(id) async{
 
-    var url=Uri.parse("https://verifyserve.social/WebService4.asmx/show_propertyverifycation_by_lookingproperty_fieldworkarnumber?Looking_Property_=Book&fieldworkarnumber=$_number");
+    var url=Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/show_propertyverifycation_by_lookingproperty_fieldworkarnumber?Looking_Property_=Book&fieldworkarnumber=$_number");
     final responce=await http.get(url);
     if(responce.statusCode==200){
 
@@ -185,7 +185,7 @@ class _ShowPropertyState extends State<ShowProperty> {
   }
 
   Future<List<Catid_real>> fetchDataone() async{
-    var url=Uri.parse("https://verifyserve.social/WebService4.asmx/show_propertyverifycation_by_lookingproperty_fieldworkarnumber?Looking_Property_=Book&fieldworkarnumber=$_number");
+    var url=Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/show_propertyverifycation_by_lookingproperty_fieldworkarnumber?Looking_Property_=Book&fieldworkarnumber=$_number");
     final responce=await http.get(url);
     if(responce.statusCode==200){
 
@@ -375,7 +375,7 @@ class _ShowPropertyState extends State<ShowProperty> {
                                         height: 400,
                                         width: double.infinity,
                                         child: CachedNetworkImage(
-                                          imageUrl: "https://verifyserve.social/${abc.data![len].Reelestate_Image}",
+                                          imageUrl: "https://verifyrealestateandservices.in/${abc.data![len].Reelestate_Image}",
                                           fit: BoxFit.cover,
                                           placeholder: (context, url) => Image.asset(
                                             AppImages.loading,
@@ -555,7 +555,7 @@ class _ShowPropertyState extends State<ShowProperty> {
                                       height: 400,
                                       width: double.infinity,
                                       child: CachedNetworkImage(
-                                        imageUrl: "https://verifyserve.social/${abc.data![len].Building_image}",
+                                        imageUrl: "https://verifyrealestateandservices.in/${abc.data![len].Building_image}",
                                         fit: BoxFit.cover,
                                         placeholder: (context, url) => Image.asset(
                                           AppImages.loading,

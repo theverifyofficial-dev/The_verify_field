@@ -1070,7 +1070,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
   Future<NextCallingItem?> fetchLatestCallingDate(String buildingId) async {
     final url =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_next_calling_date_in_building.php?subid=$buildingId";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_next_calling_date_in_building.php?subid=$buildingId";
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -1118,7 +1118,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     try {
       final res = await http.get(
         Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/calling_building.php?id=$id",
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/calling_building.php?id=$id",
         ),
       );
 
@@ -1161,7 +1161,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     try {
       // ===================== AGREEMENTS =====================
       final agreementRes = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_agreement_for_admin.php?current_dates=$formattedDate"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/task_agreement_for_admin.php?current_dates=$formattedDate"));
 
       if (agreementRes.statusCode == 200 && agreementRes.body.isNotEmpty) {
         _agreements =
@@ -1174,7 +1174,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
       // ================= ACCEPTED AGREEMENTS =================
       final acceptedRes = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/accept_agreement_for_admin.php?current_dates=$formattedDate"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/accept_agreement_for_admin.php?current_dates=$formattedDate"));
 
       if (acceptedRes.statusCode == 200 && acceptedRes.body.isNotEmpty) {
         _acceptedAgreements =
@@ -1187,7 +1187,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
       // ================= PENDING AGREEMENTS =================
       final pendingRes = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/pending_agreement_for_admin.php?current_dates=$formattedDate"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/pending_agreement_for_admin.php?current_dates=$formattedDate"));
 
       if (pendingRes.statusCode == 200 && pendingRes.body.isNotEmpty) {
         _pendingAgreements =
@@ -1200,7 +1200,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
       // ================= FUTURE PROPERTIES =================
       final futureRes = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_building_for_admin.php?current_date_=$formattedDate"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/task_building_for_admin.php?current_date_=$formattedDate"));
 
       if (futureRes.statusCode == 200 && futureRes.body.isNotEmpty) {
         _futureProperties =
@@ -1218,7 +1218,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
       // ================= ADD FLATS =================
       final addFlatRes = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/add_flat_in_future_property_for_admin.php?current_dates=$formattedDate"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/add_flat_in_future_property_for_admin.php?current_dates=$formattedDate"));
 
       if (addFlatRes.statusCode == 200 && addFlatRes.body.isNotEmpty) {
         _addFlats = AddFlatResponse.fromJson(jsonDecode(addFlatRes.body)).data;
@@ -1230,7 +1230,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
       // ================= BOOKED TENANT VISITS =================
       final visitRes = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/book_visit_in_tenant_demand_for_admin.php?visiting_dates=$formattedDate"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/book_visit_in_tenant_demand_for_admin.php?visiting_dates=$formattedDate"));
 
       if (visitRes.statusCode == 200 && visitRes.body.isNotEmpty) {
         final decoded = jsonDecode(visitRes.body);
@@ -1246,7 +1246,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
       // ================= WEBSITE VISITS =================
       final webRes = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/web_visit_for_admin.php?dates=$formattedDate"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/web_visit_for_admin.php?dates=$formattedDate"));
 
       if (webRes.statusCode == 200 && webRes.body.isNotEmpty) {
         _websiteVisits =
@@ -1259,7 +1259,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
       // ================= TENANT DEMANDS =================
       final demandRes = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/tenant_demand_for_admin.php?Date=$formattedDate"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/tenant_demand_for_admin.php?Date=$formattedDate"));
 
       if (demandRes.statusCode == 200 && demandRes.body.isNotEmpty) {
         final decoded = jsonDecode(demandRes.body);
@@ -1275,7 +1275,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
       // ================= UPCOMING FLATS =================
       final upcomingRes = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/upcomin_flat_for_admin.php?dates_for_right_avaiable=$formattedDate"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/upcomin_flat_for_admin.php?dates_for_right_avaiable=$formattedDate"));
 
       if (upcomingRes.statusCode == 200 && upcomingRes.body.isNotEmpty) {
         final decoded = jsonDecode(upcomingRes.body);
@@ -1291,7 +1291,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
       // ================= LIVE PROPERTIES =================
       final liveRes = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/live_property_for_admin.php?date_for_target=$formattedDate"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/live_property_for_admin.php?date_for_target=$formattedDate"));
 
       if (liveRes.statusCode == 200 && liveRes.body.isNotEmpty) {
         final decoded = jsonDecode(liveRes.body);
@@ -1307,7 +1307,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
       }
 // ================= BUILDING CALLING REMINDER =================
       final callingRes = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/building_calling_option_for_admin.php?next_calling_date=$formattedDate"
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/building_calling_option_for_admin.php?next_calling_date=$formattedDate"
       ));
 
       if (callingRes.statusCode == 200 && callingRes.body.isNotEmpty) {
@@ -1487,11 +1487,11 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
         final responses = await Future.wait([
           http.get(Uri.parse(
-              "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$formattedDate")),
+              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$formattedDate")),
           http.get(Uri.parse(
-              "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_building.php?current_date_=$formattedDate")),
+              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/task_for_building.php?current_date_=$formattedDate")),
           http.get(Uri.parse(
-              "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$formattedDate")),
+              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$formattedDate")),
         ]);
 
         bool hasEvent = false;
@@ -1759,7 +1759,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                           MaterialPageRoute(
                             builder: (_) => PropertyPreview(
                               ImageUrl:
-                              "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
+                              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
                             ),
                           ),
                         );
@@ -1767,7 +1767,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: Image.network(
-                          "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
+                          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
                           width: 100,
                           height: 100,
                           fit: BoxFit.cover,
@@ -2707,7 +2707,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                           MaterialPageRoute(
                             builder: (_) => PropertyPreview(
                               ImageUrl:
-                              "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
+                              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
                             ),
                           ),
                         );
@@ -2715,7 +2715,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(10),
                         child: Image.network(
-                          "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
+                          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${buildingData.image}",
                           width: 110,
                           height: 100,
                           fit: BoxFit.cover,

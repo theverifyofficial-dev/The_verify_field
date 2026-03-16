@@ -35,7 +35,7 @@ class _TenantDemandState extends State<TenantDemand> {
     try {
       final response = await http.get(
         Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php?Status=new",
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php?Status=new",
         ),
       );
 
@@ -60,7 +60,7 @@ class _TenantDemandState extends State<TenantDemand> {
           // backend responded but with unexpected structure
           // await BugLogger.log(
           //   apiLink:
-          //   "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
+          //   "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
           //   error: response.body,
           //   statusCode: response.statusCode,
           // );
@@ -74,7 +74,7 @@ class _TenantDemandState extends State<TenantDemand> {
       } else {
         await BugLogger.log(
           apiLink:
-          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
           error: response.body,
           statusCode: response.statusCode,
         );
@@ -82,7 +82,7 @@ class _TenantDemandState extends State<TenantDemand> {
     } catch (e) {
       await BugLogger.log(
         apiLink:
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
         error: e.toString(),
         statusCode: 500,
       );

@@ -24,10 +24,10 @@ class _EditCommercialImageState extends State<EditCommercialImage> {
 
   // ✅ COMMERCIAL API
   final String baseUrl =
-      'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/edit_commerical_multiple_images.php';
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/edit_commerical_multiple_images.php';
 
   final String fullBaseImageUrl =
-      'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/';
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/';
 
   @override
   void initState() {

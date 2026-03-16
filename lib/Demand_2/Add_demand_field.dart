@@ -95,7 +95,7 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
 
     try {
       final res = await _dio.get(
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/fecth_tenant_number.php?Tnumber=$phone",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/fecth_tenant_number.php?Tnumber=$phone",
       );
 
       if (res.statusCode == 200 && res.data["success"] == true) {
@@ -253,7 +253,7 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
 
     try {
       final res = await _dio.post(
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php",
         data: formData,
       );
 
@@ -281,7 +281,7 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
         );
 
         await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php",
+          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php",
           error: res.data.toString(),
           statusCode: res.statusCode ?? 0,
         );
@@ -305,7 +305,7 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
 
         // 🔍 LOG REAL ERROR
         await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php",
+          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php",
           error: data.toString(),
           statusCode: status ?? 0,
         );
@@ -316,7 +316,7 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
         errorMessage = "Network error. Check internet connection.";
 
         await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php",
+          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php",
           error: e.message ?? "Unknown Dio error",
           statusCode: 0,
         );

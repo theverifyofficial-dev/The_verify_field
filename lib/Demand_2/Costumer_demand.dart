@@ -55,7 +55,7 @@ class _TenantDemandState extends State<CostumerDemand> {
       final encodedName = Uri.encodeQueryComponent(FName);
       final encodedLoc = Uri.encodeQueryComponent(FLocation);
 
-      final url = Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php?Status=new");
+      final url = Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php?Status=new");
 
       final response = await http.get(url);
 
@@ -92,7 +92,7 @@ class _TenantDemandState extends State<CostumerDemand> {
 
     } catch (e) {
       await BugLogger.log(
-        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_fieldworkar_page.php?assigned_fieldworker_name=encodedName&Location=encodedLoc",
+        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_fieldworkar_page.php?assigned_fieldworker_name=encodedName&Location=encodedLoc",
         error: e.toString(),
         statusCode: 500,
       );
@@ -120,7 +120,7 @@ class _TenantDemandState extends State<CostumerDemand> {
       final location = prefs.getString('location') ?? "";
 
       final url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/accept_demand_by_fields.php");
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/accept_demand_by_fields.php");
 
       final res = await http.post(url, body: {
         "id": demandId.toString(),
@@ -155,7 +155,7 @@ class _TenantDemandState extends State<CostumerDemand> {
   //     final encodedLoc = Uri.encodeQueryComponent(location);
   //
   //     final url =
-  //         "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/"
+  //         "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/"
   //         "share_demand_one_field_two_fieldwoarkar.php"
   //         "?assigned_fieldworker_location=$encodedLoc"
   //         "&assigned_fieldworker_name=$encodedName";

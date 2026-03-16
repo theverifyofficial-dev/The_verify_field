@@ -141,7 +141,7 @@ class Show_tenant_Demand_number_Filter extends StatefulWidget {
 class _Show_tenant_Demand_number_FilterState extends State<Show_tenant_Demand_number_Filter> {
 
   Future<List<Catid>> fetchData(num) async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/filter_tenant_demand_by_number_?V_number=$num");
+    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/filter_tenant_demand_by_number_?V_number=$num");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
 

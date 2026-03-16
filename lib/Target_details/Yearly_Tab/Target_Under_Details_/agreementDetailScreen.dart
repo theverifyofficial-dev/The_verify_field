@@ -17,7 +17,7 @@ class AgreementExternalDetail extends StatelessWidget {
   static const textGrey = Color(0xFF9FB3C8);
 
   String img(String path) =>
-      "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$path";
 
   Future<void> openLink(String url) async {
     final uri = Uri.parse(url);

@@ -23,10 +23,10 @@ class _EditPlotImageState extends State<EditPlotImage> {
   bool isLoading = true;
 
   final String baseUrl =
-      'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/edit_plot_multiple_image.php';
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/edit_plot_multiple_image.php';
 
   final String fullBaseImageUrl =
-      'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/';
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/';
 
   @override
   void initState() {

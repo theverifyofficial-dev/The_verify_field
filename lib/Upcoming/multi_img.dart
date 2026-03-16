@@ -63,7 +63,7 @@ class _MultiImagePickerPageState extends State<MultiImg> {
       setState(() {
         existingImages = images
             .map((e) =>
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${e.imagePath}")
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${e.imagePath}")
             .toList();
         isLoading = false;
       });
@@ -77,7 +77,7 @@ class _MultiImagePickerPageState extends State<MultiImg> {
   
   Future<List<UpcomingPropertyImage>> fetchUpcomingPropertyImages(int id) async {
     final url =
-        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/multiple_image_for_urgent_flat.php?subid=$id';
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/multiple_image_for_urgent_flat.php?subid=$id';
 
     final response = await http.get(Uri.parse(url));
 
@@ -139,7 +139,7 @@ class _MultiImagePickerPageState extends State<MultiImg> {
         deleteBody['delete_images[$i]'] = deletedImages[i];
       }
 
-      final deleteResponse = await http.post(Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/urgent_flat_multiple_image.php"), body: deleteBody);
+      final deleteResponse = await http.post(Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/urgent_flat_multiple_image.php"), body: deleteBody);
       print("Delete Response: ${deleteResponse.body}");
 
 
@@ -182,14 +182,14 @@ class _MultiImagePickerPageState extends State<MultiImg> {
           deleteBody['delete_images[$i]'] = deletedImages[i];
         }
 
-        final deleteResponse = await http.post(Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/urgent_flat_multiple_image.php"), body: deleteBody);
+        final deleteResponse = await http.post(Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/urgent_flat_multiple_image.php"), body: deleteBody);
         print("Delete Response: ${deleteResponse.body}");
       }
 
 
       // 2. Insert new images
       if (newImages.isNotEmpty) {
-        var request = http.MultipartRequest('POST', Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/urgent_flat_multiple_image.php"));
+        var request = http.MultipartRequest('POST', Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/urgent_flat_multiple_image.php"));
         request.fields['action'] = 'insert';
         request.fields['subid'] = widget.propertyId.toString(); // ✅ added here
 

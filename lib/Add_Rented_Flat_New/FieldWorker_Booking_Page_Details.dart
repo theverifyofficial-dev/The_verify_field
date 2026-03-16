@@ -194,7 +194,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
   }
   Future<PropertyDetail> fetchPropertyDetail(String pId) async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/details_page_for_book_flat.php?P_id=$pId");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/details_page_for_book_flat.php?P_id=$pId");
 
     final response = await http.get(url);
 
@@ -276,7 +276,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) => PropertyPreview(
-                                    ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
+                                    ImageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
                                   ),
                                 ),
                               );
@@ -292,7 +292,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                                 width: 350,
                                 child:
                                 CachedNetworkImage(
-                                  imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/" +
+                                  imageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/" +
                                      property.propertyPhoto,
                                   fit: BoxFit.cover,
                                   placeholder:

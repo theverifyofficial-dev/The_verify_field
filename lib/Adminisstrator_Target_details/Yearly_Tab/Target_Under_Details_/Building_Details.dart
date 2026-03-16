@@ -43,7 +43,7 @@ class BuildingDetailScreen extends StatelessWidget {
           : Colors.black54;
 
   String img(String path) =>
-      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/$path";
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/$path";
 
   @override
   Widget build(BuildContext context) {

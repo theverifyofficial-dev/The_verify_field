@@ -77,7 +77,7 @@ class Details_Fullfilled_Demand extends StatefulWidget {
 class _Details_Fullfilled_DemandState extends State<Details_Fullfilled_Demand> {
 
   Future<List<Catid>> fetchData(id) async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/Tanant_demands_book_details_show_all_data_by_id_?VTD_id=${widget.id}');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Tanant_demands_book_details_show_all_data_by_id_?VTD_id=${widget.id}');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -90,7 +90,7 @@ class _Details_Fullfilled_DemandState extends State<Details_Fullfilled_Demand> {
   }
 
   Future<List<Catid_tenant>> fetchData_Tenant(id) async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/show_tenant_under_book_table_demand_id?demand_id=${widget.id}');
+    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/show_tenant_under_book_table_demand_id?demand_id=${widget.id}');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);

@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Custom_Widget/constant.dart';
 import '../Administater_Parent_TenantDemand.dart';
-import 'Show_Unexpected_Demand.dart';
 
 class Edit_Optionin_Demand extends StatefulWidget {
   String id;
@@ -37,8 +36,8 @@ class _Edit_Optionin_DemandState extends State<Edit_Optionin_Demand> {
   String _location = '';
 
   Future<void> fetchdata(id,Name,Number,buyrent,Additional_Info) async{
-    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/update_assign_tanant_demand_2nd_table?id=$id&demand_name=$Name&demand_number=$Number&buy_rent=$buyrent&add_info=$Additional_Info'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+    final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/update_assign_tanant_demand_2nd_table?id=$id&demand_name=$Name&demand_number=$Number&buy_rent=$buyrent&add_info=$Additional_Info'));
+    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);

@@ -9,7 +9,7 @@ class PropertyProvider with ChangeNotifier {
   final Dio _dio = Dio();
 
   Future<bool> submitProperty(Map<String, dynamic> data, {File? imageFile}) async {
-    const String apiUrl = "https://verifyserve.social/PHP_Files/Main_Realestate/insert_property.php";
+    const String apiUrl = "https://verifyrealestateandservices.in/PHP_Files/Main_Realestate/insert_property.php";
 
     _isLoading = true;
     notifyListeners();
@@ -31,7 +31,7 @@ class PropertyProvider with ChangeNotifier {
           headers: {
             'User-Agent': 'Mozilla/5.0',
             'Accept': '*/*',
-            'Referer': 'https://verifyserve.social/',
+            'Referer': 'https://verifyrealestateandservices.in/',
           },
         ),
       );

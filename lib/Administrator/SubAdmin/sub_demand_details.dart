@@ -70,7 +70,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
   Future<void> _fetchDemandDetails() async {
     try {
       final response = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}"));
 
       if (response.statusCode == 200) {
         final jsonRes = jsonDecode(response.body);
@@ -93,7 +93,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
         } else {
           setState(() => _isLoading = false);
           await BugLogger.log(
-            apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}",
+            apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}",
             error: response.body.toString(),
             statusCode: response.statusCode ?? 0,
           );
@@ -101,7 +101,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
       }
       else{
         await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}",
+          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}",
           error: response.body.toString(),
           statusCode: response.statusCode ?? 0,
         );
@@ -112,7 +112,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
         SnackBar(content: Text("Error fetching details: $e")),
       );
       await BugLogger.log(
-        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}",
+        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}",
         error: e.toString(),
         statusCode: 500,
       );
@@ -140,7 +140,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
       final encodedLoc = Uri.encodeQueryComponent(subadminLocation);
 
       final url =
-          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_based_on_sub_id_and_name_location.php?subid=$_parentId&assigned_subadmin_name=$encodedName&assigned_subadmin_location=$encodedLoc";
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_based_on_sub_id_and_name_location.php?subid=$_parentId&assigned_subadmin_name=$encodedName&assigned_subadmin_location=$encodedLoc";
 
       final response = await http.get(Uri.parse(url));
 
@@ -164,13 +164,13 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
       }
       setState(() => _redemands = []);
       await BugLogger.log(
-        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_based_on_sub_id_and_name_location.php?subid=$_parentId&assigned_subadmin_name=$encodedName&assigned_subadmin_location=$encodedLoc",
+        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_based_on_sub_id_and_name_location.php?subid=$_parentId&assigned_subadmin_name=$encodedName&assigned_subadmin_location=$encodedLoc",
         error: response.body.toString(),
         statusCode: response.statusCode ?? 0,
       );
     } catch (e) {
       await BugLogger.log(
-        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_based_on_sub_id_and_name_location.php?subid=$_parentId&assigned_subadmin_name=encodedName&assigned_subadmin_location=encodedLoc}",
+        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_based_on_sub_id_and_name_location.php?subid=$_parentId&assigned_subadmin_name=encodedName&assigned_subadmin_location=encodedLoc}",
         error: e.toString(),
         statusCode: 500,
       );
@@ -229,7 +229,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
 
       final response = await http.post(
         Uri.parse(
-            "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/assign_fieldoworkar.php"),
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/assign_fieldoworkar.php"),
         headers: {"Content-Type": "application/json"},
         body: body,
       );
@@ -251,7 +251,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
         Navigator.pop(context);
       } else {
         await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/assign_fieldoworkar.php",
+          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/assign_fieldoworkar.php",
           error: response.body.toString(),
           statusCode: response.statusCode ?? 0,
         );
@@ -261,7 +261,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("Error: $e")));
       await BugLogger.log(
-        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/assign_fieldoworkar.php",
+        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/assign_fieldoworkar.php",
         error: e.toString(),
         statusCode: 500,
       );
@@ -293,7 +293,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
       print("🧑 SubAdmin: $newSubAdmin");
 
       final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/share_demand_to_another_location.php",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/share_demand_to_another_location.php",
       );
 
       /// ✅ FORM DATA (x-www-form-urlencoded)
@@ -334,7 +334,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
 
       await BugLogger.log(
         apiLink:
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/share_demand_to_another_location.php",
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/share_demand_to_another_location.php",
         error: e.toString(),
         statusCode: 500,
       );
@@ -863,7 +863,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
     try {
       final response = await http.post(
         Uri.parse(
-            "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/update_api_tenant_demand.php"),
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/update_api_tenant_demand.php"),
         body: {
           "id": _demand!["id"].toString(),
           "finishing_date": finishingDateTime,
@@ -881,7 +881,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
       Navigator.pop(context, true);
     } catch (e) {
       await BugLogger.log(
-        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/update_api_tenant_demand.php",
+        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/update_api_tenant_demand.php",
         error: e.toString(),
         statusCode: 500,
       );
@@ -1178,7 +1178,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
   Future<List<dynamic>> _fetchLogs(String id) async {
     try {
       final url =
-          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id";
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id";
 
       print("📡 Fetching Logs: $url");
 
@@ -1193,7 +1193,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
       }
       else{
         await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id",
+          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id",
           error: res.body.toString(),
           statusCode: res.statusCode ?? 0,
         );
@@ -1201,7 +1201,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
     } catch (e) {
       print("❌ Error fetching logs: $e");
       await BugLogger.log(
-        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id",
+        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id",
         error: e.toString(),
         statusCode: 500,
       );
@@ -1482,7 +1482,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
     final time = "${now.hour}:${now.minute}";
 
     const apiUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/calling_option_for_fieldworkar.php";
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/calling_option_for_fieldworkar.php";
 
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();

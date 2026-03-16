@@ -318,7 +318,7 @@ class _EditPlotformState extends State<EditPlotform> {
   }
 
   static const String _apiUrl =
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_plot_api.php";
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/update_plot_api.php";
 
 
   static String _stripUnits(String? s) => (s ?? '').replaceAll(RegExp(r'[^0-9.]'), '').trim();

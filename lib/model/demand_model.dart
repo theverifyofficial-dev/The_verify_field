@@ -17,6 +17,7 @@ class TenantDemandModel {
   final String createdDate;
   final String Date;
   final String finishingDate;
+  final String adminName;
   final String? assignedSubadminName;
   final String? assignedFieldworkerName;
 
@@ -39,6 +40,7 @@ class TenantDemandModel {
     required this.createdDate,
     required this.Date,
     required this.finishingDate ,
+    required this.adminName ,
     this.assignedSubadminName,
     this.assignedFieldworkerName,
   });
@@ -70,6 +72,7 @@ class TenantDemandModel {
       re_status: json['redemand_status']?.toString() ?? '',
       result: json['final_reason']?.toString() ?? '',
       mark: json['mark']?.toString() ?? '0',
+      adminName: json['admin_name']?.toString() ?? '0',
 
       // FIXED: unify both formats
       createdDate: extractCreatedDate(json['created_date']) ?? '',

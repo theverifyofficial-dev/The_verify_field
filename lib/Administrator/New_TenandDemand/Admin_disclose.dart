@@ -471,7 +471,8 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
                                             )
 
                                           ],
-                                        ),),
+                                        ),
+                                        ),
 
                                       if (d.result.toString().isNotEmpty)
                                         Padding(
@@ -522,6 +523,16 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
                                             ),
                                           ),
                                         ),
+
+                                      SizedBox(height: 5,),
+
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [
+                                          Text( "Admin: ${d.adminName}", style: TextStyle( color: isDark ? Colors.white : Colors.black45, fontSize: 13), ),
+
+                                        ],
+                                      ),
                                     ],
                                     ),
                                   ),

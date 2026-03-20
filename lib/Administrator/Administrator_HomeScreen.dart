@@ -9,7 +9,6 @@ import 'package:verify_feild_worker/Administrator/Admin_upcoming.dart';
 import '../Adminisstrator_Target_details/Targets.dart';
 import '../Calender/CalenderForAdmin.dart';
 import '../Home_Screen.dart' hide AgreementTaskResponse, FuturePropertyResponse, WebsiteVisitResponse;
-import '../Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
 import '../Web_query/web_query.dart' hide SlideAnimation;
 import '../Z-Screen/Social_Media_links.dart';
 import '../main.dart';
@@ -581,7 +580,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                               "onTap": () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => const MainPage_TenandDemand()),
+                                  MaterialPageRoute(builder: (_) => const Administater_parent_TenandDemand()),
                                 );
                               },
                               "count": 0,

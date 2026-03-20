@@ -304,6 +304,27 @@ class _TenantDemandState extends State<TenantDemand> {
 
                       return Stack(
                         children: [
+
+                          Positioned(
+                            bottom: 18,
+                            left: 8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.6),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                "#${i + 1}",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+
                           GestureDetector(
                             onTap: () {
                               Navigator.push(
@@ -442,7 +463,21 @@ class _TenantDemandState extends State<TenantDemand> {
                                     )
 
                                   ],
-                                ),),
+                                ),
+
+                                      ),
+
+
+                                    SizedBox(height: 5,),
+
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        Text( "Admin: ${d.adminName}", style: TextStyle( color: isDark ? Colors.white : Colors.black45, fontSize: 13), ),
+                                      ],
+                                    ),
+
+
                                   ],
                                   ),
                                 ),

@@ -5,6 +5,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../Custom_Widget/constant.dart';
 import '../../utilities/bug_founder_fuction.dart';
 import 'Admin_demand_detail.dart';
@@ -33,7 +34,6 @@ class CustomerDemandFormPage extends StatefulWidget {
   State<CustomerDemandFormPage> createState() =>
       _CustomerDemandFormPageState();
 }
-
 
 class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with SingleTickerProviderStateMixin  {
 
@@ -377,33 +377,14 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSubmitting = true);
 
+
+    final prefs = await SharedPreferences.getInstance();
+    final AName = prefs.getString('name') ?? "";
+    print(AName);
+
+
     final now = DateTime.now();
     final isBuy = _buyRent == "Buy";
-
-    if (_selectedBhks.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Colors.redAccent,
-          content: Text("Please select at least one BHK option"),
-        ),
-      );
-      setState(() => _isSubmitting = false);
-      return;
-    }
-
-    if (_buyRent == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Colors.redAccent,
-          content: Text("Please select Buy or Rent"),
-        ),
-      );
-      setState(() => _isSubmitting = false);
-      return;
-    }
-
-
-
 
     final String? updateId = widget.mode == DemandEditMode.updateDemand
         ? widget.demandId
@@ -426,18 +407,24 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       formData = {
         "Tname": _nameCtrl.text.trim(),
         "Tnumber": _numberCtrl.text.trim(),
-        "Buy_rent": _buyRent,
-        "Reference": _reference ?? "",
-        "Price": _buyRent == "Buy"
+
+        "Price": _buyRent == null
+            ? ""
+            : _buyRent == "Buy"
             ? "${_buyBudget.start.toInt()}-${_buyBudget.end.toInt()}"
             : "${_rentBudget.start.toInt()}-${_rentBudget.end.toInt()}",
-        "Message": _messageCtrl.text.trim(),
-        "Bhk": _selectedBhks.join(", "),
+
+        "Bhk": _selectedBhks.isEmpty ? "" : _selectedBhks.join(", "),
         "Location": _location ?? "",
+        "Buy_rent": _buyRent ?? "",
+        "Reference": _reference ?? "",
+        "Message": _messageCtrl.text.trim(),
+
         "Status": "New",
         "mark": _isUrgent ? "1" : "0",
         "created_date": DateFormat('yyyy-MM-dd').format(DateTime.now()),
         "Result": "",
+        "admin_name": AName,
         "by_field": "false",
       };
     } else {
@@ -445,15 +432,21 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
         "id": updateId, // ✅ REQUIRED
         "Tname": _nameCtrl.text.trim(),
         "Tnumber": _numberCtrl.text.trim(),
-        "Buy_rent": _buyRent,
-        "Reference": _reference ?? "",
-        "Price": _buyRent == "Buy"
+
+        "Price": _buyRent == null
+            ? ""
+            : _buyRent == "Buy"
             ? "${_buyBudget.start.toInt()}-${_buyBudget.end.toInt()}"
             : "${_rentBudget.start.toInt()}-${_rentBudget.end.toInt()}",
-        "Message": _messageCtrl.text.trim(),
-        "Bhk": _selectedBhks.join(", "),
+
+        "Bhk": _selectedBhks.isEmpty ? "" : _selectedBhks.join(", "),
         "Location": _location ?? "",
+        "Buy_rent": _buyRent ?? "",
+        "Reference": _reference ?? "",
+        "Message": _messageCtrl.text.trim(),
+
         "mark": _isUrgent ? "1" : "0",
+        "admin_name": AName,
       };
     }
 
@@ -787,7 +780,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
                       : null,
                 ),
                 keyboardType: TextInputType.phone,
-                maxLength: 14, // ✅ allow +91 / spaces
+                maxLength: 12, // ✅ allow 91
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
                 ],
@@ -810,7 +803,17 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
               TextFormField(
                 controller: _nameCtrl,
                 decoration: _inputStyle("Customer Name", Icons.person),
-                validator: (v) => v!.isEmpty ? "Enter name" : null,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) {
+                    return "Customer name is required";
+                  }
+
+                  if (v.trim().length < 2) {
+                    return "Enter valid name";
+                  }
+
+                  return null;
+                },
               ),
               const SizedBox(height: 10),
 
@@ -1380,7 +1383,7 @@ class _ExistingCustomerCard extends StatelessWidget {
                   color: accent.withOpacity(0.85),
                 ),
                 child: Text(
-                  "EXISTING",
+                  data["Status"],
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
@@ -1391,7 +1394,20 @@ class _ExistingCustomerCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text("Date: ${data["Date"]} Time: ${data["Time"]} ",
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white,
+                  fontStyle: FontStyle.italic,
+                ),
+              )
+            ],
+          ),
+
           Divider(color: Colors.white.withOpacity(0.25)),
           const SizedBox(height: 6),
 

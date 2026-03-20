@@ -526,7 +526,7 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
                       : null,
                 ),
                 keyboardType: TextInputType.phone,
-                maxLength: 14, // ✅ allow +91 / spaces
+                maxLength: 12, // ✅ allow 91
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
                 ],
@@ -1063,7 +1063,7 @@ class _ExistingCustomerCard extends StatelessWidget {
                   color: accent.withOpacity(0.85),
                 ),
                 child: Text(
-                  "EXISTING",
+                  data["Status"],
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
@@ -1074,7 +1074,20 @@ class _ExistingCustomerCard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text("Date: ${data["Date"]} Time: ${data["Time"]} ",
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white,
+                  fontStyle: FontStyle.italic,
+                ),
+              )
+            ],
+          ),
+
           Divider(color: Colors.white.withOpacity(0.25)),
           const SizedBox(height: 6),
 

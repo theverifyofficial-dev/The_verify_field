@@ -1562,6 +1562,32 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
           ),
           const SizedBox(height: 16),
 
+          if (data["not_intrested"] == "1")
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.redAccent),
+              ),
+              child: Row(
+                children: const [
+                  Icon(Icons.block, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text(
+                    "Not Interested",
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          const SizedBox(height: 10),
+
           _infoRow("Parking", data["parking"]),
           _infoRow("Lift", data["lift"]),
           _infoRow("Furnished", data["furnished_unfurnished"]),

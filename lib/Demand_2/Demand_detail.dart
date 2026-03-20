@@ -966,7 +966,34 @@ class _AdminDemandDetailState extends State<DemandDetail> {
               color: accent,
             ),
           ),
+
           const SizedBox(height: 16),
+
+          if (data["not_intrested"] == "1")
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.redAccent),
+              ),
+              child: Row(
+                children: const [
+                  Icon(Icons.block, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text(
+                    "Not Interested",
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          const SizedBox(height: 10),
 
           _infoRow("Parking", _fmt(data["parking"])),
           _infoRow("Lift", _fmt(data["lift"])),
@@ -1665,6 +1692,11 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     final bool addedByField =
     _isAddedByFieldWorker(_demand?["by_field"]);
 
+    String firstLetter(String? name) {
+      if (name == null || name.trim().isEmpty) return "?";
+      return name.trim()[0].toUpperCase();
+    }
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       padding: const EdgeInsets.all(18),
@@ -1700,7 +1732,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
             ),
             child: Center(
               child: Text(
-                _demand?["Tname"]?.substring(0, 1).toUpperCase() ?? "?",
+                  firstLetter(_demand?["Tname"]),
                 style: const TextStyle(
                     color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
               ),

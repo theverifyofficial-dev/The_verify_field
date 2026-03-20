@@ -20,6 +20,7 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
 
 
   // Fields
+  bool _notInterested = false;
   String? _parking;
   String? _lift;
   String? _furnished;
@@ -109,6 +110,7 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
     _familyStructure = d["family_structur"];
     _familyMember = d["family_member"]?.toString();
     _religion = d["religion"];
+
     if (d["furnished_item"] != null && d["furnished_item"].toString().isNotEmpty) {
       try {
         _selectedFurniture =
@@ -315,7 +317,7 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
 
     String? error;
 
-    if (_shiftingDate == null) {
+    if (!_notInterested && _shiftingDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: Colors.redAccent,
@@ -342,8 +344,9 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
 
       "religion": _religion ?? widget.demand["religion"] ?? "",
 
-      // 🔥 ONLY REQUIRED FIELD
-      "shifting_date": DateFormat("yyyy-MM-dd").format(_shiftingDate!),
+      "shifting_date": (!_notInterested && _shiftingDate != null)
+          ? DateFormat("yyyy-MM-dd").format(_shiftingDate!)
+          : (widget.demand["shifting_date"] ?? ""),
 
       "visiting_dates": _visitingDate == null
           ? widget.demand["visiting_dates"] ?? ""
@@ -364,7 +367,7 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
           : widget.demand["Message"] ?? "",
 
       "Buy_rent": _buyRent ?? widget.demand["Buy_rent"] ?? "",
-
+      "not_intrested": _notInterested ? "1" : "0",
       "furnished_item": _selectedFurniture.isNotEmpty
           ? jsonEncode(_selectedFurniture)
           : widget.demand["furnished_item"] ?? "",
@@ -477,6 +480,26 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
                 ),
               ),
               const SizedBox(height: 12),
+
+              SwitchListTile(
+                value: _notInterested,
+                onChanged: (val) {
+                  setState(() {
+                    _notInterested = val;
+                  });
+                },
+                activeColor: Colors.red,
+                title: Text(
+                  "Mark as Not Interested",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: _notInterested ? Colors.red : null,
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
 
               // Furnished
               DropdownButtonFormField<String>(

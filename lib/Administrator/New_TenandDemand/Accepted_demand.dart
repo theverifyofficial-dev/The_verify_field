@@ -444,19 +444,31 @@ class _TenantDemandState extends State<AcceptedDemand> {
                                         ],
                                       ),),
 
+
+
+
+
+
+                                    SizedBox(height: 5,),
+
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text( "Admin: ${d.adminName}", style: TextStyle( color: isDark ? Colors.white : Colors.black45, fontSize: 13), ),
+
+                                        Text(
+                                          "By: ${d.assignedFieldworkerName}",
+                                          style: TextStyle(
+                                            color: Colors.grey.shade500,
+                                            fontSize: 12,
+                                            fontStyle: FontStyle.italic,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+
                                     SizedBox(height: 5),
 
-                                    Align(
-                                      alignment: Alignment.centerRight,
-                                      child: Text(
-                                        "By: ${d.assignedFieldworkerName}",
-                                        style: TextStyle(
-                                          color: Colors.grey.shade500,
-                                          fontSize: 12,
-                                          fontStyle: FontStyle.italic,
-                                        ),
-                                      ),
-                                    ),
                                   ],
                                   ),
                                 ),

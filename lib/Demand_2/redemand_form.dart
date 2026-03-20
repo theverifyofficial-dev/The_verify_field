@@ -21,6 +21,7 @@ class _RedemandFormState  extends State<RedemandForm>
   final Dio _dio = Dio();
 
   // Fields
+  bool _notInterested = false;
   String? _parking;
   String? _lift;
   String? _furnished;
@@ -91,6 +92,7 @@ class _RedemandFormState  extends State<RedemandForm>
     _familyStructure = d["family_structur"];
     _familyMember = d["family_member"]?.toString();
     _religion = d["religion"];
+    _notInterested = widget.demand["not_intrested"] == "1";
 
     if (d["visiting_dates"] != null && d["visiting_dates"].toString().isNotEmpty) {
       try {
@@ -285,7 +287,7 @@ class _RedemandFormState  extends State<RedemandForm>
     String? error;
 
 
-    if (_shiftingDate == null) {
+    if (!_notInterested && _shiftingDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: Colors.redAccent,
@@ -312,8 +314,9 @@ class _RedemandFormState  extends State<RedemandForm>
 
       "religion": _religion ?? widget.demand["religion"] ?? "",
 
-      // 🔥 ONLY REQUIRED FIELD
-      "shifting_date": DateFormat("yyyy-MM-dd").format(_shiftingDate!),
+      "shifting_date": (!_notInterested && _shiftingDate != null)
+          ? DateFormat("yyyy-MM-dd").format(_shiftingDate!)
+          : (widget.demand["shifting_date"] ?? ""),
 
       "visiting_dates": _visitingDate == null
           ? widget.demand["visiting_dates"] ?? ""
@@ -334,6 +337,8 @@ class _RedemandFormState  extends State<RedemandForm>
           : widget.demand["Message"] ?? "",
 
       "Buy_rent": _buyRent ?? widget.demand["Buy_rent"] ?? "",
+
+      "not_intrested": _notInterested ? "1" : "0",
 
       "furnished_item": _selectedFurniture.isNotEmpty
           ? jsonEncode(_selectedFurniture)
@@ -446,6 +451,25 @@ class _RedemandFormState  extends State<RedemandForm>
                   style: theme.textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold,fontSize: 16,color: Colors.red),
                 ),
               ),
+              const SizedBox(height: 12),
+
+              SwitchListTile(
+                value: _notInterested,
+                onChanged: (val) {
+                  setState(() {
+                    _notInterested = val;
+                  });
+                },
+                activeColor: Colors.red,
+                title: Text(
+                  "Mark as Not Interested",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: _notInterested ? Colors.red : null,
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 12),
 
               // Furnished

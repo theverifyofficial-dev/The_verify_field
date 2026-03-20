@@ -387,10 +387,16 @@ class _TenantDemandState extends State<CostumerDemand> {
 
                     if (_filteredParent.isNotEmpty) ...[
                       _sectionTitle("Demands"),
-                      ..._filteredParent.map((d) => KeyedSubtree(
-                        key: ValueKey(d.id),
-                        child: _buildDemandTile(d, isDark),
-                      )),
+              ..._filteredParent.asMap().entries.map((entry) {
+              final index = entry.key;
+              final d = entry.value;
+
+              return KeyedSubtree(
+              key: ValueKey(d.id),
+              child: _buildDemandTile(d, isDark, index + 1),
+              );
+              }
+              ),
                     ],
 
                     // if (_filteredCross.isNotEmpty) ...[
@@ -423,43 +429,20 @@ class _TenantDemandState extends State<CostumerDemand> {
     );
   }
 
-  Widget _buildDemandTile(TenantDemandModel d, bool isDark) {
+  Widget _buildDemandTile(TenantDemandModel d, bool isDark, int index) {
     return _buildCommonTile(
       d,
+      index,
       isDark,
       onTap: () {
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (_) => DemandDetail(
-        //       demandId: d.id.toString(),
-        //     ),
-        //   ),
-        // ).then((_) => _loadDemands());
+
       },
     );
   }
 
-  // Widget _buildCrossRedemandTile(TenantDemandModel d, bool isDark) {
-  //   return _buildCommonTile(
-  //     d,
-  //     isDark,
-  //     onTap: () {
-  //       Navigator.push(
-  //         context,
-  //         MaterialPageRoute(
-  //           builder: (_) => field_RedemandDetailPage(
-  //             redemandId: d.r_id.toString(),
-  //             // demandId: d.subid.toString(),
-  //           ),
-  //         ),
-  //       ).then((_) => _loadDemands());
-  //     },
-  //   );
-  // }
-
   Widget _buildCommonTile(
       TenantDemandModel d,
+      int index,
       bool isDark, {
         required VoidCallback onTap,
       }) {
@@ -468,6 +451,26 @@ class _TenantDemandState extends State<CostumerDemand> {
 
     return Stack(
       children: [
+        Positioned(
+          bottom: 18,
+          left: 8,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.black.withOpacity(0.6),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              "#$index",
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+
         GestureDetector(
           onTap: onTap, // ✅ single source of truth
           child: AnimatedContainer(

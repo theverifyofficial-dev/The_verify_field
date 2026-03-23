@@ -6,8 +6,6 @@ import 'package:animated_analog_clock/animated_analog_clock.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/Home_Screen_click/live_tabbar.dart';
@@ -26,7 +24,6 @@ import 'Rent Agreement/history_tab.dart';
 import 'Tenant_Details_Demand/Parent_class_TenantDemand.dart';
 import 'Z-Screen/Social_Media_links.dart';
 import 'Target_details/Monthly_target.dart';
-import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
 
 class TodayCounts {
   final int agreements;
@@ -167,8 +164,6 @@ class AgreementTask {
   }
 }
 
-
-
 class WebsiteVisit {
   final int id;
   final String name;
@@ -234,7 +229,6 @@ class AgreementTaskResponse {
     );
   }
 }
-
 
 class WebsiteVisitResponse {
   final String status;
@@ -1869,7 +1863,7 @@ class _TargetProgressCircleState extends State<_TargetProgressCircle> with Singl
       );
   }
 }
-//hello
+
 class _PremiumFeatureCard extends StatefulWidget {
   final String title;
   final Gradient gradient;

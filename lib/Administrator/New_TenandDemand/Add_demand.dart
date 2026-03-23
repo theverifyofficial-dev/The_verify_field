@@ -1115,11 +1115,10 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       ],
     );
   }
-
 }
 
 class BudgetSelector extends StatelessWidget {
-  final String type; // "Buy" or "Rent"
+  final String type;
   final RangeValues buyBudget;
   final RangeValues rentBudget;
   final Function(RangeValues) onBuyChange;
@@ -1255,6 +1254,10 @@ final List<Map<String, RangeValues>> rentBudgetPresets = [
   {"Custom Range": const RangeValues(0, 0)},
 ];
 
+String formatDate(String date) {
+  final parsedDate = DateTime.parse(date);
+  return DateFormat('d MMMM yyyy').format(parsedDate);
+}
 
 class _ExistingCustomerCard extends StatelessWidget {
   final Map<String, dynamic> data;
@@ -1309,125 +1312,139 @@ class _ExistingCustomerCard extends StatelessWidget {
 
     final name = (data["Tname"] ?? "").toString().trim();
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            accent.withOpacity(isDark ? 0.10 : 0.08),
-            accent.withOpacity(isDark ? 0.08 : 0.10),
+    return GestureDetector(
+      onTap: (){
+        Navigator.push(context, MaterialPageRoute(builder: (context) => AdminDemandDetail(demandId: data["id"].toString()),));
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              accent.withOpacity(isDark ? 0.10 : 0.08),
+              accent.withOpacity(isDark ? 0.08 : 0.10),
+            ],
+          ),
+          border: Border.all(
+            color: accent.withOpacity(0.35),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: accent.withOpacity(0.18),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+            ),
           ],
         ),
-        border: Border.all(
-          color: accent.withOpacity(0.35),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: accent.withOpacity(0.18),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // HEADER
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: accent.withOpacity(0.9),
-                child: Text(
-                  name.isNotEmpty ? name[0].toUpperCase() : "?",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // HEADER
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor: accent.withOpacity(0.9),
+                  child: Text(
+                    name.isNotEmpty ? name[0].toUpperCase() : "?",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-              ),
 
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      data["Tname"] ?? "--",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        data["Tname"] ?? "--",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
                       ),
-                    ),
-                    Text(
-                      data["Tnumber"] ?? "--",
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: theme.hintColor,
+                      Text(
+                        data["Tnumber"] ?? "--",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: theme.hintColor,
+                        ),
                       ),
-                    ),
 
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: accent.withOpacity(0.85),
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    color: accent.withOpacity(0.85),
+                  ),
+                  child: Text(
+                    data["Status"],
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-                child: Text(
-                  data["Status"],
+              ],
+            ),
+
+            const SizedBox(height: 10),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Date: ${formatDate(data["Date"])}",
                   style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
                     color: Colors.white,
+                    fontStyle: FontStyle.italic,
                   ),
                 ),
-              ),
-            ],
-          ),
+                Text(
+                  "Time: ${data["Time"]}",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white,
+                    fontStyle: FontStyle.italic,
+                  ),
+                )
+              ],
+            ),
 
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Text("Date: ${data["Date"]} Time: ${data["Time"]} ",
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.white,
-                  fontStyle: FontStyle.italic,
-                ),
-              )
-            ],
-          ),
+            Divider(color: Colors.white.withOpacity(0.25)),
+            const SizedBox(height: 6),
 
-          Divider(color: Colors.white.withOpacity(0.25)),
-          const SizedBox(height: 6),
+            row("Type", data["Buy_rent"]),
+            row("Budget", data["Price"] != null ? "₹ ${data["Price"]}" : null),
+            row("BHK", data["Bhk"]),
+            row("Location", data["Location"]),
+            row("Family Members", data["family_member"]),
+            row("Parking", data["parking"]),
+            row("Shifting Date", formatDate(data["shifting_date"])),
+            row("Floor", data["floor"]),
 
-          row("Type", data["Buy_rent"]),
-          row("Budget", data["Price"] != null ? "₹ ${data["Price"]}" : null),
-          row("BHK", data["Bhk"]),
-          row("Location", data["Location"]),
-          row("Family Members", data["family_member"]),
-          row("Parking", data["parking"]),
-          row("Shifting Date", data["shifting_date"]),
-          row("Floor", data["floor"]),
+            const SizedBox(height: 8),
+            Divider(color: Colors.white.withOpacity(0.22)),
+            const SizedBox(height: 6),
 
-          const SizedBox(height: 8),
-          Divider(color: Colors.white.withOpacity(0.22)),
-          const SizedBox(height: 6),
+            row("Fieldworker", data["assigned_fieldworker_name"]),
+            row("FW Location", data["assigned_fieldworker_location"]),
 
-          row("Fieldworker", data["assigned_fieldworker_name"]),
-          row("FW Location", data["assigned_fieldworker_location"]),
-
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -878,6 +878,9 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
                   label: "Rented Address",
                   value: a['rented_address'] ?? ''),
               _detailRow(
+                  label: "Cost",
+                  value: a['agreement_price'] ?? ''),
+              _detailRow(
                   label: "Meter Type",
                   value: a['meter'] ?? ''),
               _detailRow(

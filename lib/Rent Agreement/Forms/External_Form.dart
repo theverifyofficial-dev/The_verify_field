@@ -28,6 +28,7 @@ class ExtraTenant {
   final address = TextEditingController();
   final mobile = TextEditingController();
   final aadhaar = TextEditingController();
+  bool includePoliceVerification = false;
 
   String relation = 'S/O';
 
@@ -78,7 +79,6 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
   File? tenantAadhaarFront;
   File? tenantAadhaarBack;
   File? tenantImage;
-  bool isPolice = false;
 
   Map<String, dynamic>? fetchedData;
 
@@ -212,6 +212,8 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           ownerMobile.text = data["owner_mobile_no"] ?? "";
           ownerAadhaar.text = data["owner_addhar_no"] ?? "";
 
+
+
           // 🔹 Tenant (FIRST TENANT)
           if (tenants.isEmpty) {
             tenants.add(ExtraTenant());
@@ -230,6 +232,9 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           firstTenant.aadhaar.text =
               data["tenant_addhar_no"] ?? "";
 
+          firstTenant.includePoliceVerification =
+              data["is_Police"] == "true" || data["is_Police"] == "1";
+
           // 🔹 Agreement
           propertyID.text = data["property_id"]?.toString() ?? "";
           Bhk.text = data["Bhk"] ?? "";
@@ -247,7 +252,6 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           Notary_price = data["notary_price"] ?? "10 rupees";
 
           // 🔹 Police verification (IMPORTANT)
-          isPolice = data["is_Police"] == "true";
 
 
           shiftingDate = (data["shifting_date"] != null && data["shifting_date"].toString().isNotEmpty)
@@ -315,6 +319,9 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
             t.aadhaarFrontUrl = e["tenant_aadhar_front"] ?? "";
             t.aadhaarBackUrl = e["tenant_aadhar_back"] ?? "";
             t.photoUrl = e["tenant_photo"] ?? "";
+
+            t.includePoliceVerification =
+                e["police_verification_for_addtional_tenant"] == "true" || e["police_verification_for_addtional_tenant"] == "1";
 
             tenants.add(t);
           }
@@ -401,11 +408,16 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     final notaryAmount =
     getBaseNotaryAmount(Notary_price, discounted);
 
-    final policeCharge = isPolice
-        ? (discounted ? 40 : 50)
-        : 0;
+    // 🔥 COUNT tenants with police verification
+    final policeCount = tenants
+        .where((t) => t.includePoliceVerification)
+        .length;
 
-    final total = notaryAmount + policeCharge;
+    final policeChargePerTenant = discounted ? 40 : 50;
+
+    final totalPoliceCharge = policeCount * policeChargePerTenant;
+
+    final total = notaryAmount + totalPoliceCharge;
 
     Agreement_price.text = total.toString();
     AgreementAmountInWords = convertToWords(total);
@@ -768,6 +780,9 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
       request.fields['additional_tenants[$idx][tenant_address]'] =
           t.address.text;
 
+      request.fields['additional_tenants[$idx][police_verification_for_addtional_tenant]'] =
+      t.includePoliceVerification ? "true" : "false";
+
       // 🔥 FILES
       if (t.aadhaarFront != null) {
         request.files.add(await http.MultipartFile.fromPath(
@@ -830,6 +845,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         "permanent_address_tenant": firstTenant.address.text,
         "tenant_mobile_no": firstTenant.mobile.text,
         "tenant_addhar_no": firstTenant.aadhaar.text,
+        "is_Police": firstTenant.includePoliceVerification.toString(),
         "Bhk": Bhk.text,
         "floor": floor.text,
         "rented_address": Address.text,
@@ -848,7 +864,6 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         "property_id": propertyID.text,
         "agreement_price": Agreement_price.text ?? "--",
         "notary_price": Notary_price ?? '10 rupees',
-        "is_Police": isPolice,
         "is_agreement_hide": isAgreementHide ? "1" : "0",
         "agreement_type": "External Rental Agreement",
       };
@@ -981,6 +996,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         "permanent_address_tenant": firstTenant.address.text,
         "tenant_mobile_no": firstTenant.mobile.text,
         "tenant_addhar_no": firstTenant.aadhaar.text,
+        "is_Police": firstTenant.includePoliceVerification.toString(),
         "Bhk": Bhk.text,
         "floor": floor.text,
         "rented_address": Address.text,
@@ -997,7 +1013,6 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "agreement_price": Agreement_price.text,
-        "is_Police": isPolice,
         "notary_price": Notary_price ?? '10 rupees',
         "is_agreement_hide": isAgreementHide ? "1" : "0",
 
@@ -1833,6 +1848,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
                               icon: const Icon(Icons.delete, color: Colors.red),
                               onPressed: () {
                                 setState(() => tenants.removeAt(index));
+                                updateAgreementPrice(); // 🔥
                               },
                             )
 
@@ -2048,6 +2064,31 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
                       ),
 
                       const SizedBox(height: 12),
+
+                      CheckboxListTile(
+                        value: tenants[index].includePoliceVerification,
+                        onChanged: (v) {
+                          setState(() {
+                            tenants[index].includePoliceVerification = v ?? false;
+                          });
+                          updateAgreementPrice(); // 🔥 ADD THIS
+
+                        },
+                        title: const Text(
+                          'Include Police Verification',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                        ),
+                        subtitle: const Text(
+                          'Adds ₹50 to agreement price',
+                          style: TextStyle(fontSize: 12, color: Colors.black),
+                        ),
+                        activeColor: Colors.redAccent,
+                      ),
+
+                      const SizedBox(height: 12),
                     ],
                   ),
                 ],
@@ -2061,6 +2102,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           child: InkWell(
             onTap: () {
               setState(() => tenants.add(ExtraTenant()));
+              updateAgreementPrice(); // 🔥
             },
             borderRadius: BorderRadius.circular(14),
             child: Container(
@@ -2706,39 +2748,6 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
 
                   ),
                 ]),
-
-
-            CheckboxListTile(
-              value: isPolice,
-              onChanged: (v) {
-                setState(() {
-                  isPolice = v ?? false;
-                  updateAgreementPrice();
-                });
-              },
-              title: const Text(
-                'Including Police Verification',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
-              ),
-              activeColor: Colors.redAccent,
-              checkColor: Colors.white,
-              side: const BorderSide(color: Colors.black54, width: 1.5),
-            ),
-
-
-            const SizedBox(height: 12),
-
-            const Text(
-              'Tip: These values will appear in the final agreement preview.',
-              style: TextStyle(
-                color: Colors.black87,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
 
           ]
           ),

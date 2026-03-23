@@ -615,6 +615,30 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         ? "Director"
         : "Tenant";
 
+    List<int> policeTenants = [];
+
+// 🔹 Main tenant (Tenant 1)
+    final mainPolice =
+        agreement?['is_Police']?.toString().toLowerCase() == "true";
+
+    if (mainPolice) {
+      policeTenants.add(1);
+    }
+
+// 🔹 Additional tenants (Tenant 2,3...)
+    for (int i = 0; i < additionalTenants.length; i++) {
+      final t = additionalTenants[i];
+
+      final value = (t.policeVerification ?? "")
+          .toString()
+          .toLowerCase()
+          .trim();
+
+      if (value == "true" || value == "1") {
+        policeTenants.add(i + 2); // because main = 1
+      }
+    }
+
 
     return Scaffold(
       appBar: AppBar(
@@ -632,30 +656,8 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
             _buildMainTopSections(D_or_T),
 
             SizedBox(height: 20,),
-            if (withPolice)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.redAccent),
-                ),
-                child: Row(
-                  children: const [
-                    Icon(Icons.info_outline, color: Colors.redAccent),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Note: Police verification must be created by Admin for this agreement.',
-                        style: TextStyle(
-                          color: Colors.redAccent,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            if (policeTenants.isNotEmpty)
+              _buildPoliceNotice(policeTenants),
 
             SizedBox(height: 20,),
 
@@ -1140,6 +1142,35 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
     );
   }
 
+  Widget _buildPoliceNotice(List<int> tenants) {
+    final tenantText = tenants.join(', ');
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.redAccent),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline, color: Colors.redAccent),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Police verification required for Tenant(s): $tenantText',
+              style: const TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
 
 
   Widget _propertyCard(Map<String, dynamic> data) {
@@ -1294,6 +1325,8 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
       ),
     );
   }
+
+
 
 }
 

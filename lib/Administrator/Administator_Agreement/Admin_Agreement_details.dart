@@ -444,8 +444,30 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
 
   @override
   Widget build(BuildContext context) {
-    final withPolice= agreement?['is_Police']?.toString() == "true";
 
+    List<int> policeTenants = [];
+
+// 🔹 Main tenant (Tenant 1)
+    final mainPolice =
+        agreement?['is_Police']?.toString().toLowerCase() == "true";
+
+    if (mainPolice) {
+      policeTenants.add(1);
+    }
+
+// 🔹 Additional tenants (Tenant 2,3...)
+    for (int i = 0; i < additionalTenants.length; i++) {
+      final t = additionalTenants[i];
+
+      final value = (t.policeVerification ?? "")
+          .toString()
+          .toLowerCase()
+          .trim();
+
+      if (value == "true" || value == "1") {
+        policeTenants.add(i + 2); // because main = 1
+      }
+    }
 
     if (isLoading) {
       return const Scaffold(
@@ -483,7 +505,8 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
 
             const SizedBox(height: 20),
 
-            if (withPolice) _buildPoliceNotice(),
+            if (policeTenants.isNotEmpty)
+              _buildPoliceNotice(policeTenants),
 
             const SizedBox(height: 20),
 
@@ -730,7 +753,9 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     );
   }
 
-  Widget _buildPoliceNotice() {
+  Widget _buildPoliceNotice(List<int> tenants) {
+    final tenantText = tenants.join(', ');
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -739,13 +764,13 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
         border: Border.all(color: Colors.redAccent),
       ),
       child: Row(
-        children: const [
-          Icon(Icons.info_outline, color: Colors.redAccent),
-          SizedBox(width: 8),
+        children: [
+          const Icon(Icons.info_outline, color: Colors.redAccent),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Note: Police verification must be created by Admin for this agreement.',
-              style: TextStyle(
+              'Police verification required for Tenant(s): $tenantText',
+              style: const TextStyle(
                 color: Colors.redAccent,
                 fontWeight: FontWeight.w600,
               ),
@@ -755,7 +780,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
       ),
     );
   }
-
+  
   Future<void> fetchPropertyCard() async {
     final propertyId = agreement?["property_id"];
     if (propertyId == null || propertyId.isEmpty) {

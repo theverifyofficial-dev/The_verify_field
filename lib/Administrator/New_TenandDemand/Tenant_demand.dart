@@ -315,10 +315,10 @@ class _TenantDemandState extends State<TenantDemand> {
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
-                                "#${i + 1}",
+                                "#${d.id}",
                                 style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 10,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),

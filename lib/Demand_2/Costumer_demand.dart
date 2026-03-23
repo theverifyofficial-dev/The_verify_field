@@ -393,7 +393,7 @@ class _TenantDemandState extends State<CostumerDemand> {
 
               return KeyedSubtree(
               key: ValueKey(d.id),
-              child: _buildDemandTile(d, isDark, index + 1),
+              child: _buildDemandTile(d, isDark),
               );
               }
               ),
@@ -429,23 +429,16 @@ class _TenantDemandState extends State<CostumerDemand> {
     );
   }
 
-  Widget _buildDemandTile(TenantDemandModel d, bool isDark, int index) {
+  Widget _buildDemandTile(TenantDemandModel d, bool isDark) {
     return _buildCommonTile(
       d,
-      index,
       isDark,
-      onTap: () {
-
-      },
     );
   }
 
   Widget _buildCommonTile(
       TenantDemandModel d,
-      int index,
-      bool isDark, {
-        required VoidCallback onTap,
-      }) {
+      bool isDark) {
     final isUrgent = d.mark == "1";
     final baseColor = isDark ? const Color(0xFF1C1F27) : Colors.white;
 
@@ -461,236 +454,233 @@ class _TenantDemandState extends State<CostumerDemand> {
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
-              "#$index",
+              "#${d.id}",
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 10,
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
         ),
 
-        GestureDetector(
-          onTap: onTap, // ✅ single source of truth
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            margin: const EdgeInsets.only(bottom: 14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(22),
-              color: baseColor.withOpacity(isDark ? 0.35 : 0.85),
-              boxShadow: [
-                BoxShadow(
-                  color: isUrgent
-                      ? Colors.redAccent.withOpacity(0.25)
-                      : Colors.black.withOpacity(0.08),
-                  blurRadius: 12,
-                  spreadRadius: 1,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-              border: Border.all(
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          margin: const EdgeInsets.only(bottom: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(22),
+            color: baseColor.withOpacity(isDark ? 0.35 : 0.85),
+            boxShadow: [
+              BoxShadow(
                 color: isUrgent
-                    ? Colors.redAccent.withOpacity(0.6)
-                    : Colors.white.withOpacity(0.05),
-                width: 1.2,
+                    ? Colors.redAccent.withOpacity(0.25)
+                    : Colors.black.withOpacity(0.08),
+                blurRadius: 12,
+                spreadRadius: 1,
+                offset: const Offset(0, 4),
               ),
+            ],
+            border: Border.all(
+              color: isUrgent
+                  ? Colors.redAccent.withOpacity(0.6)
+                  : Colors.white.withOpacity(0.05),
+              width: 1.2,
             ),
-            child: ListTile(
-              contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          ),
+          child: ListTile(
+            contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
 
-              leading: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                height: 52,
-                width: 52,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: isUrgent
-                        ? [Colors.redAccent, Colors.redAccent.shade700]
-                        : [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withOpacity(0.8),
-                    ],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: isUrgent
-                          ? Colors.redAccent.withOpacity(0.3)
-                          : Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withOpacity(0.25),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    )
+            leading: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              height: 52,
+              width: 52,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: isUrgent
+                      ? [Colors.redAccent, Colors.redAccent.shade700]
+                      : [
+                    Theme.of(context).colorScheme.primary,
+                    Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withOpacity(0.8),
                   ],
                 ),
-                child: Center(
+                boxShadow: [
+                  BoxShadow(
+                    color: isUrgent
+                        ? Colors.redAccent.withOpacity(0.3)
+                        : Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withOpacity(0.25),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  )
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  d.tname.isNotEmpty ? d.tname[0].toUpperCase() : '?',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+              ),
+            ),
+
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
                   child: Text(
-                    d.tname.isNotEmpty ? d.tname[0].toUpperCase() : '?',
+                    d.tname,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: isUrgent
+                        ? Colors.redAccent.withOpacity(0.8)
+                        : Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withOpacity(0.45),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    d.buyRent.toUpperCase(),
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                      fontSize: 10.5,
                     ),
                   ),
                 ),
-              ),
+              ],
+            ),
 
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
-                    child: Text(
-                      d.tname,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+
+                  Text(
+                    "${d.location} • ${d.bhk}",
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.black54,
+                      fontSize: 14,
                     ),
                   ),
-                  Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: isUrgent
-                          ? Colors.redAccent.withOpacity(0.8)
-                          : Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withOpacity(0.45),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      d.buyRent.toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10.5,
-                      ),
+
+                  const SizedBox(height: 2),
+
+                  Text(
+                    "₹ ${d.price}",
+                    style: TextStyle(
+                      color: isDark ? Colors.white60 : Colors.black54,
+                      fontSize: 14,
                     ),
                   ),
+
+
+                  if (d.reference.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Ref: ${d.reference}",
+                            style: TextStyle(
+                              color: isDark
+                                  ? Colors.white38
+                                  : Colors.black45,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        formatApiDate(d.createdDate),
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 13,
+                        ),
+                      ),
+
+                      GestureDetector(
+                        onTap: _accepting.contains(d.id)
+                            ? null
+                            : () async {
+                          setState(() {
+                            _accepting.add(d.id);
+                          });
+
+                          await _acceptDemand(d.id);
+
+                          setState(() {
+                            _accepting.remove(d.id);
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(8),
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.green,
+                                Colors.green.withOpacity(0.85),
+                              ],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.green.withOpacity(0.35),
+                                blurRadius: 8,
+                                offset: const Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.check_circle_outline, color: Colors.white, size: 16),
+                              SizedBox(width: 6),
+                              Text(
+                                "Accept",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
                 ],
               ),
-
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    Text(
-                      "${d.location} • ${d.bhk}",
-                      style: TextStyle(
-                        color: isDark ? Colors.white70 : Colors.black54,
-                        fontSize: 14,
-                      ),
-                    ),
-
-                    const SizedBox(height: 2),
-
-                    Text(
-                      "₹ ${d.price}",
-                      style: TextStyle(
-                        color: isDark ? Colors.white60 : Colors.black54,
-                        fontSize: 14,
-                      ),
-                    ),
-
-
-                    if (d.reference.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Ref: ${d.reference}",
-                              style: TextStyle(
-                                color: isDark
-                                    ? Colors.white38
-                                    : Colors.black45,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          formatApiDate(d.createdDate),
-                          style: TextStyle(
-                            color: Colors.grey.shade500,
-                            fontSize: 13,
-                          ),
-                        ),
-
-                        GestureDetector(
-                          onTap: _accepting.contains(d.id)
-                              ? null
-                              : () async {
-                            setState(() {
-                              _accepting.add(d.id);
-                            });
-
-                            await _acceptDemand(d.id);
-
-                            setState(() {
-                              _accepting.remove(d.id);
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.green,
-                                  Colors.green.withOpacity(0.85),
-                                ],
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.green.withOpacity(0.35),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.check_circle_outline, color: Colors.white, size: 16),
-                                SizedBox(width: 6),
-                                Text(
-                                  "Accept",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  ],
-                ),
-              ),
-
             ),
+
           ),
         ),
 

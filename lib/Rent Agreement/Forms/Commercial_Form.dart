@@ -26,6 +26,8 @@ class DirectorBlock {
   final gstNo = TextEditingController();
   final panNo = TextEditingController();
 
+  bool includePoliceVerification = false;
+
   String relation = 'S/O';
 
   File? aadhaarFront;
@@ -103,7 +105,6 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
   File? ownerAadhaarBack;
   File? agreementPdf;
   final CompanyName = TextEditingController();
-  bool isPolice = false;
 
   Map<String, dynamic>? fetchedData;
 
@@ -287,6 +288,8 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
           d.aadhaarFrontUrl = data["tenant_aadhar_front"] ?? "";
           d.aadhaarBackUrl  = data["tenant_aadhar_back"] ?? "";
           d.photoUrl        = data["tenant_image"] ?? "";
+          d.includePoliceVerification =
+              data["is_Police"] == "true" || data["is_Police"] == "1";
 
           d.gstNo.text = data["gst_no"] ?? "";
           d.panNo.text = data["pan_no"] ?? "";
@@ -319,7 +322,6 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
           Notary_price = data["notary_price"] ?? "10 rupees";
 
           // 🔹 Police verification (IMPORTANT)
-          isPolice = data["is_Police"] == "true";
 
           isAgreementHide = data["is_agreement_hide"] == "1";
 
@@ -378,6 +380,9 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
             t.aadhaarFrontUrl = e["tenant_aadhar_front"] ?? "";
             t.aadhaarBackUrl = e["tenant_aadhar_back"] ?? "";
             t.photoUrl = e["tenant_photo"] ?? "";
+
+            t.includePoliceVerification =
+                e["police_verification_for_addtional_tenant"] == "true" || e["police_verification_for_addtional_tenant"] == "1";
 
             directors.add(t);
           }
@@ -512,18 +517,22 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
     final notaryAmount =
     getBaseNotaryAmount(Notary_price, discounted);
 
-    final policeCharge = isPolice
-        ? (discounted ? 40 : 50)
-        : 0;
+    // 🔥 COUNT tenants with police verification
+    final policeCount = directors
+        .where((t) => t.includePoliceVerification)
+        .length;
 
-    final total = notaryAmount + policeCharge;
+    final policeChargePerTenant = discounted ? 40 : 50;
+
+    final totalPoliceCharge = policeCount * policeChargePerTenant;
+
+    final total = notaryAmount + totalPoliceCharge;
 
     Agreement_price.text = total.toString();
     AgreementAmountInWords = convertToWords(total);
 
     setState(() {});
   }
-
   void _goNext() {
     switch (_currentStep) {
 
@@ -891,6 +900,9 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
       request.fields['additional_tenants[$idx][tenant_address]'] =
           t.address.text;
 
+      request.fields['additional_tenants[$idx][police_verification_for_addtional_tenant]'] =
+      t.includePoliceVerification ? "true" : "false";
+
       // 🔥 FILES
       if (t.aadhaarFront != null) {
         request.files.add(await http.MultipartFile.fromPath(
@@ -975,6 +987,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         "permanent_address_tenant": firstDirector.address.text,
         "tenant_mobile_no": firstDirector.mobile.text,
         "tenant_addhar_no": firstDirector.aadhaar.text,
+        "is_Police": firstDirector.includePoliceVerification.toString(),
         "Sqft": Sqft.text,
         "floor": selectedFloor ?? '',
         "company_name": CompanyName.text,
@@ -1000,7 +1013,6 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         "property_id": propertyID.text,
         "agreement_price": Agreement_price.text ?? "--",
         "notary_price": Notary_price ?? '10 rupees',
-        "is_Police": isPolice,
         "is_agreement_hide": isAgreementHide ? "1" : "0",
         "gst_type": gstType,
         "agreement_type": "Commercial Agreement",
@@ -1170,6 +1182,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         "permanent_address_tenant": firstDirector.address.text,
         "tenant_mobile_no": firstDirector.mobile.text,
         "tenant_addhar_no": firstDirector.aadhaar.text,
+        "is_Police": firstDirector.includePoliceVerification.toString(),
         "company_name": CompanyName.text,
 
         if (firstDirector.gstNo.text.trim().isNotEmpty)
@@ -1195,7 +1208,6 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "property_id": propertyID.text,
         "agreement_price": Agreement_price.text,
-        "is_Police": isPolice,
         "notary_price": Notary_price ?? '10 rupees',
         "gst_type": gstType,
         "is_agreement_hide": isAgreementHide ? "1" : "0",
@@ -2238,6 +2250,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                               icon: const Icon(Icons.delete, color: Colors.red),
                               onPressed: () {
                                 setState(() => directors.removeAt(index));
+                                updateAgreementPrice(); // 🔥
                               },
                             )
 
@@ -2520,7 +2533,30 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                         ],
                       ),
                       const SizedBox(height: 12),
-                    ],
+
+                      CheckboxListTile(
+                        value: directors[index].includePoliceVerification,
+                        onChanged: (v) {
+                          setState(() {
+                            directors[index].includePoliceVerification = v ?? false;
+                          });
+                          updateAgreementPrice(); // 🔥 ADD THIS
+                        },
+                        title: const Text(
+                          'Include Police Verification',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                        ),
+                        subtitle: const Text(
+                          'Adds ₹50 to agreement price',
+                          style: TextStyle(fontSize: 12, color: Colors.black),
+                        ),
+                        activeColor: Colors.redAccent,
+                      ),
+
+                      const SizedBox(height: 12),                    ],
                   ),
                 ],
               ),
@@ -2535,6 +2571,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
               Future.delayed(const Duration(milliseconds: 100), () {
                 Scrollable.ensureVisible(context);
               });
+              updateAgreementPrice(); // 🔥
             },
             borderRadius: BorderRadius.circular(14),
             child: Container(
@@ -2955,32 +2992,6 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
 
                   ),
                 ]),
-
-
-            CheckboxListTile(
-              value: isPolice,
-              onChanged: (v) {
-                setState(() {
-                  isPolice = v ?? false;
-                  updateAgreementPrice();
-                });
-              },
-              title: const Text(
-                'Including Police Verification ',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
-                ),
-              ),
-              activeColor: Colors.redAccent,
-              checkColor: Colors.white,
-              side: const BorderSide(color: Colors.black54, width: 1.5),
-            ),
-
-
-            const SizedBox(height: 12),
-            const Text('Tip: These values will appear in the final agreement preview.',style: TextStyle(color: Colors.black),),
           ]
           ),
         ),

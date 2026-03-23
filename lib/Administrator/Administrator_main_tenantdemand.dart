@@ -88,7 +88,7 @@ class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_dema
     }
   }
 
-  late Future<List<TenantModel>> _futureData;
+  Future<List<TenantModel>>? _futureData;
   List<TenantModel> _allData = [];
   List<TenantModel> _filteredData = [];
   final TextEditingController _searchController = TextEditingController();
@@ -104,9 +104,7 @@ class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_dema
 
   Future<void> _init() async {
     await _loaduserdata();
-
     _futureData = fetchData(_num);
-
     setState(() {});
   }
 
@@ -215,6 +213,7 @@ class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_dema
                     return Center(child: CircularProgressIndicator());
                   } else if (abc.hasError) {
                     return Text('${abc.error}');
+
                   } else if (abc.data == null || abc.data!.isEmpty) {
                     return Center(
                       child: Column(
@@ -298,19 +297,25 @@ class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_dema
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      _buildTag(
-                                        icon: PhosphorIcons.house,
-                                        text: item.bhk,
-                                        borderColor: Colors.red,
-                                        iconColor: Colors.red,
+                                      Expanded(
+                                        child: _buildTag(
+                                          icon: PhosphorIcons.house,
+                                          text: item.bhk,
+                                          borderColor: Colors.red,
+                                          iconColor: Colors.red,
+                                        ),
                                       ),
-                                      _buildTag(
-                                        text: item.buyrent,
-                                        borderColor: Colors.blue,
+                                      Expanded(
+                                        child: _buildTag(
+                                          text: item.buyrent,
+                                          borderColor: Colors.blue,
+                                        ),
                                       ),
-                                      _buildTag(
-                                        text: item.place,
-                                        borderColor: Colors.green,
+                                      Expanded(
+                                        child: _buildTag(
+                                          text: item.place,
+                                          borderColor: Colors.green,
+                                        ),
                                       ),
                                     ],
                                   ),

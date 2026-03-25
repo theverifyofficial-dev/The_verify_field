@@ -137,31 +137,6 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
 
     _buyRent = d["Buy_rent"]?.toString();
 
-  //   final price = d["Price"]?.toString() ?? "";
-  //   if (_buyRent == "Buy") {
-  //     final parts = price.split('-');
-  //     if (parts.length == 2) {
-  //       try {
-  //         _buyBudget = RangeValues(
-  //           double.parse(parts[0]),
-  //           double.parse(parts[1]),
-  //         );
-  //       } catch (_) {}
-  //     }
-  //    } else if (_buyRent == "Rent") {
-  // final parts = price.split('-');
-  // if (parts.length == 2) {
-  // try {
-  // _rentBudget = RangeValues(
-  // double.parse(parts[0]),
-  // double.parse(parts[1]),
-  // );
-  // } catch (_) {}
-  // }
-  // }
-
-
-
     if (d["floor"] != null) {
       _floor.add(d["floor"].toString());
     }

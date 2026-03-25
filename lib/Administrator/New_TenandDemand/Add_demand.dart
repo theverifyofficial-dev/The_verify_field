@@ -16,7 +16,6 @@ enum DemandEditMode {
   updateRedemand,
 }
 
-
 class CustomerDemandFormPage extends StatefulWidget {
   final DemandEditMode mode;
   final String? demandId;     // main demand id
@@ -28,7 +27,6 @@ class CustomerDemandFormPage extends StatefulWidget {
     this.demandId,
     this.redemandId,
   });
-
 
   @override
   State<CustomerDemandFormPage> createState() =>
@@ -45,6 +43,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
   final _nameCtrl = TextEditingController();
   final _numberCtrl = TextEditingController();
   final _messageCtrl = TextEditingController();
+  final TextEditingController _furnitureCtrl = TextEditingController();
   bool _fetchingCustomer = false;
   Map<String, dynamic>? _existingCustomer;
 
@@ -73,11 +72,42 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
   }
 
 
+  String? _parking;
+  String? _lift;
+  String? _furnished;
+  String? _familyStructure;
+  String? _familyMember;
+  int _adultCount = 1;
+  int _childrenCount = 0;
+  String? _religion;
+  DateTime? _shiftingDate;
+
+  DateTime? _visitingDate;
+
+  final Set<String> _floor = {};
+  Map<String, int> _selectedFurniture = {}; // e.g., {'Sofa': 2, 'Bed': 1}
 
   final List<String> _buyRentOptions = ["Buy", "Rent"];
   final List<String> _referenceOptions = ["99 Acres", "Housing", "Instagram", "Youtube","facebook","Website","Other"];
   final List<String> _locationOptions = [
     "Sultanpur", "Chhattarpur", "Rajpur Khurd", "Aya Nagar", "Ghitorni"];
+
+  final List<String> _floorOptions = [
+    "Ground",
+    "Upper Ground",
+    "First",
+    "Second",
+    "Third",
+    "Fourth",
+    "Fifth",
+    "Top"
+  ];
+
+  final List<String> furnishingOptions = [
+    'Fully Furnished',
+    'Semi Furnished',
+    'Unfurnished',
+  ];
 
   late final AnimationController _pulseController;
   late final Animation<double> _pulseAnimation;
@@ -107,6 +137,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
     _nameCtrl.dispose();
     _numberCtrl.dispose();
     _messageCtrl.dispose();
+    _furnitureCtrl.dispose(); // 🔥 ADD THIS
     super.dispose();
   }
 
@@ -196,8 +227,6 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
     }
   }
 
-
-
   Future<Response> _updateDemandDispatcher(Map<String, dynamic> payload) {
     if (widget.mode == DemandEditMode.updateDemand) {
       return _updateMainDemand(payload);
@@ -205,7 +234,6 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       return _updateRedemand(payload);
     }
   }
-
 
   Future<void> _fetchMainDemand() async {
     final res = await http.get(Uri.parse(
@@ -352,6 +380,69 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       }
     }
 
+    final total = (_adultCount + _childrenCount);
+
+    if (_familyMember != null && _familyMember!.isNotEmpty) {
+      final expected = int.tryParse(_familyMember!);
+
+      if (expected != null && expected != total) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Family count mismatch")),
+        );
+        setState(() => _isSubmitting = false);
+        return;
+      }
+    }
+
+    if (_selectedBhks.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Select at least one BHK")),
+      );
+      setState(() => _isSubmitting = false);
+      return;
+    }
+
+    _parking ??= data["parking"];
+    _lift ??= data["lift"];
+    _furnished ??= data["furnished_unfurnished"];
+    _familyStructure ??= data["family_structur"];
+    _familyMember ??= data["family_member"];
+    _religion ??= data["religion"];
+
+    if (data["floor"] != null) {
+      _floor.clear();
+      _floor.addAll(data["floor"].toString().split(','));
+    }
+
+    if (data["count_of_person"] != null) {
+      final parts = data["count_of_person"].split("-");
+      if (parts.length == 2) {
+        _adultCount = int.tryParse(parts[0].replaceAll("A", "")) ?? 1;
+        _childrenCount = int.tryParse(parts[1].replaceAll("C", "")) ?? 0;
+      }
+    }
+
+    if (data["shifting_date"] != null) {
+      _shiftingDate = DateTime.tryParse(data["shifting_date"]);
+    }
+
+    if (data["visiting_dates"] != null) {
+      _visitingDate = DateTime.tryParse(data["visiting_dates"]);
+    }
+
+    if (data["furnished_item"] != null &&
+        data["furnished_item"] != "--") {
+      _selectedFurniture =
+      Map<String, int>.from(jsonDecode(data["furnished_item"]));
+      _furnitureCtrl.text = _selectedFurniture.isEmpty
+          ? ""
+          : _selectedFurniture.entries
+          .map((e) => "${e.key} (${e.value})")
+          .join(", ");
+    }
+
+
+
     if (data["Price"] != null) {
       final parts = data["Price"].toString().split("-");
       if (parts.length == 2) {
@@ -370,6 +461,8 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
         }
       }
     }
+
+    if (mounted) setState(() {});
 
   }
 
@@ -401,52 +494,79 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       return;
     }
 
+    if (_buyRent == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Select Buy/Rent")),
+      );
+      setState(() => _isSubmitting = false);
+      return;
+    }
+
+    if (_selectedBudgetLabel == null && !_showCustomSlider) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Select Budget")),
+      );
+      setState(() => _isSubmitting = false);
+      return;
+    }
+
     Map<String, dynamic> formData;
+
+    final basePayload = {
+      "Tname": _nameCtrl.text.trim(),
+      "Tnumber": _numberCtrl.text.trim(),
+
+      "Price": _buyRent == null
+          ? ""
+          : _buyRent == "Buy"
+          ? "${_buyBudget.start.toInt()}-${_buyBudget.end.toInt()}"
+          : "${_rentBudget.start.toInt()}-${_rentBudget.end.toInt()}",
+
+      "Bhk": _selectedBhks.isEmpty ? "" : _selectedBhks.join(", "),
+      "Location": _location ?? "",
+      "Buy_rent": _buyRent ?? "",
+      "Reference": _reference ?? "",
+      "Message": _messageCtrl.text.trim(),
+
+      "mark": _isUrgent ? "1" : "0",
+      "admin_name": AName,
+
+      // 🔥 NEW FIELDS (IMPORTANT)
+      "parking": _parking ?? "",
+      "lift": _lift ?? "",
+      "furnished_unfurnished": _furnished ?? "",
+      "family_structur": _familyStructure ?? "",
+      "family_member": _familyMember ?? "",
+      "count_of_person": "${_adultCount}A-${_childrenCount}C",
+      "religion": _religion ?? "",
+      "shifting_date": _shiftingDate != null
+          ? DateFormat("yyyy-MM-dd").format(_shiftingDate!)
+          : "",
+      "visiting_dates": _visitingDate != null
+          ? DateFormat("yyyy-MM-dd").format(_visitingDate!)
+          : "",
+      "floor": _floor.isNotEmpty ? _floor.join(',') : "",
+      "furnished_item": _selectedFurniture.isNotEmpty
+          ? jsonEncode(_selectedFurniture)
+          : "--",
+    };
+
 
     if (widget.mode == DemandEditMode.add) {
       formData = {
-        "Tname": _nameCtrl.text.trim(),
-        "Tnumber": _numberCtrl.text.trim(),
-
-        "Price": _buyRent == null
-            ? ""
-            : _buyRent == "Buy"
-            ? "${_buyBudget.start.toInt()}-${_buyBudget.end.toInt()}"
-            : "${_rentBudget.start.toInt()}-${_rentBudget.end.toInt()}",
-
-        "Bhk": _selectedBhks.isEmpty ? "" : _selectedBhks.join(", "),
-        "Location": _location ?? "",
-        "Buy_rent": _buyRent ?? "",
-        "Reference": _reference ?? "",
-        "Message": _messageCtrl.text.trim(),
-
+        ...basePayload,
         "Status": "New",
-        "mark": _isUrgent ? "1" : "0",
         "created_date": DateFormat('yyyy-MM-dd').format(DateTime.now()),
         "Result": "",
-        "admin_name": AName,
         "by_field": "false",
       };
-    } else {
+    }
+    else {
       formData = {
-        "id": updateId, // ✅ REQUIRED
-        "Tname": _nameCtrl.text.trim(),
-        "Tnumber": _numberCtrl.text.trim(),
-
-        "Price": _buyRent == null
-            ? ""
-            : _buyRent == "Buy"
-            ? "${_buyBudget.start.toInt()}-${_buyBudget.end.toInt()}"
-            : "${_rentBudget.start.toInt()}-${_rentBudget.end.toInt()}",
-
-        "Bhk": _selectedBhks.isEmpty ? "" : _selectedBhks.join(", "),
-        "Location": _location ?? "",
-        "Buy_rent": _buyRent ?? "",
-        "Reference": _reference ?? "",
-        "Message": _messageCtrl.text.trim(),
-
-        "mark": _isUrgent ? "1" : "0",
-        "admin_name": AName,
+        ...basePayload,
+        "id": widget.mode == DemandEditMode.updateDemand
+            ? widget.demandId
+            : widget.redemandId,
       };
     }
 
@@ -454,8 +574,6 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
     debugPrint("DEMAND ID: ${widget.demandId}");
     debugPrint("REDEMAND ID: ${widget.redemandId}");
     debugPrint("FINAL PAYLOAD: $formData");
-
-
 
     try {
 
@@ -573,23 +691,26 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
   }
 
   // 🎨 Input decoration
-  InputDecoration _inputStyle(String label, IconData icon) {
-    final theme = Theme.of(context);
+  InputDecoration _modernInput(String hint, IconData icon) {
     return InputDecoration(
-      labelText: label,
-      prefixIcon: Icon(icon),
+      hintText: hint,
+      hintStyle: TextStyle(color: Colors.grey.shade600),
+      prefixIcon: Icon(icon, size: 18, color: Colors.grey.shade600),
+
       filled: true,
-      fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.2),
+      fillColor: const Color(0xFFF1F3F6),
+
+      contentPadding: const EdgeInsets.symmetric(
+        vertical: 16,
+        horizontal: 12,
+      ),
+
       border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.4),
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
       ),
     );
   }
-
 
   final List<String> _bhkOptions = [
     "1 RK",
@@ -605,363 +726,619 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    return Theme(
+      data: ThemeData(
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: const Color(0xFFF7F8FA),
 
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.black,
-        title: Image.asset(AppImages.verify, height: 70),
-        leading: InkWell(
-          onTap: () => Navigator.pop(context),
-          child: const Icon(PhosphorIcons.caret_left_bold,
-              color: Colors.white, size: 30),
+        colorScheme: const ColorScheme.light(
+          primary: Color(0xFF4F46E5),
+          secondary: Color(0xFF6366F1),
+        ),
+
+        cardColor: Colors.white,
+
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(fontSize: 14),
+          titleMedium: TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
-      body:  _loadingDemand
-      ? const Center(child: CircularProgressIndicator())
-    :
-    SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(children: [
-               Row(
-                 mainAxisAlignment: MainAxisAlignment.center,
-                 children: [
-                   Text(
-                    widget.mode == DemandEditMode.add
-                        ? "Add Demand"
-                        : widget.mode == DemandEditMode.updateDemand
-                        ? "Update Demand"
-                        : "Update Redemand",
-                                 ),
-                 ],
-               ),
+      child: Scaffold(
 
-              if (_existingCustomer != null) ...[
-                _ExistingCustomerCard(
-                  data: _existingCustomer!,
-                  isDark: Theme.of(context).brightness == Brightness.dark,
-                ),
-                const SizedBox(height: 16),
-              ],
+        appBar: AppBar(
+          surfaceTintColor: Colors.black,
+          backgroundColor: Colors.black,
+          centerTitle: true,
+          elevation: 0,
 
-              // 🚨 Premium Urgent Demand Swipe Toggle (Pulse + Bounce)
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // --- Left Label & Description ---
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Mark as Urgent",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: _isUrgent ? Colors.redAccent : Theme.of(context).hintColor,
-                        ),
-                      ),
-                      Text(
-                        _isUrgent ? "High priority demand" : "Normal priority demand",
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: _isUrgent
-                              ? Colors.redAccent.withOpacity(0.8)
-                              : Theme.of(context).hintColor.withOpacity(0.6),
-                        ),
-                      ),
-                    ],
-                  ),
+          title: Image.asset(AppImages.verify, height: 70),
+          leading: InkWell(
+            onTap: () => Navigator.pop(context),
+            child: const Icon(
+              PhosphorIcons.caret_left_bold,
+              color: Colors.white,
+              size: 30,
+            ),
+          ),
+        ),
 
-                  // --- Right Swipe Button ---
-                  GestureDetector(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      setState(() => _isUrgent = !_isUrgent);
-                    },
-                    onHorizontalDragUpdate: (details) {
-                      if (details.primaryDelta != null) {
-                        final dx = details.primaryDelta!;
-                        if (dx > 5 && !_isUrgent) setState(() => _isUrgent = true);
-                        if (dx < -5 && _isUrgent) setState(() => _isUrgent = false);
-                      }
-                    },
-                    child: ScaleTransition(
-                      scale: _isUrgent
-                          ? _pulseAnimation
-                          : const AlwaysStoppedAnimation(1.0),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        width: 74,
-                        height: 36,
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          color: _isUrgent
-                              ? Colors.redAccent.withOpacity(0.85)
-                              : Colors.grey.shade400.withOpacity(0.5),
-                          boxShadow: _isUrgent
-                              ? [
-                            BoxShadow(
-                              color: Colors.redAccent.withOpacity(0.5),
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                            ),
-                          ]
-                              : [],
-                        ),
-                        child: Stack(
-                          children: [
-                            AnimatedAlign(
-                              duration: const Duration(milliseconds: 250),
-                              alignment: _isUrgent
-                                  ? Alignment.centerRight
-                                  : Alignment.centerLeft,
-                              curve: Curves.easeOutBack,
-                              child: AnimatedScale(
-                                scale: _isUrgent ? 1.05 : 1.0,
-                                duration: const Duration(milliseconds: 200),
-                                curve: Curves.easeOutBack,
-                                child: Container(
-                                  width: 28,
-                                  height: 28,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: _isUrgent
-                                            ? Colors.redAccent.withOpacity(0.4)
-                                            : Colors.black26,
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Icon(
-                                    _isUrgent
-                                        ? Icons.flash_on_rounded
-                                        : Icons.power_settings_new_rounded,
-                                    color: _isUrgent ? Colors.redAccent : Colors.grey,
-                                    size: 17,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+        body: _loadingDemand
+            ? const Center(child: CircularProgressIndicator())
+            : Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Add New Demand",
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              TextFormField(
-                controller: _numberCtrl,
-                enabled: _existingCustomer == null,
-                decoration: _inputStyle("Phone Number", Icons.phone).copyWith(
-                  hintText: "Enter number (e.g. +91XXXXXXXXXX)",
-                  suffixIcon: _fetchingCustomer
-                      ? const Padding(
-                    padding: EdgeInsets.all(12),
-                    child: SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Register a specific real estate requirement",
+                      style: TextStyle(color: Colors.grey.shade600),
                     ),
-                  )
-                      : null,
-                ),
-                keyboardType: TextInputType.phone,
-                maxLength: 12, // ✅ allow 91
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
-                ],
-                onChanged: (value) {
-                  final last10 = _extractLast10Digits(value);
-
-                  if (last10.length == 10 && !_fetchingCustomer) {
-                    _fetchCustomerByPhone(last10); // 🔥 ONLY 10 DIGITS SENT
-                  }
-                },
-                validator: (value) {
-                  final last10 = _extractLast10Digits(value ?? "");
-                  if (last10.length != 10) {
-                    return "Enter valid 10-digit mobile number";
-                  }
-                  return null;
-                },
-              ),
-
-              TextFormField(
-                controller: _nameCtrl,
-                decoration: _inputStyle("Customer Name", Icons.person),
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) {
-                    return "Customer name is required";
-                  }
-
-                  if (v.trim().length < 2) {
-                    return "Enter valid name";
-                  }
-
-                  return null;
-                },
-              ),
-              const SizedBox(height: 10),
-
-              GestureDetector(
-                onTap: () => _showSelectBottomSheet(
-                  title: "Select Type (Buy or Rent)",
-                  items: _buyRentOptions,
-                  onSelect: (v) {
-                    if (_buyRent != v) {
-                      setState(() {
-                        _buyRent = v;
-                        _resetBudgetState(); // 🔥 FIX
-                      });
-                    }
-                  },
+                  ],
                 ),
 
-                child: _optionBox("Buy / Rent", _buyRent),
-              ),
-              GestureDetector(
-                onTap: () => _showSelectBottomSheet(
-                  title: "Select Reference",
-                  items: _referenceOptions,
-                  onSelect: (v) => setState(() => _reference = v),
-                ),
-                child: _optionBox("Reference From", _reference),
-              ),
-              GestureDetector(
-                onTap: () => _showSelectBottomSheet(
-                  title: "Select Location",
-                  items: _locationOptions,
-                  onSelect: (v) => setState(() => _location = v),
-                ),
-                child: _optionBox("Location", _location),
-              ),
+                const SizedBox(height: 12),
 
-              if (_buyRent != null) ...[
-                const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    color: theme.colorScheme.surfaceVariant.withOpacity(0.1),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                      )
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.error, color: Colors.red),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Mark as Urgent",
+                                style: TextStyle(fontWeight: FontWeight.w600)),
+                            SizedBox(height: 2),
+                            Text("Prioritize this demand",
+                                style: TextStyle(fontSize: 12, color: Colors.grey)),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        value: _isUrgent,
+                        onChanged: (v) => setState(() => _isUrgent = v),
+                      )
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                if (_existingCustomer != null) ...[
+                  _ExistingCustomerCard(
+                    data: _existingCustomer!,
+                    isDark: false,
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
+                const SizedBox(height: 12),
+
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      budgetDropdown(
-                        type: _buyRent!,
-                        theme: theme,
+                      const Text(
+                        "Basic Details",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
+                      const SizedBox(height: 16),
 
+                      TextFormField(
+                        controller: _numberCtrl,
+                        decoration: _modernInput("+91 9876543210", Icons.phone),
+                        keyboardType: TextInputType.phone,
+                        maxLength: 12,
+                        onChanged: (value) {
+                          final last10 = _extractLast10Digits(value);
+                          if (last10.length == 10 && !_fetchingCustomer) {
+                            _fetchCustomerByPhone(last10);
+                          }
+                        },
+                        validator: (value) {
+                          final last10 = _extractLast10Digits(value ?? "");
+                          return last10.length != 10 ? "Invalid number" : null;
+                        },
+                      ),
 
                       const SizedBox(height: 12),
 
-                      Text(
-                        "Select BHK",
-                        style: theme.textTheme.titleSmall!
-                            .copyWith(fontWeight: FontWeight.w600),
+                      TextFormField(
+                        controller: _nameCtrl,
+                        decoration: _modernInput("e.g. Alexander Pierce", Icons.person),
+                        validator: (v) =>
+                        v == null || v.trim().isEmpty ? "Required" : null,
                       ),
+
+                      const SizedBox(height: 12),
+
+                      DropdownButtonFormField<String>(
+                        value: _buyRent,
+                        decoration: _modernInput("Amount", Icons.currency_rupee),
+
+                        items: _buyRentOptions
+                            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (v) {
+                          setState(() {
+                            _buyRent = v;
+                            _resetBudgetState();
+                          });
+                        },
+                        validator: (v) => v == null ? "Select type" : null,
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      DropdownButtonFormField<String>(
+                        value: _location,
+                        decoration: _modernInput("e.g. Sultanpur", Icons.location_on_sharp),
+
+
+
+                        items: _locationOptions
+                            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (v) => setState(() => _location = v),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      DropdownButtonFormField<String>(
+                        value: _reference,
+                        decoration: _modernInput("e.g. 99 Acres", Icons.source),
+                        items: _referenceOptions
+                            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (v) => setState(() => _reference = v),
+                      ),
+                      // 👉 move all basic fields here
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                if (_buyRent != null)
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                        const Text("Property Preferences",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+
+                      const SizedBox(height: 16),
+
+                        Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              children: [
+                                budgetDropdown(type: _buyRent!, theme: Theme.of(context)),
+
+                                const SizedBox(height: 12),
+
+                                Wrap(
+                                  spacing: 8,
+                                  children: _bhkOptions.map((e) {
+                                    final selected = _selectedBhks.contains(e);
+                                    return ChoiceChip(
+                                      label: Text(e),
+                                      selected: selected,
+                                      onSelected: (val) {
+                                        setState(() {
+                                          val
+                                              ? _selectedBhks.add(e)
+                                              : _selectedBhks.remove(e);
+                                        });
+                                      },
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                  ),
+                ),
+
+
+
+
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child:
+                  _buyRent != null ?
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Property Preferences",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+
+                        const SizedBox(height: 16),
+
+                        Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              children: [
+                                budgetDropdown(type: _buyRent!, theme: Theme.of(context)),
+
+                                const SizedBox(height: 12),
+
+                                Wrap(
+                                  spacing: 8,
+                                  children: _bhkOptions.map((e) {
+                                    final selected = _selectedBhks.contains(e);
+                                    return ChoiceChip(
+                                      label: Text(e),
+                                      selected: selected,
+                                      onSelected: (val) {
+                                        setState(() {
+                                          val
+                                              ? _selectedBhks.add(e)
+                                              : _selectedBhks.remove(e);
+                                        });
+                                      },
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                      : const SizedBox(),
+                ),
+
+                const SizedBox(height: 16),
+
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Additional Details",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      DropdownButtonFormField<String>(
+                        value: _furnished,
+                        decoration: _modernInput("", Icons.chair),
+                        items: furnishingOptions
+                            .map((e) =>
+                            DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (v) {
+                          setState(() {
+                            _furnished = v;
+                            if (v == "Unfurnished") _selectedFurniture.clear();
+                          });
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      if (_furnished == "Fully Furnished" ||
+                          _furnished == "Semi Furnished")
+                        GestureDetector(
+                          onTap: () => _showFurnitureBottomSheet(context),
+                          child: AbsorbPointer(
+                            child: TextFormField(
+                              controller: _furnitureCtrl,
+                              readOnly: true,
+                              decoration: _modernInput("e.g. Fan", Icons.chair).copyWith(
+                                hintText: "Tap to select furniture",
+                                suffixIcon: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (_selectedFurniture.isNotEmpty)
+                                      IconButton(
+                                        icon: const Icon(Icons.close),
+                                        onPressed: () {
+                                          setState(() {
+                                            _selectedFurniture.clear();
+                                            _furnitureCtrl.clear();
+                                          });
+                                        },
+                                      ),
+                                    const Icon(Icons.keyboard_arrow_down),
+                                  ],
+                                ),                              ),
+                              onTap: () => _showFurnitureBottomSheet(context),
+                            ),
+                          ),
+                        ),
+
+                      const SizedBox(height: 16),
+
+                      DropdownButtonFormField<String>(
+                        value: _familyStructure,
+                        decoration: _modernInput("Family Type", Icons.family_restroom),
+                        items: ["Joint", "Nuclear", "Bachelor", "Live-In relation"]
+                            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (v) => setState(() => _familyStructure = v),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              decoration: _modernInput("", Icons.person),
+                              keyboardType: TextInputType.number,
+                              initialValue: _adultCount.toString(),
+                              onChanged: (v) {
+                                _adultCount = int.tryParse(v) ?? 1;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: TextFormField(
+                              decoration: _modernInput("", Icons.child_care),
+                              keyboardType: TextInputType.number,
+                              initialValue: _childrenCount.toString(),
+                              onChanged: (v) {
+                                _childrenCount = int.tryParse(v) ?? 0;
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        decoration: _modernInput("Total members", Icons.group),
+                        keyboardType: TextInputType.number,
+                        onChanged: (v) => _familyMember = v,
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      DropdownButtonFormField<String>(
+                        value: _religion,
+                        decoration: _modernInput("e.g. Hindu", Icons.temple_hindu),
+                        items: ["Hindu", "Muslim", "Sikh", "Christian", "Other"]
+                            .map((e) =>
+                            DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (v) => setState(() => _religion = v),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      DropdownButtonFormField<String>(
+                        value: _parking,
+                        decoration: _modernInput("Parking", Icons.local_parking),
+                        items: ["Car", "Bike", "Both", "None"]
+                            .map((e) =>
+                            DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (v) => setState(() => _parking = v),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      DropdownButtonFormField<String>(
+                        value: _lift,
+                        decoration: _modernInput("Lift", Icons.elevator),
+                        items: ["Yes", "No"]
+                            .map((e) =>
+                            DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (v) => setState(() => _lift = v),
+                      ),
+
+                      const SizedBox(height: 16),
+
                       Wrap(
-                        spacing: 10,
-                        runSpacing: 8,
-                        children: _bhkOptions.map((e) {
-                          final isSelected = _selectedBhks.contains(e);
+                        spacing: 8,
+                        children: _floorOptions.map((e) {
+                          final selected = _floor.contains(e);
                           return ChoiceChip(
                             label: Text(e),
-                            selected: isSelected,
-                            selectedColor: theme.colorScheme.primary.withOpacity(0.25),
-                            onSelected: (selected) {
+                            selected: selected,
+                            selectedColor: const Color(0xFF4F46E5).withOpacity(0.15),
+                            labelStyle: TextStyle(
+                              color: selected ? const Color(0xFF4F46E5) : Colors.black,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            onSelected: (val) {
                               setState(() {
-                                selected ? _selectedBhks.add(e) : _selectedBhks.remove(e);
+                                val ? _floor.add(e) : _floor.remove(e);
                               });
                             },
                           );
                         }).toList(),
                       ),
 
-                      if (_selectedBhks.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          "Selected: ${_selectedBhks.join(', ')}",
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ],
+                      const SizedBox(height: 16),
+
+                      ListTile(
+                        title: Text(_shiftingDate == null
+                            ? "Select Shifting Date"
+                            : DateFormat("yyyy-MM-dd").format(_shiftingDate!)),
+                        trailing: const Icon(Icons.calendar_today),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2040),
+                          );
+                          if (picked != null) {
+                            setState(() => _shiftingDate = picked);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      ListTile(
+                        title: Text(_visitingDate == null
+                            ? "Select Visiting Date"
+                            : DateFormat("yyyy-MM-dd").format(_visitingDate!)),
+                        trailing: const Icon(Icons.calendar_today),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2040),
+                          );
+                          if (picked != null) {
+                            setState(() => _visitingDate = picked);
+                          }
+                        },
+                      ),
                     ],
                   ),
                 ),
-              ],
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _messageCtrl,
-                decoration:
-                _inputStyle("Message", Icons.note_alt_outlined),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 20),
 
-              if (_existingCustomer != null && !_canSubmitRedemand) ...[
-                _redemandBlockedBanner(),
-              ],
-              const SizedBox(height: 10),
+                const SizedBox(height: 16),
 
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton.icon(
-                  icon: _isSubmitting
-                      ? const SizedBox(
-                    height: 18,
-                    width: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                      : Icon(
-                    !_canSubmitRedemand
-                        ? Icons.lock_outline
-                        : Icons.upload,
-                    color: Colors.white,
-                    size: 24,
+                TextFormField(
+                  controller: _messageCtrl,
+                  maxLines: 3,
+                  decoration: _modernInput(
+                    "Describe the specific needs...",
+                    Icons.notes,
                   ),
-                  label: Text(
-                    _submitButtonText,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _submitButtonColor(theme),
-                    disabledBackgroundColor:
-                    Colors.red.withOpacity(0.6), // 👈 still visible
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: _canSubmitRedemand ? 6 : 0,
-                  ),
-                  onPressed: (_isSubmitting || !_canSubmitRedemand)
-                      ? null
-
-                      : _submitForm,
                 ),
-              ),
 
-            ]),
+                const SizedBox(height: 20),
+
+                if (_existingCustomer != null && !_canSubmitRedemand)
+                  _redemandBlockedBanner(),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: (_isSubmitting || !_canSubmitRedemand)
+                        ? null
+                        : _submitForm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _submitButtonColor(Theme.of(context)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      elevation: 2,
+                    ),
+                    child: _isSubmitting
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : Text(_submitButtonText,style: TextStyle(color: Colors.white),),
+                  ),
+                ),
+
+              ],
+            ),
           ),
         ),
       ),
@@ -981,7 +1358,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
     if (!_canSubmitRedemand) {
       return Colors.red.shade600; // warning state
     }
-    return theme.colorScheme.primary; // normal
+    return const Color(0xFF4F46E5);
   }
 
   Widget _optionBox(String label, String? value) {
@@ -1060,6 +1437,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
           type == "Buy" ? "Budget Range" : "Monthly Rent Budget",
           style: theme.textTheme.titleSmall!.copyWith(
             fontWeight: FontWeight.w600,
+            color: Colors.black
           ),
         ),
         const SizedBox(height: 6),
@@ -1115,6 +1493,215 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       ],
     );
   }
+
+  Widget dropdownField({
+    required String title,
+    required String? value,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: theme.textTheme.titleSmall!.copyWith(
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface.withOpacity(0.9),
+          ),
+        ),
+        const SizedBox(height: 6),
+        GestureDetector(
+          onTap: onTap,
+          child: _optionBox(title, value),
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  void _showFurnitureBottomSheet(BuildContext context) {
+    final List<String> furnitureItems = [
+      'Refrigerator',
+      'Washing Machine',
+      'Wardrobe',
+      'AC',
+      'Water Purifier',
+      'Single Bed',
+      'Double Bed',
+      'Geyser',
+      'LED TV',
+      'Sofa Set',
+      'Induction',
+      'Gas Stove',
+    ];
+
+    final Map<String, int> tempSelection = Map.from(_selectedFurniture);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return SizedBox(
+              height: MediaQuery.of(context).size.height * 0.65,
+              child: Column(
+                children: [
+
+                  /// 🔥 HEADER (CLEAN)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            "Select Furniture",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedFurniture = Map.fromEntries(
+                                tempSelection.entries.where((e) => e.value > 0),
+                              );
+
+                              _furnitureCtrl.text = _selectedFurniture.isEmpty
+                                  ? ""
+                                  : _selectedFurniture.entries
+                                  .map((e) => "${e.key} (${e.value})")
+                                  .join(", ");
+                            });
+
+                            Navigator.pop(ctx);
+                          },
+                          child: const Text(
+                            "SAVE",
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+
+                  const Divider(height: 1),
+
+                  /// 🔥 GRID STYLE (BETTER THAN LIST)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: GridView.builder(
+                        itemCount: furnitureItems.length,
+                        gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 2.8,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                        ),
+                        itemBuilder: (context, index) {
+                          final item = furnitureItems[index];
+                          final isSelected = tempSelection.containsKey(item);
+                          final count = tempSelection[item] ?? 0;
+
+                          return GestureDetector(
+                            onTap: () {
+                              setModalState(() {
+                                if (isSelected) {
+                                  tempSelection.remove(item);
+                                } else {
+                                  tempSelection[item] = 1;
+                                }
+                              });
+                            },
+
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Colors.black
+                                      : Colors.grey.shade300,
+                                ),
+                                color: isSelected
+                                    ? Colors.black.withOpacity(0.05)
+                                    : Colors.white,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      item,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: isSelected
+                                            ? Colors.black
+                                            : Colors.grey.shade700,
+                                      ),
+                                    ),
+                                  ),
+
+                                  /// 🔥 COUNTER
+                                  if (isSelected)
+                                    Row(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            setModalState(() {
+                                              if (count > 1) {
+                                                tempSelection[item] = count - 1;
+                                              }
+                                            });
+                                          },
+                                          child: const Icon(Icons.remove, size: 18,color: Colors.black,),
+                                        ),
+                                        Padding(
+                                          padding:
+                                          const EdgeInsets.symmetric(horizontal: 6),
+                                          child: Text(
+                                            "$count",
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold,color: Colors.black,),
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () {
+                                            setModalState(() {
+                                              tempSelection[item] = count + 1;
+                                            });
+                                          },
+                                          child: const Icon(Icons.add, size: 18,color: Colors.black,),
+                                        ),
+                                      ],
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
 }
 
 class BudgetSelector extends StatelessWidget {
@@ -1206,6 +1793,7 @@ class BudgetSelector extends StatelessWidget {
               return ChoiceChip(
                 label: Text(label),
                 selected: false,
+
                 onSelected: (_) =>
                 isBuy ? onBuyChange(r) : onRentChange(r),
               );

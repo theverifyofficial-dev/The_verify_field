@@ -637,7 +637,6 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
   @override
   Widget build(BuildContext context) {
     final bool isPolice = agreement?["agreement_type"] == "Police Verification";
-    final withPolice= agreement?['is_Police']?.toString() == "true";
 
     final bool paymentDone =
         agreement?["payment"]?.toString() == "1";

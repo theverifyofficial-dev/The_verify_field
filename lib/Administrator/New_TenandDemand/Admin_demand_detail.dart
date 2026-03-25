@@ -758,6 +758,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
           _infoRow("Parking", data["parking"]),
           _infoRow("Lift", data["lift"]),
           _infoRow("Furnished", data["furnished_unfurnished"]),
+          _infoRow("Furnished item", data["furnished_item"]),
           _infoRow("Family Structure", data["family_structur"]),
           _infoRow("Family Members", data["family_member"]),
           _infoRow("Religion", data["religion"]),
@@ -1097,7 +1098,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
             const SizedBox(height: 10),
 
 
-            if (status == "progressing" || status == "disclosed" || status == "redemand")
+            if (status == "progressing" || status == "new" || status == "disclosed" || status == "redemand")
               _buildProgressDetailsCard(_demand!, isDark, accent),
 
             const SizedBox(height: 10),

@@ -7,8 +7,9 @@ import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Custom_Widget/constant.dart';
+import '../../Demand_2/Demand_detail.dart';
+import '../../Demand_2/redemand_detailpage.dart';
 import '../../utilities/bug_founder_fuction.dart';
-import 'Admin_demand_detail.dart';
 
 enum DemandEditMode {
   add,
@@ -44,6 +45,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
   final _numberCtrl = TextEditingController();
   final _messageCtrl = TextEditingController();
   final TextEditingController _furnitureCtrl = TextEditingController();
+  final TextEditingController _totalCtrl = TextEditingController();
   bool _fetchingCustomer = false;
   Map<String, dynamic>? _existingCustomer;
 
@@ -122,6 +124,9 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+
+    _totalCtrl.text = (_adultCount + _childrenCount).toString();
+
     // 🔥 LOAD DATA FOR UPDATE MODE
     if (widget.mode != DemandEditMode.add) {
       _loadDemandForEdit();
@@ -129,6 +134,12 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
 
     print(" redemand id from add page : ${widget.redemandId}");
 
+  }
+
+  void _updateFamilyTotal() {
+    final total = _adultCount + _childrenCount;
+    _familyMember = total.toString();
+    _totalCtrl.text = total.toString();
   }
 
   @override
@@ -335,135 +346,152 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
     }
   }
 
+  String? safeString(dynamic value) {
+    if (value == null) return null;
+    final str = value.toString().trim();
+    if (str.isEmpty || str == "--" || str.toLowerCase() == "null") {
+      return null;
+    }
+    return str;
+  }
+
+  int safeInt(dynamic value, {int defaultValue = 0}) {
+    if (value == null) return defaultValue;
+    return int.tryParse(value.toString()) ?? defaultValue;
+  }
+
+  double? safeDouble(dynamic value) {
+    if (value == null) return null;
+    return double.tryParse(value.toString());
+  }
+
   void _autofillFromExistingCustomer(Map<String, dynamic> data) {
 
+    final name = safeString(data["Tname"]);
+    final number = safeString(data["Tnumber"]);
+    final message = safeString(data["Message"]);
 
-    // NAME
-    if (_nameCtrl.text.isEmpty && data["Tname"] != null) {
-      _nameCtrl.text = data["Tname"].toString();
-    }
-    if (_numberCtrl.text.isEmpty && data["Tnumber"] != null) {
-      _numberCtrl.text = data["Tnumber"].toString();
+    // NAME / NUMBER
+    if (_nameCtrl.text.isEmpty && name != null) {
+      _nameCtrl.text = name;
     }
 
-
-    // URGENT FLAG
-    if (data["mark"] != null) {
-      _isUrgent = data["mark"].toString() == "1";
+    if (_numberCtrl.text.isEmpty && number != null) {
+      _numberCtrl.text = number;
     }
+
+    if (_messageCtrl.text.isEmpty && message != null) {
+      _messageCtrl.text = message;
+    }
+
+    // URGENT
+    final mark = safeString(data["mark"]);
+    if (mark != null) {
+      _isUrgent = mark == "1";
+    }
+
     // BUY / RENT
-    if (_buyRent == null && data["Buy_rent"] != null) {
-      _buyRent = data["Buy_rent"];
+    final buyRent = safeString(data["Buy_rent"]);
+    if (_buyRent == null && buyRent != null) {
+      _buyRent = buyRent;
     }
 
     // LOCATION
-    if (_location == null && data["Location"] != null) {
-      _location = data["Location"];
+    final location = safeString(data["Location"]);
+    if (_location == null && location != null) {
+      _location = location;
     }
 
-    // Reference
-    if (_reference == null && data["Reference"] != null) {
-      _reference = data["Reference"];
+    // REFERENCE
+    final reference = safeString(data["Reference"]);
+    if (_reference == null && reference != null) {
+      _reference = reference;
     }
 
-    // MESSAGE (append, don’t replace)
-    if (_messageCtrl.text.isEmpty && data["Message"] != null) {
-      _messageCtrl.text = data["Message"].toString();
-    }
-
-    // BHK (multi-select safe)
-    if (_selectedBhks.isEmpty && data["Bhk"] != null) {
+    // BHK
+    final bhkRaw = safeString(data["Bhk"]);
+    if (_selectedBhks.isEmpty && bhkRaw != null) {
       _selectedBhks.clear();
-      final bhks = data["Bhk"].toString().split(",");
-      for (final b in bhks) {
-        _selectedBhks.add(b.trim());
-      }
-    }
-
-    final total = (_adultCount + _childrenCount);
-
-    if (_familyMember != null && _familyMember!.isNotEmpty) {
-      final expected = int.tryParse(_familyMember!);
-
-      if (expected != null && expected != total) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Family count mismatch")),
-        );
-        setState(() => _isSubmitting = false);
-        return;
-      }
-    }
-
-    if (_selectedBhks.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Select at least one BHK")),
+      _selectedBhks.addAll(
+        bhkRaw.split(",").map((e) => e.trim()).where((e) => e.isNotEmpty),
       );
-      setState(() => _isSubmitting = false);
-      return;
     }
 
-    _parking ??= data["parking"];
-    _lift ??= data["lift"];
-    _furnished ??= data["furnished_unfurnished"];
-    _familyStructure ??= data["family_structur"];
-    _familyMember ??= data["family_member"];
-    _religion ??= data["religion"];
+    // SIMPLE FIELDS
+    _parking ??= safeString(data["parking"]);
+    _lift ??= safeString(data["lift"]);
+    _furnished ??= safeString(data["furnished_unfurnished"]);
+    _familyStructure ??= safeString(data["family_structur"]);
+    _familyMember ??= safeString(data["family_member"]);
+    _religion ??= safeString(data["religion"]);
 
-    if (data["floor"] != null) {
+    // FLOOR
+    final floorRaw = safeString(data["floor"]);
+    if (floorRaw != null) {
       _floor.clear();
-      _floor.addAll(data["floor"].toString().split(','));
+      _floor.addAll(
+        floorRaw.split(",").map((e) => e.trim()).where((e) => e.isNotEmpty),
+      );
     }
 
-    if (data["count_of_person"] != null) {
-      final parts = data["count_of_person"].split("-");
-      if (parts.length == 2) {
-        _adultCount = int.tryParse(parts[0].replaceAll("A", "")) ?? 1;
-        _childrenCount = int.tryParse(parts[1].replaceAll("C", "")) ?? 0;
+    // COUNT (A-C format)
+    final countRaw = safeString(data["count_of_person"]);
+    if (countRaw != null && countRaw.contains("-")) {
+      final parts = countRaw.split("-");
+      _adultCount = safeInt(parts[0].replaceAll("A", ""), defaultValue: 1);
+      _childrenCount = safeInt(parts[1].replaceAll("C", ""), defaultValue: 0);
+      _updateFamilyTotal(); // keep UI in sync
+    }
+
+    // DATES
+    final shiftingRaw = safeString(data["shifting_date"]);
+    if (shiftingRaw != null) {
+      _shiftingDate = DateTime.tryParse(shiftingRaw);
+    }
+
+    final visitingRaw = safeString(data["visiting_dates"]);
+    if (visitingRaw != null) {
+      _visitingDate = DateTime.tryParse(visitingRaw);
+    }
+
+    // FURNITURE (SAFE JSON)
+    final furnitureRaw = safeString(data["furnished_item"]);
+    if (furnitureRaw != null) {
+      try {
+        final decoded = jsonDecode(furnitureRaw);
+        if (decoded is Map<String, dynamic>) {
+          _selectedFurniture = Map<String, int>.from(decoded);
+          _furnitureCtrl.text = _selectedFurniture.entries
+              .map((e) => "${e.key} (${e.value})")
+              .join(", ");
+        }
+      } catch (_) {
+        _selectedFurniture = {};
+        _furnitureCtrl.clear();
       }
     }
 
-    if (data["shifting_date"] != null) {
-      _shiftingDate = DateTime.tryParse(data["shifting_date"]);
-    }
+    // PRICE
+    final priceRaw = safeString(data["Price"]);
+    if (priceRaw != null && priceRaw.contains("-")) {
+      final parts = priceRaw.split("-");
 
-    if (data["visiting_dates"] != null) {
-      _visitingDate = DateTime.tryParse(data["visiting_dates"]);
-    }
+      final start = safeDouble(parts[0]);
+      final end = safeDouble(parts[1]);
 
-    if (data["furnished_item"] != null &&
-        data["furnished_item"] != "--") {
-      _selectedFurniture =
-      Map<String, int>.from(jsonDecode(data["furnished_item"]));
-      _furnitureCtrl.text = _selectedFurniture.isEmpty
-          ? ""
-          : _selectedFurniture.entries
-          .map((e) => "${e.key} (${e.value})")
-          .join(", ");
-    }
-
-
-
-    if (data["Price"] != null) {
-      final parts = data["Price"].toString().split("-");
-      if (parts.length == 2) {
-        final start = double.tryParse(parts[0]);
-        final end = double.tryParse(parts[1]);
-
-        if (start != null && end != null) {
-          if (_buyRent == "Buy") {
-            _buyBudget = RangeValues(start, end);
-            _selectedBudgetLabel = "Custom Range"; // 🔥 IMPORTANT
-          } else {
-            _rentBudget = RangeValues(start, end);
-            _selectedBudgetLabel = "Custom Range"; // 🔥 IMPORTANT
-          }
-          _showCustomSlider = true; // 🔥 IMPORTANT
+      if (start != null && end != null) {
+        if (_buyRent == "Buy") {
+          _buyBudget = RangeValues(start, end);
+        } else {
+          _rentBudget = RangeValues(start, end);
         }
+
+        _selectedBudgetLabel = "Custom Range";
+        _showCustomSlider = true;
       }
     }
 
     if (mounted) setState(() {});
-
   }
 
   Future<void> _submitForm() async {
@@ -614,18 +642,6 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
           ),
         );
 
-        if (data["redemand_id"] != null) {
-          final parentId = data["matched_add_demand_id"].toString();
-
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => AdminDemandDetail(demandId: parentId),
-            ),
-          );
-          return;
-        }
-
         Navigator.pop(context);
       }
       else {
@@ -644,38 +660,39 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
 
       }
     } on DioException catch (e) {
+
+      print("🔥 FULL ERROR RESPONSE:");
+      print(e.response?.data);
+      print("🔥 STATUS CODE: ${e.response?.statusCode}");
+      print("🔥 HEADERS: ${e.response?.headers}");
+
       String errorMessage = "Something went wrong";
 
-      // ✅ Backend responded with error
       if (e.response != null) {
         final status = e.response?.statusCode;
         final data = e.response?.data;
 
-        if (data is Map && data["message"] != null) {
+        // ✅ HANDLE STRING RESPONSE (MOST IMPORTANT)
+        if (data is String && data.isNotEmpty) {
+          errorMessage = data;
+        }
+
+        // ✅ HANDLE JSON RESPONSE
+        else if (data is Map && data["message"] != null) {
           errorMessage = data["message"];
-        } else {
+        }
+
+        else {
           errorMessage = "Server error ($status)";
         }
 
-        print(errorMessage);
-
-        // 🔍 LOG REAL ERROR
         await BugLogger.log(
-          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
+          apiLink: "REDemand API",
           error: data.toString(),
           statusCode: status ?? 0,
         );
-      }
-
-      // ❌ No response → network / timeout / SSL
-      else {
-        errorMessage = "Network error. Check internet connection.";
-
-        await BugLogger.log(
-          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
-          error: e.message ?? "Unknown Dio error",
-          statusCode: 0,
-        );
+      } else {
+        errorMessage = "Network error";
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -785,7 +802,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "Register a specific real estate requirement",
+                      "Register a specific real estate requirement for fieldworkers.",
                       style: TextStyle(color: Colors.grey.shade600),
                     ),
                   ],
@@ -876,7 +893,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
 
                       TextFormField(
                         controller: _numberCtrl,
-                        decoration: _modernInput("+91 9876543210", Icons.phone),
+                        decoration: _modernInput("Customer Number", Icons.phone),
                         keyboardType: TextInputType.phone,
                         maxLength: 12,
                         onChanged: (value) {
@@ -895,7 +912,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
 
                       TextFormField(
                         controller: _nameCtrl,
-                        decoration: _modernInput("e.g. Alexander Pierce", Icons.person),
+                        decoration: _modernInput("Customer Name", Icons.person),
                         validator: (v) =>
                         v == null || v.trim().isEmpty ? "Required" : null,
                       ),
@@ -904,7 +921,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
 
                       DropdownButtonFormField<String>(
                         value: _buyRent,
-                        decoration: _modernInput("Amount", Icons.currency_rupee),
+                        decoration: _modernInput("Buy/Rent", Icons.currency_rupee),
 
                         items: _buyRentOptions
                             .map((e) => DropdownMenuItem(value: e, child: Text(e)))
@@ -948,69 +965,6 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
                 ),
 
                 const SizedBox(height: 12),
-
-                if (_buyRent != null)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                        const Text("Property Preferences",
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-
-                      const SizedBox(height: 16),
-
-                        Card(
-                          elevation: 2,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              children: [
-                                budgetDropdown(type: _buyRent!, theme: Theme.of(context)),
-
-                                const SizedBox(height: 12),
-
-                                Wrap(
-                                  spacing: 8,
-                                  children: _bhkOptions.map((e) {
-                                    final selected = _selectedBhks.contains(e);
-                                    return ChoiceChip(
-                                      label: Text(e),
-                                      selected: selected,
-                                      onSelected: (val) {
-                                        setState(() {
-                                          val
-                                              ? _selectedBhks.add(e)
-                                              : _selectedBhks.remove(e);
-                                        });
-                                      },
-                                    );
-                                  }).toList(),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                  ),
-                ),
-
-
-
 
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
@@ -1057,6 +1011,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
                                     return ChoiceChip(
                                       label: Text(e),
                                       selected: selected,
+                                      selectedColor:  const Color(0xFFDC2626),
                                       onSelected: (val) {
                                         setState(() {
                                           val
@@ -1107,7 +1062,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
 
                       DropdownButtonFormField<String>(
                         value: _furnished,
-                        decoration: _modernInput("", Icons.chair),
+                        decoration: _modernInput("Furnishing Requirement", Icons.chair),
                         items: furnishingOptions
                             .map((e) =>
                             DropdownMenuItem(value: e, child: Text(e)))
@@ -1175,6 +1130,8 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
                               initialValue: _adultCount.toString(),
                               onChanged: (v) {
                                 _adultCount = int.tryParse(v) ?? 1;
+                                _updateFamilyTotal();
+
                               },
                             ),
                           ),
@@ -1186,6 +1143,8 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
                               initialValue: _childrenCount.toString(),
                               onChanged: (v) {
                                 _childrenCount = int.tryParse(v) ?? 0;
+                                _updateFamilyTotal();
+
                               },
                             ),
                           ),
@@ -1195,10 +1154,14 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
                       const SizedBox(height: 16),
 
                       TextFormField(
-                        decoration: _modernInput("Total members", Icons.group),
+                        decoration: _modernInput("Total Members", Icons.group),
                         keyboardType: TextInputType.number,
-                        onChanged: (v) => _familyMember = v,
+                        controller: _totalCtrl,
+                        readOnly: true, // 🔥 IMPORTANT
                       ),
+
+
+
 
                       const SizedBox(height: 16),
 
@@ -1244,10 +1207,11 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
                           final selected = _floor.contains(e);
                           return ChoiceChip(
                             label: Text(e),
+
                             selected: selected,
-                            selectedColor: const Color(0xFF4F46E5).withOpacity(0.15),
+                            selectedColor: Color(0xFFDC2626),
                             labelStyle: TextStyle(
-                              color: selected ? const Color(0xFF4F46E5) : Colors.black,
+                              color: selected ? Colors.white : Colors.black,
                               fontWeight: FontWeight.w500,
                             ),
                             onSelected: (val) {
@@ -1358,7 +1322,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
     if (!_canSubmitRedemand) {
       return Colors.red.shade600; // warning state
     }
-    return const Color(0xFF4F46E5);
+    return const Color(0xFFDC2626);
   }
 
   Widget _optionBox(String label, String? value) {
@@ -1554,7 +1518,6 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
               child: Column(
                 children: [
 
-                  /// 🔥 HEADER (CLEAN)
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Row(
@@ -1563,12 +1526,14 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
                           child: Text(
                             "Select Furniture",
                             style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87
                             ),
                           ),
                         ),
                         TextButton(
+
                           onPressed: () {
                             setState(() {
                               _selectedFurniture = Map.fromEntries(
@@ -1586,7 +1551,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
                           },
                           child: const Text(
                             "SAVE",
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black87),
                           ),
                         )
                       ],
@@ -1752,8 +1717,8 @@ class BudgetSelector extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         gradient: LinearGradient(
           colors: [
-            theme.colorScheme.primary.withOpacity(0.15),
-            theme.colorScheme.primary.withOpacity(0.05),
+             Colors.grey.withOpacity(0.15),
+             Colors.grey.withOpacity(0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -1793,6 +1758,7 @@ class BudgetSelector extends StatelessWidget {
               return ChoiceChip(
                 label: Text(label),
                 selected: false,
+                selectedColor: const Color(0xFFDC2626),
 
                 onSelected: (_) =>
                 isBuy ? onBuyChange(r) : onRentChange(r),
@@ -1804,6 +1770,8 @@ class BudgetSelector extends StatelessWidget {
 
           // RANGE SLIDER
           RangeSlider(
+            inactiveColor:  Colors.grey,
+            activeColor: const Color(0xFFDC2626),
             values: current,
             min: isBuy ? 500000 : 5000,
             max: isBuy ? 20000000 : 100000,
@@ -1859,7 +1827,7 @@ class _ExistingCustomerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final accent = theme.colorScheme.primary;
+    final accent = Colors.red;
 
     Widget row(String label, dynamic value) {
       if (value == null || value.toString().trim().isEmpty) {
@@ -1902,32 +1870,36 @@ class _ExistingCustomerCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: (){
-        Navigator.push(context, MaterialPageRoute(builder: (context) => AdminDemandDetail(demandId: data["id"].toString()),));
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => DemandDetail(
+              demandId: data["id"].toString(),
+              isReadOnly: true, // 🔥 THIS IS THE KEY
+            ),
+          ),
+        );
       },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              accent.withOpacity(isDark ? 0.10 : 0.08),
-              accent.withOpacity(isDark ? 0.08 : 0.10),
-            ],
-          ),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+
+          /// 🔥 RED BORDER ACCENT
           border: Border.all(
-            color: accent.withOpacity(0.35),
+            color: const Color(0xFFDC2626).withOpacity(0.25),
           ),
+
+          /// 🔥 SUBTLE RED SHADOW
           boxShadow: [
             BoxShadow(
-              color: accent.withOpacity(0.18),
-              blurRadius: 18,
-              offset: const Offset(0, 6),
-            ),
+              color: const Color(0xFFDC2626).withOpacity(0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
           ],
-        ),
-        child: Column(
+        ),        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // HEADER
@@ -1997,7 +1969,7 @@ class _ExistingCustomerCard extends StatelessWidget {
                   "Date: ${formatDate(data["Date"])}",
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white,
+                    color: Colors.black87,
                     fontStyle: FontStyle.italic,
                   ),
                 ),
@@ -2005,7 +1977,7 @@ class _ExistingCustomerCard extends StatelessWidget {
                   "Time: ${data["Time"]}",
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white,
+                    color: Colors.black87,
                     fontStyle: FontStyle.italic,
                   ),
                 )

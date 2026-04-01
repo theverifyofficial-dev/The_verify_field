@@ -10,6 +10,8 @@ class DemandColors {
   static const redemand = Color(0xFF10B981);       // Red
 }
 
+
+
 Color demandStatusColor(String status) {
   switch (status.toLowerCase()) {
     case "new":
@@ -204,7 +206,7 @@ Widget todayDemandTile(Map<String, dynamic> d) {
 Widget customerDemand2CompactCard({
   required bool isDark,
   required bool loading,
-  required int newCount,
+  required int acceptCount,
   required int progressing,
   required int disclosed,
   required int redemand,
@@ -213,7 +215,7 @@ Widget customerDemand2CompactCard({
 }) {
   if (loading) return demandShimmer(isDark);
 
-  final total = newCount + progressing + disclosed + redemand;
+  final total = acceptCount + progressing + disclosed + redemand;
 
   return GestureDetector(
     onTap: onTap,
@@ -258,7 +260,7 @@ Widget customerDemand2CompactCard({
               const SizedBox(width: 12),
               const Expanded(
                 child: Text(
-                  "Customer Demands 2.0",
+                  "Customer Demands",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
@@ -289,9 +291,9 @@ Widget customerDemand2CompactCard({
           Row(
             children: [
               animatedCount(
-                  value: newCount,
+                  value: acceptCount,
                   color: DemandColors.newDemand,
-                  label: "New"),
+                  label: "Accepted"),
               const SizedBox(width: 8),
               animatedCount(
                   value: progressing,

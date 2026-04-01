@@ -443,6 +443,9 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
             });
           }
 
+          ownerAadharFrontUrl = data['addhar_front'];
+          ownerAadharBackUrl  = data['addhar_back'];
+
         } else if (tenantIndex != null &&
             tenantIndex >= 0 &&
             tenantIndex < tenants.length) {

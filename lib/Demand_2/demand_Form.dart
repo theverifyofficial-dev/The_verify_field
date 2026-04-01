@@ -30,15 +30,19 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
   int _childrenCount = 0;
   String? _religion;
 
+  static const primaryRed = Color(0xFFDC2626);
+  static const bgWhite = Color(0xFFF9FAFB);
+  static const cardWhite = Colors.white;
+  static const textBlack = Color(0xFF111827);
+  static const borderColor = Color(0xFFE5E7EB);
+  final TextEditingController _furnitureCtrl = TextEditingController();
+  final TextEditingController _totalCtrl = TextEditingController();
+
+
   DateTime? _visitingDate;
 
   final TextEditingController _vehicleNoCtrl = TextEditingController();
   String? _vehicleType;
-  //
-  // RangeValues _buyBudget = const RangeValues(1000000, 5000000);
-  //
-  // RangeValues _rentBudget = const RangeValues(12000, 25000);
-
 
   final Set<String> _floor = {};
   Map<String, int> _selectedFurniture = {}; // e.g., {'Sofa': 2, 'Bed': 1}
@@ -82,78 +86,117 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
-
+    _totalCtrl.text = (_adultCount + _childrenCount).toString();
     _loadInitialValues();
   }
 
 
-  void _parseMemberCount(String? value) {
-    if (value == null || value.isEmpty) return;
-
-    final regex = RegExp(r'(\d+)A-(\d+)C');
-    final match = regex.firstMatch(value);
-
-    if (match != null) {
-      _adultCount = int.parse(match.group(1)!);
-      _childrenCount = int.parse(match.group(2)!);
-    }
+  void _updateFamilyTotal() {
+    final total = _adultCount + _childrenCount;
+    _familyMember = total.toString();
+    _totalCtrl.text = total.toString();
   }
 
+  String? safeString(dynamic value) {
+    if (value == null) return null;
+    final str = value.toString().trim();
+    if (str.isEmpty || str == "--" || str.toLowerCase() == "null") {
+      return null;
+    }
+    return str;
+  }
 
+  int safeInt(dynamic value, {int defaultValue = 0}) {
+    if (value == null) return defaultValue;
+    return int.tryParse(value.toString()) ?? defaultValue;
+  }
+
+  double? safeDouble(dynamic value) {
+    if (value == null) return null;
+    return double.tryParse(value.toString());
+  }
 
   void _loadInitialValues() {
     final d = widget.demand;
 
-    _parking = d["parking"];
-    _lift = d["lift"];
-    _furnished = d["furnished_unfurnished"];
-    _familyStructure = d["family_structur"];
-    _familyMember = d["family_member"]?.toString();
-    _religion = d["religion"];
+    // SAFE BASIC FIELDS
+    _parking = safeString(d["parking"]);
+    _lift = safeString(d["lift"]);
+    _furnished = safeString(d["furnished_unfurnished"]);
+    _familyStructure = safeString(d["family_structur"]);
+    _familyMember = safeString(d["family_member"]);
+    _religion = safeString(d["religion"]);
 
-    if (d["furnished_item"] != null && d["furnished_item"].toString().isNotEmpty) {
+    // ✅ FURNITURE (SAFE JSON)
+    final rawFurniture = safeString(d["furnished_item"]);
+
+    if (rawFurniture != null) {
       try {
-        _selectedFurniture =
-        Map<String, int>.from(jsonDecode(d["furnished_item"]));
-      } catch (_) {
+        final decoded = jsonDecode(rawFurniture);
+        if (decoded is Map<String, dynamic>) {
+          _selectedFurniture = Map<String, int>.from(decoded);
+
+          _furnitureCtrl.text = _selectedFurniture.entries
+              .map((e) => "${e.key} (${e.value})")
+              .join(", ");
+        }
+      } catch (e) {
+        print("❌ Furniture JSON Error: $e");
         _selectedFurniture = {};
+        _furnitureCtrl.clear();
       }
-    }
-    // ✅ total family count
-    _familyMember = d["family_member"]?.toString();
-
-    // ✅ parse adult/child from single parameter
-    _parseMemberCount(d["count_of_person"]);
-
-
-    if (d["visiting_dates"] != null && d["visiting_dates"].toString().isNotEmpty) {
-      try {
-        _visitingDate = DateTime.parse(d["visiting_dates"]);
-      } catch (_) {}
+    } else {
+      _selectedFurniture = {};
+      _furnitureCtrl.clear();
     }
 
-    _vehicleNoCtrl.text = d["vichle_no"] ?? "";
-    _vehicleType = d["vichle_type"];
-
-    _buyRent = d["Buy_rent"]?.toString();
-
-    if (d["floor"] != null) {
-      _floor.add(d["floor"].toString());
+    // ✅ FLOOR (NO DUPLICATE ADD)
+    _floor.clear();
+    final floorRaw = safeString(d["floor"]);
+    if (floorRaw != null) {
+      _floor.addAll(
+        floorRaw.split(",").map((e) => e.trim()).where((e) => e.isNotEmpty),
+      );
     }
 
-    if (d["shifting_date"] != null && d["shifting_date"].toString().isNotEmpty) {
-      try {
-        _shiftingDate = DateTime.parse(d["shifting_date"]);
-      } catch (_) {}
-    }
-
-    _messageCtrl.text = d["Message"] ?? "";
-
+    // ✅ FAMILY MEMBER
     final total = int.tryParse(_familyMember ?? "0") ?? 0;
-    if (_adultCount + _childrenCount != total && total > 0) {
+
+    // ✅ COUNT OF PERSON (A-C FORMAT)
+    final countRaw = safeString(d["count_of_person"]);
+    if (countRaw != null && countRaw.contains("-")) {
+      final parts = countRaw.split("-");
+      _adultCount = safeInt(parts[0].replaceAll("A", ""), defaultValue: 1);
+      _childrenCount = safeInt(parts[1].replaceAll("C", ""), defaultValue: 0);
+    } else if (total > 0) {
+      // fallback if count_of_person missing
       _adultCount = 1;
       _childrenCount = total - 1;
     }
+
+    _updateFamilyTotal();
+
+    // ✅ VISITING DATE
+    final visitingRaw = safeString(d["visiting_dates"]);
+    if (visitingRaw != null) {
+      _visitingDate = DateTime.tryParse(visitingRaw);
+    }
+
+    // ✅ SHIFTING DATE
+    final shiftingRaw = safeString(d["shifting_date"]);
+    if (shiftingRaw != null) {
+      _shiftingDate = DateTime.tryParse(shiftingRaw);
+    }
+
+    // ✅ VEHICLE
+    _vehicleNoCtrl.text = safeString(d["vichle_no"]) ?? "";
+    _vehicleType = safeString(d["vichle_type"]);
+
+    // ✅ BUY / RENT
+    _buyRent = safeString(d["Buy_rent"]);
+
+    // ✅ MESSAGE
+    _messageCtrl.text = safeString(d["Message"]) ?? "";
   }
 
   @override
@@ -161,38 +204,51 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
     _pulseController.dispose();
     _vehicleNoCtrl.dispose();
     _messageCtrl.dispose();
+    _furnitureCtrl.dispose(); // 🔥 ADD THIS
     super.dispose();
   }
 
   InputDecoration _inputStyle(String label, IconData icon) {
-    final theme = Theme.of(context);
     return InputDecoration(
       labelText: label,
-      prefixIcon: Icon(icon),
+      labelStyle: const TextStyle(color: Colors.black87),
+
+      prefixIcon: Icon(icon, color: primaryRed),
+
       filled: true,
-      fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.2),
+      fillColor: Colors.white,
+
+      contentPadding:
+      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+
+      // 🔥 TEXT COLORS
+      hintStyle: TextStyle(color: Colors.grey.shade400),
+
+      // 🔥 BORDER
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+        borderSide: const BorderSide(color: borderColor),
       ),
+
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: borderColor),
+      ),
+
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(
-          color: theme.colorScheme.primary,
-          width: 1.4,
-        ),
+        borderSide: const BorderSide(color: primaryRed, width: 1.5),
       ),
     );
   }
 
   Widget _optionBox(String label, String? value) {
-    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
-        border: Border.all(color: theme.dividerColor.withOpacity(0.3)),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.1),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -201,15 +257,15 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
             value ?? label,
             style: TextStyle(
               fontSize: 15,
-              color: value == null ? theme.hintColor : theme.colorScheme.onSurface,
+              color: value == null ? Colors.grey : textBlack,
+              fontWeight: value == null ? FontWeight.normal : FontWeight.w600,
             ),
           ),
-          Icon(Icons.keyboard_arrow_down, color: theme.iconTheme.color),
+          const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
         ],
       ),
     );
   }
-
 
 
   Widget dropdownField({
@@ -226,8 +282,7 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
           title,
           style: theme.textTheme.titleSmall!.copyWith(
             fontWeight: FontWeight.w600,
-            color: theme.colorScheme.onSurface.withOpacity(0.9),
-          ),
+              color: Colors.black87          ),
         ),
         const SizedBox(height: 6),
         GestureDetector(
@@ -303,6 +358,9 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
       return;
     }
 
+
+    _familyMember = (_adultCount + _childrenCount).toString();
+
     print("👨‍👩‍👧 Family Ratio OK → $_adultCount A, $_childrenCount C");
 
     final payload = {
@@ -312,7 +370,7 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
       "lift": _lift ?? widget.demand["lift"] ?? "",
       "furnished_unfurnished": _furnished ?? widget.demand["furnished_unfurnished"] ?? "",
       "family_structur": _familyStructure ?? widget.demand["family_structur"] ?? "",
-      "family_member": _familyMember ?? widget.demand["family_member"] ?? "",
+      "family_member": (_adultCount + _childrenCount).toString(),
       "count_of_person": (_familyMember != null)
           ? "${_adultCount}A-${_childrenCount}C"
           : widget.demand["count_of_person"] ?? "",
@@ -333,9 +391,7 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
 
       "vichle_type": _vehicleType ?? widget.demand["vichle_type"] ?? "",
 
-      "floor": _floor.isNotEmpty
-          ? _floor.join(',')
-          : widget.demand["floor"] ?? "",
+      "floor": _floor.join(','), // ALWAYS send
 
       "Message": _messageCtrl.text.isNotEmpty
           ? _messageCtrl.text.trim()
@@ -343,9 +399,8 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
 
       "Buy_rent": _buyRent ?? widget.demand["Buy_rent"] ?? "",
       "not_intrested": _notInterested ? "1" : "0",
-      "furnished_item": _selectedFurniture.isNotEmpty
-          ? jsonEncode(_selectedFurniture)
-          : widget.demand["furnished_item"] ?? "",
+
+      "furnished_item": jsonEncode(_selectedFurniture),
     };
 
     print("📦 REQUEST PAYLOAD:");
@@ -426,6 +481,7 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
 
 
     return Scaffold(
+      backgroundColor: bgWhite,
       appBar: AppBar(
         surfaceTintColor: Colors.black,
         backgroundColor: Colors.black,
@@ -450,37 +506,25 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
               Align(
                 alignment: Alignment.center,
                 child: Text(
-                  "     Update Demand Details\n (Only Shifting Date Required)",
-                  style: theme.textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold,fontSize: 16,color: Colors.red),
+                  "Update Demand",
+                  style: theme.textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold,fontSize: 16,color: textBlack),
                 ),
               ),
               const SizedBox(height: 12),
-
-              SwitchListTile(
-                value: _notInterested,
-                onChanged: (val) {
-                  setState(() {
-                    _notInterested = val;
-                  });
-                },
-                activeColor: Colors.red,
-                title: Text(
-                  "Mark as Not Interested",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: _notInterested ? Colors.red : null,
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
 
               // Furnished
+
+              _sectionCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+
               DropdownButtonFormField<String>(
                   value: _furnished,
                   decoration: InputDecoration(
                     labelText: "Select Furnished Type",
+                    labelStyle: TextStyle(color: Colors.black87),
+                    fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
                     ),
@@ -510,10 +554,12 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
                       ),
                     ),
                   ),
-                  items: furnishingOptions.map((option) {
+                dropdownColor: Colors.white, // 🔥 VERY IMPORTANT (menu bg)
+                items: furnishingOptions.map((option) {
                     return DropdownMenuItem(
                       value: option,
-                      child: Text(option,style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                      child: Text(option,style: TextStyle(color: Colors.black87),
+
                       ),
                     );
                   }).toList(),
@@ -539,26 +585,23 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
                         padding:  EdgeInsets.only(top: 16.0),
                         child:
                         TextFormField(
+                          style: TextStyle(color: Colors.black87),
                           decoration: InputDecoration(
                             labelText: "Select Furniture Items",
+                            labelStyle: TextStyle(color: Colors.black87),
+                            fillColor: Colors.grey.shade100,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
                             filled: true, // ✅ enable background color
-                            // fillColor: Colors.grey.shade800,
                             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                           ),
-                          controller: TextEditingController(
-                            text: _selectedFurniture.isEmpty
-                                ? ''
-                                : _selectedFurniture.entries
-                                .map((e) => '${e.key} (${e.value})')
-                                .join(', '),
+                          controller: _furnitureCtrl,
+
                           ),
                         ),
                       ),
                     ),
-                  ),
 
               const SizedBox(height: 12),
 
@@ -581,15 +624,73 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
                 },
               ),
 
-              const SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
-              dropdownField(
-                title: "Family Details",
-                value: _familyStructure == null
-                    ? null
-                    : "$_familyStructure • $_familyMember members",
-                onTap: () => _showFamilyBottomSheet(context),
-              ),
+                    // 🔥 FAMILY TYPE
+                    DropdownButtonFormField<String>(
+                      value: _familyStructure,
+                      decoration: _inputStyle("Family Type", Icons.family_restroom),
+                      dropdownColor: Colors.white, // 🔥 VERY IMPORTANT (menu bg)
+
+                      items: ["Joint", "Nuclear", "Bachelor", "Live-In relation"]
+                          .map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(e),
+                      ))
+                          .toList(),
+                      onChanged: (v) => setState(() => _familyStructure = v),
+                      style: const TextStyle(color: Colors.black),
+                    ),
+
+                    const SizedBox(height: 16),
+
+// 🔥 ADULT + CHILD
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextFormField(
+                            decoration: _inputStyle("Adults", Icons.person),
+                            keyboardType: TextInputType.number,
+                            initialValue: _adultCount.toString(),
+                              style: const TextStyle(color: Colors.black),
+
+
+                              onChanged: (v) {
+                                _adultCount = int.tryParse(v) ?? 1;
+                                _updateFamilyTotal();
+                              }
+
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextFormField(
+                            decoration: _inputStyle("Children", Icons.child_care),
+                              style: const TextStyle(color: Colors.black),
+                            keyboardType: TextInputType.number,
+                            initialValue: _childrenCount.toString(),
+                              onChanged: (v) {
+                                _childrenCount = int.tryParse(v) ?? 0;
+                                _updateFamilyTotal();
+                              }
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+// 🔥 TOTAL MEMBERS
+                    TextFormField(
+                      decoration: _inputStyle("Total Members", Icons.group),
+                      keyboardType: TextInputType.number,
+
+                        controller: _totalCtrl,
+                      style: const TextStyle(color: Colors.black),
+
+                      readOnly: true, // 🔥 IMPORTANT
+                    ),
+
 
               const SizedBox(height: 12),
 
@@ -653,7 +754,7 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
                   // Lift
                   Expanded(
                     child: dropdownField(
-                      title: "Lift (Optional)",
+                      title: "Lift",
                       value: _lift,
                       onTap: () => _showSelectBottomSheet(
                         title: "Lift",
@@ -670,6 +771,7 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
                 title: "Vehicle Type",
                 value: _vehicleType,
 
+
                 onTap: () => _showSelectBottomSheet(
                   title: "Vehicle Type",
                   items: ["2-Wheeler", "4-Wheeler", "None"],
@@ -683,79 +785,16 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
                 controller: _vehicleNoCtrl,
                 textCapitalization: TextCapitalization.characters, // 🔥 ALWAYS CAPS
                 keyboardType: TextInputType.text,
+                style: const TextStyle(color: Colors.black),
                 decoration:
                 _inputStyle("Vehicle Number (Optional)", Icons.car_crash),
               ),
               const SizedBox(height: 12),
 
-              // // Price
-              // Text(
-              //   "Price",
-              //   style: theme.textTheme.titleSmall!
-              //       .copyWith(fontWeight: FontWeight.w600),
-              // ),
-              // const SizedBox(height: 6),
-              //
-              // Text(
-              //   _buyRent == "Buy"
-              //       ? "Buy Budget"
-              //       : "Rent Budget (per month)",
-              //   style: theme.textTheme.titleSmall!
-              //       .copyWith(fontWeight: FontWeight.w600),
-              // ),
-              // const SizedBox(height: 6),
-
-              // Container(
-              //   padding: const EdgeInsets.all(14),
-              //   decoration: BoxDecoration(
-              //     borderRadius: BorderRadius.circular(14),
-              //     color: theme.colorScheme.surfaceVariant.withOpacity(0.1),
-              //   ),
-              //   child: Column(
-              //     crossAxisAlignment: CrossAxisAlignment.start,
-              //     children: [
-              //       Text(
-              //         _buyRent == "Buy"
-              //             ? "${_formatAmount(_buyBudget.start)} – ${_formatAmount(_buyBudget.end)}"
-              //             : "₹${_rentBudget.start.toInt()} – ₹${_rentBudget.end.toInt()} / month",
-              //         style: const TextStyle(
-              //           fontSize: 16,
-              //           fontWeight: FontWeight.bold,
-              //         ),
-              //       ),
-              //
-              //       RangeSlider(
-              //         values: _buyRent == "Buy" ? _buyBudget : _rentBudget,
-              //         min: _buyRent == "Buy" ? 500000 : 5000,
-              //         max: _buyRent == "Buy" ? 20000000 : 100000,
-              //         divisions: _buyRent == "Buy" ? 40 : 19,
-              //         labels: _buyRent == "Buy"
-              //             ? RangeLabels(
-              //           _formatAmount(_buyBudget.start),
-              //           _formatAmount(_buyBudget.end),
-              //         )
-              //             : RangeLabels(
-              //           "₹${_rentBudget.start.toInt()}",
-              //           "₹${_rentBudget.end.toInt()}",
-              //         ),
-              //         onChanged: (range) {
-              //           setState(() {
-              //             if (_buyRent == "Buy") {
-              //               _buyBudget = range;
-              //             } else {
-              //               _rentBudget = range;
-              //             }
-              //           });
-              //         },
-              //       ),
-              //     ],
-              //   ),
-              // ),
-
               Text(
                 "Select Floor",
                 style: theme.textTheme.titleSmall!
-                    .copyWith(fontWeight: FontWeight.w600),
+                    .copyWith(fontWeight: FontWeight.w600,color: Colors.black87),
               ),
               Wrap(
                 spacing: 10,
@@ -764,8 +803,10 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
                   final isSelected = _floor.contains(e);
                   return ChoiceChip(
                     label: Text(e),
+                    labelStyle: TextStyle(color: Colors.white),
                     selected: isSelected,
-                    selectedColor: theme.colorScheme.primary.withOpacity(0.25),
+                    selectedColor: primaryRed,
+
                     onSelected: (selected) {
                       setState(() {
                         selected ? _floor.add(e) : _floor.remove(e);
@@ -783,6 +824,7 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
                 maxLines: 3,
                 decoration:
                 _inputStyle("Message", Icons.note_alt_outlined),
+                style: const TextStyle(color: Colors.black),
               ),
               const SizedBox(height: 25),
 
@@ -791,31 +833,36 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryRed,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: _isUpdating ? null : _updateDemand,
                   icon: _isUpdating
                       ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white))
+                    height: 18,
+                    width: 18,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white),
+                  )
                       : const Icon(Icons.save, color: Colors.white),
                   label: Text(
                     _isUpdating ? "Updating..." : "Update Demand",
                     style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                    theme.colorScheme.primary,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed:
-                  _isUpdating ? null : _updateDemand,
-                ),
+                )
               ),
               const SizedBox(height: 50),
+            ],
+          ),
+        ),
+
             ],
           ),
         ),
@@ -841,15 +888,10 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
 
     final Map<String, int> tempSelection = Map.from(_selectedFurniture);
 
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: isDark
-          ? theme.colorScheme.surface
-          : Colors.green.shade50,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -857,162 +899,148 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
         return StatefulBuilder(
           builder: (context, setModalState) {
             return SizedBox(
-              height: MediaQuery.of(context).size.height * 0.55,
+              height: MediaQuery.of(context).size.height * 0.65,
               child: Column(
                 children: [
-                  // HEADER
-                  Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: isDark
-                            ? [
-                          Colors.grey.shade900,
-                          Colors.grey.shade800,
-                        ]
-                            :  [
-                          theme.colorScheme.primary,
-                          theme.colorScheme.primary,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(20)),
-                    ),
+
+                  /// 🔥 HEADER (CLEAN)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Select Furniture',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                            isDark ? Colors.grey.shade700 : Colors.white,
-                            foregroundColor:
-                            isDark ? Colors.white : theme.colorScheme.primary,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        const Expanded(
+                          child: Text(
+                            "Select Furniture",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87
                             ),
                           ),
+                        ),
+                        TextButton(
+
                           onPressed: () {
                             setState(() {
                               _selectedFurniture = Map.fromEntries(
-                                tempSelection.entries
-                                    .where((e) => e.value > 0),
+                                tempSelection.entries.where((e) => e.value > 0),
                               );
+
+                              _furnitureCtrl.text = _selectedFurniture.isEmpty
+                                  ? ""
+                                  : _selectedFurniture.entries
+                                  .map((e) => "${e.key} (${e.value})")
+                                  .join(", ");
                             });
+
                             Navigator.pop(ctx);
                           },
                           child: const Text(
-                            "Save",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            "SAVE",
+                            style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black87),
                           ),
                         )
                       ],
                     ),
                   ),
 
-                  // LIST
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: furnitureItems.map((item) {
-                          final isSelected = tempSelection.containsKey(item);
+                  const Divider(height: 1),
 
-                          return Container(
-                            margin: const EdgeInsets.symmetric(vertical: 6),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? (isDark
-                                  ? theme.colorScheme.primary.withOpacity(0.2)
-                                  : Colors.white)
-                                  : theme.cardColor,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                if (!isDark)
-                                  const BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 4,
-                                    offset: Offset(1, 2),
-                                  ),
-                              ],
-                            ),
-                            child: ListTile(
-                              leading: Checkbox(
-                                activeColor: theme.colorScheme.primary,
-                                value: isSelected,
-                                onChanged: (checked) {
-                                  setModalState(() {
-                                    if (checked == true) {
-                                      tempSelection[item] = 1;
-                                    } else {
-                                      tempSelection.remove(item);
-                                    }
-                                  });
-                                },
-                              ),
-                              title: Text(
-                                item,
-                                style: TextStyle(
-                                  fontSize: 16,
+                  /// 🔥 GRID STYLE (BETTER THAN LIST)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: GridView.builder(
+                        itemCount: furnitureItems.length,
+                        gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 2.8,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                        ),
+                        itemBuilder: (context, index) {
+                          final item = furnitureItems[index];
+                          final isSelected = tempSelection.containsKey(item);
+                          final count = tempSelection[item] ?? 0;
+
+                          return GestureDetector(
+                            onTap: () {
+                              setModalState(() {
+                                if (isSelected) {
+                                  tempSelection.remove(item);
+                                } else {
+                                  tempSelection[item] = 1;
+                                }
+                              });
+                            },
+
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
                                   color: isSelected
-                                      ? theme.colorScheme.primary
-                                      : theme.textTheme.bodyLarge!.color,
+                                      ? Colors.black
+                                      : Colors.grey.shade300,
                                 ),
+                                color: isSelected
+                                    ? Colors.black.withOpacity(0.05)
+                                    : Colors.white,
                               ),
-                              trailing: isSelected
-                                  ? Row(
-                                mainAxisSize: MainAxisSize.min,
+                              child: Row(
                                 children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                        Icons.remove_circle),
-                                    color: theme.colorScheme.primary,
-                                    onPressed: () {
-                                      setModalState(() {
-                                        if (tempSelection[item]! > 1) {
-                                          tempSelection[item] =
-                                              tempSelection[item]! - 1;
-                                        }
-                                      });
-                                    },
+                                  Expanded(
+                                    child: Text(
+                                      item,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: isSelected
+                                            ? Colors.black
+                                            : Colors.grey.shade700,
+                                      ),
+                                    ),
                                   ),
-                                  Text(
-                                    '${tempSelection[item]}',
-                                    style: theme.textTheme.bodyLarge!
-                                        .copyWith(
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  IconButton(
-                                    icon:
-                                    const Icon(Icons.add_circle),
-                                    color: theme.colorScheme.primary,
-                                    onPressed: () {
-                                      setModalState(() {
-                                        tempSelection[item] =
-                                            tempSelection[item]! + 1;
-                                      });
-                                    },
-                                  ),
+
+                                  /// 🔥 COUNTER
+                                  if (isSelected)
+                                    Row(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            setModalState(() {
+                                              if (count > 1) {
+                                                tempSelection[item] = count - 1;
+                                              }
+                                            });
+                                          },
+                                          child: const Icon(Icons.remove, size: 18,color: Colors.black,),
+                                        ),
+                                        Padding(
+                                          padding:
+                                          const EdgeInsets.symmetric(horizontal: 6),
+                                          child: Text(
+                                            "$count",
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,color: Colors.black,),
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () {
+                                            setModalState(() {
+                                              tempSelection[item] = count + 1;
+                                            });
+                                          },
+                                          child: const Icon(Icons.add, size: 18,color: Colors.black,),
+                                        ),
+                                      ],
+                                    ),
                                 ],
-                              )
-                                  : null,
+                              ),
                             ),
                           );
-                        }).toList(),
+                        },
                       ),
                     ),
                   ),
@@ -1025,215 +1053,17 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
     );
   }
 
-  void _showFamilyBottomSheet(BuildContext context) {
-    String? tempStructure = _familyStructure;
-    int tempMembers = int.tryParse(_familyMember ?? "") ?? 0;
-    int tempAdults = _adultCount;
-    int tempChildren = _childrenCount;
-
-    final TextEditingController memberCtrl =
-    TextEditingController(text: tempMembers > 0 ? tempMembers.toString() : "");
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  Widget _sectionCard({required Widget child}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardWhite,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor),
       ),
-      builder: (ctx) {
-        bool isValid =
-            tempMembers > 0 &&
-                tempAdults >= 1 &&
-                tempChildren >= 0 &&
-                (tempAdults + tempChildren == tempMembers);
-
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(ctx).viewInsets.bottom,
-          ),
-          child: SingleChildScrollView( // ✅ FIX OVERFLOW
-            child: StatefulBuilder(
-              builder: (context, setSheetState) {
-                return Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Family Details",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // FAMILY STRUCTURE
-                      ...[
-                        "Joint",
-                        "Nuclear",
-                        "Bachelor",
-                        "Live-In relation"
-                      ].map(
-                            (type) => RadioListTile<String>(
-                          value: type,
-                          groupValue: tempStructure,
-                          title: Text(type),
-                          onChanged: (v) {
-                            setSheetState(() => tempStructure = v);
-                          },
-                        ),
-                      ),
-
-                      const Divider(),
-
-                      const Text(
-                        "Total Family Members",
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 6),
-
-                      TextField(
-                        controller: memberCtrl,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          hintText: "Enter total members",
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.group),
-                        ),
-                        onChanged: (v) {
-                          setSheetState(() {
-                            tempMembers = int.tryParse(v) ?? 0;
-
-                            if (tempAdults > tempMembers) {
-                              tempAdults = tempMembers;
-                            }
-
-                            if (tempChildren > tempMembers - tempAdults) {
-                              tempChildren = tempMembers - tempAdults;
-                            }
-                          });
-                        },
-                      ),
-
-                      if (tempMembers > 0)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            "Adults + Children must equal $tempMembers",
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.red,
-                            ),
-                          ),
-                        ),
-
-                      const SizedBox(height: 12),
-
-                      _sheetCounter(
-                        label: "Adults",
-                        value: tempAdults,
-                        min: 1,
-                        max: tempMembers - tempChildren,
-                        enabled: tempMembers > 0,
-                        onChanged: (v) {
-                          setSheetState(() {
-                            tempAdults = v;
-                          });
-                          },
-                      ),
-
-                      _sheetCounter(
-                        label: "Children",
-                        value: tempChildren,
-                        min: 0, // ✅ FIX
-                        max: tempMembers - tempAdults,
-                        enabled: tempMembers > 0,
-                        onChanged: (v) {
-                          setSheetState(() {
-                            tempChildren = v;
-                          });
-                          },
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: isValid
-                              ? () {
-                            setState(() {
-                              _familyStructure = tempStructure;
-                              _familyMember = tempMembers.toString();
-                              _adultCount = tempAdults;
-                              _childrenCount = tempChildren;
-                            });
-                            Navigator.pop(ctx);
-                          }
-                              : null,
-                          style: ElevatedButton.styleFrom(
-                            elevation: isValid ? 4 : 0,
-                            backgroundColor: isValid
-                                ? Theme.of(context).colorScheme.primary
-                                : Colors.grey.shade400,
-                            disabledBackgroundColor: Colors.grey.shade800,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          child: Text(
-                            "Save",
-                            style: TextStyle(
-                              fontSize: isValid ? 16 : 14,
-                              fontWeight: FontWeight.bold,
-                              color: isValid ? Colors.white : Colors.grey,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        );
-      },
+      child: child,
     );
   }
 
-  Widget _sheetCounter({
-    required String label,
-    required int value,
-    required int min,
-    required int max,
-    required bool enabled,
-    required ValueChanged<int> onChanged,
-  }) {
-    return Opacity(
-      opacity: enabled ? 1 : 0.4,
-      child: IgnorePointer(
-        ignoring: !enabled,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.remove_circle_outline),
-                  onPressed: value > min ? () => onChanged(value - 1) : null,
-                ),
-                Text("$value", style: const TextStyle(fontSize: 16)),
-                IconButton(
-                  icon: const Icon(Icons.add_circle_outline),
-                  onPressed: value < max ? () => onChanged(value + 1) : null,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }

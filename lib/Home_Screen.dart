@@ -265,7 +265,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   DateTime now = DateTime.now();
   String number = '';
   bool demandLoading = true;
-  int newCount = 0;
+  int acceptCount = 0;
   int progressingCount = 0;
   int disclosedCount = 0;
   int redemandCount = 0;
@@ -358,7 +358,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
             fieldworkerName: fieldworkerName, status: "redemand"),
       ]);
 
-      newCount = results[0];
+      acceptCount = results[0];
       progressingCount = results[1];
       disclosedCount = results[2];
       redemandCount = results[3];
@@ -1510,7 +1510,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                     customerDemand2CompactCard(
                       isDark: isDark,
                       loading: demandLoading,
-                      newCount: newCount,
+                      acceptCount: acceptCount,
                       progressing: progressingCount,
                       disclosed: disclosedCount,
                       redemand: redemandCount,

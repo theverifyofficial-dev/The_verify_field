@@ -538,7 +538,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                             {
                               "image": AppImages.realestatefeild,
                               "title": "Upcoming\n Property",
-                              "gradient": AppGradients.indigo(),
+                              "gradient": AppGradients.purple(),
                               "onTap": () {
                                 Navigator.push(
                                   context,
@@ -562,8 +562,8 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                             // },
                             {
                               "image": AppImages.demand_2,
-                              "title": "Costumer Demands 2.0",
-                              "gradient": AppGradients.redCyan(),
+                              "title": "Costumer Demands",
+                              "gradient": AppGradients.indigo(),
                               "onTap": () {
                                 Navigator.push(
                                   context,

@@ -8,18 +8,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Administrator/Administator_Agreement/Sub/All_data_details_page.dart';
-import 'package:verify_feild_worker/Administrator/New_TenandDemand/Admin_demand_detail.dart';
 import '../Administrator/Admin_future _property/Admin_under_flats.dart';
 import '../Administrator/Admin_future _property/Future_Property_Details.dart';
 import '../Administrator/Administater_Realestate_Details.dart';
 import '../Administrator/Administator_Agreement/Admin_Agreement_details.dart';
 import '../Administrator/Administator_Agreement/Sub/Accepted_details.dart';
 import '../Custom_Widget/property_preview.dart';
-import '../Future_Property_OwnerDetails_section/Future_Property.dart';
+import '../Demand_2/Demand_detail.dart';
 import '../Future_Property_OwnerDetails_section/Future_Property_Tabbar.dart';
-import '../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../Upcoming/Upcoming_details.dart';
 import 'CalenderForFieldWorker.dart';
+
 class OverviewStat {
   final String label;
   final int value;
@@ -1889,9 +1888,15 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     return _responsiveCard(
       child: GestureDetector(
         onTap: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context)
-          => AdminDemandDetail(demandId: v.id.toString(),),
-          ));
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => DemandDetail(
+                demandId: v.id.toString(),
+                isReadOnly: true, // 🔥 THIS IS THE KEY
+              ),
+            ),
+          );
         },
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -3486,8 +3491,10 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) =>
-                  AdminDemandDetail(demandId: t.id.toString()),
+              builder: (_) => DemandDetail(
+                demandId: t.id.toString(),
+                isReadOnly: true, // 🔥 THIS IS THE KEY
+              ),
             ),
           );
         },

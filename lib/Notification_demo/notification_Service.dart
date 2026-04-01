@@ -9,23 +9,17 @@ class FireBaseApi {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
   Future<void> initNotifications() async {
-    // 🔔 Request permissions
     await _firebaseMessaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
     );
 
-    // 🔧 Local notifications setup
     const AndroidInitializationSettings androidSettings =
     AndroidInitializationSettings('@mipmap/ic_launcher');
 
     const DarwinInitializationSettings iosSettings =
-    DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
+    DarwinInitializationSettings();
 
     const InitializationSettings initSettings = InitializationSettings(
       android: androidSettings,
@@ -33,24 +27,6 @@ class FireBaseApi {
     );
 
     await flutterLocalNotificationsPlugin.initialize(initSettings);
-
-    // 🔑 Token
-    final token = await _firebaseMessaging.getToken();
-    print('🔑 FCM Token: $token');
-
-    // 📬 Terminated
-    FirebaseMessaging.instance.getInitialMessage().then((message) {
-      if (message != null) handleMessage(message);
-    });
-
-    // 📬 Background → foreground
-    FirebaseMessaging.onMessageOpenedApp.listen(handleMessage);
-
-    // 📬 Foreground
-    FirebaseMessaging.onMessage.listen((message) {
-      showLocalNotification(message);
-      handleMessage(message);
-    });
   }
 }
 
@@ -59,27 +35,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 
   print('🔕 Background message: ${message.messageId}');
-}
-
-
-@pragma('vm:entry-point')
-Future<void> BackgroundMessageHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-
-  final notification = message.notification;
-  final data = message.data;
-
-  if (notification != null) {
-    print(" Background Title: ${notification.title}");
-    print(" Background Body: ${notification.body}");
-  }
-
-  if (data.isNotEmpty) {
-    print(" Background Payload: $data");
-    if (data.containsKey('payload')) {
-      print(" Background Payload value: ${data['payload']}");
-    }
-  }
 }
 
 void handleMessage(RemoteMessage message) {

@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_tab.dart';
+import '../../AppLogger.dart';
 import '../../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 
@@ -251,7 +252,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           decoded["data"].isNotEmpty) {
         final data = decoded["data"][0];
 
-        debugPrint("✅ Parsed Agreement Data: $data");
+        AppLogger.api("✅ Parsed Agreement Data: $data");
 
         setState(() {
           // 🔹 Owner
@@ -326,10 +327,10 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         // 🔁 Recalculate agreement price AFTER state restore
         updateAgreementPrice();
       } else {
-        debugPrint("⚠️ No agreement data found");
+        AppLogger.api("⚠️ No agreement data found");
       }
     } else {
-      debugPrint(
+      AppLogger.api(
           "❌ Failed to load agreement details: ${response.body}");
     }
   }
@@ -853,9 +854,9 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         }
       });
       if (fillOwner) {
-        debugPrint("✅ Auto-fetch filled for OWNER");
+        AppLogger.api("✅ Auto-fetch filled for OWNER");
       } else if (tenantIndex != null) {
-        debugPrint("✅ Auto-fetch filled for DIRECTOR #${tenantIndex + 1}");
+        AppLogger.api("✅ Auto-fetch filled for DIRECTOR #${tenantIndex + 1}");
       }
 
 

@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 import '../../Add_Rented_Flat_New/FieldWorker_Complete_Page.dart';
@@ -678,7 +679,7 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
     _recalc();
   }
 
-  void _logLine([String msg = ""]) => debugPrint(msg);
+  void _logLine([String msg = ""]) => AppLogger.api(msg);
 
   void _logBlock(String title, Map<String, dynamic> data) {
     _logLine("—" * 50);
@@ -984,15 +985,15 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
       ),
     );
 
-    debugPrint("🔵 STATUS CODE: ${response.statusCode}");
-    debugPrint("🔵 RAW RESPONSE: ${response.body}");
+    AppLogger.api("🔵 STATUS CODE: ${response.statusCode}");
+    AppLogger.api("🔵 RAW RESPONSE: ${response.body}");
 
     if (response.statusCode == 200) {
       final jsonResponse = json.decode(response.body);
 
       if (jsonResponse["success"] == true) {
         List data = jsonResponse["data"];
-        debugPrint("🟢 TENANT COUNT: ${data.length}");
+        AppLogger.api("🟢 TENANT COUNT: ${data.length}");
         return data.map((e) => Tenant.fromJson(e)).toList();
       } else {
         throw Exception("API success = false");

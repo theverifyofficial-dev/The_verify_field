@@ -553,8 +553,8 @@ class _NewDesginFieldWorkerPendingFlatsNewState extends State<NewDesginFieldWork
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
         "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_fieldworkar.php?field_workar_number=${userNumber}");
-    print("User Name :"+"${userName}");
-    print("User Number :"+"${userNumber}");
+    //print("User Name :"+"${userName}");
+    //print("User Number :"+"${userNumber}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
@@ -573,15 +573,15 @@ class _NewDesginFieldWorkerPendingFlatsNewState extends State<NewDesginFieldWork
       ),
     );
 
-    debugPrint("🔵 STATUS CODE: ${response.statusCode}");
-    debugPrint("🔵 RAW RESPONSE: ${response.body}");
+    //AppLogger.log("🔵 STATUS CODE: ${response.statusCode}");
+    //AppLogger.log("🔵 RAW RESPONSE: ${response.body}");
 
     if (response.statusCode == 200) {
       final jsonResponse = json.decode(response.body);
 
       if (jsonResponse["success"] == true) {
         List data = jsonResponse["data"];
-        debugPrint("🟢 TENANT COUNT: ${data.length}");
+        //AppLogger.log("🟢 TENANT COUNT: ${data.length}");
         return data.map((e) => Tenant.fromJson(e)).toList();
       } else {
         throw Exception("API success = false");
@@ -877,7 +877,7 @@ Widget _transactionCard(BuildContext context, Property item, bool isDarkMode, Vo
                     return;
                   }
 
-                  debugPrint("➡️ Opening calculation page for subid: $propertyId");
+                  //AppLogger.log("➡️ Opening calculation page for subid: $propertyId");
 
                   await Navigator.push(
                     context,

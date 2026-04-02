@@ -10,6 +10,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 
+import '../AppLogger.dart';
 import '../Custom_Widget/Custom_backbutton.dart';
 import '../model/Additional_agreement_tenants.dart';
 import 'Dashboard_screen.dart';
@@ -88,7 +89,7 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
 
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
-        debugPrint("🔹 API Response: $decoded");
+        AppLogger.api("🔹 API Response: $decoded");
         if (decoded["status"] == "success" && decoded["count"] > 0) {
           setState(() {
             agreement = decoded["data"][0];
@@ -97,7 +98,7 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
         }
       }
     } catch (e) {
-      debugPrint("Error: $e");
+      AppLogger.api("Error: $e");
     }
   }
 
@@ -246,7 +247,7 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
           ),
         );
       } catch (e) {
-        debugPrint("Error saving image: $e");
+        AppLogger.api("Error saving image: $e");
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("❌ Error saving image")),
         );
@@ -456,7 +457,7 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
         furnitureMap = furnitureData;
       }
     } catch (e) {
-      debugPrint("⚠️ Furniture parse error: $e");
+      AppLogger.api("⚠️ Furniture parse error: $e");
     }
 
     if (furnitureMap.isEmpty) return const SizedBox.shrink();

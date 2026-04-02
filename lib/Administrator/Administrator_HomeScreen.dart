@@ -1,12 +1,14 @@
 import 'dart:convert';
 
 import 'package:animated_analog_clock/animated_analog_clock.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Administrator/Admin_upcoming.dart';
 import '../Adminisstrator_Target_details/Targets.dart';
+import '../AppLogger.dart';
 import '../Calender/CalenderForAdmin.dart';
 import '../Home_Screen.dart' hide AgreementTaskResponse, FuturePropertyResponse, WebsiteVisitResponse;
 import '../Web_query/web_query.dart' hide SlideAnimation;
@@ -136,7 +138,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
       number = storedNumber ?? '';   // 🔥 IMPORTANT
     });
 
-    debugPrint("🔥 Loaded FieldWorker Number: $number");
+    AppLogger.api("🔥 Loaded FieldWorker Number: $number");
 
     if (number.isNotEmpty) {
     }
@@ -1200,7 +1202,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
   Future<void> fetchTodayData() async {
     final today = _todayString();
 
-    debugPrint("📅 TODAY DATE SENT TO ADMIN API: $today");
+    AppLogger.api("📅 TODAY DATE SENT TO ADMIN API: $today");
 
     int agreements = 0;
     int future = 0;
@@ -1223,8 +1225,8 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
       ]);
 
       // ---------------- AGREEMENT ----------------
-      debugPrint("---- ADMIN AGREEMENT RESPONSE ----");
-      debugPrint(responses[0].body);
+      AppLogger.api("---- ADMIN AGREEMENT RESPONSE ----");
+      AppLogger.api(responses[0].body);
 
       final agreementDecoded = jsonDecode(responses[0].body);
       if (agreementDecoded is Map &&
@@ -1233,8 +1235,8 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
       }
 
       // ---------------- FUTURE ----------------
-      debugPrint("---- ADMIN FUTURE RESPONSE ----");
-      debugPrint(responses[1].body);
+      AppLogger.api("---- ADMIN FUTURE RESPONSE ----");
+      AppLogger.api(responses[1].body);
 
       final futureDecoded = jsonDecode(responses[1].body);
 
@@ -1246,8 +1248,8 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
       }
 
       // ---------------- WEBSITE ----------------
-      debugPrint("---- ADMIN WEBSITE RESPONSE ----");
-      debugPrint(responses[2].body);
+      AppLogger.api("---- ADMIN WEBSITE RESPONSE ----");
+      AppLogger.api(responses[2].body);
 
       final websiteDecoded = jsonDecode(responses[2].body);
       if (websiteDecoded is Map &&
@@ -1256,10 +1258,10 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
         website = (websiteDecoded["data"] as List).length;
       }
 
-      debugPrint("🔥 FINAL ADMIN TOTAL");
-      debugPrint("Agreements: $agreements");
-      debugPrint("Future: $future");
-      debugPrint("Website: $website");
+      AppLogger.api("🔥 FINAL ADMIN TOTAL");
+      AppLogger.api("Agreements: $agreements");
+      AppLogger.api("Future: $future");
+      AppLogger.api("Website: $website");
 
       if (mounted) {
         setState(() {
@@ -1271,7 +1273,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
       }
 
     } catch (e) {
-      debugPrint("🔥 ERROR IN ADMIN fetchTodayData: $e");
+      AppLogger.api("🔥 ERROR IN ADMIN fetchTodayData: $e");
     }
   }
 }

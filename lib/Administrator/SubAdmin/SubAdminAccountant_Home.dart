@@ -1,7 +1,8 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -128,8 +129,8 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final storedName = prefs.getString('name');
     final storedNumber = prefs.getString('number');
-    debugPrint("User Name: $storedName");
-    debugPrint("User Number: $storedNumber");
+    AppLogger.api("User Name: $storedName");
+    AppLogger.api("User Number: $storedNumber");
     if (mounted) {
       setState(() {
         userName = storedName;

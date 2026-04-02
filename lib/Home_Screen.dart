@@ -5,8 +5,9 @@ import 'dart:ui';
 import 'package:animated_analog_clock/animated_analog_clock.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/Home_Screen_click/live_tabbar.dart';
 import 'package:verify_feild_worker/Target_details/Yearly_Target.dart';
@@ -332,7 +333,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         return int.tryParse(res.data["total_count"].toString()) ?? 0;
       }
     } catch (e) {
-      debugPrint("❌ Count error [$status]: $e");
+      AppLogger.api("❌ Count error [$status]: $e");
     }
     return 0;
   }
@@ -367,7 +368,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       todayDemands = await fetchTodayDemands(fieldworkerName);
 
     } catch (e) {
-      debugPrint("❌ Demand card error: $e");
+      AppLogger.api("❌ Demand card error: $e");
     } finally {
       if (mounted) setState(() => demandLoading = false);
     }
@@ -400,7 +401,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         });
       }
     } catch (e) {
-      debugPrint("Init error: $e");
+      AppLogger.api("Init error: $e");
       if (mounted) {
         setState(() {
           todayCounts = TodayCounts(
@@ -956,7 +957,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     final tomorrow = _tomorrowString();
     final fieldNo = number;
 
-    debugPrint("📅 Tomorrow date sent: $tomorrow");
+    AppLogger.api("📅 Tomorrow date sent: $tomorrow");
 
     try {
       final res = await Future.wait([
@@ -1027,9 +1028,9 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         );
       }
 
-      debugPrint("📅 Tomorrow events FINAL count: ${tomorrowEvents.length}");
+      AppLogger.api("📅 Tomorrow events FINAL count: ${tomorrowEvents.length}");
     } catch (e) {
-      debugPrint("🔥 Error fetching tomorrow data: $e");
+      AppLogger.api("🔥 Error fetching tomorrow data: $e");
     }
   }
 
@@ -1040,8 +1041,8 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
     final fieldNo = number;
 
-    debugPrint("📅 Today date sent: $today");
-    debugPrint("📞 Field worker number: $fieldNo");
+    AppLogger.api("📅 Today date sent: $today");
+    AppLogger.api("📞 Field worker number: $fieldNo");
 
     try {
       final res = await Future.wait([
@@ -1058,20 +1059,20 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       ]);
 
       // ---------------- AGREEMENT ----------------
-      debugPrint("🟢 Agreement API STATUS: ${res[0].statusCode}");
-      debugPrint("🟢 Agreement API BODY: ${res[0].body}");
+      AppLogger.api("🟢 Agreement API STATUS: ${res[0].statusCode}");
+      AppLogger.api("🟢 Agreement API BODY: ${res[0].body}");
 
       todayAgreements =
           AgreementTaskResponse.fromRawJson(res[0].body).data;
-      debugPrint("✅ Parsed agreements count: ${todayAgreements.length}");
+      AppLogger.api("✅ Parsed agreements count: ${todayAgreements.length}");
 
       // ---------------- WEBSITE VISIT ----------------
-      debugPrint("🔵 Website Visit API STATUS: ${res[2].statusCode}");
-      debugPrint("🔵 Website Visit API BODY: ${res[2].body}");
+      AppLogger.api("🔵 Website Visit API STATUS: ${res[2].statusCode}");
+      AppLogger.api("🔵 Website Visit API BODY: ${res[2].body}");
 
       todayWebsiteVisits =
           WebsiteVisitResponse.fromRawJson(res[2].body).data;
-      debugPrint("✅ Parsed website visits count: ${todayWebsiteVisits.length}");
+      AppLogger.api("✅ Parsed website visits count: ${todayWebsiteVisits.length}");
 
 
       return TodayCounts(
@@ -1079,7 +1080,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         websiteVisits: todayWebsiteVisits.length,
       );
     } catch (e) {
-      debugPrint('🔥 Error in fetchTodayCounts(): $e');
+      AppLogger.api('🔥 Error in fetchTodayCounts(): $e');
       return TodayCounts(
         agreements: 0,
         websiteVisits: 0,
@@ -1099,8 +1100,8 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         "https://verifyrealestateandservices.in/WebService4.asmx/count_rent_proerty?feildworkar_number=$number&random_text=${formattedDate.toString()}");
     final response = await http.get(url).timeout(const Duration(seconds: 10));
     if (response.statusCode == 200) {
-      debugPrint(number.toString());
-      debugPrint(formattedDate.toString());
+      AppLogger.api(number.toString());
+      AppLogger.api(formattedDate.toString());
       List listresponse = json.decode(response.body);
       return listresponse.map((data) => id_model.fromJson(data)).toList();
     } else {
@@ -1130,8 +1131,8 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         "https://verifyrealestateandservices.in/WebService4.asmx/count_police_verification_rent_target_by_fnumber_random_text?feildworkar_number=$number&random_text=${formattedDate.toString()}");
     final response = await http.get(url).timeout(const Duration(seconds: 10));
     if (response.statusCode == 200) {
-      debugPrint(number.toString());
-      debugPrint(formattedDate.toString());
+      AppLogger.api(number.toString());
+      AppLogger.api(formattedDate.toString());
       List listresponse = json.decode(response.body);
       return listresponse.map((data) => id_model.fromJson(data)).toList();
     } else {
@@ -1158,7 +1159,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     if (mounted) {
       setState(() {
         number = prefs.getString('number') ?? '';
-        debugPrint('Loaded number: $number'); // Debug print
+        AppLogger.api('Loaded number: $number'); // Debug print
       });
     }
   }
@@ -1166,23 +1167,23 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   Future<void> _fetchMonthly() async {
     try {
       if (number.isEmpty) {
-        debugPrint('Number is empty, skipping monthly fetch');
+        AppLogger.api('Number is empty, skipping monthly fetch');
         return;
       }
       final uri = Uri.parse(
         'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target/count_api_live_flat_for_field.php?field_workar_number=$number',
       );
       final res = await http.get(uri).timeout(const Duration(seconds: 10));
-      debugPrint('Monthly API Response Status: ${res.statusCode}');
-      debugPrint('Monthly API Response Body: ${res.body}'); // Debug the response
+      AppLogger.api('Monthly API Response Status: ${res.statusCode}');
+      AppLogger.api('Monthly API Response Body: ${res.body}'); // Debug the response
       if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
       final root = jsonDecode(res.body);
       final data = root['data'] as Map?;
       final count = (data?['total_live_rent_flat'] as num?)?.toInt() ?? 0;
-      debugPrint('Monthly achieved: $count'); // Debug print
+      AppLogger.api('Monthly achieved: $count'); // Debug print
       if (mounted) setState(() { monthlyAchieved = count; });
     } catch (e) {
-      debugPrint('Monthly fetch error: $e');
+      AppLogger.api('Monthly fetch error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Monthly data error: $e')),
@@ -1194,24 +1195,24 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   Future<void> _fetchYearly() async {
     try {
       if (number.isEmpty) {
-        debugPrint('Number is empty, skipping yearly fetch');
+        AppLogger.api('Number is empty, skipping yearly fetch');
         return;
       }
       final uri = Uri.parse(
         'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target/count_live_flat_rent_yearly.php?field_workar_number=$number',
       );
       final resp = await http.get(uri).timeout(const Duration(seconds: 10));
-      debugPrint('Yearly API Response Status: ${resp.statusCode}');
-      debugPrint('Yearly API Response Body: ${resp.body}'); // Debug the response
+      AppLogger.api('Yearly API Response Status: ${resp.statusCode}');
+      AppLogger.api('Yearly API Response Body: ${resp.body}'); // Debug the response
       if (resp.statusCode != 200) throw Exception('HTTP ${resp.statusCode}');
       final root = json.decode(resp.body) as Map<String, dynamic>;
       if (root['success'] != true) throw Exception('API returned success=false');
       final d = (root['data'] as Map?) ?? const {};
       final achieved = (d['total_live_rent_flat'] as num?)?.toInt() ?? 0;
-      debugPrint('Yearly achieved: $achieved'); // Debug print
+      AppLogger.api('Yearly achieved: $achieved'); // Debug print
       if (mounted) setState(() { yearlyAchieved = achieved; });
     } catch (e) {
-      debugPrint('Yearly fetch error: $e');
+      AppLogger.api('Yearly fetch error: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Yearly data error: $e')),
@@ -1245,7 +1246,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         });
       }
     } catch (e) {
-      debugPrint("Refresh error: $e");
+      AppLogger.api("Refresh error: $e");
       if (mounted) {
         setState(() {
           todayLoading = false;

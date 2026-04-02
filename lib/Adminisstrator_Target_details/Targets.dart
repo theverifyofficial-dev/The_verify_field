@@ -487,7 +487,7 @@ class _TargetState extends State<Target> {
       final List<Future> allFutures = [];
 
       if (activeTab == "Monthly" && users.isNotEmpty) {
-        await _fetchMonthlyPeriod(); // ✅ PERIOD FETCHED ONCE
+        await _fetchMonthlyPeriod();
       }
 
       for (final u in users) {
@@ -496,38 +496,58 @@ class _TargetState extends State<Target> {
 
         if (activeTab == "Monthly") {
           allFutures.addAll([
-            _fetchBookMonthly(num),
-            _fetchLiveMonthly(num),
-            _fetchAgreementMonthly(num),
-            _fetchPoliceMonthly(num),
-            _fetchCommercialMonthly(num),
+            _safeCall(() => _fetchBookMonthly(num)),
+            _safeCall(() => _fetchLiveMonthly(num)),
+            _safeCall(() => _fetchAgreementMonthly(num)),
+            _safeCall(() => _fetchPoliceMonthly(num)),
+            _safeCall(() => _fetchCommercialMonthly(num)),
+            _safeCall(() => _fetchBuildingMonthly(num)),
           ]);
-          allFutures.add(_fetchBuildingMonthly(num));
         } else if (activeTab == "Yearly") {
           allFutures.addAll([
-            _fetchBookYearly(num),
-            _fetchAgreementYearly(num),
-            _fetchPoliceYearly(num),
-            _fetchCommercialYearly(num),
-            _fetchBuildingYearly(num),
+            _safeCall(() => _fetchBookYearly(num)),
+            _safeCall(() => _fetchAgreementYearly(num)),
+            _safeCall(() => _fetchPoliceYearly(num)),
+            _safeCall(() => _fetchCommercialYearly(num)),
+            _safeCall(() => _fetchBuildingYearly(num)),
           ]);
         } else {
           allFutures.addAll([
-            _fetchOverviewAgreement(num),
-            _fetchOverviewBuilding(num),
-            _fetchOverviewTotalFlats(num),
-            _fetchOverviewLiveAndUnLiveFlats(num),
-            _fetchOverviewBuildingDetail(num)
+            _safeCall(() => _fetchOverviewAgreement(num)),
+            _safeCall(() => _fetchOverviewBuilding(num)),
+            _safeCall(() => _fetchOverviewTotalFlats(num)),
+            _safeCall(() => _fetchOverviewLiveAndUnLiveFlats(num)),
+            _safeCall(() => _fetchOverviewBuildingDetail(num)),
           ]);
         }
       }
 
-      await Future.wait(allFutures); // 🔥 ALL APIs PARALLEL
+      await Future.wait(allFutures);
+
     } catch (e) {
-      error = e.toString();
+      // Check if it's a network/connection issue
+      final msg = e.toString().toLowerCase();
+      if (msg.contains("clientexception") ||
+          msg.contains("socketexception") ||
+          msg.contains("connection") ||
+          msg.contains("network")) {
+        error = "network";
+      } else {
+        error = "unknown";
+      }
     }
 
     setState(() => loading = false);
+  }
+
+// ✅ NEW: Safe wrapper — ek API fail ho toh baaki chalta rahe
+  Future<void> _safeCall(Future<void> Function() fn) async {
+    try {
+      await fn();
+    } catch (e) {
+      // Silently ignore per-API errors (data stays 0)
+      debugPrint("⚠️ API Error: $e");
+    }
   }
 
 
@@ -807,12 +827,10 @@ class _TargetState extends State<Target> {
                 child: Image.asset(AppImages.loader, height: 80),
               ),
             )
+          // ✅ NEW
           else if (error != null)
             Expanded(
-              child: Center(
-                child: Text(error!,
-                    style: const TextStyle(color: Colors.red)),
-              ),
+              child: _buildErrorWidget(isDark),
             )
           else
             Expanded(
@@ -827,7 +845,64 @@ class _TargetState extends State<Target> {
       ),
     );
   }
+  Widget _buildErrorWidget(bool isDark) {
+    final isNetwork = error == "network";
 
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isNetwork ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
+              size: 64,
+              color: isNetwork ? Colors.orange : Colors.red,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              isNetwork
+                  ? "No Internet Connection"
+                  : "Data Not Available",
+              style: TextStyle(
+                fontSize: 17,
+                fontFamily: "PoppinsBold",
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              isNetwork
+                  ? "Please check your network and try again."
+                  : "Unable to load data. Please try again later.",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                fontFamily: "PoppinsMedium",
+                color: isDark ? Colors.white60 : Colors.black54,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _loadAll,
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text("Retry"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF135BEC),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 28, vertical: 13),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
   /* ================= TABS ================= */
   Widget _buildTabs(bool isDark) {
     return Container(

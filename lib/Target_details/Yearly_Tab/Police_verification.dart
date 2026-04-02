@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as AppLogger;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -129,7 +130,7 @@ class PoliceyearlyModel {
 Future<List<PoliceyearlyModel>> fetchPoliceYearly() async {
   final prefs = await SharedPreferences.getInstance();
   final FNumber = prefs.getString('number') ?? "";
-  print(FNumber);
+  AppLogger.log(FNumber);
   final url = Uri.parse(
     "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/police_verification_yearly.php?Fieldwarkarnumber=$FNumber",
   );
@@ -141,7 +142,7 @@ Future<List<PoliceyearlyModel>> fetchPoliceYearly() async {
   }
 
   final decoded = json.decode(res.body);
-  print(res.body);
+  AppLogger.log(res.body);
 
   final List list = decoded['data'] ?? [];
 

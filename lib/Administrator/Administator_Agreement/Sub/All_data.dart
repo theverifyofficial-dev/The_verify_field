@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
 import '../../../model/Agreement_model.dart';
 import 'All_data_details_page.dart';
 
@@ -168,7 +168,7 @@ class _AgreementDetailsState extends State<AllData> {
         }
       }
     } catch (e) {
-      debugPrint("❌ Silent refresh error: $e");
+      AppLogger.api("❌ Silent refresh error: $e");
     }
   }
 // Keep _refreshAgreements for the pull-to-refresh use case (resets everything)
@@ -180,7 +180,7 @@ class _AgreementDetailsState extends State<AllData> {
       await fetchAgreements();
       monthlyPaymentSummary = null;
     } catch (e) {
-      debugPrint("❌ Error refreshing agreements: $e");
+      AppLogger.api("❌ Error refreshing agreements: $e");
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -211,7 +211,7 @@ class _AgreementDetailsState extends State<AllData> {
         throw Exception('Failed to load data');
       }
     } catch (e) {
-      debugPrint('❌ Error fetching data: $e');
+      AppLogger.api('❌ Error fetching data: $e');
       setState(() => isLoading = false);
     }
   }
@@ -940,7 +940,7 @@ class _AgreementDetailsState extends State<AllData> {
       'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/month_wise_agreement.php',
     ).replace(queryParameters: queryParams);
 
-    debugPrint("📡 Month Filter API: $uri");
+    AppLogger.api("📡 Month Filter API: $uri");
 
     final response = await http.get(uri);
 
@@ -968,7 +968,7 @@ class _AgreementDetailsState extends State<AllData> {
           );
         });
       } else {
-        debugPrint("⚠️ No data for selected filter");
+        AppLogger.api("⚠️ No data for selected filter");
         setState(() {
           agreements = [];
           filteredAgreements = [];
@@ -977,7 +977,7 @@ class _AgreementDetailsState extends State<AllData> {
         });
       }
     } else {
-      debugPrint("❌ API failed: ${response.body}");
+      AppLogger.api("❌ API failed: ${response.body}");
     }
   }
 

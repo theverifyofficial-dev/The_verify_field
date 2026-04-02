@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../AppLogger.dart';
 import '../../model/Accept_model.dart';
 
 class AcceptAgreement extends StatefulWidget {
@@ -59,7 +60,7 @@ class _AgreementDetailsState extends State<AcceptAgreement> {
       }
     } catch (e) {
       setState(() => isLoading = false);
-      debugPrint("Error loading agreements: $e");
+      AppLogger.api("Error loading agreements: $e");
     }
   }
 

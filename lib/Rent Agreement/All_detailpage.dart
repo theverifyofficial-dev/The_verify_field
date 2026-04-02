@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../Custom_Widget/Custom_backbutton.dart';
 import '../Administrator/imagepreviewscreen.dart';
+import '../AppLogger.dart';
 import '../model/Additional_agreement_tenants.dart';
 
 class AllDetailpage extends StatefulWidget {
@@ -153,7 +154,7 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
         furnitureMap = furnitureData;
       }
     } catch (e) {
-      debugPrint("⚠️ Furniture parse error: $e");
+      AppLogger.api("⚠️ Furniture parse error: $e");
     }
 
     if (furnitureMap.isEmpty) return const SizedBox.shrink();

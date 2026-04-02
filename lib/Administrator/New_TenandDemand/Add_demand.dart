@@ -1,6 +1,7 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter/services.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -612,10 +613,10 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       };
     }
 
-    debugPrint("MODE: ${widget.mode}");
-    debugPrint("DEMAND ID: ${widget.demandId}");
-    debugPrint("REDEMAND ID: ${widget.redemandId}");
-    debugPrint("FINAL PAYLOAD: $formData");
+    AppLogger.api("MODE: ${widget.mode}");
+    AppLogger.api("DEMAND ID: ${widget.demandId}");
+    AppLogger.api("REDEMAND ID: ${widget.redemandId}");
+    AppLogger.api("FINAL PAYLOAD: $formData");
 
     try {
 

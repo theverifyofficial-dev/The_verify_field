@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_tab.dart';
+import '../../AppLogger.dart';
 import '../../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 import '../../Future_Property_OwnerDetails_section/Future_property_details.dart';
@@ -260,7 +261,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
       if (decoded["status"] == "success" && decoded["data"] != null && decoded["data"].isNotEmpty) {
         final data = decoded["data"][0]; // 👈 Get first record
 
-        debugPrint("✅ Parsed Agreement Data: $data");
+        AppLogger.api("✅ Parsed Agreement Data: $data");
 
         setState(() {
           // 🔹 Owner
@@ -340,10 +341,10 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         // 🔁 Recalculate agreement price AFTER state restore
         updateAgreementPrice();
       } else {
-        debugPrint("⚠️ No agreement data found");
+        AppLogger.api("⚠️ No agreement data found");
       }
     } else {
-      debugPrint("❌ Failed to load agreement details: ${response.body}");
+      AppLogger.api("❌ Failed to load agreement details: ${response.body}");
     }
   }
 
@@ -762,7 +763,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
       );
 
       final response = await http.get(uri);
-      debugPrint("📩 API Response: ${response.body}");
+      AppLogger.api("📩 API Response: ${response.body}");
 
       if (response.statusCode != 200) {
         _showToast("Server error ${response.statusCode}");
@@ -866,13 +867,13 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         }
       });
       if (fillOwner) {
-        debugPrint("✅ Auto-fetch filled for OWNER");
+        AppLogger.api("✅ Auto-fetch filled for OWNER");
       } else if (directorIndex != null) {
-        debugPrint("✅ Auto-fetch filled for DIRECTOR #${directorIndex + 1}");
+        AppLogger.api("✅ Auto-fetch filled for DIRECTOR #${directorIndex + 1}");
       }
 
     } catch (e) {
-      debugPrint("🔥 Fetch exception: $e");
+      AppLogger.api("🔥 Fetch exception: $e");
       _showToast("Fetch failed");
     }
   }

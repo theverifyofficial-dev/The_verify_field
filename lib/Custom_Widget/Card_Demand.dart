@@ -1,7 +1,8 @@
 import 'dart:ui';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:intl/intl.dart';
 
 class DemandColors {
   static const newDemand = Color(0xFF3B82F6);       // Blue
@@ -37,9 +38,9 @@ Future<List<Map<String, dynamic>>> fetchTodayDemands(String fieldworkerName,) as
         "?fieldworker_name=${Uri.encodeQueryComponent(fieldworkerName)}"
         "&date=$today";
 
-    debugPrint("📅 Today: $today");
-    debugPrint("👤 Fieldworker: $fieldworkerName");
-    debugPrint("🌐 URL: $url");
+    AppLogger.api("📅 Today: $today");
+    AppLogger.api("👤 Fieldworker: $fieldworkerName");
+    AppLogger.api("🌐 URL: $url");
 
     final res = await Dio().get(url);
 
@@ -55,7 +56,7 @@ Future<List<Map<String, dynamic>>> fetchTodayDemands(String fieldworkerName,) as
 
     return [];
   } catch (e) {
-    debugPrint("❌ fetchTodayDemands error: $e");
+    AppLogger.api("❌ fetchTodayDemands error: $e");
     return [];
   }
 }

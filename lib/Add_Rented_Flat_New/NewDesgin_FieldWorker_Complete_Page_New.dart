@@ -639,9 +639,9 @@ class _NewDesignFieldWorkerCompleteFlatsNewState
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
         "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_api_complete_page_for_fieldworkar.php?field_workar_number=${_fieldworkarnumber}");
-    print("User Name :" + "${userName}");
-    print("User Number :" + "${userNumber}");
-    print("User Number :" + "${_fieldworkarnumber}");
+    //print("User Name :" + "${userName}");
+    //print("User Number :" + "${userNumber}");
+    //print("User Number :" + "${_fieldworkarnumber}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
@@ -660,15 +660,15 @@ class _NewDesignFieldWorkerCompleteFlatsNewState
       ),
     );
 
-    debugPrint("🔵 STATUS CODE: ${response.statusCode}");
-    debugPrint("🔵 RAW RESPONSE: ${response.body}");
+    //AppLogger.log("🔵 STATUS CODE: ${response.statusCode}");
+    //AppLogger.log("🔵 RAW RESPONSE: ${response.body}");
 
     if (response.statusCode == 200) {
       final jsonResponse = json.decode(response.body);
 
       if (jsonResponse["success"] == true) {
         List data = jsonResponse["data"];
-        debugPrint("🟢 TENANT COUNT: ${data.length}");
+        //AppLogger.log("🟢 TENANT COUNT: ${data.length}");
         return data.map((e) => Tenant.fromJson(e)).toList();
       } else {
         throw Exception("API success = false");

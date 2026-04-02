@@ -1,6 +1,7 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter/services.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -133,7 +134,7 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
     _totalCtrl.text = (_adultCount + _childrenCount).toString();
 
 
-    print(" redemand id from add page : ${widget.redemandId}");
+    AppLogger.api(" redemand id from add page : ${widget.redemandId}");
 
   }
 
@@ -263,7 +264,7 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
   }
 
   Future<void> _fetchRedemand() async {
-    print(" redemand id from add page : ${widget.redemandId}");
+    AppLogger.api(" redemand id from add page : ${widget.redemandId}");
     final res = await http.get(Uri.parse(
       "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?id=${widget.redemandId}",
     ));
@@ -617,10 +618,10 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
       });
     }
 
-    debugPrint("MODE: ${widget.mode}");
-    debugPrint("DEMAND ID: ${widget.demandId}");
-    debugPrint("REDEMAND ID: ${widget.redemandId}");
-    debugPrint("FINAL PAYLOAD: $formData");
+    AppLogger.api("MODE: ${widget.mode}");
+    AppLogger.api("DEMAND ID: ${widget.demandId}");
+    AppLogger.api("REDEMAND ID: ${widget.redemandId}");
+    AppLogger.api("FINAL PAYLOAD: $formData");
 
 
 
@@ -649,12 +650,12 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
         throw Exception("Update API returned null response");
       }
 
-      print('printing response ${res.data}');
+      AppLogger.api('AppLogger.apiing response ${res.data}');
 
       if (res.statusCode == 200) {
         final data = res.data;
 
-        print(data);
+        AppLogger.api(data);
         final msg = data["message"] ?? data["msg"] ?? "Something went wrong";
 
 
@@ -695,7 +696,7 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
           errorMessage = "Server error ($status)";
         }
 
-        print(errorMessage);
+        AppLogger.api(errorMessage);
 
         // 🔍 LOG REAL ERROR
         await BugLogger.log(

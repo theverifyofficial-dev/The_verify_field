@@ -74,7 +74,7 @@ class _UpdateTenantPageNewState extends State<UpdateTenantPageNew> {
       }
     } catch (e) {
       _isLoading = false;
-      debugPrint("Error: $e");
+      //AppLogger.log("Error: $e");
     }
   }
 

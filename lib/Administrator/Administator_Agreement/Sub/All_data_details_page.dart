@@ -1,9 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui';
-import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
+import '../../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
 import 'package:open_filex/open_filex.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -143,7 +142,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
         pdfGenerated = true;
       });
     } catch (e) {
-      debugPrint("PDF Generation Error: $e");
+      AppLogger.api("PDF Generation Error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to generate PDF: $e'),
@@ -337,7 +336,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
         );
       }
 
-      debugPrint("📤 Upload Started : ${file.path}");
+      AppLogger.api("📤 Upload Started : ${file.path}");
 
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
@@ -345,8 +344,8 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
 
-      debugPrint("🌐 Response Code: ${response.statusCode}");
-      debugPrint("🧾 Raw Response: $responseBody");
+      AppLogger.api("🌐 Response Code: ${response.statusCode}");
+      AppLogger.api("🧾 Raw Response: $responseBody");
 
       if (response.statusCode == 200) {
         try {
@@ -481,7 +480,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
         body: body,
       );
 
-      debugPrint("📄 Response body: ${response.body}");
+      AppLogger.api("📄 Response body: ${response.body}");
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -544,7 +543,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
         furnitureMap = furnitureData;
       }
     } catch (e) {
-      debugPrint("⚠️ Furniture parse error: $e");
+      AppLogger.api("⚠️ Furniture parse error: $e");
     }
 
     if (furnitureMap.isEmpty) return const SizedBox.shrink();

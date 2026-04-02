@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Add_Rented_Flat_New/FieldWorker_Complete_Detail_Page.dart';
@@ -632,8 +633,8 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
         "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_complete_page_for_admin.php");
-    print("User Name :"+"${userName}");
-    print("User Number :"+"${userNumber}");
+    //print("User Name :"+"${userName}");
+    //print("User Number :"+"${userNumber}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
@@ -661,15 +662,15 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
       ),
     );
 
-    debugPrint("🔵 STATUS CODE: ${response.statusCode}");
-    debugPrint("🔵 RAW RESPONSE: ${response.body}");
+    AppLogger.api("🔵 STATUS CODE: ${response.statusCode}");
+    AppLogger.api("🔵 RAW RESPONSE: ${response.body}");
 
     if (response.statusCode == 200) {
       final jsonResponse = json.decode(response.body);
 
       if (jsonResponse["success"] == true) {
         List data = jsonResponse["data"];
-        debugPrint("🟢 TENANT COUNT: ${data.length}");
+        AppLogger.api("🟢 TENANT COUNT: ${data.length}");
         return data.map((e) => Tenant.fromJson(e)).toList();
       } else {
         throw Exception("API success = false");

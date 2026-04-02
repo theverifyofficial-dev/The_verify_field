@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -980,7 +981,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
       // await _fetchAllWorkerStats();
       await _fetchData(_focusedDay);
     } else {
-      debugPrint("⚠️ userNumber not found in SharedPreferences");
+      AppLogger.api("⚠️ userNumber not found in SharedPreferences");
     }
   }
   String normalizeFW(String name) {
@@ -1058,8 +1059,8 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
       final id = building.id.toString();
       final data = await fetchLatestCallingDate(id);
 
-      print("BUILDING ID: $id");
-      print("FETCHED DATA: ${data?.nextCallingDate} | ${data?.reason}");
+      AppLogger.api("BUILDING ID: $id");
+      AppLogger.api("FETCHED DATA: ${data?.nextCallingDate} | ${data?.reason}");
 
       _nextCallingCache[id] = data;
     }
@@ -1103,7 +1104,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
         }
       }
     } catch (e) {
-      debugPrint("Fetch latest calling error: $e");
+      AppLogger.api("Fetch latest calling error: $e");
     }
 
     return null;
@@ -1133,7 +1134,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
         }
       }
     } catch (e) {
-      debugPrint("Building Image API error: $e");
+      AppLogger.api("Building Image API error: $e");
     }
   }
 
@@ -1341,8 +1342,8 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
           {for (var f in _adminUpcomingFlats) f.propertyId: f}.values.toList();
 
     } catch (e, s) {
-      debugPrint("❌ ADMIN FETCH ERROR: $e");
-      debugPrintStack(stackTrace: s);
+      AppLogger.api("❌ ADMIN FETCH ERROR: $e");
+      // AppLogger.apiStack(stackTrace: s);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -2410,7 +2411,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     return _responsiveCard(
       child: GestureDetector(
         onTap: () {
-          print(t.id);
+      // print(t.id);
           Navigator.push(
             context,
             MaterialPageRoute(

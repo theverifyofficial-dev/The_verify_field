@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../model/demand_model.dart';
 import '../utilities/bug_founder_fuction.dart';
@@ -111,7 +112,7 @@ class _TenantDemandState extends State<CostumerDemand> {
 
       final data = jsonDecode(res.body);
 
-      print(data);
+      AppLogger.api(data);
 
       if (data["success"] != true) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -120,7 +121,7 @@ class _TenantDemandState extends State<CostumerDemand> {
       }
 
     } catch (e) {
-      print(e);
+      // print(e);
     }
   }
 

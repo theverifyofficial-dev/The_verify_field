@@ -1,6 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'dart:convert';
@@ -214,7 +215,7 @@ class _Login_pageState extends State<Login_page> {
         print("⚠️ FCM failed, continuing login...");
         fcmToken = "";
       }
-      print("🔑 FCM Token: $fcmToken");
+      AppLogger.log("🔑 FCM Token: $fcmToken");
 
 
       // API call with number, password, and token
@@ -222,7 +223,7 @@ class _Login_pageState extends State<Login_page> {
         "https://verifyrealestateandservices.in/WebService4.asmx/new_login_api_for_field_and_admin?FNumber=$number&Password=$password&FCM=$fcmToken",
       ));
 
-      print("📩 Raw Response: ${response.body}");
+      AppLogger.log("📩 Raw Response: ${response.body}");
 
       final data = json.decode(response.body);
 
@@ -238,7 +239,7 @@ class _Login_pageState extends State<Login_page> {
         prefs.setString('location', user["F_Location"] ?? "");
         prefs.setString('fcmToken', fcmToken ?? "");
 
-        print("Saved Local FCM: ${prefs.getString('fcmToken')}");
+        AppLogger.log("Saved Local FCM: ${prefs.getString('fcmToken')}");
 
         Fluttertoast.showToast(
           msg: user["message"] ?? "Login Successful ✅",
@@ -279,7 +280,7 @@ class _Login_pageState extends State<Login_page> {
         );
       }
     } catch (e) {
-      print("❌ Error: $e");
+      AppLogger.log("❌ Error: $e");
       Fluttertoast.showToast(
         msg: "Error: $e",
         backgroundColor: Colors.red,

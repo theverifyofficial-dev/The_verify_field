@@ -580,9 +580,9 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
         "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_complete_page_for_fieldworkar.php?field_workar_number=$_fieldworkarnumber");
-    print("User Name :"+"${userName}");
-    print("User Number :"+"${userNumber}");
-    print("User Number :"+"${_fieldworkarnumber}");
+    //print("User Name :"+"${userName}");
+    //print("User Number :"+"${userNumber}");
+    //print("User Number :"+"${_fieldworkarnumber}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
@@ -1232,20 +1232,20 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
       );
 
       // ---------- VERBOSE PRINTS ----------
-      debugPrint("—— Change_payment_2nd_status CALL ——");
-      debugPrint("URL: $url");
-      debugPrint("Body:  P_id: $pId");
-      debugPrint("Status: ${res.statusCode}  (${sw.elapsedMilliseconds} ms)");
-      debugPrint("Headers: ${res.headers}");
+      //AppLogger.log("—— Change_payment_2nd_status CALL ——");
+      //AppLogger.log("URL: $url");
+      //AppLogger.log("Body:  P_id: $pId");
+      //AppLogger.log("Status: ${res.statusCode}  (${sw.elapsedMilliseconds} ms)");
+      //AppLogger.log("Headers: ${res.headers}");
       // Try to pretty-print JSON; fall back to raw text.
       final raw = res.body;
       try {
         final j = json.decode(raw);
-        debugPrint("Response JSON: ${const JsonEncoder.withIndent('  ').convert(j)}");
+        //AppLogger.log("Response JSON: ${const JsonEncoder.withIndent('  ').convert(j)}");
       } catch (_) {
-        debugPrint("Response Text: $raw");
+        //AppLogger.log("Response Text: $raw");
       }
-      debugPrint("—— END ——");
+      //AppLogger.log("—— END ——");
 
       // Tiny toast so you see something in UI too
       if (mounted) {
@@ -1257,7 +1257,7 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
 
       return res.statusCode == 200 && raw.toLowerCase().contains("success");
     } catch (e) {
-      debugPrint("API ERROR: $e");
+      //AppLogger.log("API ERROR: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("API error: $e")),
@@ -1285,20 +1285,20 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
       );
 
       // ---------- VERBOSE PRINTS ----------
-      debugPrint("—— Change_payment_Final_status CALL ——");
-      debugPrint("URL: $url");
-      debugPrint("Body:  P_id: $pId");
-      debugPrint("Status: ${res.statusCode}  (${sw.elapsedMilliseconds} ms)");
-      debugPrint("Headers: ${res.headers}");
+      //AppLogger.log("—— Change_payment_Final_status CALL ——");
+      //AppLogger.log("URL: $url");
+      //AppLogger.log("Body:  P_id: $pId");
+      //AppLogger.log("Status: ${res.statusCode}  (${sw.elapsedMilliseconds} ms)");
+      //AppLogger.log("Headers: ${res.headers}");
       // Try to pretty-print JSON; fall back to raw text.
       final raw = res.body;
       try {
         final j = json.decode(raw);
-        debugPrint("Response JSON: ${const JsonEncoder.withIndent('  ').convert(j)}");
+        //AppLogger.log("Response JSON: ${const JsonEncoder.withIndent('  ').convert(j)}");
       } catch (_) {
-        debugPrint("Response Text: $raw");
+        //AppLogger.log("Response Text: $raw");
       }
-      debugPrint("—— END ——");
+      //AppLogger.log("—— END ——");
 
       // Tiny toast so you see something in UI too
       if (mounted) {
@@ -1310,7 +1310,7 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
 
       return res.statusCode == 200 && raw.toLowerCase().contains("success");
     } catch (e) {
-      debugPrint("API ERROR: $e");
+      //AppLogger.log("API ERROR: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("API error: $e")),

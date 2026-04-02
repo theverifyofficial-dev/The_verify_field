@@ -15,6 +15,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import '../Add_Rented_Flat_New/Book_Flat_For_FieldWorker.dart';
+import '../AppLogger.dart';
 import '../Custom_Widget/property_preview.dart';
 import '../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../ui_decoration_tools/app_images.dart';
@@ -747,8 +748,8 @@ class _View_DetailsState extends State<View_Details> {
                 if (firstProperty != null) {
                   final pid = firstProperty!.id.toString();
                   final sid = firstProperty!.subid.toString();
-                  debugPrint('P_id : $pid');
-                  debugPrint('Subid : $sid');
+                  AppLogger.api('P_id : $pid');
+                  //AppLogger.log('Subid : $sid');
 
                   Navigator.push(
                     context,
@@ -760,8 +761,8 @@ class _View_DetailsState extends State<View_Details> {
                     ),
                   );
                 } else {
-                  debugPrint('P_id : ${firstProperty!.id.toString()}');
-                  debugPrint('Subid : ${firstProperty!.subid.toString()}');
+                  AppLogger.log('P_id : ${firstProperty!.id.toString()}');
+                  AppLogger.log('Subid : ${firstProperty!.subid.toString()}');
                   // either still loading or API returned nothing
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Property not loaded yet.")),

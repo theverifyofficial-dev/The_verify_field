@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import '../../../AppLogger.dart';
 import '../../../Custom_Widget/Custom_backbutton.dart';
 import '../../../model/Additional_agreement_tenants.dart';
 import '../../imagepreviewscreen.dart';
@@ -134,13 +135,13 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
   Future<File> compressImageTo150KB(File file) async {
     try {
       int originalKB = file.lengthSync() ~/ 1024;
-      debugPrint("📸 BEFORE Compress: $originalKB KB");
+      AppLogger.api("📸 BEFORE Compress: $originalKB KB");
 
       Uint8List bytes = await file.readAsBytes();
 
       img.Image? image = img.decodeImage(bytes);
       if (image == null) {
-        debugPrint("❌ Could not decode image");
+        AppLogger.api("❌ Could not decode image");
         return file;
       }
 
@@ -161,7 +162,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         await temp.writeAsBytes(jpgBytes);
 
         int sizeKB = temp.lengthSync() ~/ 1024;
-        debugPrint("🔄 Width=$width | Quality=$quality | Size=$sizeKB KB");
+        AppLogger.api("🔄 Width=$width | Quality=$quality | Size=$sizeKB KB");
 
         if (sizeKB <= 150) {
           compressed = temp;
@@ -177,11 +178,11 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         }
       }
 
-      debugPrint("📦 AFTER Compress: ${compressed.lengthSync() ~/ 1024} KB");
+      AppLogger.api("📦 AFTER Compress: ${compressed.lengthSync() ~/ 1024} KB");
       return compressed;
 
     } catch (e) {
-      debugPrint("❌ Compress Error: $e");
+      AppLogger.api("❌ Compress Error: $e");
       return file;
     }
   }
@@ -221,7 +222,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         furnitureMap = furnitureData;
       }
     } catch (e) {
-      debugPrint("⚠️ Furniture parse error: $e");
+      AppLogger.api("⚠️ Furniture parse error: $e");
     }
 
     if (furnitureMap.isEmpty) return const SizedBox.shrink();
@@ -577,7 +578,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         pdfGenerated = true;
       });
     } catch (e) {
-      debugPrint("PDF Generation Error: $e");
+      AppLogger.api("PDF Generation Error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to generate PDF: $e'),

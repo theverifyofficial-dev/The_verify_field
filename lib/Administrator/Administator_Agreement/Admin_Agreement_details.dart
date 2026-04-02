@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
 import '../../Custom_Widget/Custom_backbutton.dart';
 import '../../model/Additional_agreement_tenants.dart';
 import '../imagepreviewscreen.dart';
@@ -100,7 +101,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
         furnitureMap = furnitureData;
       }
     } catch (e) {
-      debugPrint("⚠️ Furniture parse error: $e");
+      AppLogger.api("⚠️ Furniture parse error: $e");
     }
 
     if (furnitureMap.isEmpty) return const SizedBox.shrink();

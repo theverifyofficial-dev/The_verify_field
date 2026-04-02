@@ -347,7 +347,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
             : propertyData.demoLiveUnlive;
       });
     } catch (e) {
-      debugPrint("Error fetching data: $e");
+      //AppLogger.log("Error fetching data: $e");
       setState(() {
         estateStatus = 'Book';
         upcomingStatus = 'Book';
@@ -372,7 +372,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
         });
       }
     } catch (e) {
-      debugPrint("Error loading property: $e");
+      //AppLogger.log("Error loading property: $e");
     }
   }
 
@@ -448,8 +448,8 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
       );
       intent.launch();
     } else {
-      debugPrint(
-          'WhatsApp open only supported on Android with this method');
+      //AppLogger.log(
+      //     'WhatsApp open only supported on Android with this method');
     }
   }
 

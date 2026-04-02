@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Administrator/Administator_Agreement/Admin_All_agreement_model.dart';
 import '../../Administrator/Administator_Agreement/Sub/All_data.dart';
+import '../../AppLogger.dart';
 import '../All_detailpage.dart';
 
 class AllAgreement extends StatefulWidget {
@@ -92,7 +93,7 @@ class _AllAgreementState extends State<AllAgreement> {
         );
       }
     } catch (e) {
-      debugPrint("❌ Payment fetch error: $e");
+      AppLogger.api("❌ Payment fetch error: $e");
     } finally {
       setState(() => isPaymentLoading = false);
     }
@@ -138,7 +139,7 @@ class _AllAgreementState extends State<AllAgreement> {
         }
       }
     } catch (e) {
-      debugPrint("❌ Silent refresh error: $e");
+      AppLogger.api("❌ Silent refresh error: $e");
     }
   }
 
@@ -151,7 +152,7 @@ class _AllAgreementState extends State<AllAgreement> {
       setState(() => isLoading = true);
       await fetchAgreements();
     } catch (e) {
-      debugPrint("❌ Error refreshing agreements: $e");
+      AppLogger.api("❌ Error refreshing agreements: $e");
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -180,7 +181,7 @@ class _AllAgreementState extends State<AllAgreement> {
         }
       }
     } catch (e) {
-      debugPrint('❌ Error fetching data: $e');
+      AppLogger.api('❌ Error fetching data: $e');
       setState(() => isLoading = false);
     }
   }

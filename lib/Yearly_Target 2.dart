@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../ui_decoration_tools/app_images.dart';
@@ -95,7 +96,7 @@ class _Target_YearlyState extends State<Target_Yearly> {
 
   Future<void> _bootstrap() async {
     await _loaduserdata();
-    debugPrint('FieldWorker number: $_number');
+    AppLogger.api('FieldWorker number: $_number');
 
     await _fetchAll();
   }

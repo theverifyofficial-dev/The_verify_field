@@ -1,6 +1,7 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:intl/intl.dart';
 import '../Custom_Widget/constant.dart';
 import '../utilities/bug_founder_fuction.dart';
@@ -141,7 +142,7 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
               .join(", ");
         }
       } catch (e) {
-        print("❌ Furniture JSON Error: $e");
+        AppLogger.api("❌ Furniture JSON Error: $e");
         _selectedFurniture = {};
         _furnitureCtrl.clear();
       }
@@ -335,7 +336,7 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
   Future<void> _updateReDemand() async {
     setState(() => _isUpdating = true);
 
-    print("🚀 UPDATE REDEMAND STARTED");
+    AppLogger.api("🚀 UPDATE REDEMAND STARTED");
 
     String? error;
 
@@ -353,7 +354,7 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
 
     _familyMember = (_adultCount + _childrenCount).toString();
 
-    print("👨‍👩‍👧 Family Ratio OK → $_adultCount A, $_childrenCount C");
+    AppLogger.api("👨‍👩‍👧 Family Ratio OK → $_adultCount A, $_childrenCount C");
 
     final payload = {
       "id": widget.demand["id"].toString(),
@@ -395,8 +396,8 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
       "furnished_item": jsonEncode(_selectedFurniture),
     };
 
-    print("📦 REQUEST PAYLOAD:");
-    payload.forEach((k, v) => print("   $k → $v"));
+    AppLogger.api("📦 REQUEST PAYLOAD:");
+    payload.forEach((k, v) => AppLogger.api("   $k → $v"));
 
     final uri = Uri.parse(
       "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/update_api_redemand.php",
@@ -408,8 +409,8 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
         body: payload,
       );
 
-      print("📥 RESPONSE STATUS: ${response.statusCode}");
-      print("📥 RESPONSE BODY: ${response.body}");
+      AppLogger.api("📥 RESPONSE STATUS: ${response.statusCode}");
+      AppLogger.api("📥 RESPONSE BODY: ${response.body}");
 
       if (response.statusCode == 200) {
         final data = response.body.isNotEmpty ? jsonDecode(response.body) : {};
@@ -447,7 +448,7 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
         );
       }
     } catch (e) {
-      print("❌ HTTP EXCEPTION: $e");
+      AppLogger.api("❌ HTTP EXCEPTION: $e");
 
       await BugLogger.log(
         apiLink: uri.toString(),
@@ -462,7 +463,7 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
         ),
       );
     } finally {
-      print("🏁 UPDATE DEMAND FINISHED");
+      AppLogger.api("🏁 UPDATE DEMAND FINISHED");
       setState(() => _isUpdating = false);
     }
   }

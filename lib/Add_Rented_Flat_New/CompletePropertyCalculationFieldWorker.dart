@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as AppLogger;
 import 'dart:ui' show FontFeature;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -533,9 +534,9 @@ class _CompletePropertyCalculationFieldWorkerState extends State<CompletePropert
 
     final response = await http.get(url);
 
-    // debugPrint("TENANT API URL: $url");
-    // debugPrint("TENANT API STATUS: ${response.statusCode}");
-    // debugPrint("TENANT API BODY: ${response.body}");
+    // AppLogger.log("TENANT API URL: $url");
+    // AppLogger.log("TENANT API STATUS: ${response.statusCode}");
+    // AppLogger.log("TENANT API BODY: ${response.body}");
 
     if (response.statusCode != 200) {
       throw Exception("HTTP ${response.statusCode}");
@@ -875,7 +876,7 @@ class _CompletePropertyCalculationFieldWorkerState extends State<CompletePropert
     _recalc();
   }
 
-  void _logLine([String msg = ""]) => debugPrint(msg);
+  void _logLine([String msg = ""]) => AppLogger.log(msg);
 
   void _logBlock(String title, Map<String, dynamic> data) {
     _logLine("—" * 50);

@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_tab.dart';
+import '../../AppLogger.dart';
 import '../../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 
@@ -167,7 +168,7 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
       if (decoded["status"] == "success" && decoded["data"] != null && decoded["data"].isNotEmpty) {
         final data = decoded["data"][0]; // 👈 Get first record
 
-        debugPrint("✅ Parsed Agreement Data: $data");
+        AppLogger.api("✅ Parsed Agreement Data: $data");
 
         setState(() {
           // 🔹 Owner
@@ -226,10 +227,10 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
         // 🔁 Recalculate agreement price AFTER state restore
         updateAgreementPrice();
       } else {
-        debugPrint("⚠️ No agreement data found");
+        AppLogger.api("⚠️ No agreement data found");
       }
     } else {
-      debugPrint("❌ Failed to load agreement details: ${response.body}");
+      AppLogger.api("❌ Failed to load agreement details: ${response.body}");
     }
   }
 

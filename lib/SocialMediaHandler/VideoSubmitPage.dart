@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 
+import '../AppLogger.dart';
+
 class SubmitVideoPage extends StatefulWidget {
   final int? propertyId;
   final String? userName;
@@ -66,7 +68,7 @@ class _SubmitVideoPageState extends State<SubmitVideoPage> {
 
       fetchChat();
     } catch (e) {
-      debugPrint("❌ SEND ERROR: $e");
+      AppLogger.api("❌ SEND ERROR: $e");
     }
   }
 
@@ -85,7 +87,7 @@ class _SubmitVideoPageState extends State<SubmitVideoPage> {
         messages = decoded;
       }
     } catch (e) {
-      debugPrint("❌ GET CHAT ERROR: $e");
+      AppLogger.api("❌ GET CHAT ERROR: $e");
     }
 
     chatLoading = false;

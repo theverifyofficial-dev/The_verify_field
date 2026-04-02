@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
 import '../../Custom_Widget/Demand_card.dart';
 import '../../Demand_2/Demand_detail.dart';
 import '../../Demand_2/redemand_detailpage.dart';
@@ -92,7 +93,7 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
             "?Status=disclosed&page=$_page&limit=$_limit",
       );
 
-      debugPrint("📡 Fetching: $url");
+      AppLogger.api("📡 Fetching: $url");
 
       final response = await http.get(url);
 

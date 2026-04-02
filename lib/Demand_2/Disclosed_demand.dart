@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:get/get_connect/http/src/utils/utils.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Demand_2/redemand_detailpage.dart';
@@ -78,7 +79,7 @@ class _TenantDemandState extends State<DisclosedDemand> {
 
       final response = await http.get(url);
 
-      print("📡 Fetching from : $url");
+      AppLogger.api("📡 Fetching from : $url");
 
 
       if (response.statusCode == 200) {

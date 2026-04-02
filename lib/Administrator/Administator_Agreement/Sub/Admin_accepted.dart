@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../model/String_ID_model.dart';
 import 'Accepted_details.dart';
@@ -28,7 +28,7 @@ class _AgreementDetailsState extends State<AdminAccepted> {
       setState(() => isLoading = true);
       await fetchAgreements();
     } catch (e) {
-      debugPrint("❌ Error refreshing agreements: $e");
+      AppLogger.api("❌ Error refreshing agreements: $e");
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -58,7 +58,7 @@ class _AgreementDetailsState extends State<AdminAccepted> {
         throw Exception('Failed to load data');
       }
     } catch (e) {
-      debugPrint('Error fetching data: $e');
+      AppLogger.api('Error fetching data: $e');
       setState(() => isLoading = false);
     }
   }

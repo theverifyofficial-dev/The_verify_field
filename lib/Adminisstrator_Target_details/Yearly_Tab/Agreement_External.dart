@@ -537,7 +537,7 @@ class _DocBtn extends StatelessWidget {
         final url =
             "https://verifyrealestateandservices.in/Second%20PHP%20FILE/$path";
         // yahan tum url_launcher ya PDF viewer open kara sakte ho
-        debugPrint("OPEN: $url");
+        //AppLogger.log("OPEN: $url");
       },
     );
   }

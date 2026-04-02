@@ -1,6 +1,7 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -50,7 +51,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
       final response = await http.get(Uri.parse(
           "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}"));
 
-      print("demand ID: ${widget.demandId}");
+      AppLogger.api("demand ID: ${widget.demandId}");
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonRes = jsonDecode(response.body);
@@ -103,20 +104,20 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       final storedName = prefs.getString('name');
-      print("sending name: $storedName");
+      AppLogger.api("sending name: $storedName");
       final response = await http.post(
         Uri.parse(apiUrl),
         body: {"message": message, "date": date, "time": time, "subid": id,"who_calling":storedName,},
       );
 
-      debugPrint("Log saved: ${response.body}");
+      AppLogger.api("Log saved: ${response.body}");
     } catch (e) {
       await BugLogger.log(
         apiLink: apiUrl,
         error: e.toString(),
         statusCode: 500,
       );
-      debugPrint("Error logging contact: $e");
+      AppLogger.api("Error logging contact: $e");
     }
   }
 
@@ -219,7 +220,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     isUrgent ? Colors.redAccent : Colors.black87;
 
     final status = _demand?["Status"]?.toLowerCase();
-    print(_demand?["Status"]);
+    AppLogger.api(_demand?["Status"]);
 
 
     bool _isAddedByFieldWorker(dynamic value) {
@@ -1302,14 +1303,14 @@ class _AdminDemandDetailState extends State<DemandDetail> {
       final url =
           "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id";
 
-      print("📡 Fetching Logs: $url");
+      AppLogger.api("📡 Fetching Logs: $url");
 
       final res = await http.get(Uri.parse(url));
 
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
         if (body["success"] == true && body["data"] is List) {
-          print("📥 Logs fetched: ${body["data"].length}");
+          AppLogger.api("📥 Logs fetched: ${body["data"].length}");
           return body["data"];
         }
       }
@@ -1321,7 +1322,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
         );
       }
     } catch (e) {
-      print("❌ Error fetching logs: $e");
+      AppLogger.api("❌ Error fetching logs: $e");
       await BugLogger.log(
         apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id",
         error: e.toString(),
@@ -1353,12 +1354,12 @@ class _AdminDemandDetailState extends State<DemandDetail> {
           builder: (context, setSheetState) {
             // function to reload logs live inside bottomsheet
             Future<void> refreshLogs() async {
-              print("🔄 Refreshing Logs...");
+              AppLogger.api("🔄 Refreshing Logs...");
               final updated = await _fetchLogs(id);
               setSheetState(() {
                 logs = updated;
               });
-              print("✅ Logs Update  d: ${logs.length}");
+              AppLogger.api("✅ Logs Update  d: ${logs.length}");
             }
 
             return Container(
@@ -1409,12 +1410,12 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                           color: Colors.blue,
                           icon: Icons.call,
                           onTap: () async {
-                            print("☎ CALL tapped");
+                            AppLogger.api("☎ CALL tapped");
 
                             await _logContact(
                                 message: "Try to Call ${maskPhone(number)}", id: id);
 
-                            print("📌 Log Inserted → Calling...");
+                            AppLogger.api("📌 Log Inserted → Calling...");
                             await refreshLogs();
 
                             final uri = Uri.parse("tel:$number");
@@ -1429,13 +1430,13 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                           color: Colors.green,
                           icon: Icons.chat,
                           onTap: () async {
-                            print("💬 WhatsApp tapped");
+                            AppLogger.api("💬 WhatsApp tapped");
 
                             await _logContact(
                                 message: "Try to message on WhatsApp ${maskPhone(number)}",
                                 id: id);
 
-                            print("📌 Log Inserted → Opening WhatsApp...");
+                            AppLogger.api("📌 Log Inserted → Opening WhatsApp...");
                             await refreshLogs();
 
                             final phone = normalizeWhatsAppNumber(number);

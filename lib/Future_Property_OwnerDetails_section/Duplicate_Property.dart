@@ -911,7 +911,7 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
       Fluttertoast.showToast(msg: "Image saved to gallery");
     } catch (e) {
       Fluttertoast.showToast(msg: "Failed to save image");
-      debugPrint("Save image error: $e");
+      //AppLogger.log("Save image error: $e");
     }
   }
 

@@ -29,7 +29,7 @@ class _TenantDemandState extends State<AcceptedField> {
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
-
+  bool _showRedemands = false; // 👈 default collapsed
 
   @override
   void initState() {
@@ -271,8 +271,36 @@ class _TenantDemandState extends State<AcceptedField> {
                         children: [
 
                           if (_filteredCross.isNotEmpty) ...[
-                            _sectionTitle("Your ReDemands"),
-                            ..._filteredCross.map((d) {
+                            GestureDetector(
+                              onTap: () {
+                                setState(() => _showRedemands = !_showRedemands);
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        "Your Redemands",
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 0.4,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    ),
+                                    Icon(
+                                      _showRedemands
+                                          ? Icons.keyboard_arrow_up
+                                          : Icons.keyboard_arrow_down,
+                                      color: Colors.grey,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            if (_showRedemands)                            ..._filteredCross.map((d) {
                               return _buildRedemandCard(d, true);
                             }),
 
@@ -285,7 +313,7 @@ class _TenantDemandState extends State<AcceptedField> {
                               return DemandCard(
                                 d: d,
                                 isField: true, // only for fieldworker
-                                type: "Demand", // 👈 here
+                                type: "demand", // 👈 here
                                 onTap: () {
                                   Navigator.push(
                                     context,
@@ -316,7 +344,7 @@ class _TenantDemandState extends State<AcceptedField> {
         DemandCard(
           d: d,
           isField: true, // only for fieldworker
-          type: "Redemand",
+          type: "redemand",
           onTap: () {
             if (isRedemand == true) {
               Navigator.push(
@@ -396,7 +424,7 @@ class _TenantDemandState extends State<AcceptedField> {
                 ),
               );
             },
-            icon: const Icon(Icons.push_pin, size: 14),
+            icon: const Icon(Icons.bookmark_outlined, size: 14),
             label: const Text("Pinned"),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.black,

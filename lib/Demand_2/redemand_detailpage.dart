@@ -783,6 +783,12 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
     return v.toString();
   }
 
+  bool _isEmpty(dynamic value) {
+    if (value == null) return true;
+    final v = value.toString().trim().toLowerCase();
+    return v.isEmpty || v == "null" || v == "--";
+  }
+
   Widget _buildProgressDetailsCard(
       Map<String, dynamic> data,
       bool isDark,
@@ -820,29 +826,29 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
             children: [
 
               /// BASIC
-              _infoTile("Parking", _fmt(data["parking"])),
-              _infoTile("Lift", _fmt(data["lift"])),
-              _infoTile("Furnished", _fmt(data["furnished_unfurnished"])),
+              _infoTile("Parking", data["parking"]),
+              _infoTile("Lift", data["lift"]),
+              _infoTile("Furnished", data["furnished_unfurnished"]),
 
               /// FAMILY
-              _infoTile("Family Type", _fmt(data["family_structur"])),
-              _infoTile("Members", _fmt(data["family_member"])),
-              _infoTile("Persons", _fmt(data["count_of_person"])),
+              _infoTile("Family Type", data["family_structur"]),
+              _infoTile("Members", data["family_member"]),
+              _infoTile("Persons", data["count_of_person"]),
 
               /// PROPERTY
-              _infoTile("Floor", _fmt(data["floor"])),
-              _infoTile("Religion", _fmt(data["religion"])),
+              _infoTile("Floor", data["floor"]),
+              _infoTile("Religion", data["religion"]),
 
               /// VEHICLE
-              _infoTile("Vehicle Type", _fmt(data["vichle_type"])),
-              _infoTile("Vehicle No", _fmt(data["vichle_no"])),
+              _infoTile("Vehicle Type", data["vichle_type"]),
+              _infoTile("Vehicle No", data["vichle_no"]),
 
               /// DATES
-              _infoTile("Visit Date", _fmtDate(data["visiting_dates"])),
-              _infoTile("Shift Date", _fmtDate(data["shifting_date"])),
+              _infoTile("Visit Date", data["visiting_dates"]),
+              _infoTile("Shift Date", data["shifting_date"]),
 
               /// TYPE
-              _infoTile("Type", _fmt(data["Buy_rent"])),
+              _infoTile("Type", data["Buy_rent"]),
             ],
           ),
 
@@ -891,45 +897,49 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
     return raw;
   }
 
-  Widget _infoTile(String label, String value) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Container(
-          constraints: const BoxConstraints(minHeight: 60),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: _borderColor),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min, // 🔥 IMPORTANT
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: _textSecondary,
-                ),
-              ),
-              const SizedBox(height: 4),
+  Widget _infoTile(String label, dynamic value) {
+    final isEmpty = _isEmpty(value);
 
-              /// 🔥 FLEXIBLE TEXT (NO OVERFLOW EVER)
-              Flexible(
-                child: Text(
-                  value.isEmpty ? "—" : value,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: _textPrimary,
-                  ),
-                ),
-              ),
-            ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+
+        /// 🔴 RED BORDER IF EMPTY
+        border: Border.all(
+          color: isEmpty ? Colors.red : Colors.grey.shade300,
+          width: isEmpty ? 1.2 : 1,
+        ),
+
+        /// 🔴 LIGHT RED BACKGROUND (subtle)
+        color: isEmpty ? Colors.red.withOpacity(0.05) : Colors.white,
+      ),
+
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: isEmpty ? Colors.red : Colors.grey,
+              fontWeight: FontWeight.w600,
+            ),
           ),
-        );
-      },
+          const SizedBox(height: 2),
+          Text(
+            _fmt(value),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: isEmpty ? Colors.red.shade700 : Colors.black87,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1735,7 +1745,7 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
               Text(
                 _formatPrice(d["Price"]),
                 style: const TextStyle(
-                  color: Color(0xFFDC2626),
+                  color: Colors.green,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -1783,6 +1793,36 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
               ),
             ],
           ),
+
+          const SizedBox(height: 6),
+
+          if (d["Message"] != null &&
+              d["Message"].toString().trim().isNotEmpty)
+            Container(
+              margin: const EdgeInsets.only(top: 10),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF9FAFB),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.message, size: 16, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      d["Message"].toString(),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: Color(0xFF374151),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );

@@ -24,6 +24,7 @@ class _TenantDemandState extends State<DisclosedDemand> {
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
+  bool _showRedemands = false; // 👈 default collapsed
   int _page = 1;
   final int _limit = 20;
   bool _isFetchingMore = false;
@@ -293,23 +294,6 @@ class _TenantDemandState extends State<DisclosedDemand> {
                   ),
                 ),
               ),
-
-              // Padding(
-              //   padding: const EdgeInsets.symmetric(
-              //       horizontal: 16, vertical: 6),
-              //   child: Align(
-              //     alignment: Alignment.centerLeft,
-              //     child: Text(
-              //       'Loaded Demands: ${_filteredDemands.length}',
-              //       style: TextStyle(
-              //         fontWeight: FontWeight.bold,
-              //         fontSize: 15,
-              //         color: Colors.green.shade600,
-              //       ),
-              //     ),
-              //   ),
-              // ),
-
               const SizedBox(height: 20),
 
 
@@ -335,8 +319,36 @@ class _TenantDemandState extends State<DisclosedDemand> {
 
                       /// 🔴 REDEMAND SECTION
                       if (_filteredRedemands.isNotEmpty) ...[
-                        _sectionTitle("Closed ReDemands"),
-
+                        GestureDetector(
+                          onTap: () {
+                            setState(() => _showRedemands = !_showRedemands);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    "Closed ReDemands",
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.4,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ),
+                                Icon(
+                                  _showRedemands
+                                      ? Icons.keyboard_arrow_up
+                                      : Icons.keyboard_arrow_down,
+                                  color: Colors.grey,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (_showRedemands)
                         ..._filteredRedemands.map((d) {
                           return _buildRedemandCard(d);
                         }),
@@ -351,7 +363,7 @@ class _TenantDemandState extends State<DisclosedDemand> {
                         return DemandCard(
                           d: d,
                           isField: true, // only for fieldworker
-                          type: "Demand", // 👈 here
+                          type: "demand", // 👈 here
                           onTap: () {
                             Navigator.push(
                               context,
@@ -408,7 +420,7 @@ class _TenantDemandState extends State<DisclosedDemand> {
                 ),
               );
             },
-            icon: const Icon(Icons.push_pin, size: 14),
+            icon: const Icon(Icons.bookmark_outlined, size: 14),
             label: const Text("Pinned"),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.black,
@@ -441,7 +453,7 @@ class _TenantDemandState extends State<DisclosedDemand> {
         DemandCard(
           isField: true, // only for fieldworker
           d: model,
-          type: "Redemand",
+          type: "redemand",
           onTap: () {
             Navigator.push(
               context,

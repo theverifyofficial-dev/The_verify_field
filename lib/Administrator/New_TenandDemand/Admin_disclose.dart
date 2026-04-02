@@ -21,6 +21,7 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
+  bool _showRedemands = false; // 👈 default collapsed
   int _page = 1;
   final int _limit = 20;
   bool _isFetchingMore = false;
@@ -31,6 +32,13 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
   final ScrollController _scrollController = ScrollController();
   List<Map<String, dynamic>> _redemands = [];
   List<Map<String, dynamic>> _filteredRedemands = [];
+  String? _selectedFilter;
+
+  final List<String> _quickFilters = [
+    "Sumit",
+    "Ravi Kumar",
+    "Faizan Khan",
+  ];
 
   @override
   void dispose() {
@@ -178,6 +186,11 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
   }
 
   void _onSearchChanged() {
+
+    if (_searchController.text.trim() != _selectedFilter) {
+      _selectedFilter = null;
+    }
+
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
     _debounce = Timer(const Duration(milliseconds: 400), () {
@@ -191,6 +204,7 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
           d["Location"],
           d["Bhk"],
           d["Buy_rent"],
+          d["assigned_fieldworker_name"],
           d["final_reason"],
           d["Price"],
           d["Date"],
@@ -246,6 +260,7 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
                       onPressed: () {
                         _searchController.clear();
                         setState(() {
+                          _selectedFilter = null;
                           _filteredDemands = _allDemands;
                         });
                       },
@@ -280,6 +295,55 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
 
               const SizedBox(height: 20),
 
+              SizedBox(
+                height: 40,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _quickFilters.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, i) {
+                    final name = _quickFilters[i];
+                    final isSelected = _selectedFilter == name;
+
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedFilter = name;
+
+                          /// 🔥 auto fill search
+                          _searchController.text = name;
+                        });
+
+                        _onSearchChanged(); // trigger filtering
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? const Color(0xFF2563EB) // 🔵 blue selected
+                              : Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isSelected
+                                ? const Color(0xFF2563EB)
+                                : Colors.grey.shade300,
+                          ),
+                        ),
+                        child: Text(
+                          name,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isSelected ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
 
               if (_searchLoading)
                 const Padding(
@@ -310,8 +374,36 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
 
                       /// 🔴 REDEMAND SECTION
                       if (_filteredRedemands.isNotEmpty) ...[
-                        _sectionTitle("Closed ReDemands"),
-
+                        GestureDetector(
+                          onTap: () {
+                            setState(() => _showRedemands = !_showRedemands);
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    "Closed ReDemands (${_filteredRedemands.length})",
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.4,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ),
+                                Icon(
+                                  _showRedemands
+                                      ? Icons.keyboard_arrow_up
+                                      : Icons.keyboard_arrow_down,
+                                  color: Colors.grey,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        if (_showRedemands)
                         ..._filteredRedemands.map((d) {
                           return _buildRedemandCard(d);
                         }),
@@ -324,7 +416,7 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
                       ..._filteredDemands.map((d) {
                         return DemandCard(
                           d: d,
-                          type: "Demand", // 👈 here
+                          type: "demand", // 👈 here
                           onTap: () {
                             Navigator.push(
                               context,
@@ -380,7 +472,7 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
 
         DemandCard(
           d: model,
-          type: "Redemand",
+          type: "redemand",
           onTap: () {
             Navigator.push(
               context,

@@ -9,6 +9,7 @@ import 'package:verify_feild_worker/Z-Screen/Login_page.dart';
 import '../../Adminisstrator_Target_details/Targets.dart';
 import '../../Administrator/Administator_Agreement/Admin_dashboard.dart';
 import '../../Calender/CalenderForAdmin.dart';
+import '../../Demand_2/Tabbar.dart';
 import '../../Future_Property_OwnerDetails_section/Future_Property.dart';
 import '../../Future_Property_OwnerDetails_section/Future_Property_Tabbar.dart';
 import '../../Home_Screen_click/live_tabbar.dart';
@@ -410,7 +411,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                             },
                             {
                               "image": AppImages.demand_2,
-                              "title": "Customer Demands 2.O",
+                              "title": "Customer Demands",
                               "onTap": () => Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (_) => SubadminTabbar())),
@@ -545,6 +546,14 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                 "onTap": () => Navigator.push(
                                     context,
                                     MaterialPageRoute(builder: (_) => const HistoryTab())),
+                              },
+                              {
+                                "image": AppImages.demand_2,
+                                "title": "Customer Demands (Field)",
+                                "onTap": () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => Tabbar())),
+                                "count": 0,
                               },
                             ];
 

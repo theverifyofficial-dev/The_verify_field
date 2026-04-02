@@ -241,7 +241,7 @@ class _TenantDemandState extends State<TenantDemand> {
 
                       return DemandCard(
                         d: d,
-                        type: "Demand", // 👈 here
+                        type: "demand", // 👈 here
                         onTap: () {
                           Navigator.push(
                             context,

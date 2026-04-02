@@ -16,7 +16,7 @@ import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 import 'Add_Rented_Flat_New/Add_Rented_Flat_Tabbar_New.dart';
 import 'Calender/CalenderForFieldWorker.dart';
 import 'Demand_2/Tabbar.dart';
-import 'Demand_2/Demand_card.dart';
+import 'Custom_Widget/Card_Demand.dart';
 import 'Future_Property_OwnerDetails_section/Future_Property_Tabbar.dart';
 import 'Insurance/InsuranceShowListPage.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';

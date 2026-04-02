@@ -139,8 +139,8 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
 
   void _updateFamilyTotal() {
     final total = _adultCount + _childrenCount;
-    _familyMember = total.toString();
     _totalCtrl.text = total.toString();
+    setState(() {});
   }
 
   @override
@@ -164,7 +164,6 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
   }
 
   Widget _redemandBlockedBanner() {
-    final theme = Theme.of(context);
 
     return Container(
       width: double.infinity,
@@ -319,6 +318,20 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
     }
   }
 
+
+  String extractCreatedDate(dynamic value) {
+    if (value == null) return "--";
+
+    try {
+      if (value is Map && value["date"] != null) {
+        return formatDate(value["date"]);
+      }
+
+      return formatDate(value.toString());
+    } catch (_) {
+      return "--";
+    }
+  }
   Future<void> _fetchCustomerByPhone(String phone) async {
     if (phone.length != 10) return;
 
@@ -1132,43 +1145,73 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
 
                       Row(
                         children: [
+                          /// 👨 Adults
                           Expanded(
                             child: TextFormField(
-                              decoration: _modernInput("Adult", Icons.person),
+                              decoration: _modernInput("Adults", Icons.person),
                               keyboardType: TextInputType.number,
                               initialValue: _adultCount.toString(),
+                              style: const TextStyle(color: Colors.black),
+                              textAlign: TextAlign.center,
                               onChanged: (v) {
-                                _adultCount = int.tryParse(v) ?? 1;
+                                _adultCount = int.tryParse(v) ?? 0;
                                 _updateFamilyTotal();
                               },
                             ),
                           ),
-                          const SizedBox(width: 10),
+
+                          /// ➕ PLUS SIGN
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(
+                              "+",
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+
+                          /// 👶 Children
                           Expanded(
                             child: TextFormField(
                               decoration: _modernInput("Child", Icons.child_care),
                               keyboardType: TextInputType.number,
                               initialValue: _childrenCount.toString(),
+                              style: const TextStyle(color: Colors.black),
+                              textAlign: TextAlign.center,
                               onChanged: (v) {
                                 _childrenCount = int.tryParse(v) ?? 0;
                                 _updateFamilyTotal();
                               },
                             ),
                           ),
+
+                          /// ➡️ EQUAL SIGN
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(
+                              "=",
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+
+                          /// 👥 TOTAL
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              _totalCtrl.text.isEmpty ? "0" : _totalCtrl.text,
+                              style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black
+                              ),
+                            ),
+                          ),
                         ],
                       ),
 
-                      const SizedBox(height: 16),
-
-                      TextFormField(
-                        decoration: _modernInput("Total Members", Icons.group),
-                        keyboardType: TextInputType.number,
-
-                        controller: _totalCtrl,
-                        style: const TextStyle(color: Colors.black),
-
-                        readOnly: true, // 🔥 IMPORTANT
-                      ),
 
                       const SizedBox(height: 16),
 
@@ -1871,26 +1914,38 @@ class _ExistingCustomerCard extends StatelessWidget {
 
     final name = (data["Tname"] ?? "").toString().trim();
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+    return GestureDetector(
+      onTap: (){
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => DemandDetail(
+              demandId: data["id"].toString(),
+              isReadOnly: true, // 🔥 THIS IS THE KEY
+            ),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
 
-        /// 🔥 RED BORDER ACCENT
-        border: Border.all(
-          color: const Color(0xFFDC2626).withOpacity(0.25),
-        ),
+          /// 🔥 RED BORDER ACCENT
+          border: Border.all(
+            color: const Color(0xFFDC2626).withOpacity(0.25),
+          ),
 
-        /// 🔥 SUBTLE RED SHADOW
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFDC2626).withOpacity(0.08),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),      child: Column(
+          /// 🔥 SUBTLE RED SHADOW
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFDC2626).withOpacity(0.08),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // HEADER
@@ -1957,7 +2012,7 @@ class _ExistingCustomerCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "Date: ${formatDate(data["Date"])}",
+                "Date: ${safeDate(data["Date"] ?? data["created_date"])}",
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.black87,
@@ -1965,37 +2020,53 @@ class _ExistingCustomerCard extends StatelessWidget {
                 ),
               ),
               Text(
-                "Time: ${data["Time"]}",
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.black87,
-                  fontStyle: FontStyle.italic,
-                ),
+                "Time: ${data["Time"] ?? "--"}",                  style: TextStyle(
+                fontSize: 12,
+                color: Colors.black87,
+                fontStyle: FontStyle.italic,
+              ),
               )
             ],
           ),
 
-          Divider(color: Colors.white.withOpacity(0.25)),
+          Divider(color: Colors.grey.withOpacity(0.25)),
           const SizedBox(height: 6),
 
           row("Type", data["Buy_rent"]),
           row("Budget", data["Price"] != null ? "₹ ${data["Price"]}" : null),
           row("BHK", data["Bhk"]),
           row("Location", data["Location"]),
-          row("Family Members", data["family_member"]),
-          row("Parking", data["parking"]),
           row("Shifting Date", formatDate(data["shifting_date"])),
-          row("Floor", data["floor"]),
 
           const SizedBox(height: 8),
-          Divider(color: Colors.white.withOpacity(0.22)),
+          Divider(color: Colors.grey.withOpacity(0.22)),
           const SizedBox(height: 6),
 
           row("Fieldworker", data["assigned_fieldworker_name"]),
           row("FW Location", data["assigned_fieldworker_location"]),
 
+          const SizedBox(height: 6),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text("Click to Open detail page >",
+                style: const TextStyle(color: Colors.grey,fontStyle: FontStyle.italic),
+              ),
+            ],
+          ),
         ],
       ),
+      ),
     );
+  }
+  String safeDate(dynamic value) {
+    if (value == null) return "--";
+
+    try {
+      return formatDate(value.toString());
+    } catch (_) {
+      return "--";
+    }
   }
 }

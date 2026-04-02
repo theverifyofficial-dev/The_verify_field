@@ -138,8 +138,8 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
 
   void _updateFamilyTotal() {
     final total = _adultCount + _childrenCount;
-    _familyMember = total.toString();
     _totalCtrl.text = total.toString();
+    setState(() {});
   }
 
   @override
@@ -314,6 +314,20 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
         statusCode: e.response?.statusCode ?? 0,
       );
       rethrow;
+    }
+  }
+
+  String extractCreatedDate(dynamic value) {
+    if (value == null) return "--";
+
+    try {
+      if (value is Map && value["date"] != null) {
+        return formatDate(value["date"]);
+      }
+
+      return formatDate(value.toString());
+    } catch (_) {
+      return "--";
     }
   }
 
@@ -1123,45 +1137,72 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
 
                       Row(
                         children: [
+                          /// 👨 Adults
                           Expanded(
                             child: TextFormField(
-                              decoration: _modernInput("", Icons.person),
+                              decoration: _modernInput("Adults", Icons.person),
                               keyboardType: TextInputType.number,
                               initialValue: _adultCount.toString(),
+                              style: const TextStyle(color: Colors.black),
+                              textAlign: TextAlign.center,
                               onChanged: (v) {
-                                _adultCount = int.tryParse(v) ?? 1;
+                                _adultCount = int.tryParse(v) ?? 0;
                                 _updateFamilyTotal();
-
                               },
                             ),
                           ),
-                          const SizedBox(width: 10),
+
+                          /// ➕ PLUS SIGN
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(
+                              "+",
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+
+                          /// 👶 Children
                           Expanded(
                             child: TextFormField(
-                              decoration: _modernInput("", Icons.child_care),
+                              decoration: _modernInput("Child", Icons.child_care),
                               keyboardType: TextInputType.number,
                               initialValue: _childrenCount.toString(),
+                              style: const TextStyle(color: Colors.black),
+                              textAlign: TextAlign.center,
                               onChanged: (v) {
                                 _childrenCount = int.tryParse(v) ?? 0;
                                 _updateFamilyTotal();
-
                               },
+                            ),
+                          ),
+
+                          /// ➡️ EQUAL SIGN
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(
+                              "=",
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+
+                          /// 👥 TOTAL
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              _totalCtrl.text.isEmpty ? "0" : _totalCtrl.text,
+                              style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black
+                              ),
                             ),
                           ),
                         ],
                       ),
-
-                      const SizedBox(height: 16),
-
-                      TextFormField(
-                        decoration: _modernInput("Total Members", Icons.group),
-                        keyboardType: TextInputType.number,
-                        controller: _totalCtrl,
-                        readOnly: true, // 🔥 IMPORTANT
-                      ),
-
-
-
 
                       const SizedBox(height: 16),
 
@@ -1966,16 +2007,15 @@ class _ExistingCustomerCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Date: ${formatDate(data["Date"])}",
-                  style: TextStyle(
+            "Date: ${safeDate(data["Date"] ?? data["created_date"])}",
+      style: TextStyle(
                     fontSize: 12,
                     color: Colors.black87,
                     fontStyle: FontStyle.italic,
                   ),
                 ),
                 Text(
-                  "Time: ${data["Time"]}",
-                  style: TextStyle(
+                "Time: ${data["Time"] ?? "--"}",                  style: TextStyle(
                     fontSize: 12,
                     color: Colors.black87,
                     fontStyle: FontStyle.italic,
@@ -1984,28 +2024,44 @@ class _ExistingCustomerCard extends StatelessWidget {
               ],
             ),
 
-            Divider(color: Colors.white.withOpacity(0.25)),
+            Divider(color: Colors.grey.withOpacity(0.25)),
             const SizedBox(height: 6),
 
             row("Type", data["Buy_rent"]),
             row("Budget", data["Price"] != null ? "₹ ${data["Price"]}" : null),
             row("BHK", data["Bhk"]),
             row("Location", data["Location"]),
-            row("Family Members", data["family_member"]),
-            row("Parking", data["parking"]),
             row("Shifting Date", formatDate(data["shifting_date"])),
-            row("Floor", data["floor"]),
 
             const SizedBox(height: 8),
-            Divider(color: Colors.white.withOpacity(0.22)),
+            Divider(color: Colors.grey.withOpacity(0.22)),
             const SizedBox(height: 6),
 
             row("Fieldworker", data["assigned_fieldworker_name"]),
             row("FW Location", data["assigned_fieldworker_location"]),
 
+            const SizedBox(height: 6),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text("Click to Open detail page >",
+                  style: const TextStyle(color: Colors.grey,fontStyle: FontStyle.italic),
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
+  }
+  String safeDate(dynamic value) {
+    if (value == null) return "--";
+
+    try {
+      return formatDate(value.toString());
+    } catch (_) {
+      return "--";
+    }
   }
 }

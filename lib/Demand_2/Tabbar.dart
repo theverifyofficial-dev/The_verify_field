@@ -6,7 +6,12 @@ import 'Accepted_field.dart';
 import 'Disclosed_demand.dart';
 
 class Tabbar extends StatefulWidget {
-  const Tabbar({super.key});
+  final bool fromNotification;
+
+  const Tabbar({
+    super.key,
+    this.fromNotification = false,
+  });
 
   @override
   State<Tabbar> createState() => _Show_New_Real_EstateState();
@@ -60,8 +65,15 @@ class _Show_New_Real_EstateState extends State<Tabbar> {
               child: TabBar(
                 dividerColor: Colors.transparent, // 🔥 REMOVE BLACK LINE
                 indicator: BoxDecoration(
-                  color: const Color(0xFFDC2626), // 🔴 RED
                   borderRadius: BorderRadius.circular(10),
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFF2563EB), // 🔵 Blue
+                      Color(0xFF7C3AED), // 🟣 Purple
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
                 ),
 
                 labelColor: Colors.white,

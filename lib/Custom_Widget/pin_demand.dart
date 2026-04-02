@@ -229,7 +229,7 @@ class _PinDemandState extends State<PinDemand> {
                 ),
                 const SizedBox(height: 16),
                 Expanded(
-                    child:  (_filteredParent.isEmpty)
+                    child:  (_filteredParent.isEmpty && _filteredCross.isEmpty)
                         ? Center(
                       child: Text(
                         "No demands found",
@@ -263,7 +263,7 @@ class _PinDemandState extends State<PinDemand> {
                               return DemandCard(
                                 d: d,
                                 isField: true,
-                                type: "Demand", // 👈 here
+                                type: "demand", // 👈 here
                                 onTap: () {
                                   Navigator.push(
                                     context,
@@ -276,7 +276,7 @@ class _PinDemandState extends State<PinDemand> {
                                 },
                                 PinList: PinListButton(
                                   pId: d.id,
-                                  type: "Demand", // 👈 here
+                                  type: "demand", // 👈 here
                                   initialState: d.isPinned,
                                   onRemoved: () {
                                     setState(() {
@@ -305,7 +305,7 @@ class _PinDemandState extends State<PinDemand> {
         DemandCard(
           d: d,
           isField: true, // only for fieldworker
-          type: "Redemand",
+          type: "redemand",
           onTap: () {
             if (isRedemand == true) {
               Navigator.push(
@@ -330,13 +330,13 @@ class _PinDemandState extends State<PinDemand> {
           },
 
           PinList: PinListButton(
-            pId: d.id,
-            type: "Redemand", // 👈 here
+            pId: d.r_id,
+            type: "redemand", // 👈 here
             initialState: d.isPinned,
             onRemoved: () {
               setState(() {
-                _crossRedemands.removeWhere((x) => x.id == d.id);
-                _filteredCross.removeWhere((x) => x.id == d.id);
+                _crossRedemands.removeWhere((x) => x.r_id == d.r_id);
+                _filteredCross.removeWhere((x) => x.r_id == d.r_id);
               });
             },
           ),
@@ -372,8 +372,6 @@ class _PinDemandState extends State<PinDemand> {
       ],
     );
   }
-
-
 
   Widget _sectionTitle(String title) {
     return Padding(

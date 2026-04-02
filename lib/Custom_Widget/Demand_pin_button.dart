@@ -54,9 +54,7 @@ class PinListButton extends StatefulWidget {
     required this.initialState,
     required this.type, // 👈 REQUIRED
     this.onRemoved, // 👈 add this
-
   });
-
   @override
   State<PinListButton> createState() => _PinListButtonState();
 }
@@ -106,7 +104,7 @@ class _PinListButtonState extends State<PinListButton> {
       onTap: _toggle,
       child: Icon(
         isWishlisted ? Icons.bookmark_outlined : Icons.bookmark_outline_sharp,
-        color: isWishlisted ? Colors.red : Colors.red,
+        color: isWishlisted ? Colors.green : Colors.green,
         size: 30,
       ),
     );

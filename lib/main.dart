@@ -277,18 +277,6 @@ class _MyAppState extends State<MyApp> {
         return;
       }
 
-
-      if (type == "NEW_DEMAND") {
-        openFromNotification(
-          homeRoute: Home_Screen.route,
-          detailRoute: Routes.fieldNewDemand,
-          arguments: {
-            "fromNotification": true,
-          },
-        );
-        return;
-      }
-
       if (type == "RENTED_OUT_UPDATED") {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           navigatorKey.currentState?.pushNamedAndRemoveUntil(
@@ -544,60 +532,32 @@ class _MyAppState extends State<MyApp> {
                 return;
               }
 
-      if (type == "DEMAND_ASSIGNED" && demandId != null) {
-        openFromNotification(
-          homeRoute: SubAdminHomeScreen.route,
-          detailRoute: Routes.subAdminDemandDetail,
-          arguments: {
-            "fromNotification": true,
-            "demandId": demandId,
-          },
-        );
-        return;
-      }
-
-
-      if (type == "Demand_Transfer_to_subadmin" && demandId != null) {
-        openFromNotification(
-          homeRoute: SubAdminHomeScreen.route,
-          detailRoute: Routes.subAdminDemandDetail,
-          arguments: {
-            "fromNotification": true,
-            "demandId": demandId,
-          },
-        );
-        return;
-      }
-
-
-      if (type == "REDEMAND_ASSIGNED" && redemandId != null) {
-        openFromNotification(
-          homeRoute: SubAdminHomeScreen.route,
-          detailRoute: Routes.subAdminRedemandDetail,
-          arguments: {
-            "fromNotification": true,
-            "demandId": redemandId,
-          },
-        );
-        return;
-      }
-
-      if (type == "ReDemand_Transfer_to_subadmin" && redemandId != null) {
-        openFromNotification(
-          homeRoute: SubAdminHomeScreen.route,
-          detailRoute: Routes.subAdminRedemandDetail,
-          arguments: {
-            "fromNotification": true,
-            "demandId": redemandId,
-          },
-        );
-        return;
-      }
-
-      if (type == "DEMAND_ASSIGNED_TO_FIELD_WORKAR" && demandId != null) {
+      if (type == "NEW_DEMAND") {
         openFromNotification(
           homeRoute: Home_Screen.route,
-          detailRoute: Routes.FieldDemandDetail,
+          detailRoute: Routes.DemandList,
+          arguments: {
+            "fromNotification": true,
+          },
+        );
+        return;
+      }
+
+      if (type == "NEW_DEMAND_TO_SUBADMIN") {
+        openFromNotification(
+          homeRoute: SubAdminHomeScreen.route,
+          detailRoute: Routes.DemandList,
+          arguments: {
+            "fromNotification": true,
+          },
+        );
+        return;
+      }
+
+      if (type == "NEW_DEMAND_WEBSITE" && demandId != null) {
+        openFromNotification(
+          homeRoute: Home_Screen.route,
+          detailRoute: Routes.DemandDetails,
           arguments: {
             "fromNotification": true,
             "demandId": demandId,
@@ -606,40 +566,26 @@ class _MyAppState extends State<MyApp> {
         return;
       }
 
-      /// 🔒 DEMAND CLOSED → ADMIN
+      if (type == "REDEMAND" && redemandId != null) {
+        openFromNotification(
+          homeRoute: Home_Screen.route,
+          detailRoute: Routes.RedemandDetail,
+          arguments: {
+            "fromNotification": true,
+            "demandId": redemandId,
+          },
+        );
+        return;
+      }
+
+      //Admin
       if (type == "DEMAND_UPDATE_ADMIN" && demandId != null) {
         openFromNotification(
           homeRoute: AdministratorHome_Screen.route,
-          detailRoute: Routes.AdminDemandDetails,
+          detailRoute: Routes.DemandDetails,
           arguments: {
             "fromNotification": true,
-            "demandId": demandId,
-          },
-        );
-        return;
-      }
-
-
-      /// 🔒 DEMAND CLOSED → SUBADMIN
-      if (type == "DEMAND_UPDATE_SUBADMIN" && demandId != null) {
-        openFromNotification(
-          homeRoute: SubAdminHomeScreen.route,
-          detailRoute: Routes.subAdminDemandDetail,
-          arguments: {
-            "fromNotification": true,
-            "demandId": demandId,
-          },
-        );
-        return;
-      }
-
-      if (type == "REDEMAND_ASSIGNED_TO_FIELDWORKER" && redemandId != null) {
-        openFromNotification(
-          homeRoute: Home_Screen.route,
-          detailRoute: Routes.FieldRedemandDetail,
-          arguments: {
-            "fromNotification": true,
-            "demandId": redemandId,
+            "demandId": demandId, // 👈 yes, key stays demandId
           },
         );
         return;
@@ -648,7 +594,7 @@ class _MyAppState extends State<MyApp> {
       if (type == "REDEMAND_CLOSED_TO_ADMIN" && redemandId != null) {
         openFromNotification(
           homeRoute: AdministratorHome_Screen.route,
-          detailRoute: Routes.AdminRedemandDetail,
+          detailRoute: Routes.RedemandDetail,
           arguments: {
             "fromNotification": true,
             "demandId": redemandId, // 👈 yes, key stays demandId
@@ -658,13 +604,25 @@ class _MyAppState extends State<MyApp> {
       }
 
 
-      if (type == "REDEMAND_CLOSED_TO_SUBADMIN" && redemandId != null) {
+      if (type == "DEMAND_UPDATE_SUBADMIN" && demandId != null) {
         openFromNotification(
           homeRoute: SubAdminHomeScreen.route,
-          detailRoute: Routes.subAdminRedemandDetail,
+          detailRoute: Routes.DemandDetails,
           arguments: {
             "fromNotification": true,
-            "demandId": redemandId,
+            "demandId": demandId, // 👈 yes, key stays demandId
+          },
+        );
+        return;
+      }
+
+      if (type == "REDEMAND_CLOSED_TO_SUBADMIN" && redemandId != null) {
+        openFromNotification(
+          homeRoute: SubAdminHomeScreen .route,
+          detailRoute: Routes.RedemandDetail,
+          arguments: {
+            "fromNotification": true,
+            "demandId": redemandId, // 👈 yes, key stays demandId
           },
         );
         return;

@@ -195,7 +195,7 @@ Widget todayDemandTile(Map<String, dynamic> d) {
           d["Location"] ?? "",
           style: TextStyle(
             fontSize: 11,
-            color: Colors.grey.shade600,
+            color: Colors.grey.shade500,
           ),
         ),
       ],
@@ -335,7 +335,7 @@ Widget customerDemand2CompactCard({
               const SizedBox(width: 6),
 
               const Text(
-                "Today’s New Demands",
+                "Today’s Demands",
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,

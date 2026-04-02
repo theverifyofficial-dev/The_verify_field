@@ -232,7 +232,7 @@ class _TenantDemandState extends State<CostumerDemand> {
           fontSize: 16,
           fontWeight: FontWeight.bold,
           letterSpacing: 0.4,
-          color: Colors.grey,
+          color: Colors.black,
         ),
       ),
     );
@@ -271,10 +271,10 @@ class _TenantDemandState extends State<CostumerDemand> {
               Row(
                 children: [
                   Text(
-                    "#DM-${d.id}",
+                    "ID${d.id}",
                     style: const TextStyle(
                       fontSize: 12,
-                      color: Colors.grey,
+                      color: Colors.black,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -306,7 +306,7 @@ class _TenantDemandState extends State<CostumerDemand> {
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  color: Colors.red,
+                  color: Colors.green,
                 ),
               ),
             ],
@@ -335,7 +335,7 @@ class _TenantDemandState extends State<CostumerDemand> {
                 if (d.buyRent.isNotEmpty && d.bhk.isNotEmpty)
                   const SizedBox(width: 8),
 
-                if (d.bhk.isNotEmpty) _chip(d.bhk),
+                if (d.bhk.isNotEmpty) _chip2(d.bhk),
               ],
             ),
 
@@ -345,12 +345,12 @@ class _TenantDemandState extends State<CostumerDemand> {
           /// 🔥 LOCATION
           Row(
             children: [
-              const Icon(Icons.location_on, size: 16, color: Colors.grey),
+              const Icon(Icons.location_on, size: 16, color: Colors.black),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
                   d.location,
-                  style: const TextStyle(color: Colors.grey),
+                  style: const TextStyle(color: Colors.black),
                 ),
               ),
             ],
@@ -361,11 +361,11 @@ class _TenantDemandState extends State<CostumerDemand> {
           /// 🔥 DATE + TIME
           Row(
             children: [
-              const Icon(Icons.calendar_today, size: 14, color: Colors.grey),
+              const Icon(Icons.calendar_today, size: 14, color: Colors.black),
               const SizedBox(width: 6),
               Text(
                 formatApiDate(d.createdDate),
-                style: const TextStyle(color: Colors.grey),
+                style: const TextStyle(color: Colors.black),
               ),
             ],
           ),
@@ -458,10 +458,31 @@ class _TenantDemandState extends State<CostumerDemand> {
   }
 
   Widget _chip(String text) {
+    final isRent = text.toLowerCase() == "rent";
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
+        color: isRent ? const Color(0xFF7C3AED) : Colors.orange, // purple / cyan
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.white, // 🔥 better contrast
+        ),
+      ),
+    );
+  }
+
+  Widget _chip2(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color:
+        const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
@@ -469,11 +490,13 @@ class _TenantDemandState extends State<CostumerDemand> {
         style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w500,
-          color: Color(0xFF334155),
+          color:
+          Color(0xFF334155),
         ),
       ),
     );
   }
+
 
   String formatApiDate(String apiDate) {
     if (apiDate.isEmpty) return "";

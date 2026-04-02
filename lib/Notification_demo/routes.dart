@@ -32,17 +32,12 @@ class Routes {
   static const String administaterAddRentedFlatTabbar = "/AdministatorAddRentedFlatTabbar";
   static const String fieldNewDemand = "/fieldNewDemand";
   static const String addRentedFlatTabbarNew = "/AddRentedFlatTabbarNew";
-  // ADMIN
-  static const String AdminDemandDetails = "/adminDemandDetail";
-  static const String AdminRedemandDetail = "/adminRedemandDetail";
 
-// SUBADMIN
-  static const String subAdminDemandDetail = "/subAdminDemandDetail";
-  static const String subAdminRedemandDetail = "/subAdminRedemandDetail";
 
 // FIELDWORKER
-  static const String FieldDemandDetail = "/fieldDemandDetail";
-  static const String FieldRedemandDetail = "/fieldRedemandDetail";
+  static const String DemandList = "/fieldDemandList";
+  static const String DemandDetails = "/fieldDemandDetail";
+  static const String RedemandDetail = "/fieldRedemandDetail";
 // Commercial
   static const String AdminFieldCommercial = "/FieldCommercial";
   static const String AdminFieldPlot = "/FieldPlot";
@@ -176,60 +171,32 @@ class Routes {
         tabIndex: args["tabIndex"] ?? 0,
       );
     },
-    subAdminDemandDetail: (context) {
+
+
+
+    DemandList: (context) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
-      return DemandDetail(
-        demandId: args["demandId"],
-        isReadOnly: true, // 🔥 THIS IS THE KEY
-        fromNotification: args["fromNotification"] ?? false,
-      );
-    },
-
-    AdminDemandDetails: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
-      return
-
-     DemandDetail(
-       demandId: args["demandId"],
-            isReadOnly: true, // 🔥 THIS IS THE KEY
-       fromNotification: args["fromNotification"] ?? false,
-
-     );
-    },
-
-    AdminRedemandDetail: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
-      return ReDemandDetailPage(
-        RedemandId: args["demandId"],
+      return Tabbar(
         fromNotification: args["fromNotification"] ?? false,
       );
     },
 
 
-    subAdminRedemandDetail: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
-      return ReDemandDetailPage(
-        RedemandId: args["demandId"],
-        fromNotification: args["fromNotification"] ?? false,
-        isReadOnly: true,
-      );
-    },
-
-
-    FieldDemandDetail: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
+    DemandDetails: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
       return DemandDetail(
         demandId: args["demandId"],
         fromNotification: args["fromNotification"] ?? false,
       );
     },
 
-    FieldRedemandDetail: (context) {
+    RedemandDetail: (context) {
       final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
       return ReDemandDetailPage(
         RedemandId: args["demandId"],
         fromNotification: args["fromNotification"] ?? false,
       );
     },
+
   };
 }

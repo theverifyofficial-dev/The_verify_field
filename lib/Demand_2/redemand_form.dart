@@ -93,10 +93,9 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
 
   void _updateFamilyTotal() {
     final total = _adultCount + _childrenCount;
-    _familyMember = total.toString();
     _totalCtrl.text = total.toString();
+    setState(() {});
   }
-
 
   String? safeString(dynamic value) {
     if (value == null) return null;
@@ -499,7 +498,7 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
               Align(
                 alignment: Alignment.center,
                 child: Text(
-                  "Update Demand",
+                  "Update ReDemand",
                   style: theme.textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold,fontSize: 16,color: textBlack),
                 ),
               ),
@@ -636,52 +635,73 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
                     ),
 
                     const SizedBox(height: 16),
-
-// 🔥 ADULT + CHILD
                     Row(
                       children: [
+                        /// 👨 Adults
                         Expanded(
                           child: TextFormField(
-                              decoration: _inputStyle("Adults", Icons.person),
-                              keyboardType: TextInputType.number,
-                              initialValue: _adultCount.toString(),
-                              style: const TextStyle(color: Colors.black),
-
-
-                              onChanged: (v) {
-                                _adultCount = int.tryParse(v) ?? 1;
-                                _updateFamilyTotal();
-                              }
-
+                            decoration: _inputStyle("Adults", Icons.person),
+                            keyboardType: TextInputType.number,
+                            initialValue: _adultCount.toString(),
+                            style: const TextStyle(color: Colors.black),
+                            textAlign: TextAlign.center,
+                            onChanged: (v) {
+                              _adultCount = int.tryParse(v) ?? 0;
+                              _updateFamilyTotal();
+                            },
                           ),
                         ),
-                        const SizedBox(width: 10),
+
+                        /// ➕ PLUS SIGN
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(
+                            "+",
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+
+                        /// 👶 Children
                         Expanded(
                           child: TextFormField(
-                              decoration: _inputStyle("Children", Icons.child_care),
-                              style: const TextStyle(color: Colors.black),
-                              keyboardType: TextInputType.number,
-                              initialValue: _childrenCount.toString(),
-                              onChanged: (v) {
-                                _childrenCount = int.tryParse(v) ?? 0;
-                                _updateFamilyTotal();
-                              }
+                            decoration: _inputStyle("Child", Icons.child_care),
+                            keyboardType: TextInputType.number,
+                            initialValue: _childrenCount.toString(),
+                            style: const TextStyle(color: Colors.black),
+                            textAlign: TextAlign.center,
+                            onChanged: (v) {
+                              _childrenCount = int.tryParse(v) ?? 0;
+                              _updateFamilyTotal();
+                            },
+                          ),
+                        ),
+
+                        /// ➡️ EQUAL SIGN
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(
+                            "=",
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+
+                        /// 👥 TOTAL
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            _totalCtrl.text.isEmpty ? "0" : _totalCtrl.text,
+                            style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black
+                            ),
                           ),
                         ),
                       ],
-                    ),
-
-                    const SizedBox(height: 16),
-
-// 🔥 TOTAL MEMBERS
-                    TextFormField(
-                      decoration: _inputStyle("Total Members", Icons.group),
-                      keyboardType: TextInputType.number,
-
-                      controller: _totalCtrl,
-                      style: const TextStyle(color: Colors.black),
-
-                      readOnly: true, // 🔥 IMPORTANT
                     ),
 
 

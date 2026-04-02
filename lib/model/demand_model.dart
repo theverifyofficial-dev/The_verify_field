@@ -76,7 +76,6 @@ class TenantDemandModel {
       result: json['final_reason']?.toString() ?? '',
       mark: json['mark']?.toString() ?? '0',
       adminName: json['admin_name']?.toString() ?? '',
-
       createdDate: extractDate(json['created_date']),
       finishingDate: extractDate(json['finishing_date']),
       Date: extractDate(json['Date']),

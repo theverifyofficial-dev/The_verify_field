@@ -17,12 +17,12 @@ class DemandCard extends StatelessWidget {
     this.isField = false,
     this.PinList,
     required this.type, // 👈 REQUIRED
-
   });
 
   @override
   Widget build(BuildContext context) {
     final isUrgent = d.mark == "1";
+    final isWeb = d.reference.toLowerCase() == "website";
 
     return GestureDetector(
       onTap: onTap,
@@ -55,7 +55,7 @@ class DemandCard extends StatelessWidget {
                       "ID-${d.id}",
                       style: const TextStyle(
                         fontSize: 12,
-                        color: Colors.grey,
+                        color: Colors.black,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -78,7 +78,28 @@ class DemandCard extends StatelessWidget {
                           ),
                         ),
                       ),
+                    ],
+
+                    if (isWeb) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Text(
+                          "Website",
+                          style: TextStyle(
+                            color: Colors.red,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ]
+
                   ],
                 ),
 
@@ -90,7 +111,7 @@ class DemandCard extends StatelessWidget {
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: Colors.red,
+                    color: Colors.green,
                   ),
                 ),
                 SizedBox(width: 5,),
@@ -128,7 +149,7 @@ class DemandCard extends StatelessWidget {
                   if (d.buyRent.isNotEmpty && d.bhk.isNotEmpty)
                     const SizedBox(width: 8),
 
-                  if (d.bhk.isNotEmpty) _chip(d.bhk),
+                  if (d.bhk.isNotEmpty) _chip2(d.bhk),
                 ],
               ),
 
@@ -138,13 +159,23 @@ class DemandCard extends StatelessWidget {
             /// 🔥 LOCATION
             Row(
               children: [
-                const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                const Icon(Icons.location_on, size: 16, color: Colors.black),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    d.location,
-                    style: const TextStyle(color: Colors.grey),
+                    d.location.isNotEmpty ?
+                    d.location : "Sultanpur",
+                    style: const TextStyle(color: Colors.black),
                   ),
+                ),
+
+                Spacer(),
+
+                Text(
+                  "by ${(d.assignedFieldworkerName?.trim().isNotEmpty ?? false)
+                      ? d.assignedFieldworkerName
+                      : (d.adminName ?? "--")}",
+                    style: const TextStyle(color: Colors.black,fontStyle: FontStyle.italic,fontSize: 12),
                 ),
               ],
             ),
@@ -154,13 +185,14 @@ class DemandCard extends StatelessWidget {
             /// 🔥 DATE + TIME
             Row(
               children: [
-                const Icon(Icons.calendar_today, size: 14, color: Colors.grey),
+                const Icon(Icons.calendar_today, size: 14, color: Colors.black),
                 const SizedBox(width: 6),
                     Text(d.formattedDate,
-                  style: const TextStyle(color: Colors.grey),
+                  style: const TextStyle(color: Colors.black),
                 ),
               ],
             ),
+
           ],
         ),
       ),
@@ -168,10 +200,31 @@ class DemandCard extends StatelessWidget {
   }
 
   Widget _chip(String text) {
+    final isRent = text.toLowerCase() == "rent";
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
+        color: isRent ? const Color(0xFF7C3AED) : Colors.orange, // purple / cyan
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.white, // 🔥 better contrast
+        ),
+      ),
+    );
+  }
+
+  Widget _chip2(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color:
+        const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
@@ -179,7 +232,8 @@ class DemandCard extends StatelessWidget {
         style: const TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w500,
-          color: Color(0xFF334155),
+          color:
+          Color(0xFF334155),
         ),
       ),
     );

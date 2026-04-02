@@ -178,9 +178,11 @@ class _TenantDemandState extends State<ShowTenantDemandPage> {
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: "Search demands...",
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: _searchController.text.isNotEmpty
+                      hintText: "Search demands...",
+                      hintStyle: TextStyle(color: Colors.grey.shade700),
+                      prefixIcon: const Icon(Icons.search),
+                      prefixIconColor: Colors.grey.shade700,
+                      suffixIcon: _searchController.text.isNotEmpty
                         ? IconButton(
                       icon: const Icon(Icons.close),
                       onPressed: () {
@@ -228,7 +230,7 @@ class _TenantDemandState extends State<ShowTenantDemandPage> {
                         ..._filteredParent.map((d) =>
                             DemandCard(
                               d: d,
-                              type: "Demand", // 👈 here
+                              type: "demand", // 👈 here
                               onTap: () {
 
                                 Navigator.push(

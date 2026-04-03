@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import '../../Custom_Widget/constant.dart';
 import '../../Insurance/InsuranceDetail.dart';
+import 'Admin_Pdf_Quotation.dart';
 
 const String insuranceBaseUrl =
     "https://verifyrealestateandservices.in/PHP_Files/insurance_insert_api/insurance_details/";
@@ -145,11 +146,11 @@ class InsuranceResponse {
 }
 
 class AdminListInsurance extends StatefulWidget {
-  final String fieldWorkerNumber;
+  final String? fieldWorkerNumber;
 
   const AdminListInsurance({
     super.key,
-    required this.fieldWorkerNumber,
+     this.fieldWorkerNumber,
   });
 
   @override
@@ -794,20 +795,48 @@ class _AdminListInsuranceState extends State<AdminListInsurance> {
                       ),
 
                       /// FUEL BADGE
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(.12),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          "Fuel: ${item.fuelType ?? "-"}",
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontFamily: "PoppinsBold",
-                            color: Colors.blue,
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => Admin_PdfQuotation(projectId: item.id),
+                            ),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                          backgroundColor: isDark
+                              ? Colors.white.withOpacity(.08)
+                              : const Color(0xFF4F46E5).withOpacity(.1),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            side: BorderSide(
+                              color: isDark
+                                  ? Colors.white.withOpacity(.15)
+                                  : const Color(0xFF4F46E5).withOpacity(.3),
+                              width: 1,
+                            ),
                           ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.remove_red_eye_outlined,
+                              size: 13,
+                              color: isDark ? Colors.white70 : const Color(0xFF4F46E5),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              "View Details",
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontFamily: "PoppinsBold",
+                                color: isDark ? Colors.white70 : const Color(0xFF4F46E5),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],

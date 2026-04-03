@@ -487,15 +487,15 @@ import 'package:verify_feild_worker/Administrator/AdminInsurance/Admin_insurance
           const SizedBox(height: 12),
 
           /// ✅ RESPONSIVE HEIGHT
-          IntrinsicHeight(
-            child: SizedBox(
-              height: data.length > 2 ? 320 : 260,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: data.length,
-                itemBuilder: (context, index) {
-                  return _insuranceMiniCard(data[index], isDark);
-                },
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: List.generate(
+                  data.length,
+                      (index) => _insuranceMiniCard(data[index], isDark),
+                ),
               ),
             ),
           ),
@@ -504,6 +504,7 @@ import 'package:verify_feild_worker/Administrator/AdminInsurance/Admin_insurance
         ],
       );
     }
+
     Widget _insuranceMiniCard(InsuranceModel item, bool isDark) {
 
       final missingFields = _missingFieldsFor(item);

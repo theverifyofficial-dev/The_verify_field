@@ -2,30 +2,30 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Custom_Widget/property_preview.dart';
-import 'InsuranceShowListPage.dart';
-import 'UpdateInsuranceForm Screen.dart';
+import '../../Custom_Widget/property_preview.dart';
+import 'Social_InsuranceShowListPage.dart';
+import 'Social_Update_InsuranceForm.dart';
 
-class InsuranceDetailScreen extends StatefulWidget {
+class Social_InsuranceDetailScreen extends StatefulWidget {
   final int insuranceId;
 
-  const InsuranceDetailScreen({
+  const Social_InsuranceDetailScreen({
     super.key,
     required this.insuranceId,
   });
 
   @override
-  State<InsuranceDetailScreen> createState() =>
-      _InsuranceDetailScreenState();
+  State<Social_InsuranceDetailScreen> createState() =>
+      _Social_InsuranceDetailScreenState();
 }
 
-class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
+class _Social_InsuranceDetailScreenState extends State<Social_InsuranceDetailScreen> {
 
   final PageController _pageController = PageController();
   int currentPage = 0;
 
   bool isLoading = true;
-  InsuranceModel? insurance;
+  SocialInsuranceModel? insurance;
 
   String? userName;
   String? userNumber;
@@ -103,7 +103,7 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
       final decoded = jsonDecode(response.body);
 
       if (decoded['status'] == "success") {
-        insurance = InsuranceModel.fromJson(decoded['data'][0]);
+        insurance = SocialInsuranceModel.fromJson(decoded['data'][0]);
       }
     } catch (e) {
       debugPrint("Detail Error: $e");
@@ -139,7 +139,7 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
   //   }
   // }
 
-  Widget policyHolderCard(InsuranceModel item) {
+  Widget policyHolderCard(SocialInsuranceModel item) {
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -357,7 +357,7 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
     );
   }
 
-  Widget vehicleSpecCard(InsuranceModel item) {
+  Widget vehicleSpecCard(SocialInsuranceModel item) {
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -452,7 +452,7 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
     );
   }
 
-  Widget currentPolicyCard(InsuranceModel item) {
+  Widget currentPolicyCard(SocialInsuranceModel item) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -608,7 +608,7 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
     );
   }
 
-  Widget documentsGrid(InsuranceModel item) {
+  Widget documentsGrid(SocialInsuranceModel item) {
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -951,7 +951,7 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
     );
   }
 
-  Widget nomineeCard(InsuranceModel item) {
+  Widget nomineeCard(SocialInsuranceModel item) {
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -1378,7 +1378,7 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) =>
-                                      UpdateInsuranceFormScreen(item: item),
+                                      SocialUpdateInsuranceForm(item: item),
                                 ),
                               );
 

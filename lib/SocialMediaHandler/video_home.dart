@@ -5,9 +5,9 @@ import '../../main.dart';
 import '../Z-Screen/profile.dart';
 import '../../ui_decoration_tools/app_images.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-
 import 'Advertise_page.dart';
 import 'SocialMediaHomePage.dart';
+import 'Social_Insurance/Social_Pdf_quotations/Social_Insurence_handle.dart';
 
 class VideoHomepage extends StatefulWidget {
   static const route = "/SubAdminHomeScreen";
@@ -21,6 +21,7 @@ class VideoHomepage extends StatefulWidget {
 class _VideoHomepage_ScreenState extends State<VideoHomepage> with TickerProviderStateMixin {
   int _currentIndex = 0;
   String? userName;
+  String? userNumber;
   late AnimationController _shineController;
   late Animation<double> _shineAnimation;
 
@@ -38,7 +39,19 @@ class _VideoHomepage_ScreenState extends State<VideoHomepage> with TickerProvide
       curve: Curves.easeInOut,
     );
   }
-
+  Future<void> loadUserName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final storedName = prefs.getString('name');
+    final storedNumber = prefs.getString('number');
+    debugPrint("User Name: $storedName");
+    debugPrint("User Number: $storedNumber");
+    if (mounted) {
+      setState(() {
+        userName = storedName;
+        userNumber = storedNumber;
+      });
+    }
+  }
   @override
   void dispose() {
     _shineController.dispose();
@@ -51,16 +64,6 @@ class _VideoHomepage_ScreenState extends State<VideoHomepage> with TickerProvide
     });
   }
 
-  Future<void> loadUserName() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    final storedName = prefs.getString('name');
-
-    if (mounted) {
-      setState(() {
-        userName = storedName;
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +73,37 @@ class _VideoHomepage_ScreenState extends State<VideoHomepage> with TickerProvide
     final primaryColor = Theme
         .of(context)
         .primaryColor;
+    final List<Map<String, dynamic>> featureItems = [
+      {
+        "image": AppImages.video,
+        "title": "Video Editor",
+        "onTap": () async {
+          Navigator.push(context, MaterialPageRoute(
+            builder: (_) => SocialMediaHomePage(),
+          ));
+        },
+      },
+
+      if (userNumber == "9368668573")
+
+        {
+          "image": AppImages.compliant,
+          "title": "Insurance",
+          "onTap": () {
+            Navigator.push(context, MaterialPageRoute(
+                builder: (_) => const Social_Insurance_handle()));
+          },
+        },
+
+      {
+        'image': AppImages.ads,
+        'title': "Advertisement",
+        'onTap': () {
+          Navigator.push(context, MaterialPageRoute(
+              builder: (context) => AdvertisePage()));
+        }
+      },
+    ];
 
     return Scaffold(
       appBar: AppBar(
@@ -119,22 +153,6 @@ class _VideoHomepage_ScreenState extends State<VideoHomepage> with TickerProvide
             ),
           ),
         ),
-        leadingWidth: 80,
-        // Fixed width for consistent spacing
-        actions:  [
-          IconButton(
-            icon: Icon(
-                ThemeSwitcher.of(context)?.themeMode == ThemeMode.dark
-                    ? Icons.light_mode
-                    : Icons.dark_mode,
-                color: Colors.yellow
-
-            ),
-            onPressed: () {
-              ThemeSwitcher.of(context)?.toggleTheme();
-            },
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: AnimationLimiter(
@@ -273,34 +291,11 @@ class _VideoHomepage_ScreenState extends State<VideoHomepage> with TickerProvide
                             crossAxisSpacing: 16,
                             mainAxisSpacing: 16,
                           ),
-                          itemCount: 2,
+                          itemCount: featureItems.length,
                           itemBuilder: (context, index) {
-                            final List<Map<String, dynamic>> featureItems = [
-                              {
-                                "image": AppImages.video,
-                                "title": "Video Editor",
-                                "onTap": () async {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => SocialMediaHomePage(),
-                                    ),
-                                  );
-                                },
-                              },
-                              {
-                                'image': AppImages.ads,
-                                'title': "Advertisement",
-                                'onTap': () {
-                                  Navigator.push(context, MaterialPageRoute(
-                                      builder: (
-                                          context) =>  AdvertisePage()));
-                                }
-                              },
-                            ];
+                            // ── Build list OUTSIDE itemBuilder ──
 
                             final item = featureItems[index];
-
                             return _buildFeatureCard(
                               context: context,
                               imagePath: item['image'],

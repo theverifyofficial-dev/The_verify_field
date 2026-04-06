@@ -314,41 +314,60 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
   static Map<dynamic, DateTime>? _lastTapTimes;
 
   Future<List<Property>> fetchBookingData() async {
-    final url = Uri.parse(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_book_flat_for_admin.php");
+    try {
+      final url = Uri.parse(
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_book_flat_for_admin.php");
 
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final decoded = json.decode(response.body);
-      if (decoded["success"] == true) {
-        List data = decoded["data"];
-        return data.map((e) => Property.fromJson(e)).toList().reversed.toList();
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+
+        if (decoded["success"] == true) {
+          List data = decoded["data"];
+          return data
+              .map((e) => Property.fromJson(e))
+              .toList()
+              .reversed
+              .toList();
+        } else {
+          return [];
+        }
+      } else {
+        return [];
       }
+    } catch (e) {
+      AppLogger.api("❌ Booking Error: $e");
+      return [];
     }
-    throw Exception("Failed to load data");
   }
   Future<List<Tenant>> fetchTenants(int subId) async {
-    final response = await http.get(
-      Uri.parse(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_tenant_and_owner_api.php?subid=$subId",
-      ),
-    );
+    try {
+      final response = await http.get(
+        Uri.parse(
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_tenant_and_owner_api.php?subid=$subId",
+        ),
+      );
 
-    AppLogger.api("🔵 STATUS CODE: ${response.statusCode}");
-    AppLogger.api("🔵 RAW RESPONSE: ${response.body}");
+      AppLogger.api("🔵 STATUS CODE: ${response.statusCode}");
+      AppLogger.api("🔵 RAW RESPONSE: ${response.body}");
 
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
 
-      if (jsonResponse["success"] == true) {
-        List data = jsonResponse["data"];
-        AppLogger.api("🟢 TENANT COUNT: ${data.length}");
-        return data.map((e) => Tenant.fromJson(e)).toList();
+        if (jsonResponse["success"] == true) {
+          List data = jsonResponse["data"];
+          AppLogger.api("🟢 TENANT COUNT: ${data.length}");
+          return data.map((e) => Tenant.fromJson(e)).toList();
+        } else {
+          return [];
+        }
       } else {
-        throw Exception("API success = false");
+        return [];
       }
-    } else {
-      throw Exception("Failed to load tenants");
+    } catch (e) {
+      AppLogger.api("❌ Tenant Error: $e");
+      return [];
     }
   }
 

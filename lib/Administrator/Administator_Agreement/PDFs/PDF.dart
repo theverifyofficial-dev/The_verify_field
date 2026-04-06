@@ -139,34 +139,42 @@ String maskIdNumber(String value) {
   return 'X' * maskedLength + digits.substring(digits.length - 3);
 }
 
-/// Safe extraction: returns data[key] if present and not empty; otherwise returns fallback + ' (static)'
-String safeString(Map<String, dynamic> data, String key, String fallback) {
+String safeString(Map<String, dynamic> data, String key) {
   final v = data[key];
-  if (v == null) return '$fallback (static)';
+  if (v == null) return '';
   final s = v.toString().trim();
-  if (s.isEmpty) return '$fallback (static)';
-  return s;
+  return s.isEmpty ? '' : s;
 }
 
 /// Parse date robustly; returns string in dd/MM/yyyy or fallback if parsing fails
-String formatDateStr(dynamic dateVal, String fallback) {
-  if (dateVal == null) return '$fallback (static)';
+String formatDateStr(dynamic dateVal) {
+  if (dateVal == null) return '';
+
   try {
     String raw;
+
     if (dateVal is Map && dateVal.containsKey('date')) {
       raw = dateVal['date'].toString();
     } else {
       raw = dateVal.toString();
     }
+
     final dt = DateTime.parse(raw);
+
     final dd = dt.day.toString().padLeft(2, '0');
     final mm = dt.month.toString().padLeft(2, '0');
     final yy = dt.year.toString();
+
     return '$dd/$mm/$yy';
   } catch (e) {
     final s = dateVal.toString();
-    if (RegExp(r'\d{1,2}\/\d{1,2}\/\d{4}').hasMatch(s)) return s;
-    return '$fallback (static)';
+
+    // if already formatted → keep it
+    if (RegExp(r'\d{1,2}\/\d{1,2}\/\d{4}').hasMatch(s)) {
+      return s;
+    }
+
+    return ''; // ✅ nothing instead of fake fallback
   }
 }
 
@@ -247,17 +255,16 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
 
   final pdf = pw.Document();
 
-  // dynamic-safe reads (use fallback with (static) if missing)
-  final ownerName = safeString(data, 'owner_name', 'DEMO OWNER');
-  final ownerRelation = safeString(data, 'owner_relation', 'S/O');
-  final ownerRelationPerson = safeString(data, 'relation_person_name_owner', 'QWERTY');
-  final ownerAddress = safeString(data, 'parmanent_addresss_owner', 'DEMO ADDRESS');
+  final ownerName = safeString(data, 'owner_name');
+  final ownerRelation = safeString(data, 'owner_relation');
+  final ownerRelationPerson = safeString(data, 'relation_person_name_owner');
+  final ownerAddress = safeString(data, 'parmanent_addresss_owner');
 
-  final tenantName = safeString(data, 'tenant_name', 'DEMO TENANT');
-  final tenantRelation = safeString(data, 'tenant_relation', 'S/O');
-  final tenantRelationPerson = safeString(data, 'relation_person_name_tenant', 'PAWAN');
-  final tenantPermAddress = safeString(data, 'permanent_address_tenant', 'DEMO TENANT ADDRESS');
-  final tenantMobile = safeString(data, 'tenant_mobile_no', '0000000000');
+  final tenantName = safeString(data, 'tenant_name');
+  final tenantRelation = safeString(data, 'tenant_relation');
+  final tenantRelationPerson = safeString(data, 'relation_person_name_tenant');
+  final tenantPermAddress = safeString(data, 'permanent_address_tenant');
+  final tenantMobile = safeString(data, 'tenant_mobile_no');
 
   final bhk = data['Bhk'] ?? '';
   final floor = data['floor'] ?? '';
@@ -294,9 +301,9 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
 
 
   final rawOwnerAadhaar =
-  safeString(data, 'owner_addhar_no', '297374997337');
+  safeString(data, 'owner_addhar_no');
   final rawTenantAadhaar =
-  safeString(data, 'tenant_addhar_no', '100288377394');
+  safeString(data, 'tenant_addhar_no');
 
   final ownerAadhaar =
   hideAgreement ? maskIdNumber(rawOwnerAadhaar) : rawOwnerAadhaar;
@@ -342,16 +349,19 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   }
 
 
-  // compute shiftingDate robustly
-  DateTime shiftingDate;
+  DateTime? shiftingDate;
+
   try {
-    if (data['shifting_date'] is Map && data['shifting_date']['date'] != null) {
-      shiftingDate = DateTime.parse(data['shifting_date']['date'].toString());
-    } else {
-      shiftingDate = DateTime.parse(data['shifting_date'].toString());
+    if (data['shifting_date'] is Map &&
+        data['shifting_date']['date'] != null) {
+      shiftingDate = DateTime.parse(
+          data['shifting_date']['date'].toString());
+    } else if (data['shifting_date'] != null) {
+      shiftingDate = DateTime.parse(
+          data['shifting_date'].toString());
     }
   } catch (_) {
-    shiftingDate = DateTime(2025, 9, 23); // fallback static
+    shiftingDate = null;
   }
 
   String getIdLabel(String number) {
@@ -379,14 +389,23 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
     }
   }
 
-  final endDate = addMonthsSafely(shiftingDate, 11);
-  final shiftingDateFormatted = '${shiftingDate.day.toString().padLeft(2, '0')}/${shiftingDate.month.toString().padLeft(2, '0')}/${shiftingDate.year}';
-  final endDateFormatted = '${endDate.day.toString().padLeft(2, '0')}/${endDate.month.toString().padLeft(2, '0')}/${endDate.year}';
+  final endDate = shiftingDate != null
+      ? addMonthsSafely(shiftingDate, 11)
+      : null;
+
+  final endDateFormatted = endDate != null
+      ? '${endDate.day.toString().padLeft(2, '0')}/${endDate.month.toString().padLeft(2, '0')}/${endDate.year}'
+      : '';
+  final shiftingDateFormatted = shiftingDate != null
+      ? '${shiftingDate.day.toString().padLeft(2, '0')}/${shiftingDate.month.toString().padLeft(2, '0')}/${shiftingDate.year}'
+      : '';
 
   final baseStyle = pw.TextStyle(fontSize: 11, height: 1.4);
   final boldStyle = pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, height: 1.4);
   final titleStyle = pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold);
-  final rentDueDay = getDayWithSuffix(shiftingDate.day);
+  final rentDueDay = shiftingDate != null
+      ? getDayWithSuffix(shiftingDate.day)
+      : '';
   final bool isRenewal =
       agreement_type.trim().toLowerCase() == "renewal agreement";
 

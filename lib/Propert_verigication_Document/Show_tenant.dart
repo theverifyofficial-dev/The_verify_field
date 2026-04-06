@@ -8,6 +8,7 @@ import 'package:lottie/lottie.dart';
 import 'dart:convert';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../AppLogger.dart';
 import '../Home_Screen_click/View_All_Details.dart';
 import '../Police_Verification/Owner_Details.dart';
 import '../Police_Verification/Property_Verify_Details.dart';
@@ -154,50 +155,82 @@ class _ShowPropertyState extends State<ShowProperty> {
   String _number = '';
 
   Future<List<T_model>> fetchData() async {
-    var url = Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/Show_Tenant_Table_by_Feildworker_Number_?fieldworkarnumber=$_number");
-    final responce = await http.get(url);
-    if (responce.statusCode == 200) {
-      List listresponce = json.decode(responce.body);
-      listresponce.sort((a, b) => b['TUP_id'].compareTo(a['TUP_id']));
-      return listresponce.map((data) => T_model.FromJson(data)).toList();
-    }
-    else {
-      throw Exception('Unexpected error occured!');
-    }
-  }
+    try {
+      final url = Uri.parse(
+          "https://verifyrealestateandservices.in/WebService4.asmx/Show_Tenant_Table_by_Feildworker_Number_?fieldworkarnumber=$_number");
 
-  Future<List<Catid_real>> fetchData_All(id) async{
+      final response = await http.get(url);
 
-    var url=Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/show_propertyverifycation_by_lookingproperty_fieldworkarnumber?Looking_Property_=Book&fieldworkarnumber=$_number");
-    final responce=await http.get(url);
-    if(responce.statusCode==200){
+      if (response.statusCode == 200) {
+        List listResponse = json.decode(response.body);
 
-      List listresponce=json.decode(responce.body);
-      listresponce.sort((a, b) => b['PVR_id'].compareTo(a['PVR_id']));
+        listResponse.sort(
+                (a, b) => (b['TUP_id'] ?? 0).compareTo(a['TUP_id'] ?? 0));
 
-      return listresponce.map((data) => Catid_real.FromJson(data)).toList();
-    }
-    else{
-      throw Exception('Unexpected error occured!');
-    }
-
-
-  }
-
-  Future<List<Catid_real>> fetchDataone() async{
-    var url=Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/show_propertyverifycation_by_lookingproperty_fieldworkarnumber?Looking_Property_=Book&fieldworkarnumber=$_number");
-    final responce=await http.get(url);
-    if(responce.statusCode==200){
-
-      List listresponce=json.decode(responce.body);
-      listresponce.sort((a, b) => b['PVR_id'].compareTo(a['PVR_id']));
-      return listresponce.map((data) => Catid_real.FromJson(data)).toList();
-    }
-    else{
-      throw Exception('Unexpected error occured!');
+        return listResponse
+            .map((data) => T_model.FromJson(data))
+            .toList();
+      } else {
+        AppLogger.api("❌ fetchData Status Code: ${response.statusCode}");
+        return [];
+      }
+    } catch (e) {
+      AppLogger.api("❌ fetchData Exception: $e");
+      return [];
     }
   }
 
+  Future<List<Catid_real>> fetchData_All(id) async {
+    try {
+      final url = Uri.parse(
+          "https://verifyrealestateandservices.in/WebService4.asmx/show_propertyverifycation_by_lookingproperty_fieldworkarnumber?Looking_Property_=Book&fieldworkarnumber=$_number");
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        List listResponse = json.decode(response.body);
+
+        listResponse.sort(
+                (a, b) => (b['PVR_id'] ?? 0).compareTo(a['PVR_id'] ?? 0));
+
+        return listResponse
+            .map((data) => Catid_real.FromJson(data))
+            .toList();
+      } else {
+        AppLogger.api("❌ fetchData_All Status Code: ${response.statusCode}");
+        return [];
+      }
+    } catch (e) {
+      AppLogger.api("❌ fetchData_All Exception: $e");
+      return [];
+    }
+  }
+
+  Future<List<Catid_real>> fetchDataone() async {
+    try {
+      final url = Uri.parse(
+          "https://verifyrealestateandservices.in/WebService4.asmx/show_propertyverifycation_by_lookingproperty_fieldworkarnumber?Looking_Property_=Book&fieldworkarnumber=$_number");
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        List listResponse = json.decode(response.body);
+
+        listResponse.sort(
+                (a, b) => (b['PVR_id'] ?? 0).compareTo(a['PVR_id'] ?? 0));
+
+        return listResponse
+            .map((data) => Catid_real.FromJson(data))
+            .toList();
+      } else {
+        AppLogger.api("❌ fetchDataone Status Code: ${response.statusCode}");
+        return [];
+      }
+    } catch (e) {
+      AppLogger.api("❌ fetchDataone Exception: $e");
+      return [];
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(

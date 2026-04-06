@@ -50,6 +50,9 @@ class _AgreementDetailsState extends State<AllData> {
   String _searchQuery = "";
   Timer? _debounce;
   int totalRecords = 0;
+  int? _lastOpenedId;
+  final Map<int, GlobalKey> _itemKeys = {};
+
 
   List<AgreementModel> agreements = [];
   List<AgreementModel> filteredAgreements = [];
@@ -60,7 +63,6 @@ class _AgreementDetailsState extends State<AllData> {
   final int _limit = 20;
 
   ScrollController _scrollController = ScrollController();
-  double _savedScrollOffset = 0.0;
 
   int page = 1;
   bool hasMore = true;
@@ -142,10 +144,14 @@ class _AgreementDetailsState extends State<AllData> {
         return;
       }
 
+      final url =
+          'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php?page=1&limit=${agreements.length}';
+
       // Otherwise fetch full list silently
       final response = await http.get(
-        Uri.parse('https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php'),
+        Uri.parse(url),
       );
+
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -159,7 +165,14 @@ class _AgreementDetailsState extends State<AllData> {
           if (!mounted) return;
 
           setState(() {
-            agreements = freshList;
+            final freshMap = {
+              for (var item in freshList) item.id: item
+            };
+
+            agreements = agreements.map((oldItem) {
+              return freshMap[oldItem.id] ?? oldItem;
+            }).toList();
+
             final query = searchController.text.toLowerCase();
             filteredAgreements = query.isEmpty
                 ? agreements
@@ -170,6 +183,9 @@ class _AgreementDetailsState extends State<AllData> {
             }).toList();
           });
         }
+
+        _itemKeys.removeWhere((key, _) =>
+        !agreements.any((a) => a.id == key));
       }
     } catch (e) {
       AppLogger.api("❌ Silent refresh error: $e");
@@ -250,6 +266,22 @@ class _AgreementDetailsState extends State<AllData> {
         : [Colors.black, Colors.green.shade400];
   }
 
+  void _scrollToLastOpened() {
+    if (_lastOpenedId == null) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final key = _itemKeys[_lastOpenedId];
+
+      if (key?.currentContext != null) {
+        Scrollable.ensureVisible(
+          key!.currentContext!,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          alignment: 0.3, // keeps it slightly below top (nice UX)
+        );
+      }
+    });
+  }
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -572,6 +604,7 @@ class _AgreementDetailsState extends State<AllData> {
                       item.recieved.toString() == "1";
 
                   return Container(
+                    key: _itemKeys.putIfAbsent(item.id, () => GlobalKey()),
                     margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(18),
@@ -593,8 +626,7 @@ class _AgreementDetailsState extends State<AllData> {
                     child: InkWell(
                       borderRadius: BorderRadius.circular(18),
                       onTap: () async {
-                        // Save scroll position before leaving
-                        _savedScrollOffset = _scrollController.offset;
+                        _lastOpenedId = item.id;
 
                         await Navigator.push(
                           context,
@@ -605,14 +637,9 @@ class _AgreementDetailsState extends State<AllData> {
                           ),
                         );
 
-                        await _silentRefresh();  // ← ADD THIS
+                        await _silentRefresh();
 
-                        // Restore scroll position after returning — no list reset
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (_scrollController.hasClients) {
-                            _scrollController.jumpTo(_savedScrollOffset);
-                          }
-                        });
+                        _scrollToLastOpened();
                       },
                       child: Padding(
                         padding: const EdgeInsets.all(14.0),
@@ -630,7 +657,7 @@ class _AgreementDetailsState extends State<AllData> {
                                       backgroundColor: _getRenewalDateColor(renewalDate),
                                       child: FittedBox(
                                         child: Text(
-                                          '${(filteredAgreements.length - index).clamp(1, filteredAgreements.length)}',
+                                          '${index + 1}',
                                           style: const TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,

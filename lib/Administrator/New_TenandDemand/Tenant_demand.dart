@@ -1,12 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-import '../../AppLogger.dart';
-import '../../AppLogger.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
 import '../../Custom_Widget/Demand_card.dart';
 import '../../Demand_2/Demand_detail.dart';
 import '../../model/demand_model.dart';
-import '../../utilities/bug_founder_fuction.dart';
 import 'Add_demand.dart';
 
 class TenantDemand extends StatefulWidget {
@@ -60,10 +58,9 @@ class _TenantDemandState extends State<TenantDemand> {
     try {
       final url = Uri.parse(
           "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php"
-              "?Status=new&page=$_page&limit=$_limit"
-      );
+              "?Status=new&page=$_page&limit=$_limit");
 
-      final response = await http.get(url);
+      final response = await http.get(url).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -82,7 +79,6 @@ class _TenantDemandState extends State<TenantDemand> {
 
             _filteredDemands = _allDemands;
 
-            // 🔥 pagination end check
             if (newData.length < _limit) {
               _hasMore = false;
             } else {
@@ -91,7 +87,15 @@ class _TenantDemandState extends State<TenantDemand> {
           });
         }
       }
+    }
+
+    // 🔥 INTERNET ERROR HANDLING
+    on SocketException {
+      _showSnackBar("No internet connection");
+    } on TimeoutException {
+      _showSnackBar("Request timeout. Check your internet.");
     } catch (e) {
+      _showSnackBar("Something went wrong");
       print(e);
     } finally {
       if (mounted) {
@@ -101,6 +105,18 @@ class _TenantDemandState extends State<TenantDemand> {
         });
       }
     }
+  }
+
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   void _onSearchChanged() {

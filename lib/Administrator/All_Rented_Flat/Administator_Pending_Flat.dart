@@ -544,46 +544,64 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
   static Map<dynamic, DateTime>? _lastTapTimes;
 
   Future<List<Property>> fetchBookingData() async {
-    final url = Uri.parse(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_admin.php");
-    //print("User Name :"+"${userName}");
-    //print("User Number :"+"${userNumber}");
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final decoded = json.decode(response.body);
-      if (decoded["success"] == true) {
-        List data = decoded["data"];
-        return data
-            .map((e) => Property.fromJson(e))
-            .toList()
-            .reversed
-            .toList();
+    try {
+      final url = Uri.parse(
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_admin.php");
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+
+        if (decoded["success"] == true) {
+          List data = decoded["data"];
+          return data
+              .map((e) => Property.fromJson(e))
+              .toList()
+              .reversed
+              .toList();
+        } else {
+          AppLogger.api("⚠️ API success false (booking)");
+          return [];
+        }
+      } else {
+        AppLogger.api("❌ Status Code Error: ${response.statusCode}");
+        return [];
       }
+    } catch (e) {
+      AppLogger.api("❌ Booking Exception: $e");
+      return [];
     }
-    throw Exception("Failed to load data");
   }
   Future<List<Tenant>> fetchTenants(int subId) async {
-    final response = await http.get(
-      Uri.parse(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_pending_rentout_api_tenant_owner.php?subid=$subId",
-      ),
-    );
+    try {
+      final response = await http.get(
+        Uri.parse(
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_pending_rentout_api_tenant_owner.php?subid=$subId",
+        ),
+      );
 
-    AppLogger.api("🔵 STATUS CODE: ${response.statusCode}");
-    AppLogger.api("🔵 RAW RESPONSE: ${response.body}");
+      AppLogger.api("🔵 STATUS CODE: ${response.statusCode}");
+      AppLogger.api("🔵 RAW RESPONSE: ${response.body}");
 
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
 
-      if (jsonResponse["success"] == true) {
-        List data = jsonResponse["data"];
-        AppLogger.api("🟢 TENANT COUNT: ${data.length}");
-        return data.map((e) => Tenant.fromJson(e)).toList();
+        if (jsonResponse["success"] == true) {
+          List data = jsonResponse["data"];
+          AppLogger.api("🟢 TENANT COUNT: ${data.length}");
+          return data.map((e) => Tenant.fromJson(e)).toList();
+        } else {
+          AppLogger.api("⚠️ API success false (tenant)");
+          return [];
+        }
       } else {
-        throw Exception("API success = false");
+        AppLogger.api("❌ Status Code Error: ${response.statusCode}");
+        return [];
       }
-    } else {
-      throw Exception("Failed to load tenants");
+    } catch (e) {
+      AppLogger.api("❌ Tenant Exception: $e");
+      return [];
     }
   }
   final Map<int, bool> _processingMap = {};

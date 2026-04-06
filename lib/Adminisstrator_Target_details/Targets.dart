@@ -728,10 +728,18 @@ class _TargetState extends State<Target> {
 
   Future<void> _fetchAgreementMonthly(String number) async {
     final uri = Uri.parse(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/agreement_external_monthly_show.php?Fieldwarkarnumber=$number");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/count_api_for_all_agreement_with_reword_monthly.php?Fieldwarkarnumber=$number"
+    );
     final decoded = jsonDecode((await http.get(uri)).body);
-    userData[number]!.agreement =
-        int.tryParse(decoded["total_agreement"].toString()) ?? 0;
+
+    // supports both response shapes
+    if (decoded["counts"] != null) {
+      userData[number]!.agreement =
+          int.tryParse(decoded["counts"]["total_agreement"].toString()) ?? 0;
+    } else {
+      userData[number]!.agreement =
+          int.tryParse(decoded["total_agreement"].toString()) ?? 0;
+    }
   }
 
   Future<void> _fetchPoliceMonthly(String number) async {
@@ -766,7 +774,8 @@ class _TargetState extends State<Target> {
 
   Future<void> _fetchAgreementYearly(String number) async {
     final uri = Uri.parse(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/agreement_external_yearly_show.php?Fieldwarkarnumber=$number");
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/count_api_agreement_yealry_with_reward.php?Fieldwarkarnumber=$number"
+    );
     final decoded = jsonDecode((await http.get(uri)).body);
     userData[number]!.agreement =
         int.tryParse(decoded["total_agreement"].toString()) ?? 0;

@@ -439,7 +439,7 @@ class _GeminiChatBodyState extends State<GeminiChatBody> {
 
     final data = jsonDecode(response.body);
 
-    print(data);
+    //print(data);
 
     if (response.statusCode != 200) {
       throw Exception(data["error"]["message"] ?? "Unknown error");

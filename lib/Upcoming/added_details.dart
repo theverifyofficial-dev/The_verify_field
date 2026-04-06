@@ -611,8 +611,8 @@ class _UpcomingDetailsPageState extends State<AddedDetails> {
                             );
 
                             if (deleteResponse.statusCode == 200) {
-                              print('source_id ${widget.id}');
-                              print(deleteResponse.body);
+                              //print('source_id ${widget.id}');
+                              //print(deleteResponse.body);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text("Property UnLived successfully!",

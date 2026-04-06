@@ -19,7 +19,7 @@ class BugLogger {
         "date": DateFormat('yyyy-MM-dd').format(now),
         "time": DateFormat('HH:mm:ss').format(now),
       });
-      print(DateFormat('HH:mm:ss').format(now),);
+      //print(DateFormat('HH:mm:ss').format(now),);
       await _dio.post(
         "https://verifyrealestateandservices.in/Second%20PHP%20FILE/bug_founder/bug_founder.php",
         data: formData,

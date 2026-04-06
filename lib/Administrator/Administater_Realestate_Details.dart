@@ -258,7 +258,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
     if (response.statusCode != 200) {
       throw Exception("HTTP ${response.statusCode}: ${response.body}");
     }
-    print('data response : ${response.body}');
+    //print('data response : ${response.body}');
 
     final decoded = json.decode(response.body);
     final dynamic raw = decoded is Map<String, dynamic> ? decoded['data'] : decoded;
@@ -286,12 +286,12 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
     final url =
         'https://verifyrealestateandservices.in/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$id';
 
-    print('multiple image subid${id}');
+    //print('multiple image subid${id}');
 
     final response = await http.get(Uri.parse(url));
 
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    //print('Response status: ${response.statusCode}');
+    //print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);

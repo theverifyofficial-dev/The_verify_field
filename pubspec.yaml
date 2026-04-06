@@ -116,10 +116,12 @@
     flutter_launcher_icons: ^0.13.1
     flutter_test:
       sdk: flutter
-  flutter_icons:
+    flutter_lints: ^2.0.0
+
+  flutter_launcher_icons:
     android: true
     ios: true
-    image_path: "assets/images/"
+    image_path: "assets/images/VerifyLogo.png"
 
     # The "flutter_lints" package below contains a set of recommended lints to
     # encourage good coding practices. The lint set provided by the package is

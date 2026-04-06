@@ -58,7 +58,7 @@ class _ProfilePageState extends State<AdminProfile> {
         throw Exception('Failed to load data');
       }
     } catch (e) {
-      print('Error: $e');
+      //print('Error: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -71,12 +71,12 @@ class _ProfilePageState extends State<AdminProfile> {
   void _logout(BuildContext context) async {
     // Clear any saved login/session data
     final prefs = await SharedPreferences.getInstance();
-    print("🚪 Logging out...");
-    print("Before clear → number: ${prefs.getString('number')}, name: ${prefs.getString('name')}");
+    //print("🚪 Logging out...");
+    //print("Before clear → number: ${prefs.getString('number')}, name: ${prefs.getString('name')}");
 
     await prefs.clear();
 
-    print("After clear → number: ${prefs.getString('number')}, name: ${prefs.getString('name')}");
+    //print("After clear → number: ${prefs.getString('number')}, name: ${prefs.getString('name')}");
 
     // 🔥 Reset all GetX controllers (important!)
     Get.reset();
@@ -138,7 +138,7 @@ class _ProfilePageState extends State<AdminProfile> {
       );
 
       if (response.statusCode == 200) {
-        print("Logout All Response: ${response.body}");
+        //print("Logout All Response: ${response.body}");
 
         await prefs.clear();
 
@@ -151,10 +151,10 @@ class _ProfilePageState extends State<AdminProfile> {
               (route) => false,
         );
       } else {
-        print("Server error: ${response.statusCode}");
+        //print("Server error: ${response.statusCode}");
       }
     } catch (e) {
-      print("Logout All Devices Error: $e");
+      //print("Logout All Devices Error: $e");
     }
   }
   @override
@@ -640,67 +640,67 @@ class _ProfilePageState extends State<AdminProfile> {
   //     },
   //   );
   // }
-  Widget _logoutOptionTile(
-      BuildContext context, {
-        required IconData icon,
-        required String title,
-        required String subtitle,
-        required Color color,
-        required VoidCallback onTap,
-        bool isDanger = false,
-      }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return InkWell(
-      borderRadius: BorderRadius.circular(18),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        decoration: BoxDecoration(
-          color: isDanger
-              ? color.withOpacity(0.08)
-              : (isDark ? const Color(0xFF2C2C2E) : Colors.grey.shade100),
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Row(
-          children: [
-
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.15),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-
-            const SizedBox(width: 16),
-
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isDark ? Colors.grey[400] : Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  // Widget _logoutOptionTile(
+  //     BuildContext context, {
+  //       required IconData icon,
+  //       required String title,
+  //       required String subtitle,
+  //       required Color color,
+  //       required VoidCallback onTap,
+  //       bool isDanger = false,
+  //     }) {
+  //   final isDark = Theme.of(context).brightness == Brightness.dark;
+  //
+  //   return InkWell(
+  //     borderRadius: BorderRadius.circular(18),
+  //     onTap: onTap,
+  //     child: Container(
+  //       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+  //       decoration: BoxDecoration(
+  //         color: isDanger
+  //             ? color.withOpacity(0.08)
+  //             : (isDark ? const Color(0xFF2C2C2E) : Colors.grey.shade100),
+  //         borderRadius: BorderRadius.circular(18),
+  //       ),
+  //       child: Row(
+  //         children: [
+  //
+  //           Container(
+  //             padding: const EdgeInsets.all(10),
+  //             decoration: BoxDecoration(
+  //               color: color.withOpacity(0.15),
+  //               shape: BoxShape.circle,
+  //             ),
+  //             child: Icon(icon, color: color, size: 22),
+  //           ),
+  //
+  //           const SizedBox(width: 16),
+  //
+  //           Expanded(
+  //             child: Column(
+  //               crossAxisAlignment: CrossAxisAlignment.start,
+  //               children: [
+  //                 Text(
+  //                   title,
+  //                   style: const TextStyle(
+  //                     fontWeight: FontWeight.w600,
+  //                     fontSize: 15,
+  //                   ),
+  //                 ),
+  //                 const SizedBox(height: 4),
+  //                 Text(
+  //                   subtitle,
+  //                   style: TextStyle(
+  //                     fontSize: 13,
+  //                     color: isDark ? Colors.grey[400] : Colors.grey[600],
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
 }

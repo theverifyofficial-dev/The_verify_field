@@ -69,7 +69,7 @@ class _MultiImagePickerPageState extends State<MultiImg> {
         isLoading = false;
       });
     } catch (e) {
-      print("❌ Error fetching data: $e");
+      //print("❌ Error fetching data: $e");
       setState(() {
         isLoading = false;
       });
@@ -141,7 +141,7 @@ class _MultiImagePickerPageState extends State<MultiImg> {
       }
 
       final deleteResponse = await http.post(Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/urgent_flat_multiple_image.php"), body: deleteBody);
-      print("Delete Response: ${deleteResponse.body}");
+      //print("Delete Response: ${deleteResponse.body}");
 
 
       Fluttertoast.showToast(
@@ -160,7 +160,7 @@ class _MultiImagePickerPageState extends State<MultiImg> {
       });
       fetchUpcomingPropertyImages(widget.propertyId);
     } catch (e) {
-      print("Error deleting images: $e");
+      //print("Error deleting images: $e");
     }
   }
 
@@ -184,7 +184,7 @@ class _MultiImagePickerPageState extends State<MultiImg> {
         }
 
         final deleteResponse = await http.post(Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/urgent_flat_multiple_image.php"), body: deleteBody);
-        print("Delete Response: ${deleteResponse.body}");
+        //print("Delete Response: ${deleteResponse.body}");
       }
 
 
@@ -200,7 +200,7 @@ class _MultiImagePickerPageState extends State<MultiImg> {
 
         var res = await request.send();
         var body = await res.stream.bytesToString();
-        print("Insert Response: $body");
+        //print("Insert Response: $body");
       }
 
       // 3. Show confirmation
@@ -225,7 +225,7 @@ class _MultiImagePickerPageState extends State<MultiImg> {
 
 
     } catch (e) {
-      print("Error updating images: $e");
+      //print("Error updating images: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Something went wrong while updating images.")),
       );

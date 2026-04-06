@@ -416,7 +416,7 @@ class _WebQueryPageState extends State<WebQueryPage> with SingleTickerProviderSt
             // Header with avatar and name
             GestureDetector(
               onTap: () {
-                print("SubID:"+'${q.subid}');
+                //print("SubID:"+'${q.subid}');
                 if (q.subid != null) {
                   _launchDetails(q.subid!);
                 }

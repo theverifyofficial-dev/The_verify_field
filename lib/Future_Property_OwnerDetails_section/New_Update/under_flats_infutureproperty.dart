@@ -2374,8 +2374,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
           },
         ),
       ),
-      floatingActionButton: FloatingActionButton
-          .extended(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           if (mounted) {
             Navigator.of(context).push(

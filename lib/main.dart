@@ -38,13 +38,12 @@ GlobalKey<ScaffoldMessengerState>();
 
 
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
-  AppLogger.enableDebugLogs = false;
-  AppLogger.enableReleaseLogs = false;
-
+void main() {
   runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    AppLogger.enableDebugLogs = false;
+    AppLogger.enableReleaseLogs = false;
 
     await Firebase.initializeApp();
 
@@ -59,7 +58,7 @@ void main() async {
       apiKey: 'AIzaSyDri7Gn2OPFa70G3fq2UFCeQj4u8xDLs94',
     );
 
-     runApp(
+    runApp(
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => ThemeProvider()),

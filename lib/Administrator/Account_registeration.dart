@@ -47,17 +47,17 @@ class _SignUp_pageState extends State<AccountRegisteration> {
         },
       );
 
-      print("📤 Sending Request Body:");
-      print({
-        "FName": _nameController.text.trim(),
-        "FNumber": _mobileController.text.trim(),
-        "FEmail": _emailController.text.trim(),
-        "FPassword": _passController.text.trim(),
-        "F_Location": _selected_location,
-        "FAadharCard": _selectedPost,
-      });
-
-      print("📩 Raw Response: ${response.body}");
+      // print("📤 Sending Request Body:");
+      // print({
+      //   "FName": _nameController.text.trim(),
+      //   "FNumber": _mobileController.text.trim(),
+      //   "FEmail": _emailController.text.trim(),
+      //   "FPassword": _passController.text.trim(),
+      //   "F_Location": _selected_location,
+      //   "FAadharCard": _selectedPost,
+      // });
+      //
+      // print("📩 Raw Response: ${response.body}");
       final data = json.decode(response.body);
 
       if (data is Map && data["success"] == true) {
@@ -81,7 +81,7 @@ class _SignUp_pageState extends State<AccountRegisteration> {
         );
       }
     } catch (e) {
-      print("❌ Error: $e");
+      // print("❌ Error: $e");
       Fluttertoast.showToast(
         msg: "Error: $e",
         backgroundColor: Colors.red,
@@ -135,7 +135,14 @@ class _SignUp_pageState extends State<AccountRegisteration> {
       ),
     );
   }
-
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _mobileController.dispose();
+    _emailController.dispose();
+    _passController.dispose();
+    super.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(

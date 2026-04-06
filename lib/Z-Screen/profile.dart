@@ -54,7 +54,7 @@ class _ProfilePageState extends State<ProfilePage> {
         throw Exception('Failed to load data');
       }
     } catch (e) {
-      print('Error: $e');
+      //print('Error: $e');
       if (mounted) {
         setState(() {
           _isLoading = false;

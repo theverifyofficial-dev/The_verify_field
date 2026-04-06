@@ -16,31 +16,31 @@ class TenantController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    print("🔄 TenantController onInit called");
+    //print("🔄 TenantController onInit called");
     _loadUserData();
   }
 
   void _loadUserData() async {
-    print("📥 Loading user data from SharedPreferences...");
+    //print("📥 Loading user data from SharedPreferences...");
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     String? savedNum = prefs.getString('number');
     String? savedName = prefs.getString('name');
 
-    print("✅ SharedPreferences (raw) number: $savedNum, name: $savedName");
+    //print("✅ SharedPreferences (raw) number: $savedNum, name: $savedName");
 
     _num.value = savedNum ?? '';
     _na.value = savedName ?? '';
 
-    print("📌 Controller _num set to: ${_num.value}");
-    print("📌 Controller _na set to: ${_na.value}");
+    //print("📌 Controller _num set to: ${_num.value}");
+    //print("📌 Controller _na set to: ${_na.value}");
 
     // ✅ Only call fetchTenants after _num is loaded
     if (_num.value.isNotEmpty) {
-      print("🚀 Fetching tenants for number: ${_num.value}");
+      //print("🚀 Fetching tenants for number: ${_num.value}");
       fetchTenants(_num.value);
     } else {
-      print("❌ No number found in SharedPreferences");
+      //print("❌ No number found in SharedPreferences");
       Get.snackbar("Error", "Field worker number not found");
     }
   }
@@ -49,18 +49,18 @@ class TenantController extends GetxController {
     final url =
         'https://verifyrealestateandservices.in/WebService4.asmx/filter_tenant_demand_by_feildworkar_number_?FeildWorker_Number=$num';
 
-    print("🌐 API request to: $url");
+    //print("🌐 API request to: $url");
 
     try {
       final response = await http.get(Uri.parse(url));
 
-      print("📡 Response status: ${response.statusCode}");
-      print("📡 Response body: ${response.body}");
+      //print("📡 Response status: ${response.statusCode}");
+      //print("📡 Response body: ${response.body}");
 
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
 
-        print("✅ Decoded JSON length: ${data.length}");
+        //print("✅ Decoded JSON length: ${data.length}");
 
         tenantList.value = data
             .map((json) => Cat_id.FromJson(json))
@@ -68,9 +68,9 @@ class TenantController extends GetxController {
             .reversed
             .toList();
 
-        print("📊 tenantList updated. Count: ${tenantList.length}");
+        //print("📊 tenantList updated. Count: ${tenantList.length}");
       } else {
-        print("❌ Failed with status code: ${response.statusCode}");
+        //print("❌ Failed with status code: ${response.statusCode}");
         Get.snackbar('Error', 'Failed to fetch tenant data');
       }
     } catch (e) {

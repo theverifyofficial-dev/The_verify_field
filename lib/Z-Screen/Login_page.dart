@@ -212,7 +212,7 @@ class _Login_pageState extends State<Login_page> {
       try {
         fcmToken = await FirebaseMessaging.instance.getToken();
       } catch (e) {
-        print("⚠️ FCM failed, continuing login...");
+        //print("⚠️ FCM failed, continuing login...");
         fcmToken = "";
       }
       AppLogger.log("🔑 FCM Token: $fcmToken");

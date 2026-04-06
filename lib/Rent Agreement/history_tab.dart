@@ -58,13 +58,13 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
   }
 
   Future<void> fetchAgreementCount() async {
-    print('$mobileNumber');
+    // print('$mobileNumber');
     try {
       final response = await http.get(
         Uri.parse(
           'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/all_agreement_count_for_fieldworkar.php?Fieldwarkarnumber=$mobileNumber',
         ),
-      );
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -72,16 +72,18 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
         if (decoded["status"] == true) {
           final data = decoded["data"];
 
-          setState(() {
+          if (mounted) {
+            setState(() {
             pendingCount = data[0][0]["PreviewCount"] ?? 0;
             acceptedCount = data[1][0]["AcceptCount"] ?? 0;
             allCount = data[2][0]["AgreementCount"] ?? 0;
             isLoadingCount = false;
           });
+          }
         }
       }
     } catch (e) {
-      isLoadingCount = false;
+      if (mounted) setState(() => isLoadingCount = false);
     }
   }
 

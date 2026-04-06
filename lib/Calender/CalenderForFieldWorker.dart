@@ -1685,7 +1685,9 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
     await _fetchPoliceYearly();
     await _fetchOverviewBuildingDetail();
     await _fetchData(_selectedDay ?? _focusedDay);
-  }  Future<List<CalendarAddFlat>> fetchCalendarAddFlats({
+  }
+
+  Future<List<CalendarAddFlat>> fetchCalendarAddFlats({
     required String date,
     required String fieldWorkerNumber,
   })
@@ -2801,7 +2803,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       if (responses[9].statusCode == 200 && responses[9].body.isNotEmpty) {
         try {
           final decoded = jsonDecode(responses[9].body);
-          print(responses[9].body);
+          //print(responses[9].body);
 
           if (decoded['status'] == 'success') {
             cr = CallingReminderResponse.fromJson(decoded);

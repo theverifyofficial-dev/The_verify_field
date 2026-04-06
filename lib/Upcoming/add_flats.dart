@@ -393,7 +393,7 @@ class _Show_New_Real_EstateState extends State<AddFlats> {
                                     builder: (context) => AddedDetails(id: _filteredProperties[index].pId??0),
                                   ),
                                 );
-                                print(_filteredProperties[index].pId??0);
+                                //print(_filteredProperties[index].pId??0);
                               },
                               child: Container(
                                 margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),

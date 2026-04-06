@@ -6,7 +6,6 @@ import '../../Custom_Widget/Demand_card.dart';
 import '../../Demand_2/Demand_detail.dart';
 import '../../Demand_2/redemand_detailpage.dart';
 import '../../model/demand_model.dart';
-import '../../utilities/bug_founder_fuction.dart';
 
 class AcceptedDemand extends StatefulWidget {
   const AcceptedDemand({super.key});
@@ -19,12 +18,23 @@ class _TenantDemandState extends State<AcceptedDemand> {
   List<TenantDemandModel> _filteredDemands = [];
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
   Timer? _debounce;
+  int _page = 1;
+  final int _limit = 20;
+  bool _isFetchingMore = false;
+  bool _hasMore = true;
   bool _showRedemands = false; // 👈 default collapsed
+
+  int _redPage = 1;
+  bool _isFetchingMoreRed = false;
+  bool _hasMoreRed = true;
 
   List<TenantDemandModel> _crossRedemands = [];
   List<TenantDemandModel> _filteredCross = [];
   String? _selectedFilter;
+
 
   final List<String> _quickFilters = [
     "Sumit",
@@ -35,102 +45,163 @@ class _TenantDemandState extends State<AcceptedDemand> {
   @override
   void initState() {
     super.initState();
-    _loadDemands();
+    _loadDemands(reset: true);
+    _fetchRedemands(reset: true); // 🔥 ADD THIS
+
     _searchController.addListener(_onSearchChanged);
+    _scrollController.addListener(_onScroll);
+
   }
 
-  Future<void> _loadDemands() async {
-    setState(() => _isLoading = true);
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 300) {
+
+      if (!_isFetchingMore && _hasMore) {
+        _loadDemands();
+      }
+
+      if (_showRedemands && !_isFetchingMoreRed && _hasMoreRed) {
+        _fetchRedemands();
+      }
+    }
+  }
+
+  Future<void> _loadDemands({bool reset = false}) async {
+    if (_isFetchingMore) return;
+
+    if (reset) {
+      _page = 1;
+      _hasMore = true;
+    }
+
+    setState(() {
+      if (_page == 1) {
+        _isLoading = true;
+      } else {
+        _isFetchingMore = true;
+      }
+    });
 
     try {
-      final response = await http.get(
-        Uri.parse(
-          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/display_accept_demand.php",
-        ),
+      final url = Uri.parse(
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/display_accept_demand.php"
+            "?page=$_page"
+            "&limit=$_limit",
       );
+
+      final response = await http.get(url);
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
 
-        // ✅ validate backend response
         if (decoded["status"] == true) {
-          final List data = decoded["data"];
-
-          final list = data
+          final newData = (decoded["data"] as List)
               .map((e) => TenantDemandModel.fromJson(e))
               .toList();
-          // .reversed
-          // .toList();
 
           setState(() {
-            _allDemands = list;
-            _filteredDemands = list;
+            if (_page == 1) {
+              _allDemands = newData;
+            } else {
+              _allDemands.addAll(newData);
+            }
+
+            // 🔥 SEARCH SAFE UPDATE
+            if (_searchController.text.isEmpty) {
+              _filteredDemands = _allDemands;
+            } else {
+              _onSearchChanged();
+            }
+
+            // 🔥 pagination control
+            if (newData.length < _limit) {
+              _hasMore = false;
+            } else {
+              _page++;
+            }
           });
-        } else {
-          // backend responded but with unexpected structure
-          // await BugLogger.log(
-          //   apiLink:
-          //   "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
-          //   error: response.body,
-          //   statusCode: response.statusCode,
-          // );
 
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("No demand data found")),
-            );
-          }
-        }
-      } else {
-        await BugLogger.log(
-          apiLink:
-          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
-          error: response.body,
-          statusCode: response.statusCode,
-        );
-      }
-
-      final redemandUrl = Uri.parse(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php",
-      );
-
-      final redemandRes = await http.get(redemandUrl);
-
-      if (redemandRes.statusCode == 200) {
-        final decodedRed = jsonDecode(redemandRes.body);
-
-        if (decodedRed["success"] == true) {
-          final redList = (decodedRed["data"] as List)
-              .map((e) => TenantDemandModel.fromJson(e))
-              .toList()
-              .reversed
-              .toList();
-          setState(() {
-            _crossRedemands = redList;
-            _filteredCross = redList;
-          });
         }
       }
-
     } catch (e) {
-      await BugLogger.log(
-        apiLink:
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
-        error: e.toString(),
-        statusCode: 500,
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error fetching data: $e")),
-        );
-      }
+      print("Error: $e");
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      setState(() {
+        _isLoading = false;
+        _isFetchingMore = false;
+      });
     }
   }
+
+  Future<void> _fetchRedemands({bool reset = false}) async {
+    if (_isFetchingMoreRed) return;
+
+    if (reset) {
+      _redPage = 1;
+      _hasMoreRed = true;
+      _crossRedemands.clear();
+      _filteredCross.clear();
+    }
+
+    if (!_hasMoreRed) return;
+
+    setState(() {
+      _isFetchingMoreRed = true;
+    });
+
+    try {
+      final url = Uri.parse(
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/"
+            "Tenant_demand/display_redemand_show_feildwakrname_and_status.php"
+            "?Status=disclosed"
+            "&page=$_redPage"
+            "&limit=$_limit",
+      );
+
+      final res = await http.get(url);
+
+      if (res.statusCode == 200) {
+        final decoded = jsonDecode(res.body);
+
+        if (decoded["success"] == true) {
+          final List data = decoded["data"];
+
+          final newList = data
+              .map((e) => TenantDemandModel.fromJson(e))
+              .toList();
+
+          if (newList.length < _limit) {
+            _hasMoreRed = false;
+          }
+
+          setState(() {
+            _crossRedemands.addAll(newList);
+            _filteredCross = List.from(_crossRedemands);
+          });
+
+          _redPage++;
+        } else {
+          _hasMoreRed = false;
+        }
+      }
+    } catch (e) {
+      print("Redemand error: $e");
+    } finally {
+      setState(() {
+        _isFetchingMoreRed = false;
+      });
+    }
+  }
+
 
   void _onSearchChanged() {
     if (_searchController.text.trim() != _selectedFilter) {
@@ -293,8 +364,11 @@ class _TenantDemandState extends State<AcceptedDemand> {
                 ),
               ),
 
+              const SizedBox(height: 16),
+
+
               Expanded(
-                child: _filteredDemands.isEmpty
+                child: _allDemands.isEmpty && !_isLoading
                     ? Center(
                   child: Text(
                     "No demands found",
@@ -306,9 +380,10 @@ class _TenantDemandState extends State<AcceptedDemand> {
                   ),
                 )
                     : RefreshIndicator(
-                  onRefresh: _loadDemands,
-                  color: theme.colorScheme.primary,
+                    onRefresh: () => _loadDemands(reset: true),
+                    color: theme.colorScheme.primary,
                   child: ListView(
+                    controller: _scrollController,
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     children: [
 
@@ -324,7 +399,7 @@ class _TenantDemandState extends State<AcceptedDemand> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    "All ReDemands (${_filteredCross.length})",
+                                    "Your Redemands (${_filteredCross.length})",
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
@@ -347,6 +422,12 @@ class _TenantDemandState extends State<AcceptedDemand> {
                           ..._filteredCross.map((d) {
                           return _buildRedemandCard(d);
                         }),
+
+                        if (_showRedemands && _isFetchingMoreRed)
+                          const Padding(
+                            padding: EdgeInsets.all(12),
+                            child: Center(child: CircularProgressIndicator()),
+                          ),
 
                         const SizedBox(height: 20),
                       ],
@@ -373,6 +454,13 @@ class _TenantDemandState extends State<AcceptedDemand> {
                           );
                         }),
                       ],
+
+                      if (_isFetchingMore)
+                        const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
+
                     ],
                   )
                 ),

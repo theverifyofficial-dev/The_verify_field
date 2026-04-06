@@ -28,105 +28,177 @@ class _TenantDemandState extends State<AcceptedField> {
 
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
   Timer? _debounce;
+  int _page = 1;
+  final int _limit = 20;
+  bool _isFetchingMore = false;
+  bool _hasMore = true;
   bool _showRedemands = false; // 👈 default collapsed
+  int _redPage = 1;
+  bool _isFetchingMoreRed = false;
+  bool _hasMoreRed = true;
 
   @override
   void initState() {
     super.initState();
-    _loadDemands();
+    _loadDemands(reset: true);
+    _fetchRedemands(reset: true); // 🔥 ADD THIS
     _searchController.addListener(_onSearchChanged);
+    _scrollController.addListener(_onScroll);
+
   }
 
-  Future<void> _loadDemands() async {
-    setState(() => _isLoading = true);
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 300) {
+
+      if (!_isFetchingMore && _hasMore) {
+        _loadDemands();
+      }
+
+      if (_showRedemands && !_isFetchingMoreRed && _hasMoreRed) {
+        _fetchRedemands();
+      }
+    }
+  }
+
+  Future<void> _loadDemands({bool reset = false}) async {
+    if (_isFetchingMore) return;
+
+    if (reset) {
+      _page = 1;
+      _hasMore = true;
+    }
+
+    setState(() {
+      if (_page == 1) {
+        _isLoading = true;
+      } else {
+        _isFetchingMore = true;
+      }
+    });
 
     try {
       final prefs = await SharedPreferences.getInstance();
       final FName = prefs.getString('name') ?? "";
 
-      print(FName);
-
-      if (FName.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("User info missing. Please login again.")),
-        );
-        return;
-      }
+      if (FName.isEmpty) return;
 
       final encodedName = Uri.encodeQueryComponent(FName);
 
-      final url = Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/display_accept_demand.php?assigned_fieldworker_name=$encodedName");
-      final response = await http.get(url);
+      final url = Uri.parse(
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/display_accept_demand.php"
+            "?assigned_fieldworker_name=$encodedName"
+            "&page=$_page"
+            "&limit=$_limit",
+      );
 
-      print(response.body);
+      final response = await http.get(url);
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
 
         if (decoded["status"] == true) {
-          final parents = (decoded["data"] as List)
+          final newData = (decoded["data"] as List)
               .map((e) => TenantDemandModel.fromJson(e))
               .toList();
-              // .reversed
-              // .toList();
+
           setState(() {
-            _parentDemands = parents;
-            _filteredParent = parents;
-          });
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("No demand data found")),
-            );
-          }
-        }
-      }
-      else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("HTTP Error: ${response.statusCode}")),
-          );
-        }
-      }
+            if (_page == 1) {
+              _parentDemands = newData;
+            } else {
+              _parentDemands.addAll(newData);
+            }
 
-      final redemandUrl = Uri.parse(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?assigned_fieldworker_name=$encodedName",
-      );
+            _filteredParent = _parentDemands;
 
-      final redemandRes = await http.get(redemandUrl);
-
-      if (redemandRes.statusCode == 200) {
-        final decodedRed = jsonDecode(redemandRes.body);
-
-        if (decodedRed["success"] == true) {
-          final redList = (decodedRed["data"] as List)
-              .map((e) => TenantDemandModel.fromJson(e))
-              .toList()
-              .reversed
-              .toList();
-          setState(() {
-            _crossRedemands = redList;
-            _filteredCross = redList;
+            // 🔥 if less data comes → no more pages
+            if (newData.length < _limit) {
+              _hasMore = false;
+            } else {
+              _page++;
+            }
           });
         }
       }
-
     } catch (e) {
-      await BugLogger.log(
-        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_fieldworkar_page.php?assigned_fieldworker_name=encodedName&Location=encodedLoc",
-        error: e.toString(),
-        statusCode: 500,
-      );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error fetching data: $e")),
-        );
-      }
+      print("Error: $e");
     } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
+      setState(() {
+        _isLoading = false;
+        _isFetchingMore = false;
+      });
+    }
+  }
+
+  Future<void> _fetchRedemands({bool reset = false}) async {
+    if (_isFetchingMoreRed) return;
+
+    if (reset) {
+      _redPage = 1;
+      _hasMoreRed = true;
+      _crossRedemands.clear();
+      _filteredCross.clear();
+    }
+
+    if (!_hasMoreRed) return;
+
+    setState(() {
+      _isFetchingMoreRed = true;
+    });
+
+    try {
+      final url = Uri.parse(
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/"
+            "Tenant_demand/display_redemand_show_feildwakrname_and_status.php"
+            "?Status=disclosed"
+            "&page=$_redPage"
+            "&limit=$_limit",
+      );
+
+      final res = await http.get(url);
+
+      if (res.statusCode == 200) {
+        final decoded = jsonDecode(res.body);
+
+        if (decoded["success"] == true) {
+          final List data = decoded["data"];
+
+          final newList = data
+              .map((e) => TenantDemandModel.fromJson(e))
+              .toList();
+
+          if (newList.length < _limit) {
+            _hasMoreRed = false;
+          }
+
+          setState(() {
+            _crossRedemands.addAll(newList);
+            _filteredCross = List.from(_crossRedemands);
+          });
+
+          _redPage++;
+        } else {
+          _hasMoreRed = false;
+        }
       }
+    } catch (e) {
+      print("Redemand error: $e");
+    } finally {
+      setState(() {
+        _isFetchingMoreRed = false;
+      });
     }
   }
 
@@ -235,6 +307,7 @@ class _TenantDemandState extends State<AcceptedField> {
                           setState(() {
                             _filteredParent = _parentDemands;
                             _filteredCross = _crossRedemands;
+
                           });
                         },
                       )
@@ -250,8 +323,11 @@ class _TenantDemandState extends State<AcceptedField> {
                   ),
                 ),
                 const SizedBox(height: 16),
+
+
+
                 Expanded(
-                    child:  (_filteredParent.isEmpty)
+                    child:  ((_parentDemands.isEmpty && !_isLoading))
                         ? Center(
                       child: Text(
                         "No demands found",
@@ -263,46 +339,116 @@ class _TenantDemandState extends State<AcceptedField> {
                       ),
                     )
                         : RefreshIndicator(
-                      onRefresh: _loadDemands,
+                      onRefresh: () => _loadDemands(reset: true),
                       color: theme.colorScheme.primary,
                       child:
                       ListView(
+                        controller: _scrollController,
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         children: [
 
+
+
                           if (_filteredCross.isNotEmpty) ...[
-                            GestureDetector(
-                              onTap: () {
-                                setState(() => _showRedemands = !_showRedemands);
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        "Your Redemands",
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 0.4,
-                                          color: Colors.grey,
+                            Row(
+                              children: [
+                                // 🔹 ReDemands (Primary Action Button Style)
+                                Expanded(
+                                  child: Material(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(12),
+                                      onTap: () {
+                                        setState(() => _showRedemands = !_showRedemands);
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(color: Colors.grey.shade200),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.04),
+                                              blurRadius: 6,
+                                              offset: const Offset(0, 2),
+                                            ),
+                                          ],
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            // 🔥 icon makes it feel like action button
+                                            Icon(Icons.list_alt, color: Colors.black54, size: 18),
+
+                                            const SizedBox(width: 10),
+
+                                            const Expanded(
+                                              child: Text(
+                                                "ReDemands",
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.black87,
+                                                ),
+                                              ),
+                                            ),
+
+                                            AnimatedRotation(
+                                              turns: _showRedemands ? 0.5 : 0,
+                                              duration: const Duration(milliseconds: 200),
+                                              child: const Icon(Icons.keyboard_arrow_down, color: Colors.black54),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
-                                    Icon(
-                                      _showRedemands
-                                          ? Icons.keyboard_arrow_up
-                                          : Icons.keyboard_arrow_down,
-                                      color: Colors.grey,
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
+
+                                const SizedBox(width: 10),
+
+                                // 🔹 Pinned (Secondary)
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const PinDemand(),
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.bookmark_outlined, size: 14),
+                                  label: const Text("Pinned"),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.amber,
+                                    foregroundColor: Colors.black,
+                                    elevation: 1,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    textStyle: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            if (_showRedemands)                            ..._filteredCross.map((d) {
+
+                            const SizedBox(height: 20),
+
+                            if (_showRedemands)
+                            ..._filteredCross.map((d) {
                               return _buildRedemandCard(d, true);
                             }),
+                            if (_showRedemands && _isFetchingMoreRed)
+                              const Padding(
+                                padding: EdgeInsets.all(12),
+                                child: Center(child: CircularProgressIndicator()),
+                              ),
 
                             const SizedBox(height: 20),
                           ],
@@ -326,6 +472,12 @@ class _TenantDemandState extends State<AcceptedField> {
                                 },
                               );
                             }),                          ],
+
+                          if (_isFetchingMore)
+                            const Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Center(child: CircularProgressIndicator()),
+                            ),
 
                         ],
                       ),
@@ -408,40 +560,12 @@ class _TenantDemandState extends State<AcceptedField> {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.4,
-              color: Colors.grey
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.4,
+                color: Colors.black
             ),
           ),
-
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const PinDemand(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.bookmark_outlined, size: 14),
-            label: const Text("Pinned"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black,
-              foregroundColor: Colors.white,
-              elevation: 1, // subtle
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              minimumSize: Size.zero, // 🔥 removes default big size
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap, // 🔥 compact
-              textStyle: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          )
         ],
       ),
     );

@@ -19,6 +19,14 @@ class _TenantDemandState extends State<CostumerDemand> {
   List<TenantDemandModel> _parentDemands = [];
   List<TenantDemandModel> _filteredParent = [];
 
+  int _page = 1;
+  final int _limit = 10;
+
+  bool _isFetchingMore = false;
+  bool _hasMore = true;
+
+  final ScrollController _scrollController = ScrollController();
+
   Set<int> _accepting = {};
 
   bool _isLoading = true;
@@ -28,14 +36,34 @@ class _TenantDemandState extends State<CostumerDemand> {
   void initState() {
     super.initState();
     _loadDemands();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        if (_hasMore && !_isFetchingMore) {
+          _loadDemands();
+        }
+      }
+    });
   }
 
-  Future<void> _loadDemands() async {
-    setState(() => _isLoading = true);
+  Future<void> _loadDemands({bool isRefresh = false}) async {
+    if (_isFetchingMore) return;
+
+    if (isRefresh) {
+      _page = 1;
+      _hasMore = true;
+    }
+
+    setState(() {
+      if (_page == 1) _isLoading = true;
+      _isFetchingMore = true;
+    });
 
     try {
-
-      final url = Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php?Status=new");
+      final url = Uri.parse(
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php"
+              "?Status=new&page=$_page&limit=$_limit"
+      );
 
       final response = await http.get(url);
 
@@ -43,51 +71,39 @@ class _TenantDemandState extends State<CostumerDemand> {
         final decoded = jsonDecode(response.body);
 
         if (decoded["success"] == true) {
-          final parents = (decoded["data"] as List)
+          final newData = (decoded["data"] as List)
               .map((e) => TenantDemandModel.fromJson(e))
               .toList();
-              // .reversed
-              // .toList();
+
           setState(() {
-            _parentDemands = parents;
-            // _crossRedemands = crossRedemands;
+            if (_page == 1) {
+              _parentDemands = newData;
+            } else {
+              _parentDemands.addAll(newData);
+            }
 
-            _filteredParent = parents;
-            // _filteredCross = crossRedemands;
+            _filteredParent = _parentDemands;
+
+            // 🔥 pagination end check
+            if (newData.length < _limit) {
+              _hasMore = false;
+            } else {
+              _page++;
+            }
           });
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("No demand data found")),
-            );
-          }
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("HTTP Error: ${response.statusCode}")),
-          );
         }
       }
-
     } catch (e) {
-      await BugLogger.log(
-        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_fieldworkar_page.php?assigned_fieldworker_name=encodedName&Location=encodedLoc",
-        error: e.toString(),
-        statusCode: 500,
-      );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error fetching data: $e")),
-        );
-      }
+      print(e);
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+          _isFetchingMore = false;
+        });
       }
     }
   }
-
   Future<void> _acceptDemand(int demandId) async {
     setState(() {
       _parentDemands.removeWhere((d) => d.id == demandId);
@@ -180,6 +196,22 @@ class _TenantDemandState extends State<CostumerDemand> {
           Column(
             children: [
               const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Loaded: ${_parentDemands.length}",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               Expanded(
                 child:  (_filteredParent.isEmpty)
                 ? Center(
@@ -193,10 +225,11 @@ class _TenantDemandState extends State<CostumerDemand> {
                 ),
                 )
                     : RefreshIndicator(
-                onRefresh: _loadDemands,
-                color: theme.colorScheme.primary,
+                  onRefresh: () => _loadDemands(isRefresh: true),
+                  color: theme.colorScheme.primary,
                 child:
                 ListView(
+                  controller: _scrollController,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   children: [
 
@@ -213,6 +246,11 @@ class _TenantDemandState extends State<CostumerDemand> {
               }
               ),
                     ],
+                    if (_isFetchingMore)
+                      const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
                   ],
                 ),
               )            ),

@@ -1,7 +1,6 @@
 import 'dart:convert';
-import '../../AppLogger.dart';
-import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -51,7 +50,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
       final response = await http.get(Uri.parse(
           "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}"));
 
-      AppLogger.api("demand ID: ${widget.demandId}");
+      print("demand ID: ${widget.demandId}");
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonRes = jsonDecode(response.body);
@@ -104,20 +103,20 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       final storedName = prefs.getString('name');
-      AppLogger.api("sending name: $storedName");
+      print("sending name: $storedName");
       final response = await http.post(
         Uri.parse(apiUrl),
         body: {"message": message, "date": date, "time": time, "subid": id,"who_calling":storedName,},
       );
 
-      AppLogger.api("Log saved: ${response.body}");
+      debugPrint("Log saved: ${response.body}");
     } catch (e) {
       await BugLogger.log(
         apiLink: apiUrl,
         error: e.toString(),
         statusCode: 500,
       );
-      AppLogger.api("Error logging contact: $e");
+      debugPrint("Error logging contact: $e");
     }
   }
 
@@ -218,9 +217,8 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     final bool isUrgent = _demand?["mark"] == "1";
     final Color accent =
     isUrgent ? Colors.redAccent : Colors.black87;
-
     final status = _demand?["Status"]?.toLowerCase();
-    AppLogger.api(_demand?["Status"]);
+    print(_demand?["Status"]);
 
 
     bool _isAddedByFieldWorker(dynamic value) {
@@ -258,60 +256,60 @@ class _AdminDemandDetailState extends State<DemandDetail> {
           ? const Center(child: Text("No data found",style: TextStyle(color: Colors.grey),))
           : Stack(
           children: [
-      SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
-        child: Column(
-          children: [
-            if (addedByField) _fieldWorkerNotice(isDark),
+            SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
+              child: Column(
+                children: [
+                  if (addedByField) _fieldWorkerNotice(isDark),
 
-            _buildTenantCard(isDark, accent),
+                  _buildTenantCard(isDark, accent),
 
-            if (status == "assigned to fieldworker" || status == "disclosed" || status == "progressing")
-              _buildProgressDetailsCard(_demand!, isDark, accent),
+                  if (status == "assigned to fieldworker" || status == "disclosed" || status == "progressing")
+                    _buildProgressDetailsCard(_demand!, isDark, accent),
 
-            if (status == "progressing")
-              if (!widget.isReadOnly)
-                _buildCompletionSection(isDark, accent),
-
-
-            if (status == "disclosed" )
-              _buildFinalSummarySection(isDark, accent),
+                  if (status == "progressing")
+                    if (!widget.isReadOnly)
+                      _buildCompletionSection(isDark, accent),
 
 
-            if (widget.isReadOnly)
-              _buildHandlerInfoCard(), // 🔥 ADD THIS
+                  if (status == "disclosed" )
+                    _buildFinalSummarySection(isDark, accent),
 
 
-            const SizedBox(height: 10),
+                  if (widget.isReadOnly)
+                    _buildHandlerInfoCard(), // 🔥 ADD THIS
 
 
-              SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: () =>
-                    _openContactSheet(context, Colors.red, false),
+                  const SizedBox(height: 10),
 
-                icon: const Icon(Icons.call, color: Colors.white),
-                label: const Text("Contact",
-                    style: TextStyle(color: Colors.white)),
 
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () =>
+                          _openContactSheet(context, Colors.red, false),
+
+                      icon: const Icon(Icons.call, color: Colors.white),
+                      label: const Text("Contact",
+                          style: TextStyle(color: Colors.white)),
+
+                    ),
+                  ),
+
+                ],
               ),
             ),
-
-          ],
-        ),
+          ]
       ),
-    ]
-    ),
 
 
-      bottomNavigationBar: widget.isReadOnly ? null : _bottomActions(isDisclosed),
-
+      bottomNavigationBar: isDisclosed ?  null :
+      _bottomActions(isDisclosed),
     );
   }
 
@@ -738,11 +736,6 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     return v.toString();
   }
 
-  bool _isEmpty(dynamic value) {
-    if (value == null) return true;
-    final v = value.toString().trim().toLowerCase();
-    return v.isEmpty || v == "null" || v == "--";
-  }
 
   Widget _buildProgressDetailsCard(
       Map<String, dynamic> data,
@@ -781,29 +774,29 @@ class _AdminDemandDetailState extends State<DemandDetail> {
             children: [
 
               /// BASIC
-              _infoTile("Parking", data["parking"]),
-              _infoTile("Lift", data["lift"]),
-              _infoTile("Furnished", data["furnished_unfurnished"]),
+              _infoTile("Parking", _fmt(data["parking"])),
+              _infoTile("Lift", _fmt(data["lift"])),
+              _infoTile("Furnished", _fmt(data["furnished_unfurnished"])),
 
               /// FAMILY
-              _infoTile("Family Type", data["family_structur"]),
-              _infoTile("Members", data["family_member"]),
-              _infoTile("Persons", data["count_of_person"]),
+              _infoTile("Family Type", _fmt(data["family_structur"])),
+              _infoTile("Members", _fmt(data["family_member"])),
+              _infoTile("Persons", _fmt(data["count_of_person"])),
 
               /// PROPERTY
-              _infoTile("Floor", data["floor"]),
-              _infoTile("Religion", data["religion"]),
+              _infoTile("Floor", _fmt(data["floor"])),
+              _infoTile("Religion", _fmt(data["religion"])),
 
               /// VEHICLE
-              _infoTile("Vehicle Type", data["vichle_type"]),
-              _infoTile("Vehicle No", data["vichle_no"]),
+              _infoTile("Vehicle Type", _fmt(data["vichle_type"])),
+              _infoTile("Vehicle No", _fmt(data["vichle_no"])),
 
               /// DATES
-              _infoTile("Visit Date", data["visiting_dates"]),
-              _infoTile("Shift Date", data["shifting_date"]),
+              _infoTile("Visit Date", _fmtDate(data["visiting_dates"])),
+              _infoTile("Shift Date", _fmtDate(data["shifting_date"])),
 
               /// TYPE
-              _infoTile("Type", data["Buy_rent"]),
+              _infoTile("Type", _fmt(data["Buy_rent"])),
             ],
           ),
 
@@ -852,49 +845,45 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     return raw;
   }
 
-  Widget _infoTile(String label, dynamic value) {
-    final isEmpty = _isEmpty(value);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-
-        /// 🔴 RED BORDER IF EMPTY
-        border: Border.all(
-          color: isEmpty ? Colors.red : Colors.grey.shade300,
-          width: isEmpty ? 1.2 : 1,
-        ),
-
-        /// 🔴 LIGHT RED BACKGROUND (subtle)
-        color: isEmpty ? Colors.red.withOpacity(0.05) : Colors.white,
-      ),
-
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: isEmpty ? Colors.red : Colors.grey,
-              fontWeight: FontWeight.w600,
-            ),
+  Widget _infoTile(String label, String value) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          constraints: const BoxConstraints(minHeight: 60),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: _borderColor),
           ),
-          const SizedBox(height: 2),
-          Text(
-            _fmt(value),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: isEmpty ? Colors.red.shade700 : Colors.black87,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min, // 🔥 IMPORTANT
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: _textSecondary,
+                ),
+              ),
+              const SizedBox(height: 4),
+
+              /// 🔥 FLEXIBLE TEXT (NO OVERFLOW EVER)
+              Flexible(
+                child: Text(
+                  value.isEmpty ? "—" : value,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: _textPrimary,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -960,32 +949,32 @@ class _AdminDemandDetailState extends State<DemandDetail> {
             ),
           ),
 
-            const SizedBox(height: 15),
-            TextField(
-              style: TextStyle(color: Colors.black87),
-              controller: _otherReasonCtrl,
-              decoration: InputDecoration(
-                labelText: "Enter Reason Details",
-                labelStyle: TextStyle(color: Colors.black87),
-                // 🔥 BORDER
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: borderColor),
-                ),
+          const SizedBox(height: 15),
+          TextField(
+            style: TextStyle(color: Colors.black87),
+            controller: _otherReasonCtrl,
+            decoration: InputDecoration(
+              labelText: "Enter Reason Details",
+              labelStyle: TextStyle(color: Colors.black87),
+              // 🔥 BORDER
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: borderColor),
+              ),
 
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: borderColor),
-                ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: borderColor),
+              ),
 
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: borderColor, width: 1.5),
-                ),
-                ),
-              maxLines: 2,
-              onChanged: (_) => setState(() {}),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: borderColor, width: 1.5),
+              ),
             ),
+            maxLines: 2,
+            onChanged: (_) => setState(() {}),
+          ),
 
           const SizedBox(height: 15),
 
@@ -1303,14 +1292,14 @@ class _AdminDemandDetailState extends State<DemandDetail> {
       final url =
           "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id";
 
-      AppLogger.api("📡 Fetching Logs: $url");
+      print("📡 Fetching Logs: $url");
 
       final res = await http.get(Uri.parse(url));
 
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
         if (body["success"] == true && body["data"] is List) {
-          AppLogger.api("📥 Logs fetched: ${body["data"].length}");
+          print("📥 Logs fetched: ${body["data"].length}");
           return body["data"];
         }
       }
@@ -1322,7 +1311,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
         );
       }
     } catch (e) {
-      AppLogger.api("❌ Error fetching logs: $e");
+      print("❌ Error fetching logs: $e");
       await BugLogger.log(
         apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id",
         error: e.toString(),
@@ -1354,12 +1343,12 @@ class _AdminDemandDetailState extends State<DemandDetail> {
           builder: (context, setSheetState) {
             // function to reload logs live inside bottomsheet
             Future<void> refreshLogs() async {
-              AppLogger.api("🔄 Refreshing Logs...");
+              print("🔄 Refreshing Logs...");
               final updated = await _fetchLogs(id);
               setSheetState(() {
                 logs = updated;
               });
-              AppLogger.api("✅ Logs Update  d: ${logs.length}");
+              print("✅ Logs Update  d: ${logs.length}");
             }
 
             return Container(
@@ -1403,56 +1392,56 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                   // CONTACT BUTTONS
                   if (!widget.isReadOnly)
                     Row(
-                    children: [
-                      Expanded(
-                        child: _contactButton(
-                          label: "Call",
-                          color: Colors.blue,
-                          icon: Icons.call,
-                          onTap: () async {
-                            AppLogger.api("☎ CALL tapped");
+                      children: [
+                        Expanded(
+                          child: _contactButton(
+                            label: "Call",
+                            color: Colors.blue,
+                            icon: Icons.call,
+                            onTap: () async {
+                              print("☎ CALL tapped");
 
-                            await _logContact(
-                                message: "Try to Call ${maskPhone(number)}", id: id);
+                              await _logContact(
+                                  message: "Try to Call ${maskPhone(number)}", id: id);
 
-                            AppLogger.api("📌 Log Inserted → Calling...");
-                            await refreshLogs();
+                              print("📌 Log Inserted → Calling...");
+                              await refreshLogs();
 
-                            final uri = Uri.parse("tel:$number");
-                            await launchUrl(uri);
-                          },
+                              final uri = Uri.parse("tel:$number");
+                              await launchUrl(uri);
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _contactButton(
-                          label: "WhatsApp",
-                          color: Colors.green,
-                          icon: Icons.chat,
-                          onTap: () async {
-                            AppLogger.api("💬 WhatsApp tapped");
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _contactButton(
+                            label: "WhatsApp",
+                            color: Colors.green,
+                            icon: Icons.chat,
+                            onTap: () async {
+                              print("💬 WhatsApp tapped");
 
-                            await _logContact(
-                                message: "Try to message on WhatsApp ${maskPhone(number)}",
-                                id: id);
+                              await _logContact(
+                                  message: "Try to message on WhatsApp ${maskPhone(number)}",
+                                  id: id);
 
-                            AppLogger.api("📌 Log Inserted → Opening WhatsApp...");
-                            await refreshLogs();
+                              print("📌 Log Inserted → Opening WhatsApp...");
+                              await refreshLogs();
 
-                            final phone = normalizeWhatsAppNumber(number);
-                            final txt = Uri.encodeComponent(
-                                "Hello $name, Looking for a ${Bhk} $nextWord for $BuyRent in $location? "
-                            "Feel free to contact us for further details.\n\nRegards,\nVerify Properties");
-                            final url =
-                            Uri.parse("https://wa.me/$phone?text=$txt");
+                              final phone = normalizeWhatsAppNumber(number);
+                              final txt = Uri.encodeComponent(
+                                  "Hello $name, Looking for a ${Bhk} $nextWord for $BuyRent in $location? "
+                                      "Feel free to contact us for further details.\n\nRegards,\nVerify Properties");
+                              final url =
+                              Uri.parse("https://wa.me/$phone?text=$txt");
 
-                            await launchUrl(url,
-                                mode: LaunchMode.externalApplication);
-                          },
+                              await launchUrl(url,
+                                  mode: LaunchMode.externalApplication);
+                            },
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
 
                   const SizedBox(height: 25),
 
@@ -1596,22 +1585,22 @@ class _AdminDemandDetailState extends State<DemandDetail> {
   }) {
     return
       SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: color,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          onPressed: onTap,
+          icon: Icon(icon, color: Colors.white),
+          label: Text(
+            label,
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold),
+          ),
         ),
-        onPressed: onTap,
-        icon: Icon(icon, color: Colors.white),
-        label: Text(
-          label,
-          style: const TextStyle(
-              color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
+      );
   }
 
   String maskPhone(String? phone) {
@@ -1621,8 +1610,6 @@ class _AdminDemandDetailState extends State<DemandDetail> {
 
   Widget _buildTenantCard(bool isDark, Color accent) {
     final d = _demand!;
-
-    final isWeb = _demand?["Reference"]?.toLowerCase() == "website";
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1672,28 +1659,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                         ),
                       ),
                     ),
-                  ],
-
-                  if (isWeb) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: Colors.red.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Text(
-                        "Website",
-                        style: TextStyle(
-                          color: Colors.red,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
                   ]
-
                 ],
               ),
 
@@ -1723,7 +1689,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
               Text(
                 _formatPrice(d["Price"]),
                 style: const TextStyle(
-                  color: Colors.green,
+                  color: Color(0xFFDC2626),
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -1771,36 +1737,6 @@ class _AdminDemandDetailState extends State<DemandDetail> {
               ),
             ],
           ),
-
-          const SizedBox(height: 6),
-
-          if (d["Message"] != null &&
-              d["Message"].toString().trim().isNotEmpty)
-            Container(
-              margin: const EdgeInsets.only(top: 10),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF9FAFB),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.message, size: 16, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      d["Message"].toString(),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF374151),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     );

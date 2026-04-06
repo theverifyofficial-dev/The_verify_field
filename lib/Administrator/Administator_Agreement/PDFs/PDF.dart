@@ -189,22 +189,60 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   // 🔥 FETCH ADDITIONAL TENANTS
   List<Map<String, dynamic>> additionalTenants = [];
 
+  Future<void> _fetchFromFinalApi(String agreementId) async {
+    try {
+      final response2 = await http.get(Uri.parse(
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_api_addional_tenant_final.php?agreement_id=$agreementId",
+      ));
+
+      if (response2.statusCode == 200) {
+        final decoded2 = jsonDecode(response2.body);
+
+        if (decoded2["success"] == true && decoded2["data"] != null) {
+          additionalTenants =
+          List<Map<String, dynamic>>.from(decoded2["data"]);
+        }
+      }
+    } catch (_) {}
+  }
+
   try {
     final agreementId = data['id']?.toString();
+
     if (agreementId != null && agreementId.isNotEmpty) {
-      final response = await http.get(Uri.parse(
+
+      // 🔹 FIRST API
+      final response1 = await http.get(Uri.parse(
         "http://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_api_addional_tenant_accept.php?agreement_id=$agreementId",
       ));
 
-      if (response.statusCode == 200) {
-        final decoded = jsonDecode(response.body);
-        if (decoded["success"] == true && decoded["data"] != null) {
+      if (response1.statusCode == 200) {
+        final decoded1 = jsonDecode(response1.body);
+
+        if (decoded1["success"] == true &&
+            decoded1["data"] != null &&
+            decoded1["data"].isNotEmpty) {
+
           additionalTenants =
-          List<Map<String, dynamic>>.from(decoded["data"]);
+          List<Map<String, dynamic>>.from(decoded1["data"]);
+
+        } else {
+          // 🔥 FALLBACK TO SECOND API
+          await _fetchFromFinalApi(agreementId);
         }
+      } else {
+        // 🔥 FALLBACK IF FIRST API FAILS
+        await _fetchFromFinalApi(agreementId);
       }
     }
-  } catch (_) {}
+  } catch (e) {
+    // 🔥 FALLBACK EVEN ON ERROR
+    final agreementId = data['id']?.toString();
+    if (agreementId != null && agreementId.isNotEmpty) {
+      await _fetchFromFinalApi(agreementId);
+    }
+  }
+
 
 
   final pdf = pw.Document();
@@ -432,13 +470,14 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
               final name = t['tenant_name'] ?? '';
               final relation = t['tenant_relation'] ?? '';
               final relationPerson = t['relation_person_name_tenant'] ?? '';
+              final Taddress = t['tenant_address'] ?? '';
 
               String relationText = '';
               if (relation.isNotEmpty && relationPerson.isNotEmpty) {
                 relationText = ', $relation $relationPerson';
               }
 
-              return '$index. $name$relationText, residing at $tenantPermAddress';
+              return '$index. $name$relationText, RESIDENCY AT $Taddress';
             }).join('\n'),
             style: boldStyle,
           ),

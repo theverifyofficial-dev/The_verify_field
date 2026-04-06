@@ -1,7 +1,6 @@
 import 'dart:convert';
-import '../../AppLogger.dart';
-import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -52,7 +51,7 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
       final response = await http.get(Uri.parse(
           "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/display_redemand_based_on_id.php?id=${widget.RedemandId}"));
 
-      AppLogger.api("Redemand ID: ${widget.RedemandId}");
+      print("Redemand ID: ${widget.RedemandId}");
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonRes = jsonDecode(response.body);
@@ -105,20 +104,20 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       final storedName = prefs.getString('name');
-      AppLogger.api("sending name: $storedName");
+      print("sending name: $storedName");
       final response = await http.post(
         Uri.parse(apiUrl),
         body: {"message": message, "date": date, "time": time, "subid": id,"who_calling":storedName,},
       );
 
-      AppLogger.api("Log saved: ${response.body}");
+      debugPrint("Log saved: ${response.body}");
     } catch (e) {
       await BugLogger.log(
         apiLink: apiUrl,
         error: e.toString(),
         statusCode: 500,
       );
-      AppLogger.api("Error logging contact: $e");
+      debugPrint("Error logging contact: $e");
     }
   }
 
@@ -229,7 +228,7 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
     }
     final bool addedByField =
     _isAddedByFieldWorker(_demand?["by_field"]);
-    AppLogger.api(_demand?["Status"]);
+    print(_demand?["Status"]);
     final bool isDisclosed = _demand?["Status"]?.toString().toLowerCase() == "disclosed" || _demand?["Status"]?.toString().toLowerCase() == "redemand" ;
 
     return Scaffold(
@@ -285,22 +284,22 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                      ),
-                      icon: const Icon(Icons.history, color: Colors.white),
-                      label: const Text(
-                        "View Original Demand",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                        icon: const Icon(Icons.history, color: Colors.white),
+                        label: const Text(
+                          "View Original Demand",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
                         onPressed: () {
                           final mainId = _demand?["subid"];
 
@@ -326,7 +325,7 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
                             ),
                           );
                         }
-                        ),
+                    ),
                   ),
 
                   const SizedBox(height: 10),
@@ -357,7 +356,8 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
       ),
 
 
-      bottomNavigationBar: widget.isReadOnly ? null : _bottomActions(isDisclosed),
+      bottomNavigationBar: isDisclosed ?  null :
+      _bottomActions(isDisclosed),
 
     );
   }
@@ -784,12 +784,6 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
     return v.toString();
   }
 
-  bool _isEmpty(dynamic value) {
-    if (value == null) return true;
-    final v = value.toString().trim().toLowerCase();
-    return v.isEmpty || v == "null" || v == "--";
-  }
-
   Widget _buildProgressDetailsCard(
       Map<String, dynamic> data,
       bool isDark,
@@ -827,29 +821,29 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
             children: [
 
               /// BASIC
-              _infoTile("Parking", data["parking"]),
-              _infoTile("Lift", data["lift"]),
-              _infoTile("Furnished", data["furnished_unfurnished"]),
+              _infoTile("Parking", _fmt(data["parking"])),
+              _infoTile("Lift", _fmt(data["lift"])),
+              _infoTile("Furnished", _fmt(data["furnished_unfurnished"])),
 
               /// FAMILY
-              _infoTile("Family Type", data["family_structur"]),
-              _infoTile("Members", data["family_member"]),
-              _infoTile("Persons", data["count_of_person"]),
+              _infoTile("Family Type", _fmt(data["family_structur"])),
+              _infoTile("Members", _fmt(data["family_member"])),
+              _infoTile("Persons", _fmt(data["count_of_person"])),
 
               /// PROPERTY
-              _infoTile("Floor", data["floor"]),
-              _infoTile("Religion", data["religion"]),
+              _infoTile("Floor", _fmt(data["floor"])),
+              _infoTile("Religion", _fmt(data["religion"])),
 
               /// VEHICLE
-              _infoTile("Vehicle Type", data["vichle_type"]),
-              _infoTile("Vehicle No", data["vichle_no"]),
+              _infoTile("Vehicle Type", _fmt(data["vichle_type"])),
+              _infoTile("Vehicle No", _fmt(data["vichle_no"])),
 
               /// DATES
-              _infoTile("Visit Date", data["visiting_dates"]),
-              _infoTile("Shift Date", data["shifting_date"]),
+              _infoTile("Visit Date", _fmtDate(data["visiting_dates"])),
+              _infoTile("Shift Date", _fmtDate(data["shifting_date"])),
 
               /// TYPE
-              _infoTile("Type", data["Buy_rent"]),
+              _infoTile("Type", _fmt(data["Buy_rent"])),
             ],
           ),
 
@@ -898,49 +892,45 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
     return raw;
   }
 
-  Widget _infoTile(String label, dynamic value) {
-    final isEmpty = _isEmpty(value);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-
-        /// 🔴 RED BORDER IF EMPTY
-        border: Border.all(
-          color: isEmpty ? Colors.red : Colors.grey.shade300,
-          width: isEmpty ? 1.2 : 1,
-        ),
-
-        /// 🔴 LIGHT RED BACKGROUND (subtle)
-        color: isEmpty ? Colors.red.withOpacity(0.05) : Colors.white,
-      ),
-
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: isEmpty ? Colors.red : Colors.grey,
-              fontWeight: FontWeight.w600,
-            ),
+  Widget _infoTile(String label, String value) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          constraints: const BoxConstraints(minHeight: 60),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: _borderColor),
           ),
-          const SizedBox(height: 2),
-          Text(
-            _fmt(value),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: isEmpty ? Colors.red.shade700 : Colors.black87,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min, // 🔥 IMPORTANT
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: _textSecondary,
+                ),
+              ),
+              const SizedBox(height: 4),
+
+              /// 🔥 FLEXIBLE TEXT (NO OVERFLOW EVER)
+              Flexible(
+                child: Text(
+                  value.isEmpty ? "—" : value,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: _textPrimary,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -1349,14 +1339,14 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
       final url =
           "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_redemand.php?subid=$id";
 
-      AppLogger.api("📡 Fetching Logs: $url");
+      print("📡 Fetching Logs: $url");
 
       final res = await http.get(Uri.parse(url));
 
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
         if (body["success"] == true && body["data"] is List) {
-          AppLogger.api("📥 Logs fetched: ${body["data"].length}");
+          print("📥 Logs fetched: ${body["data"].length}");
           return body["data"];
         }
       }
@@ -1368,7 +1358,7 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
         );
       }
     } catch (e) {
-      AppLogger.api("❌ Error fetching logs: $e");
+      print("❌ Error fetching logs: $e");
       await BugLogger.log(
         apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_redemand.php?subid=$id",
         error: e.toString(),
@@ -1400,12 +1390,12 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
           builder: (context, setSheetState) {
             // function to reload logs live inside bottomsheet
             Future<void> refreshLogs() async {
-              AppLogger.api("🔄 Refreshing Logs...");
+              print("🔄 Refreshing Logs...");
               final updated = await _fetchLogs(id);
               setSheetState(() {
                 logs = updated;
               });
-              AppLogger.api("✅ Logs Update  d: ${logs.length}");
+              print("✅ Logs Update  d: ${logs.length}");
             }
 
             return Container(
@@ -1456,12 +1446,12 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
                             color: Colors.blue,
                             icon: Icons.call,
                             onTap: () async {
-                              AppLogger.api("☎ CALL tapped");
+                              print("☎ CALL tapped");
 
                               await _logContact(
                                   message: "Try to Call ${maskPhone(number)}", id: id);
 
-                              AppLogger.api("📌 Log Inserted → Calling...");
+                              print("📌 Log Inserted → Calling...");
                               await refreshLogs();
 
                               final uri = Uri.parse("tel:$number");
@@ -1476,13 +1466,13 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
                             color: Colors.green,
                             icon: Icons.chat,
                             onTap: () async {
-                              AppLogger.api("💬 WhatsApp tapped");
+                              print("💬 WhatsApp tapped");
 
                               await _logContact(
                                   message: "Try to message on WhatsApp ${maskPhone(number)}",
                                   id: id);
 
-                              AppLogger.api("📌 Log Inserted → Opening WhatsApp...");
+                              print("📌 Log Inserted → Opening WhatsApp...");
                               await refreshLogs();
 
                               final phone = normalizeWhatsAppNumber(number);
@@ -1746,7 +1736,7 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
               Text(
                 _formatPrice(d["Price"]),
                 style: const TextStyle(
-                  color: Colors.green,
+                  color: Color(0xFFDC2626),
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -1794,36 +1784,6 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
               ),
             ],
           ),
-
-          const SizedBox(height: 6),
-
-          if (d["Message"] != null &&
-              d["Message"].toString().trim().isNotEmpty)
-            Container(
-              margin: const EdgeInsets.only(top: 10),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF9FAFB),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFE5E7EB)),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(Icons.message, size: 16, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      d["Message"].toString(),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF374151),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
         ],
       ),
     );

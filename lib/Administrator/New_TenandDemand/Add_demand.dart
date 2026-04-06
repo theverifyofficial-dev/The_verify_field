@@ -2043,6 +2043,18 @@ class _ExistingCustomerCard extends StatelessWidget {
 
             const SizedBox(height: 6),
 
+
+
+            /// 🔥 FINAL REASON
+            _summaryItem(
+              title: "Final Reason",
+              value: data["final_reason"] ?? "-",
+              highlight: true,
+            ),
+
+            const SizedBox(height: 6),
+
+
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -2056,6 +2068,52 @@ class _ExistingCustomerCard extends StatelessWidget {
       ),
     );
   }
+
+  Widget _summaryItem({
+    required String title,
+    required String value,
+    bool highlight = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      decoration: BoxDecoration(
+        color: highlight
+            ? const Color(0xFFDC2626).withOpacity(0.05)
+            : const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: highlight
+              ? const Color(0xFFDC2626).withOpacity(0.3)
+              : const Color(0xFFE5E7EB),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF6B7280),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: highlight
+                  ? const Color(0xFFDC2626)
+                  : const Color(0xFF111827),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   String safeDate(dynamic value) {
     if (value == null) return "--";
 

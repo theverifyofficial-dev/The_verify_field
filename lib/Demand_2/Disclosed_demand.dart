@@ -320,35 +320,94 @@ class _TenantDemandState extends State<DisclosedDemand> {
 
                       /// 🔴 REDEMAND SECTION
                       if (_filteredRedemands.isNotEmpty) ...[
-                        GestureDetector(
-                          onTap: () {
-                            setState(() => _showRedemands = !_showRedemands);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    "Closed ReDemands",
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 0.4,
-                                      color: Colors.grey,
+                        Row(
+                          children: [
+                            // 🔹 ReDemands (Primary Action Button Style)
+                            Expanded(
+                              child: Material(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(12),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(12),
+                                  onTap: () {
+                                    setState(() => _showRedemands = !_showRedemands);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(color: Colors.grey.shade200),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.04),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        // 🔥 icon makes it feel like action button
+                                        Icon(Icons.list_alt, color: Colors.black54, size: 18),
+
+                                        const SizedBox(width: 10),
+
+                                        const Expanded(
+                                          child: Text(
+                                            "ReDemands",
+                                            style: TextStyle(
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.black87,
+                                            ),
+                                          ),
+                                        ),
+
+                                        AnimatedRotation(
+                                          turns: _showRedemands ? 0.5 : 0,
+                                          duration: const Duration(milliseconds: 200),
+                                          child: const Icon(Icons.keyboard_arrow_down, color: Colors.black54),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
-                                Icon(
-                                  _showRedemands
-                                      ? Icons.keyboard_arrow_up
-                                      : Icons.keyboard_arrow_down,
-                                  color: Colors.grey,
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
+
+                            const SizedBox(width: 10),
+
+                            // 🔹 Pinned (Secondary)
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const PinDemand(),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.bookmark_outlined, size: 14),
+                              label: const Text("Pinned"),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.amber,
+                                foregroundColor: Colors.black,
+                                elevation: 1,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                textStyle: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
+                        const SizedBox(height: 20),
                         if (_showRedemands)
                         ..._filteredRedemands.map((d) {
                           return _buildRedemandCard(d);
@@ -357,7 +416,7 @@ class _TenantDemandState extends State<DisclosedDemand> {
                         const SizedBox(height: 20),
                       ],
 
-                      _sectionTitle("Closed Demands"),
+                      _sectionTitle("Demands"),
 
                       /// ⚪ NORMAL DEMANDS
                       ..._filteredDemands.map((d) {
@@ -408,37 +467,9 @@ class _TenantDemandState extends State<DisclosedDemand> {
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 0.4,
-                color: Colors.grey
+                color: Colors.black
             ),
           ),
-
-          ElevatedButton.icon(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const PinDemand(),
-                ),
-              );
-            },
-            icon: const Icon(Icons.bookmark_outlined, size: 14),
-            label: const Text("Pinned"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.black,
-              foregroundColor: Colors.white,
-              elevation: 1, // subtle
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              minimumSize: Size.zero, // 🔥 removes default big size
-              tapTargetSize: MaterialTapTargetSize.shrinkWrap, // 🔥 compact
-              textStyle: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          )
         ],
       ),
     );

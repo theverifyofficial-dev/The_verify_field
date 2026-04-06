@@ -1120,7 +1120,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                     _kv("Name", t.name),
                     _kv("Relation",
                         "${t.relation} ${t.relation_name}"),
-                    _kv("Address", agreement?["permanent_address_tenant"]),
+                    _kv("Address", t.address),
                     _kv("Mobile", t.mobile),
                     _kv("Aadhaar", t.aadhaar),
 

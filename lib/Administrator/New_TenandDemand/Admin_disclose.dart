@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import '../../AppLogger.dart';
-import '../../AppLogger.dart';
 import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
 import '../../Custom_Widget/Demand_card.dart';
 import '../../Demand_2/Demand_detail.dart';
@@ -231,7 +230,6 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -278,21 +276,21 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
                 ),
               ),
 
-              // Padding(
-              //   padding: const EdgeInsets.symmetric(
-              //       horizontal: 16, vertical: 6),
-              //   child: Align(
-              //     alignment: Alignment.centerLeft,
-              //     child: Text(
-              //       'Loaded Demands: ${_filteredDemands.length}',
-              //       style: TextStyle(
-              //         fontWeight: FontWeight.bold,
-              //         fontSize: 15,
-              //         color: Colors.green.shade600,
-              //       ),
-              //     ),
-              //   ),
-              // ),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 6),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Loaded Demands: ${_filteredDemands.length}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                      color: Colors.green.shade600,
+                    ),
+                  ),
+                ),
+              ),
 
               const SizedBox(height: 20),
 

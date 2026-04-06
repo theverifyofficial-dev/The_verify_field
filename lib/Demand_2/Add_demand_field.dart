@@ -48,8 +48,6 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
   final TextEditingController _furnitureCtrl = TextEditingController();
   final TextEditingController _totalCtrl = TextEditingController();
 
-  bool _fetchingCustomer = false;
-  Map<String, dynamic>? _existingCustomer;
 
   Map<String, dynamic>? _demandData;
   bool _loadingDemand = false;
@@ -155,64 +153,7 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
     super.dispose();
   }
 
-  bool get _canSubmitRedemand {
-    if (_existingCustomer == null) return true;
 
-    final fwName = _existingCustomer?["assigned_fieldworker_name"];
-
-    // can submit only if fieldworker is assigned
-    return fwName != null && fwName.toString().trim().isNotEmpty;
-  }
-
-  Widget _redemandBlockedBanner() {
-
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: Colors.red.withOpacity(0.12),
-        border: Border.all(
-          color: Colors.red.withOpacity(0.45),
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.block_rounded,
-            color: Colors.red.shade700,
-            size: 26,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  "Redemand Not Allowed Yet",
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  "You can add a new demand only after the previous demand is assigned to Fieldworker.",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.redAccent,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   String _extractLast10Digits(String input) {
     final digitsOnly = input.replaceAll(RegExp(r'\D'), '');
@@ -230,10 +171,6 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
         await _fetchMainDemand();
       } else {
         await _fetchRedemand();
-      }
-
-      if (_demandData != null) {
-        _autofillFromExistingCustomer(_demandData!);
       }
     } finally {
       if (mounted) setState(() => _loadingDemand = false);
@@ -333,34 +270,6 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
       return "--";
     }
   }
-  Future<void> _fetchCustomerByPhone(String phone) async {
-    if (phone.length != 10) return;
-
-    if (widget.mode != DemandEditMode.add) return;
-
-    setState(() => _fetchingCustomer = true);
-
-    try {
-      final res = await _dio.get(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/fecth_tenant_number.php?Tnumber=$phone",
-      );
-
-      if (res.statusCode == 200 && res.data["success"] == true) {
-        final List list = res.data["data"];
-        if (list.isEmpty) return;
-
-        final data = list.first;
-
-        setState(() {
-          _existingCustomer = data;
-          _autofillFromExistingCustomer(data);
-        });
-      }
-    } catch (_) {
-    } finally {
-      if (mounted) setState(() => _fetchingCustomer = false);
-    }
-  }
 
   String? safeString(dynamic value) {
     if (value == null) return null;
@@ -381,354 +290,126 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
     return double.tryParse(value.toString());
   }
 
-  void _autofillFromExistingCustomer(Map<String, dynamic> data) {
-
-    final name = safeString(data["Tname"]);
-    final number = safeString(data["Tnumber"]);
-    final message = safeString(data["Message"]);
-
-    // NAME / NUMBER
-    if (_nameCtrl.text.isEmpty && name != null) {
-      _nameCtrl.text = name;
-    }
-
-    if (_numberCtrl.text.isEmpty && number != null) {
-      _numberCtrl.text = number;
-    }
-
-    if (_messageCtrl.text.isEmpty && message != null) {
-      _messageCtrl.text = message;
-    }
-
-    // URGENT
-    final mark = safeString(data["mark"]);
-    if (mark != null) {
-      _isUrgent = mark == "1";
-    }
-
-    // BUY / RENT
-    final buyRent = safeString(data["Buy_rent"]);
-    if (_buyRent == null && buyRent != null) {
-      _buyRent = buyRent;
-    }
-
-    // LOCATION
-    final location = safeString(data["Location"]);
-    if (_location == null && location != null) {
-      _location = location;
-    }
-
-    // REFERENCE
-    final reference = safeString(data["Reference"]);
-    if (_reference == null && reference != null) {
-      _reference = reference;
-    }
-
-    // BHK
-    final bhkRaw = safeString(data["Bhk"]);
-    if (_selectedBhks.isEmpty && bhkRaw != null) {
-      _selectedBhks.clear();
-      _selectedBhks.addAll(
-        bhkRaw.split(",").map((e) => e.trim()).where((e) => e.isNotEmpty),
-      );
-    }
-
-    // SIMPLE FIELDS
-    _parking ??= safeString(data["parking"]);
-    _lift ??= safeString(data["lift"]);
-    _furnished ??= safeString(data["furnished_unfurnished"]);
-    _familyStructure ??= safeString(data["family_structur"]);
-    _familyMember ??= safeString(data["family_member"]);
-    _religion ??= safeString(data["religion"]);
-
-    // FLOOR
-    final floorRaw = safeString(data["floor"]);
-    if (floorRaw != null) {
-      _floor.clear();
-      _floor.addAll(
-        floorRaw.split(",").map((e) => e.trim()).where((e) => e.isNotEmpty),
-      );
-    }
-
-    // COUNT (A-C format)
-    final countRaw = safeString(data["count_of_person"]);
-    if (countRaw != null && countRaw.contains("-")) {
-      final parts = countRaw.split("-");
-      _adultCount = safeInt(parts[0].replaceAll("A", ""), defaultValue: 1);
-      _childrenCount = safeInt(parts[1].replaceAll("C", ""), defaultValue: 0);
-      _updateFamilyTotal(); // keep UI in sync
-    }
-
-    // DATES
-    final shiftingRaw = safeString(data["shifting_date"]);
-    if (shiftingRaw != null) {
-      _shiftingDate = DateTime.tryParse(shiftingRaw);
-    }
-
-    final visitingRaw = safeString(data["visiting_dates"]);
-    if (visitingRaw != null) {
-      _visitingDate = DateTime.tryParse(visitingRaw);
-    }
-
-    // FURNITURE (SAFE JSON)
-    final furnitureRaw = safeString(data["furnished_item"]);
-    if (furnitureRaw != null) {
-      try {
-        final decoded = jsonDecode(furnitureRaw);
-        if (decoded is Map<String, dynamic>) {
-          _selectedFurniture = Map<String, int>.from(decoded);
-          _furnitureCtrl.text = _selectedFurniture.entries
-              .map((e) => "${e.key} (${e.value})")
-              .join(", ");
-        }
-      } catch (_) {
-        _selectedFurniture = {};
-        _furnitureCtrl.clear();
-      }
-    }
-
-    // PRICE
-    final priceRaw = safeString(data["Price"]);
-    if (priceRaw != null && priceRaw.contains("-")) {
-      final parts = priceRaw.split("-");
-
-      final start = safeDouble(parts[0]);
-      final end = safeDouble(parts[1]);
-
-      if (start != null && end != null) {
-        if (_buyRent == "Buy") {
-          _buyBudget = RangeValues(start, end);
-        } else {
-          _rentBudget = RangeValues(start, end);
-        }
-
-        _selectedBudgetLabel = "Custom Range";
-        _showCustomSlider = true;
-      }
-    }
-
-    if (mounted) setState(() {});
-  }
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
+
     setState(() => _isSubmitting = true);
 
-
-    final prefs = await SharedPreferences.getInstance();
-    final FName = prefs.getString('name') ?? "";
-    final FLocation = prefs.getString('location') ?? "";
-
-
-
-    final now = DateTime.now();
-    final isBuy = _buyRent == "Buy";
-
-    final String? updateId = widget.mode == DemandEditMode.updateDemand
-        ? widget.demandId
-        : widget.redemandId;
-
-    if (widget.mode != DemandEditMode.add && updateId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Colors.red,
-          content: Text("Invalid demand ID. Please reopen the page."),
-        ),
-      );
-      setState(() => _isSubmitting = false);
-      return;
-    }
-
-    if (_buyRent == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Select Buy/Rent")),
-      );
-      setState(() => _isSubmitting = false);
-      return;
-    }
-
-    if (_selectedBudgetLabel == null && !_showCustomSlider) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Select Budget")),
-      );
-      setState(() => _isSubmitting = false);
-      return;
-    }
-
-    FormData formData;
-
-
-    final basePayload = {
-      "Tname": _nameCtrl.text.trim(),
-      "Tnumber": _numberCtrl.text.trim(),
-
-      "Price": _buyRent == null
-          ? ""
-          : _buyRent == "Buy"
-          ? "${_buyBudget.start.toInt()}-${_buyBudget.end.toInt()}"
-          : "${_rentBudget.start.toInt()}-${_rentBudget.end.toInt()}",
-
-      "Bhk": _selectedBhks.isEmpty ? "" : _selectedBhks.join(", "),
-      "Location": _location ?? "",
-      "Buy_rent": _buyRent ?? "",
-      "Reference": _reference ?? "",
-      "Message": _messageCtrl.text.trim(),
-
-      "mark": _isUrgent ? "1" : "0",
-      "assigned_fieldworker_name": FName,
-      "assigned_fieldworker_location": FLocation,
-      "assigned_subadmin_name": "Saurabh Yadav",
-      "assigned_subadmin_location": FLocation,
-      "Status": "assigned to fieldworker",
-      "by_field": "true",
-      // 🔥 NEW FIELDS (IMPORTANT)
-      "parking": _parking ?? "",
-      "lift": _lift ?? "",
-      "furnished_unfurnished": _furnished ?? "",
-      "family_structur": _familyStructure ?? "",
-      "family_member": _familyMember ?? "",
-      "count_of_person": "${_adultCount}A-${_childrenCount}C",
-      "religion": _religion ?? "",
-      "shifting_date": _shiftingDate != null
-          ? DateFormat("yyyy-MM-dd").format(_shiftingDate!)
-          : "",
-      "visiting_dates": _visitingDate != null
-          ? DateFormat("yyyy-MM-dd").format(_visitingDate!)
-          : "",
-      "floor": _floor.isNotEmpty ? _floor.join(',') : "",
-      "furnished_item": _selectedFurniture.isNotEmpty
-          ? jsonEncode(_selectedFurniture)
-          : "--",
-    };
-
-
-    if (widget.mode == DemandEditMode.add) {
-      formData = FormData.fromMap({
-        ...basePayload,
-        "Status": "assigned to fieldworker",
-        "created_date": DateFormat('yyyy-MM-dd').format(DateTime.now()),
-      });
-    }
-    else {
-      formData = FormData.fromMap({
-        ...basePayload,
-        "id": widget.mode == DemandEditMode.updateDemand
-            ? widget.demandId
-            : widget.redemandId,
-      });
-    }
-
-    AppLogger.api("MODE: ${widget.mode}");
-    AppLogger.api("DEMAND ID: ${widget.demandId}");
-    AppLogger.api("REDEMAND ID: ${widget.redemandId}");
-    AppLogger.api("FINAL PAYLOAD: $formData");
-
-
-
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final FName = prefs.getString('name') ?? "";
+      final FLocation = prefs.getString('location') ?? "";
 
-      Response? res;
+      if (_buyRent == null) {
+        _showError("Select Buy/Rent");
+        setState(() => _isSubmitting = false);
 
-      if (widget.mode == DemandEditMode.add) {
-        res = await _dio.post(
-          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php",
-          data: formData,
-          options: Options(
-            contentType: "multipart/form-data",
-          ),
-        );
-      } else {
-        formData.fields.add(
-          MapEntry("id", updateId ?? ""),
-        );
-
-        res = await _updateDemandDispatcher(formData);
+        return;
       }
 
-// 🔐 SAFETY CHECK
-      if (res == null) {
-        throw Exception("Update API returned null response");
+      if (_selectedBudgetLabel == null && !_showCustomSlider) {
+        _showError("Select Budget");
+        setState(() => _isSubmitting = false);
+        return;
       }
 
-      AppLogger.api('AppLogger.apiing response ${res.data}');
+      final formData = FormData.fromMap({
+        "Tname": _nameCtrl.text.trim(),
+        "Tnumber": _numberCtrl.text.trim(),
+        "Price": _getPrice(),
+        "Bhk": _selectedBhks.join(", "),
+        "Location": _location ?? "",
+        "Buy_rent": _buyRent ?? "",
+        "Reference": _reference ?? "",
+        "Message": _messageCtrl.text.trim(),
+
+        "mark": _isUrgent ? "1" : "0",
+        "assigned_fieldworker_name": FName,
+        "assigned_fieldworker_location": FLocation,
+        "assigned_subadmin_name": "Saurabh Yadav",
+        "assigned_subadmin_location": FLocation,
+        "Status": "assigned to fieldworker",
+        "by_field": "true",
+
+        "parking": _parking ?? "",
+        "lift": _lift ?? "",
+        "furnished_unfurnished": _furnished ?? "",
+        "family_structur": _familyStructure ?? "",
+        "family_member": _familyMember ?? "",
+        "count_of_person": "${_adultCount}A-${_childrenCount}C",
+        "religion": _religion ?? "",
+        "shifting_date": _formatDate(_shiftingDate),
+        "visiting_dates": _formatDate(_visitingDate),
+        "floor": _floor.join(','),
+        "furnished_item": _selectedFurniture.isNotEmpty
+            ? jsonEncode(_selectedFurniture)
+            : "--",
+
+        if (widget.mode == DemandEditMode.add)
+          "created_date": DateFormat('yyyy-MM-dd').format(DateTime.now()),
+
+        if (widget.mode != DemandEditMode.add)
+          "id": widget.mode == DemandEditMode.updateDemand
+              ? widget.demandId
+              : widget.redemandId,
+      });
+
+      final res = await _dio.post(
+        widget.mode == DemandEditMode.add
+            ? "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php"
+            : "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/edit_redemand_option.php",
+        data: formData,
+        options: Options(contentType: "multipart/form-data"),
+      );
+
+      final msg = _parseMessage(res.data);
 
       if (res.statusCode == 200) {
-        final data = res.data;
-
-        AppLogger.api(data);
-        final msg = data["message"] ?? data["msg"] ?? "Something went wrong";
-
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.green,
-            content: Text(msg),
-          ),
-        );
-        Navigator.pop(context);
+        _showSuccess(msg);
+        if (mounted) Navigator.pop(context, true);
+      } else {
+        _showError(msg);
       }
-      else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.redAccent,
-            content: Text(res.data["message"] ?? "Failed to Add Demand"),
-          ),
-        );
 
-        await BugLogger.log(
-          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
-          error: res.data.toString(),
-          statusCode: res.statusCode ?? 0,
-        );
-
-      }
     } on DioException catch (e) {
-      String errorMessage = "Something went wrong";
-
-      // ✅ Backend responded with error
-      if (e.response != null) {
-        final status = e.response?.statusCode;
-        final data = e.response?.data;
-
-        if (data is Map && data["message"] != null) {
-          errorMessage = data["message"];
-        } else {
-          errorMessage = "Server error ($status)";
-        }
-
-        AppLogger.api(errorMessage);
-
-        // 🔍 LOG REAL ERROR
-        await BugLogger.log(
-          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
-          error: data.toString(),
-          statusCode: status ?? 0,
-        );
-      }
-
-      // ❌ No response → network / timeout / SSL
-      else {
-        errorMessage = "Network error. Check internet connection.";
-
-        await BugLogger.log(
-          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
-          error: e.message ?? "Unknown Dio error",
-          statusCode: 0,
-        );
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: Colors.redAccent,
-          content: Text(errorMessage),
-        ),
-      );
+      final msg = _parseMessage(e.response?.data) ?? "Network error";
+      _showError(msg);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
-    finally {
-      setState(() => _isSubmitting = false);
+  }
+  String _getPrice() {
+    if (_buyRent == "Buy") {
+      return "${_buyBudget.start.toInt()}-${_buyBudget.end.toInt()}";
+    } else {
+      return "${_rentBudget.start.toInt()}-${_rentBudget.end.toInt()}";
     }
   }
 
+  String _formatDate(DateTime? date) {
+    return date != null ? DateFormat("yyyy-MM-dd").format(date) : "";
+  }
+
+  String _parseMessage(dynamic data) {
+    final msg = data?["message"] ?? data?["msg"];
+
+    if (msg is String) return msg;
+    if (msg is Map) return msg.values.join(", ");
+    return "Something went wrong";
+  }
+
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(backgroundColor: Colors.red, content: Text(msg)),
+    );
+  }
+
+  void _showSuccess(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(backgroundColor: Colors.green, content: Text(msg)),
+    );
+  }
   // 🎨 Input decoration
   InputDecoration _modernInput(String hint, IconData icon) {
     return InputDecoration(
@@ -878,16 +559,6 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
 
                 const SizedBox(height: 12),
 
-                if (_existingCustomer != null) ...[
-                  _ExistingCustomerCard(
-                    data: _existingCustomer!,
-                    isDark: false,
-                  ),
-                  const SizedBox(height: 12),
-                ],
-
-                const SizedBox(height: 12),
-
                 Container(
                   padding: const EdgeInsets.all(16),
                   margin: const EdgeInsets.only(bottom: 16),
@@ -919,12 +590,7 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
                         decoration: _modernInput("Customer Number", Icons.phone),
                         keyboardType: TextInputType.phone,
                         maxLength: 12,
-                        onChanged: (value) {
-                          final last10 = _extractLast10Digits(value);
-                          if (last10.length == 10 && !_fetchingCustomer) {
-                            _fetchCustomerByPhone(last10);
-                          }
-                        },
+                        onChanged: (value) {},
                         validator: (value) {
                           final last10 = _extractLast10Digits(value ?? "");
                           return last10.length != 10 ? "Invalid number" : null;
@@ -1328,14 +994,11 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
 
                 const SizedBox(height: 20),
 
-                if (_existingCustomer != null && !_canSubmitRedemand)
-                  _redemandBlockedBanner(),
-
                 SizedBox(
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: (_isSubmitting || !_canSubmitRedemand)
+                    onPressed: (_isSubmitting)
                         ? null
                         : _submitForm,
                     style: ElevatedButton.styleFrom(
@@ -1361,7 +1024,6 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
 
   String get _submitButtonText {
     if (_isSubmitting) return "Submitting...";
-    if (!_canSubmitRedemand) return "Waiting for Assign";
     if (widget.mode == DemandEditMode.add) return "Submit Demand";
     if (widget.mode == DemandEditMode.updateDemand) return "Update Demand";
     return "Update Redemand";  }
@@ -1369,9 +1031,6 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
   Color _submitButtonColor(ThemeData theme) {
     if (_isSubmitting) return Colors.grey.shade600;;
 
-    if (!_canSubmitRedemand) {
-      return Colors.red.shade600; // warning state
-    }
     return const Color(0xFFDC2626);
   }
 
@@ -1397,43 +1056,6 @@ class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerPr
               )),
           Icon(Icons.keyboard_arrow_down, color: theme.iconTheme.color),
         ],
-      ),
-    );
-  }
-
-  void _showSelectBottomSheet({
-    required String title,
-    required List<String> items,
-    required Function(String) onSelect,
-  })
-  {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              title,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium!
-                  .copyWith(fontWeight: FontWeight.bold),
-            ),
-            const Divider(),
-            ...items.map((e) => ListTile(
-              title: Text(e),
-              onTap: () {
-                Navigator.pop(ctx);
-                onSelect(e);
-              },
-            )),
-          ],
-        ),
       ),
     );
   }
@@ -1860,214 +1482,4 @@ final List<Map<String, RangeValues>> rentBudgetPresets = [
 String formatDate(String date) {
   final parsedDate = DateTime.parse(date);
   return DateFormat('d MMMM yyyy').format(parsedDate);
-}
-
-class _ExistingCustomerCard extends StatelessWidget {
-  final Map<String, dynamic> data;
-  final bool isDark;
-
-  const _ExistingCustomerCard({
-    required this.data,
-    required this.isDark,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final accent = Colors.red;
-
-    Widget row(String label, dynamic value) {
-      if (value == null || value.toString().trim().isEmpty) {
-        return const SizedBox.shrink(); // 🔥 hide row completely
-      }
-
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 110,
-              child: Text(
-                "$label:",
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: theme.hintColor,
-                ),
-              ),
-            ),
-            Expanded(
-              child: Text(
-                value.toString(),
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white70 : Colors.black87,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-
-    final name = (data["Tname"] ?? "").toString().trim();
-
-    return GestureDetector(
-      onTap: (){
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => DemandDetail(
-              demandId: data["id"].toString(),
-              isReadOnly: true, // 🔥 THIS IS THE KEY
-            ),
-          ),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-
-          /// 🔥 RED BORDER ACCENT
-          border: Border.all(
-            color: const Color(0xFFDC2626).withOpacity(0.25),
-          ),
-
-          /// 🔥 SUBTLE RED SHADOW
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFDC2626).withOpacity(0.08),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            )
-          ],
-        ),        child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // HEADER
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: accent.withOpacity(0.9),
-                child: Text(
-                  name.isNotEmpty ? name[0].toUpperCase() : "?",
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      data["Tname"] ?? "--",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    Text(
-                      data["Tnumber"] ?? "--",
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: theme.hintColor,
-                      ),
-                    ),
-
-                  ],
-                ),
-              ),
-              Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: accent.withOpacity(0.85),
-                ),
-                child: Text(
-                  data["Status"],
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Date: ${safeDate(data["Date"] ?? data["created_date"])}",
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.black87,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-              Text(
-                "Time: ${data["Time"] ?? "--"}",                  style: TextStyle(
-                fontSize: 12,
-                color: Colors.black87,
-                fontStyle: FontStyle.italic,
-              ),
-              )
-            ],
-          ),
-
-          Divider(color: Colors.grey.withOpacity(0.25)),
-          const SizedBox(height: 6),
-
-          row("Type", data["Buy_rent"]),
-          row("Budget", data["Price"] != null ? "₹ ${data["Price"]}" : null),
-          row("BHK", data["Bhk"]),
-          row("Location", data["Location"]),
-          row("Shifting Date", formatDate(data["shifting_date"])),
-
-          const SizedBox(height: 8),
-          Divider(color: Colors.grey.withOpacity(0.22)),
-          const SizedBox(height: 6),
-
-          row("Fieldworker", data["assigned_fieldworker_name"]),
-          row("FW Location", data["assigned_fieldworker_location"]),
-
-          const SizedBox(height: 6),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Text("Click to Open detail page >",
-                style: const TextStyle(color: Colors.grey,fontStyle: FontStyle.italic),
-              ),
-            ],
-          ),
-        ],
-      ),
-      ),
-    );
-  }
-  String safeDate(dynamic value) {
-    if (value == null) return "--";
-
-    try {
-      return formatDate(value.toString());
-    } catch (_) {
-      return "--";
-    }
-  }
 }

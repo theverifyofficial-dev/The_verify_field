@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import '../../../AppLogger.dart';
 import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
@@ -46,6 +47,9 @@ class _AgreementDetailsState extends State<AllData> {
   // Add these alongside your other state variables
   String? _activeFilterMonth;    // e.g. "2025-03", null = no filter
   String? _activeFilterWorker;   // e.g. "9711775300", null = all
+  String _searchQuery = "";
+  Timer? _debounce;
+  int totalRecords = 0;
 
   List<AgreementModel> agreements = [];
   List<AgreementModel> filteredAgreements = [];
@@ -53,9 +57,14 @@ class _AgreementDetailsState extends State<AllData> {
   TextEditingController searchController = TextEditingController();
   late Future<List<FieldWorkerPayment>> _paymentsFuture;
   FieldWorkerPayment? monthlyPaymentSummary;
+  final int _limit = 20;
 
   ScrollController _scrollController = ScrollController();
   double _savedScrollOffset = 0.0;
+
+  int page = 1;
+  bool hasMore = true;
+  bool isFetchingMore = false;
 
   @override
   void initState() {
@@ -63,13 +72,21 @@ class _AgreementDetailsState extends State<AllData> {
     _scrollController = ScrollController(); // ← ADD THIS
     fetchAgreements();
     _paymentsFuture = fetchAllFieldWorkersPayments();
-    searchController.addListener(_onSearchChanged);
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200 &&
+          !isFetchingMore &&
+          hasMore) {
+        fetchAgreements(isInitial: false);
+      }
+    });
   }
 
   @override
   void dispose() {
     _scrollController.dispose(); // ← ADD THIS
     searchController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -77,8 +94,6 @@ class _AgreementDetailsState extends State<AllData> {
     {"number": "9711775300", "name": "Sumit"},
     {"number": "9711275300", "name": "Ravi Kumar"},
     {"number": "9971172204", "name": "Faizan Khan"},
-    // {"number": "9675383184", "name": "Abhay"},
-    // {"number": "8130209217", "name": "Manish"},
   ];
 
   Future<FieldWorkerPayment> fetchPaymentForWorker({
@@ -113,17 +128,6 @@ class _AgreementDetailsState extends State<AllData> {
         ),
       ),
     );
-  }
-
-  void _onSearchChanged() {
-    String query = searchController.text.toLowerCase();
-    setState(() {
-      filteredAgreements = agreements.where((a) {
-        return a.ownerName.toLowerCase().contains(query) ||
-            a.tenantName.toLowerCase().contains(query) ||
-            a.id.toString().contains(query);
-      }).toList();
-    });
   }
 
   /// Silent background refresh — preserves filter state and scroll position
@@ -171,51 +175,68 @@ class _AgreementDetailsState extends State<AllData> {
       AppLogger.api("❌ Silent refresh error: $e");
     }
   }
+
 // Keep _refreshAgreements for the pull-to-refresh use case (resets everything)
+
   Future<void> _refreshAgreements() async {
-    try {
-      _activeFilterMonth = null;   // ← ADD
-      _activeFilterWorker = null;  // ← ADD
-      setState(() => isLoading = true);
-      await fetchAgreements();
-      monthlyPaymentSummary = null;
-    } catch (e) {
-      AppLogger.api("❌ Error refreshing agreements: $e");
-    } finally {
-      if (mounted) setState(() => isLoading = false);
-    }
+    _activeFilterMonth = null;
+    _activeFilterWorker = null;
+    monthlyPaymentSummary = null;
+
+    await fetchAgreements(isInitial: true);
   }
 
-  Future<void> fetchAgreements() async {
+  Future<void> fetchAgreements({bool isInitial = true}) async {
+    if (isFetchingMore) return;
+
+    isFetchingMore = true;
+
+    if (isInitial) {
+      page = 1;
+      hasMore = true;
+      agreements.clear();
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(0);
+      }      filteredAgreements.clear();
+      setState(() => isLoading = true);
+    }
+
     try {
-      final response = await http.get(
-        Uri.parse('https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php'),
-      );
+      final url = _searchQuery.isEmpty
+          ? 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php?page=$page&limit=$_limit'
+          : 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/search_api_for_final_table_for_admin.php?search=$_searchQuery&page=$page&limit=$_limit';
 
-      if (response.statusCode == 200) {
-        final decoded = jsonDecode(response.body);
+      final response = await http.get(Uri.parse(url));
 
-        // The response might be wrapped with {status, message, data}
-        if (decoded is Map && decoded.containsKey('data')) {
-          final List dataList = decoded['data'];
+      AppLogger.api("RESPONSE: ${response.body}");
 
-          setState(() {
-            agreements = dataList.map((e) => AgreementModel.fromJson(e)).toList().reversed.toList();
-            filteredAgreements = agreements;
-            isLoading = false;
-          });
-        } else {
-          throw Exception('Invalid data format');
-        }
-      } else {
-        throw Exception('Failed to load data');
+      final decoded = jsonDecode(response.body);
+
+      if (decoded['data'] is List) {
+        final List newData = decoded['data'];
+
+        final newList = newData
+            .map((e) => AgreementModel.fromJson(e))
+            .toList();
+
+        final totalPages = decoded['total_pages'] ?? 1;
+        totalRecords = decoded['total_records'] ?? 0;
+
+        setState(() {
+          agreements.addAll(newList);
+          filteredAgreements = agreements;
+
+          page++;
+          hasMore = page < totalPages;
+          isLoading = false;
+        });
       }
     } catch (e) {
-      AppLogger.api('❌ Error fetching data: $e');
-      setState(() => isLoading = false);
+      AppLogger.api("❌ Search Pagination error: $e");
     }
-  }
 
+    isFetchingMore = false;
+  }
   List<Color> _getCardColors(String? type, bool isDark) {
     if (type == "Police Verification") {
       return isDark
@@ -276,8 +297,17 @@ class _AgreementDetailsState extends State<AllData> {
                       child: TextField(
                         controller: searchController,
                         decoration: InputDecoration(
-                          prefixIcon:
-                          Icon(Icons.search, color: Colors.green.shade700),
+                          suffixIcon: IconButton(
+                            icon: Icon(Icons.search, color: Colors.green),
+                            onPressed: () {
+                              final query = searchController.text.trim();
+
+                              if (_searchQuery == query) return;
+
+                              _searchQuery = query;
+                              fetchAgreements(isInitial: true);
+                            },
+                          ),
                           hintText: "Search by Owner, Tenant, or ID...",
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(
@@ -484,18 +514,18 @@ class _AgreementDetailsState extends State<AllData> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Text(
-                      'Total Agreements: ${filteredAgreements.length}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: isDark
-                            ? Colors.green.shade200
-                            : Colors.green.shade800,
-                      ),
-                    ),
+                //     Text(
+                // 'Total Agreements: ${_searchQuery.isEmpty ? filteredAgreements.length : totalRecords}',
+                //       style: TextStyle(
+                //         fontWeight: FontWeight.bold,
+                //         fontSize: 15,
+                //         color: isDark
+                //             ? Colors.green.shade200
+                //             : Colors.green.shade800,
+                //       ),
+                //     ),
 
                     ElevatedButton(
                       onPressed: () => _openMonthFilterSheet(context),
@@ -518,11 +548,21 @@ class _AgreementDetailsState extends State<AllData> {
             ),
 
 
-
+            if (!isLoading && filteredAgreements.isEmpty)
+              SliverFillRemaining(
+                child: Center(
+                  child: Text(
+                    "No results found",
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ),
+              ),
             SliverList(
               delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                  final item = filteredAgreements[index];
+                      if (index < filteredAgreements.length) {
+
+                        final item = filteredAgreements[index];
                   final renewalDate = _getRenewalDate(item.shiftingDate);
                   final bool isPolice =
                       item.agreementType == "Police Verification";
@@ -746,8 +786,18 @@ class _AgreementDetailsState extends State<AllData> {
                       ),
                     ),
                   );
-                },
-                childCount: filteredAgreements.length,
+
+                      } else {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+                    },
+
+                childCount: filteredAgreements.length + (hasMore ? 1 : 0),
               ),
             ),
           ],

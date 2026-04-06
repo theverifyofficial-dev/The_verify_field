@@ -21,80 +21,84 @@ class _TenantDemandState extends State<TenantDemand> {
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
+  int _page = 1;
+  final int _limit = 10;
+
+  bool _isFetchingMore = false;
+  bool _hasMore = true;
+
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _loadDemands();
     _searchController.addListener(_onSearchChanged);
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        if (_hasMore && !_isFetchingMore) {
+          _loadDemands();
+        }
+      }
+    });
   }
 
-  Future<void> _loadDemands() async {
-    setState(() => _isLoading = true);
+  Future<void> _loadDemands({bool isRefresh = false}) async {
+    if (_isFetchingMore) return;
+
+    if (isRefresh) {
+      _page = 1;
+      _hasMore = true;
+    }
+
+    setState(() {
+      if (_page == 1) _isLoading = true;
+      _isFetchingMore = true;
+    });
 
     try {
-      final response = await http.get(
-        Uri.parse(
-          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php?Status=new",
-        ),
+      final url = Uri.parse(
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php"
+              "?Status=new&page=$_page&limit=$_limit"
       );
+
+      final response = await http.get(url);
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
 
-        // ✅ validate backend response
         if (decoded["success"] == true) {
-          final List data = decoded["data"];
-
-          final list = data
+          final newData = (decoded["data"] as List)
               .map((e) => TenantDemandModel.fromJson(e))
               .toList();
-              // .reversed
-              // .toList();
 
           setState(() {
-            _allDemands = list;
-            _filteredDemands = list;
-          });
-        } else {
-          // backend responded but with unexpected structure
-          // await BugLogger.log(
-          //   apiLink:
-          //   "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
-          //   error: response.body,
-          //   statusCode: response.statusCode,
-          // );
+            if (_page == 1) {
+              _allDemands = newData;
+            } else {
+              _allDemands.addAll(newData);
+            }
 
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("No demand data found")),
-            );
-          }
+            _filteredDemands = _allDemands;
+
+            // 🔥 pagination end check
+            if (newData.length < _limit) {
+              _hasMore = false;
+            } else {
+              _page++;
+            }
+          });
         }
-      } else {
-        await BugLogger.log(
-          apiLink:
-          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
-          error: response.body,
-          statusCode: response.statusCode,
-        );
       }
     } catch (e) {
-      await BugLogger.log(
-        apiLink:
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
-        error: e.toString(),
-        statusCode: 500,
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error fetching data: $e")),
-        );
-      }
+      print(e);
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+          _isFetchingMore = false;
+        });
       }
     }
   }
@@ -218,6 +222,24 @@ class _TenantDemandState extends State<TenantDemand> {
               ),
 
               const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Loaded: ${_allDemands.length}",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade700,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+
+                  ],
+                ),
+              ),
+
               Expanded(
                 child: _filteredDemands.isEmpty
                     ? Center(
@@ -231,31 +253,41 @@ class _TenantDemandState extends State<TenantDemand> {
                   ),
                 )
                     : RefreshIndicator(
-                  onRefresh: _loadDemands,
+                  onRefresh: () => _loadDemands(isRefresh: true),
                   color: theme.colorScheme.primary,
                   child: ListView.builder(
+                    controller: _scrollController,
                     padding:
                     const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: _filteredDemands.length,
+                    itemCount: _filteredDemands.length + (_isFetchingMore ? 1 : 0),
                     itemBuilder: (_, i) {
+                      // 🔥 LAST ITEM = LOADER
+                      if (i == _filteredDemands.length) {
+                        return const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+
                       final d = _filteredDemands[i];
 
                       return DemandCard(
                         d: d,
-                        type: "demand", // 👈 here
+                        type: "demand",
                         onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (_) => DemandDetail(
                                 demandId: d.id.toString(),
-                                isReadOnly: true, // 🔥 THIS IS THE KEY
+                                isReadOnly: true,
                               ),
                             ),
                           ).then((_) => _loadDemands());
                         },
                       );
                     },
+
                   ),
                 ),
               ),

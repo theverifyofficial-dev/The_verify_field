@@ -106,8 +106,9 @@ class _TenantDemandState extends State<AcceptedDemand> {
         if (decoded["status"] == true) {
           final newData = (decoded["data"] as List)
               .map((e) => TenantDemandModel.fromJson(e))
+              .toList()
+              .reversed
               .toList();
-
           setState(() {
             if (_page == 1) {
               _allDemands = newData;
@@ -159,15 +160,12 @@ class _TenantDemandState extends State<AcceptedDemand> {
     });
 
     try {
-      final url = Uri.parse(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/"
-            "Tenant_demand/display_redemand_show_feildwakrname_and_status.php"
-            "?Status=disclosed"
-            "&page=$_redPage"
-            "&limit=$_limit",
+
+      final redemandUrl = Uri.parse(
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php",
       );
 
-      final res = await http.get(url);
+      final res = await http.get(redemandUrl);
 
       if (res.statusCode == 200) {
         final decoded = jsonDecode(res.body);
@@ -177,8 +175,9 @@ class _TenantDemandState extends State<AcceptedDemand> {
 
           final newList = data
               .map((e) => TenantDemandModel.fromJson(e))
+              .toList()
+              .reversed
               .toList();
-
           if (newList.length < _limit) {
             _hasMoreRed = false;
           }
@@ -368,7 +367,7 @@ class _TenantDemandState extends State<AcceptedDemand> {
 
 
               Expanded(
-                child: _allDemands.isEmpty && !_isLoading
+                child: _allDemands.isEmpty && _crossRedemands.isEmpty && !_isLoading
                     ? Center(
                   child: Text(
                     "No demands found",

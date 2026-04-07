@@ -546,18 +546,18 @@ class _AgreementDetailsState extends State<AllData> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                //     Text(
-                // 'Total Agreements: ${_searchQuery.isEmpty ? filteredAgreements.length : totalRecords}',
-                //       style: TextStyle(
-                //         fontWeight: FontWeight.bold,
-                //         fontSize: 15,
-                //         color: isDark
-                //             ? Colors.green.shade200
-                //             : Colors.green.shade800,
-                //       ),
-                //     ),
+                    Text(
+                'Total Agreements: ${_searchQuery.isNotEmpty ? filteredAgreements.length : totalRecords}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: isDark
+                            ? Colors.green.shade200
+                            : Colors.green.shade800,
+                      ),
+                    ),
 
                     ElevatedButton(
                       onPressed: () => _openMonthFilterSheet(context),

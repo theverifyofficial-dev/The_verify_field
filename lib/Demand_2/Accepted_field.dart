@@ -158,16 +158,22 @@ class _TenantDemandState extends State<AcceptedField> {
       _isFetchingMoreRed = true;
     });
 
+
+
     try {
-      final url = Uri.parse(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/"
-            "Tenant_demand/display_redemand_show_feildwakrname_and_status.php"
-            "?Status=disclosed"
-            "&page=$_redPage"
-            "&limit=$_limit",
+
+      final prefs = await SharedPreferences.getInstance();
+      final FName = prefs.getString('name') ?? "";
+
+      if (FName.isEmpty) return;
+
+      final encodedName = Uri.encodeQueryComponent(FName);
+
+      final redemandUrl = Uri.parse(
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?assigned_fieldworker_name=$encodedName",
       );
 
-      final res = await http.get(url);
+      final res = await http.get(redemandUrl);
 
       if (res.statusCode == 200) {
         final decoded = jsonDecode(res.body);
@@ -177,8 +183,9 @@ class _TenantDemandState extends State<AcceptedField> {
 
           final newList = data
               .map((e) => TenantDemandModel.fromJson(e))
+              .toList()
+              .reversed
               .toList();
-
           if (newList.length < _limit) {
             _hasMoreRed = false;
           }
@@ -327,7 +334,7 @@ class _TenantDemandState extends State<AcceptedField> {
 
 
                 Expanded(
-                    child:  ((_parentDemands.isEmpty && !_isLoading))
+                    child:  ((_parentDemands.isEmpty && _crossRedemands.isEmpty &&!_isLoading))
                         ? Center(
                       child: Text(
                         "No demands found",

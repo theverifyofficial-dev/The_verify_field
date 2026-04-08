@@ -643,6 +643,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
 
     return Scaffold(
       appBar: AppBar(
+        surfaceTintColor: Colors.black,
         title: Text('${agreement?["agreement_type"] ?? "Agreement"} Details'),
         leading: const SquareBackButton(),
       ),

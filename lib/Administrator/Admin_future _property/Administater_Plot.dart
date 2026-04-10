@@ -203,31 +203,35 @@ class Show_Administater_PlotState extends State<Show_Administater_Plot> {
             ],
           ),
         ),
-        SizedBox(
-          height: 420,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            itemCount: sortedPlots.length,
-            itemBuilder: (context, i) {
-              final plot = sortedPlots[i];
-              return InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          Administater_Under_Plot(propertyData: plot,),
+        // ✅ FIXED
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: List.generate(
+                sortedPlots.length,
+                    (i) {
+                  final plot = sortedPlots[i];
+                  return InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              Administater_Under_Plot(propertyData: plot),
+                        ),
+                      );
+                    },
+                    child: SizedBox(
+                      width: 400,
+                      child: _buildPlotCard(plot, sortedPlots.length - i),
                     ),
                   );
                 },
-                  child:
-                SizedBox(
-                width: 340,
-                child: _buildPlotCard(plot, sortedPlots.length - i),
-                ),
-              );
-            },
+              ),
+            ),
           ),
         ),
       ],
@@ -369,7 +373,6 @@ class Show_Administater_PlotState extends State<Show_Administater_Plot> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // LEFT IMAGE
                       Expanded(
                         flex: 2,
                         child: _buildImageSection(

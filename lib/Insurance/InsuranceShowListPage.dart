@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 import 'Insurance Form Screen.dart';
 import 'InsuranceDetail.dart';
+import 'Pdf_quotations/Pdf_quotation.dart';
 
 const String insuranceBaseUrl =
     "https://verifyrealestateandservices.in/PHP_Files/insurance_insert_api/insurance_details/";
@@ -146,14 +147,14 @@ class InsuranceResponse {
 }
 
 class InsuranceListScreen extends StatefulWidget {
-  final String fieldWorkerNumber;
-  final String fieldWorkerName;
+  final String? fieldWorkerNumber;
+  final String? fieldWorkerName;
 
 
   const InsuranceListScreen({
     super.key,
-    required this.fieldWorkerNumber,
-    required this.fieldWorkerName,
+     this.fieldWorkerNumber,
+     this.fieldWorkerName,
   });
 
   @override
@@ -237,7 +238,6 @@ class _InsuranceListScreenState extends State<InsuranceListScreen> {
       if (item.vehicleType == null || item.vehicleType!.isEmpty) totalMissingFields++;
     }
   }
-
 
 
   Future<void> fetchInsurance() async {
@@ -378,90 +378,6 @@ class _InsuranceListScreenState extends State<InsuranceListScreen> {
           ),
         ),
       ),
-
-
-      // body: isLoading
-      //     ? const Center(child: CircularProgressIndicator())
-      //     : Column(
-      //   children: [
-      //
-      //     _premiumHeader(isDark),
-      //     /// 🔎 PREMIUM SEARCH BAR
-      //     Padding(
-      //       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      //       child: Container(
-      //         decoration: BoxDecoration(
-      //           borderRadius: BorderRadius.circular(30),
-      //           boxShadow: [
-      //             BoxShadow(
-      //               color: Colors.black.withOpacity(0.06),
-      //               blurRadius: 20,
-      //               offset: const Offset(0, 8),
-      //             ),
-      //           ],
-      //         ),
-      //         child:
-      //         TextField(
-      //           controller: searchController,
-      //           style: const TextStyle(
-      //             fontFamily: "PoppinsMedium",
-      //             fontSize: 14,
-      //           ),
-      //           decoration: InputDecoration(
-      //             hintText: "Search",
-      //             hintStyle: TextStyle(
-      //               color: Colors.grey.shade500,
-      //               fontSize: 13,
-      //             ),
-      //
-      //             prefixIcon: Container(
-      //               padding: const EdgeInsets.all(12),
-      //               child: Icon(
-      //                 Icons.search_rounded,
-      //                 color: Colors.grey.shade600,
-      //                 size: 22,
-      //               ),
-      //             ),
-      //
-      //             suffixIcon: searchController.text.isNotEmpty
-      //                 ? IconButton(
-      //               icon: const Icon(Icons.close_rounded),
-      //               onPressed: () {
-      //                 searchController.clear();
-      //               },
-      //             )
-      //                 : null,
-      //
-      //             filled: true,
-      //             fillColor: Theme.of(context).brightness == Brightness.dark
-      //                 ? const Color(0xFF1A1A1A)
-      //                 : Colors.white,
-      //
-      //             contentPadding:
-      //             const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-      //
-      //             enabledBorder: OutlineInputBorder(
-      //               borderRadius: BorderRadius.circular(30),
-      //               borderSide: BorderSide(
-      //                 color: Colors.grey.shade300,
-      //               ),
-      //             ),
-      //
-      //             focusedBorder: OutlineInputBorder(
-      //               borderRadius: BorderRadius.circular(30),
-      //               borderSide: const BorderSide(
-      //                 color: Color(0xFF4F46E5),
-      //                 width: 1.5,
-      //               ),
-      //             ),
-      //
-      //             border: OutlineInputBorder(
-      //               borderRadius: BorderRadius.circular(30),
-      //             ),
-      //           ),
-      //         ),
-      //       ),
-      //     ),
 
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -873,7 +789,38 @@ class _InsuranceListScreenState extends State<InsuranceListScreen> {
                     ),
                   ),
                 ),
-              ],
+                Positioned(
+                  bottom: 5,
+                  right: 8,
+                  child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF4F46E5),
+                            Color(0xFF3B82F6),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child:
+                          Text(
+                            (item.vehicle_category == null || item.vehicle_category!.trim().isEmpty)
+                                ? "Vehicle Category Empty"
+                                : item.vehicle_category!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontFamily: "PoppinsBold",
+                              color: (item.vehicle_category == null || item.vehicle_category!.trim().isEmpty)
+                                  ? Colors.red
+                                  : Colors.white,
+                            ),
+                          )
+                          ),
+                      )],
             ),
 
             /// CONTENT
@@ -905,28 +852,16 @@ class _InsuranceListScreenState extends State<InsuranceListScreen> {
                       const SizedBox(width: 10),
 
                       /// VEHICLE CATEGORY BADGE
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: (item.vehicle_category == null || item.vehicle_category!.trim().isEmpty)
-                              ? Colors.red.withOpacity(.12)        // 🔴 Empty category
-                              : const Color(0xFF4F46E5).withOpacity(.12), // 🟣 Normal
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        child: Text(
-                          (item.vehicle_category == null || item.vehicle_category!.trim().isEmpty)
-                              ? "Vehicle Category Empty"
-                              : item.vehicle_category!,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontFamily: "PoppinsBold",
-                            color: (item.vehicle_category == null || item.vehicle_category!.trim().isEmpty)
-                                ? Colors.red
-                                : const Color(0xFF4F46E5),
-                          ),
+                      Text(
+                        (item.fuelType == null || item.fuelType!.trim().isEmpty)
+                            ? "Vehicle Category Empty"
+                            : item.fuelType!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontFamily: "PoppinsBold",
+                          color: (item.fuelType == null || item.fuelType!.trim().isEmpty)
+                              ? Colors.red
+                              : Colors.amber,
                         ),
                       )
                     ],
@@ -977,22 +912,48 @@ class _InsuranceListScreenState extends State<InsuranceListScreen> {
                           ),
                         ],
                       ),
-
-                      /// FUEL BADGE
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(.12),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          "Fuel: ${item.fuelType ?? "-"}",
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontFamily: "PoppinsBold",
-                            color: Colors.blue,
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PdfQuotationScreen(projectId: item.id),
+                            ),
+                          );
+                        },
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                          backgroundColor: isDark
+                              ? Colors.white.withOpacity(.08)
+                              : const Color(0xFF4F46E5).withOpacity(.1),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            side: BorderSide(
+                              color: isDark
+                                  ? Colors.white.withOpacity(.15)
+                                  : const Color(0xFF4F46E5).withOpacity(.3),
+                              width: 1,
+                            ),
                           ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.remove_red_eye_outlined,
+                              size: 13,
+                              color: isDark ? Colors.white70 : const Color(0xFF4F46E5),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              "View Details",
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontFamily: "PoppinsBold",
+                                color: isDark ? Colors.white70 : const Color(0xFF4F46E5),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -1012,7 +973,6 @@ class _InsuranceListScreenState extends State<InsuranceListScreen> {
                         ),
                         child: Row(
                           children: [
-
                             const Icon(
                               Icons.warning_amber_rounded,
                               color: Colors.red,
@@ -1117,7 +1077,6 @@ String formatExpiryDate(String? rawDate) {
 
     return DateFormat("dd MMM yyyy").format(parsed);
 
-    /// Example Output → 24 Feb 2026 😎
   } catch (e) {
     return rawDate; // fallback safety
   }

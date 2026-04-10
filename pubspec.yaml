@@ -110,6 +110,9 @@
     google_generative_ai: ^0.4.7  # Or check pub.dev for the latest 2026 version
     confetti: ^0.7.0
     flutter_animate: ^4.5.2
+#    agora_rtc_engine: ^6.0.0
+#    socket_io_client: ^2.0.3
+
 
 
   dev_dependencies:

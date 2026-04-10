@@ -35,7 +35,6 @@ class Show_Aministater_CommercialState extends State<Show_Aministater_Commercial
     {"name": "Sumit Kasaniya", "id": "9711775300"},
     {"name": "Ravi Kumar", "id": "9711275300"},
     {"name": "Faizan Khan", "id": "9971172204"},
-    {"name": "avjit", "id": "11"},
     // {"name": "Abhay", "id": "9675383184"},
   ];
 

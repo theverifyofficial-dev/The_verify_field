@@ -3,10 +3,129 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../../Custom_Widget/Custom_backbutton.dart';
+import '../../Custom_Widget/constant.dart';
 import '../../model/Additional_agreement_tenants.dart';
 import '../imagepreviewscreen.dart';
 import 'Admin_dashboard.dart';
 
+// ─── Section Theme Map ────────────────────────────────────────────────────────
+class _SectionTheme {
+  final Color titleBg;
+  final Color titleText;
+  final Color borderColor;
+  final Color cardBg;
+  final IconData icon;
+
+  const _SectionTheme({
+    required this.titleBg,
+    required this.titleText,
+    required this.borderColor,
+    required this.cardBg,
+    required this.icon,
+  });
+}
+
+final Map<String, _SectionTheme> _sectionThemes = {
+  "Agreement Details": _SectionTheme(
+    titleBg: const Color(0xFF7C3AED),
+    titleText: Colors.white,
+    borderColor: const Color(0xFF7C3AED),
+    cardBg: const Color(0xFFF5F0FF),
+    icon: Icons.description_outlined,
+  ),
+  "Owner Details": _SectionTheme(
+    titleBg: const Color(0xFF0F766E),
+    titleText: Colors.white,
+    borderColor: const Color(0xFF0F766E),
+    cardBg: const Color(0xFFE6FFFA),
+    icon: Icons.person_outlined,
+  ),
+  "Tenant Details": _SectionTheme(
+    titleBg: const Color(0xFF1D4ED8),
+    titleText: Colors.white,
+    borderColor: const Color(0xFF1D4ED8),
+    cardBg: const Color(0xFFEFF6FF),
+    icon: Icons.people_outlined,
+  ),
+  "Director Details": _SectionTheme(
+    titleBg: const Color(0xFF1D4ED8),
+    titleText: Colors.white,
+    borderColor: const Color(0xFF1D4ED8),
+    cardBg: const Color(0xFFEFF6FF),
+    icon: Icons.business_center_outlined,
+  ),
+  "Additional Tenant": _SectionTheme(
+    titleBg: const Color(0xFFC2410C),
+    titleText: Colors.white,
+    borderColor: const Color(0xFFC2410C),
+    cardBg: const Color(0xFFFFF7ED),
+    icon: Icons.group_add_outlined,
+  ),
+  "Additional Director": _SectionTheme(
+    titleBg: const Color(0xFFC2410C),
+    titleText: Colors.white,
+    borderColor: const Color(0xFFC2410C),
+    cardBg: const Color(0xFFFFF7ED),
+    icon: Icons.group_add_outlined,
+  ),
+  "Field Worker": _SectionTheme(
+    titleBg: const Color(0xFFB45309),
+    titleText: Colors.white,
+    borderColor: const Color(0xFFB45309),
+    cardBg: const Color(0xFFFFFBEB),
+    icon: Icons.engineering_outlined,
+  ),
+  "Property Residential Address": _SectionTheme(
+    titleBg: const Color(0xFF0369A1),
+    titleText: Colors.white,
+    borderColor: const Color(0xFF0369A1),
+    cardBg: const Color(0xFFE0F2FE),
+    icon: Icons.location_on_outlined,
+  ),
+  "Documents": _SectionTheme(
+    titleBg: const Color(0xFF065F46),
+    titleText: Colors.white,
+    borderColor: const Color(0xFF065F46),
+    cardBg: const Color(0xFFECFDF5),
+    icon: Icons.folder_copy_outlined,
+  ),
+};
+
+final Map<String, IconData> _fieldIcons = {
+  'Owner Name': Icons.person_outlined,
+  'Tenant Name': Icons.person_outlined,
+  'Director Name': Icons.person_outlined,
+  'Name': Icons.engineering_outlined,
+  'Number': Icons.phone_outlined,
+  'Relation': Icons.group_outlined,
+  'Address': Icons.location_on_outlined,
+  'Mobile': Icons.phone_outlined,
+  'Aadhar': Icons.badge_outlined,
+  'Aadhaar': Icons.badge_outlined,
+  'Property': Icons.home_work_outlined,
+  'BHK': Icons.home_outlined,
+  'Sqft': Icons.square_foot_outlined,
+  'Floor': Icons.layers_outlined,
+  'Rented Address': Icons.location_on_outlined,
+  'Property Address': Icons.location_on_outlined,
+  'Monthly Rent': Icons.currency_rupee,
+  'Security': Icons.lock_outlined,
+  'Installment Security': Icons.savings_outlined,
+  'Meter': Icons.electric_meter_outlined,
+  'Custom Unit': Icons.tune_outlined,
+  'Maintenance': Icons.build_circle_outlined,
+  'Maintenance Amount': Icons.calculate_outlined,
+  'Parking': Icons.local_parking_outlined,
+  'Shifting Date': Icons.calendar_today_outlined,
+  'Agreement Price': Icons.receipt_long_outlined,
+  'Notary Amount': Icons.verified_outlined,
+  'Company Name': Icons.business_outlined,
+  'Document Type': Icons.description_outlined,
+  'Document Number': Icons.numbers_outlined,
+  'PAN Number': Icons.credit_card_outlined,
+};
+
+// ─── Main Widget ──────────────────────────────────────────────────────────────
 class AdminAgreementDetails extends StatefulWidget {
   final String agreementId;
   const AdminAgreementDetails({super.key, required this.agreementId});
@@ -16,7 +135,6 @@ class AdminAgreementDetails extends StatefulWidget {
 }
 
 class _AgreementDetailPageState extends State<AdminAgreementDetails> {
-
   Map<String, dynamic>? agreement;
   bool isLoading = true;
   File? pdfFile;
@@ -29,39 +147,30 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     _loadAllData();
   }
 
-  Future<void> _loadAllData() async {
-    setState(() {
-      isLoading = true;
-    });
+  // ── Network ────────────────────────────────────────────────────────────────
 
+  Future<void> _loadAllData() async {
+    setState(() => isLoading = true);
     await Future.wait([
       _fetchAgreementDetail(),
       fetchAdditionalTenants(widget.agreementId),
     ]);
-
-    setState(() {
-      isLoading = false;
-    });
+    setState(() => isLoading = false);
   }
 
   Future<void> _fetchAgreementDetail() async {
-
     try {
       final response = await http.get(Uri.parse(
           "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=${widget.agreementId}"));
-      print('Agreement ID: ${widget.agreementId}');
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         if (decoded["status"] == "success" && decoded["count"] > 0) {
-          setState(() {
-            agreement = decoded["data"][0];
-          });
-
+          setState(() => agreement = decoded["data"][0]);
           fetchPropertyCard();
         }
       }
     } catch (e) {
-      print("Error: $e");
+      debugPrint("Error: $e");
     }
   }
 
@@ -69,74 +178,622 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     final url = Uri.parse(
       "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_api_for_addtional_tenant.php?agreement_id=$agreementId",
     );
-
     final response = await http.get(url);
-
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
-
       if (decoded["success"] == true) {
-        final List list = decoded["data"];
-
         setState(() {
-          additionalTenants =
-              list.map((e) => AdditionalTenant.fromJson(e)).toList();
+          additionalTenants = (decoded["data"] as List)
+              .map((e) => AdditionalTenant.fromJson(e))
+              .toList();
         });
       }
     }
   }
 
+  Future<void> fetchPropertyCard() async {
+    final propertyId = agreement?["property_id"];
+    if (propertyId == null || propertyId.isEmpty) return;
+    try {
+      final response = await http.post(
+        Uri.parse(
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
+        body: {"P_id": propertyId},
+      );
+      if (response.statusCode == 200) {
+        final j = jsonDecode(response.body);
+        if (j['status'] == "success") {
+          setState(() => propertyCard = _buildPropertyCard(j['data']));
+        }
+      }
+    } catch (e) {
+      debugPrint("Property error: $e");
+    }
+  }
 
-  Widget _furnitureList(dynamic furnitureData) {
-    if (furnitureData == null || furnitureData.toString().trim().isEmpty) {
-      return const SizedBox.shrink();
+  Future<void> _updateAgreementStatus(String action) async {
+    try {
+      final response = await http.post(
+        Uri.parse(
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/shift_agreement.php"),
+        body: {"id": widget.agreementId, "action": action},
+      );
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded["success"] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text("Agreement Accepted successfully"),
+            backgroundColor: Color(0xFF16A34A),
+          ));
+          await Future.delayed(const Duration(seconds: 1));
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const AdminDashboard()),
+                (route) => false,
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(decoded["message"] ?? "Failed to update"),
+          ));
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Error: $e")));
+    }
+  }
+
+  Future<void> _updateAgreementStatusWithMessage(
+      String action, String message) async {
+    try {
+      final response = await http.post(
+        Uri.parse(
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/shift_agreement.php"),
+        body: {
+          "id": widget.agreementId,
+          "action": action,
+          "messages": message,
+        },
+      );
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded["success"] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text("Agreement Rejected Successfully"),
+            backgroundColor: Color(0xFFEF4444),
+          ));
+          await Future.delayed(const Duration(seconds: 1));
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const AdminDashboard()),
+                (route) => false,
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(decoded["message"] ?? "Failed to update"),
+          ));
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text("Error: $e")));
+    }
+  }
+
+  void _showRejectDialog() {
+    final TextEditingController messageController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1C1C26),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Row(
+          children: [
+            Icon(Icons.cancel_outlined, color: Color(0xFFEF4444)),
+            SizedBox(width: 10),
+            Text("Reject Agreement",
+                style: TextStyle(color: Colors.white, fontSize: 17)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Reason for rejection:",
+                style: TextStyle(color: Color(0xFF9898B0), fontSize: 13)),
+            const SizedBox(height: 10),
+            TextField(
+              controller: messageController,
+              maxLines: 3,
+              style: const TextStyle(color: Colors.white),
+              decoration: InputDecoration(
+                hintText: "Enter your message",
+                hintStyle: const TextStyle(color: Color(0xFF5A5A72)),
+                filled: true,
+                fillColor: const Color(0xFF13131A),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF2A2A38)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF2A2A38)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                  const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+                ),
+                contentPadding: const EdgeInsets.all(12),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel",
+                style: TextStyle(color: Color(0xFF9898B0))),
+          ),
+          GestureDetector(
+            onTap: () async {
+              final message = messageController.text.trim();
+              if (message.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text("Message cannot be empty")),
+                );
+                return;
+              }
+              Navigator.pop(context);
+              await _updateAgreementStatusWithMessage("reject", message);
+            },
+            child: Container(
+              padding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                    colors: [Color(0xFFEF4444), Color(0xFFDC2626)]),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Text("Confirm",
+                  style: TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.w700)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── UI Widgets ─────────────────────────────────────────────────────────────
+
+  Widget _glassContainer({required Widget child, EdgeInsets? padding}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      width: double.infinity,
+      padding: padding ?? const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[900]!.withOpacity(0.85) : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+            color: isDark ? Colors.grey[700]! : Colors.grey.shade200, width: 1),
+        boxShadow: isDark
+            ? []
+            : [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 10,
+              offset: const Offset(0, 4))
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _sectionCard(
+      {required String title, required List<Widget> children}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = _sectionThemes[title];
+
+    final visibleChildren =
+    children.where((c) => c is! SizedBox || (c.height ?? 0) > 0).toList();
+    if (visibleChildren.isEmpty) return const SizedBox.shrink();
+
+    final titleBg = theme?.titleBg ?? const Color(0xFF4CA1FF);
+    final titleText = theme?.titleText ?? Colors.white;
+    final borderColor = theme?.borderColor ?? const Color(0xFF4CA1FF);
+    final cardBg = isDark ? Colors.white : (theme?.cardBg ?? Colors.white);
+    final icon = theme?.icon ?? Icons.info_outline;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Container(
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(14),
+          border:
+          Border.all(color: borderColor.withOpacity(0.4), width: 1.2),
+          boxShadow: isDark
+              ? []
+              : [
+            BoxShadow(
+                color: borderColor.withOpacity(0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4))
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Title bar
+            Container(
+              padding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: titleBg,
+                borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(13)),
+              ),
+              child: Row(
+                children: [
+                  Icon(icon, size: 18, color: titleText),
+                  const SizedBox(width: 8),
+                  Text(title,
+                      style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: titleText,
+                          letterSpacing: 0.2)),
+                ],
+              ),
+            ),
+            // Body
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: visibleChildren),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _kv(String k, String? v) {
+    if (v == null || v.trim().isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final icon = _fieldIcons[k] ?? Icons.label_outline;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 1, right: 8),
+            child: Icon(icon,
+                size: 16,
+                color: isDark ? Colors.grey[900] : Colors.grey[500]),
+          ),
+          SizedBox(
+            width: 130,
+            child: Text('$k:',
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: isDark ? Colors.black87 : Colors.grey[600])),
+          ),
+          Expanded(
+            child: Text(v,
+                style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 13,
+                    color: isDark ? Colors.black : Colors.black87)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _kvRow(String k1, dynamic v1, String k2, dynamic v2) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Expanded(child: _kvSingle(k1, v1)),
+          const SizedBox(width: 4),
+          Expanded(child: _kvSingle(k2, v2)),
+        ],
+      ),
+    );
+  }
+
+  Widget _kvSingle(String k, dynamic v) {
+    final value = v?.toString().trim() ?? "";
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final icon = _fieldIcons[k] ?? Icons.label_outline;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 12, color: Colors.black87),
+            const SizedBox(width: 4),
+            Text(k,
+                style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? Colors.black87 : Colors.black87)),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(value.isEmpty ? "—" : value,
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.black87 : Colors.black87)),
+      ],
+    );
+  }
+
+  Widget _kvFull(String k, dynamic v) {
+    final value = v?.toString().trim() ?? "";
+    if (value.isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final icon = _fieldIcons[k] ?? Icons.label_outline;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon,
+                  size: 12,
+                  color: isDark ? Colors.black87 : Colors.grey[900]),
+              const SizedBox(width: 4),
+              Text(k,
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? Colors.black87 : Colors.grey[900])),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: isDark ? Colors.black87 : Colors.grey[900])),
+        ],
+      ),
+    );
+  }
+
+  Widget _kvHighlight(String k, dynamic v) {
+    final value = v?.toString().trim() ?? "";
+    if (value.isEmpty) return const SizedBox.shrink();
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF7C3AED), Color(0xFF9333EA)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+              color: const Color(0xFF7C3AED).withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 3))
+        ],
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.calendar_today, size: 16, color: Colors.white),
+          const SizedBox(width: 8),
+          Text('$k:',
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white70)),
+          const SizedBox(width: 8),
+          Text(value,
+              style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white)),
+        ],
+      ),
+    );
+  }
+
+  Widget _kvAmount(String k, String? v) {
+    final raw = v?.toString().trim() ?? "";
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final icon = _fieldIcons[k] ?? Icons.currency_rupee;
+
+    Widget leading = Padding(
+      padding: const EdgeInsets.only(top: 1, right: 8),
+      child: Icon(icon,
+          size: 16, color: isDark ? Colors.grey[900] : Colors.grey[500]),
+    );
+
+    if (raw.isEmpty || raw == 'Not Added') {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(
+          children: [
+            leading,
+            SizedBox(
+                width: 130,
+                child: Text('$k:',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color:
+                        isDark ? Colors.black87 : Colors.grey[600]))),
+            Container(
+              padding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: const Text('Not Added',
+                  style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                      fontStyle: FontStyle.italic)),
+            ),
+          ],
+        ),
+      );
     }
 
+    final amount = raw.replaceAll('₹', '').trim();
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          leading,
+          SizedBox(
+              width: 130,
+              child: Text('$k:',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: isDark ? Colors.black87 : Colors.grey[600]))),
+          Container(
+            padding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                  colors: [Color(0xFF16A34A), Color(0xFF15803D)]),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                    color: const Color(0xFF16A34A).withOpacity(0.25),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2))
+              ],
+            ),
+            child: Text('₹ $amount',
+                style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 0.3)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _hkCompact(String k, dynamic v, IconData iconData) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final value = v?.toString().trim() ?? "";
+    if (value.isEmpty) return const SizedBox.shrink();
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Icon(iconData, size: 14, color: Colors.grey[600]),
+        const SizedBox(width: 6),
+        Text('$k:',
+            style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.black87 : Colors.grey[600])),
+        const SizedBox(width: 6),
+        Container(
+          padding:
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+                colors: [Color(0xFF16A34A), Color(0xFF15803D)]),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                  color: const Color(0xFF16A34A).withOpacity(0.25),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2))
+            ],
+          ),
+          child: Text(value,
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w100,
+                  color: Colors.white)),
+        ),
+      ],
+    );
+  }
+
+  Widget _kvCompact(String k, dynamic v, IconData iconData) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final value = v?.toString().trim() ?? "";
+    if (value.isEmpty) return const SizedBox.shrink();
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Icon(iconData, size: 14, color: Colors.grey[600]),
+        const SizedBox(width: 6),
+        Text('$k:',
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.black87 : Colors.grey[600])),
+        const SizedBox(width: 6),
+        Text(value,
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w100,
+                color: isDark ? Colors.black87 : Colors.grey[600])),
+      ],
+    );
+  }
+
+  Widget _furnitureList(dynamic furnitureData) {
+    if (furnitureData == null || furnitureData.toString().trim().isEmpty)
+      return const SizedBox.shrink();
     Map<String, dynamic> furnitureMap = {};
     try {
-      if (furnitureData is String) {
+      if (furnitureData is String)
         furnitureMap = Map<String, dynamic>.from(json.decode(furnitureData));
-      } else if (furnitureData is Map<String, dynamic>) {
+      else if (furnitureData is Map<String, dynamic>)
         furnitureMap = furnitureData;
-      }
     } catch (e) {
       debugPrint("⚠️ Furniture parse error: $e");
     }
-
     if (furnitureMap.isEmpty) return const SizedBox.shrink();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Padding(
       padding: const EdgeInsets.only(top: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-              'Furnished Items:',
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : Colors.black87)
-          ),
+          const Text('Furnished Items:',
+              style:
+              TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
           const SizedBox(height: 6),
           Wrap(
             spacing: 8,
             runSpacing: 6,
             children: furnitureMap.entries.map((e) {
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.green.shade100,
+                  color: Colors.green.shade50,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green.shade700, width: 1),
+                  border:
+                  Border.all(color: Colors.green.shade600, width: 1),
                 ),
-                child: Text(
-                  "${e.key} (${e.value})",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
+                child: Text("${e.key} (${e.value})",
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 12,
+                        color: Colors.black87)),
               );
             }).toList(),
           ),
@@ -145,590 +802,475 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     );
   }
 
-  Future<void> _updateAgreementStatus(String action) async {
-    print("Updating agreement status: $action"); // debug
-    try {
-      final url = Uri.parse(
-          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/shift_agreement.php");
-
-      print("Sending POST request to $url with id=${widget.agreementId}");
-      final response = await http.post(
-        url,
-        body: {
-          "id": widget.agreementId,
-          "action": action,
-        },
-      );
-
-      print("Response status code: ${response.statusCode}");
-      print("Response body: ${response.body}");
-
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body);
-        print("Decoded response: $decoded");
-
-        if (decoded["success"] == true) {
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Agreement Accepted successfully"),
-              duration: const Duration(seconds: 1),
-            ),
-          );
-
-          await Future.delayed(const Duration(seconds: 1));
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const AdminDashboard()),
-                (route) => false,
-          );
-        }
-
-        else {
-          print("Action failed: ${decoded["message"]}");
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(decoded["message"] ?? "Failed to update"),
-              duration: const Duration(seconds: 1),
-            ),
-          );
-        }
-      }
-      else {
-        print("Server error");
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Server error, try again later"),
-            duration: Duration(seconds: 1),
+  Widget _docImage(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) return const SizedBox.shrink();
+    return GestureDetector(
+      onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (_) => ImagePreviewScreen(
+                  imageUrl:
+                  'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$imageUrl'))),
+      child: Container(
+        width: 80,
+        height: 90,
+        margin: const EdgeInsets.only(right: 12, top: 6),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Image.network(
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$imageUrl",
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
           ),
-        );
-      }
-    } catch (e) {
-      print("Exception caught: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error: $e"),
-          duration: const Duration(seconds: 1),
         ),
-      );
-    }
+      ),
+    );
   }
 
-  Future<void> _updateAgreementStatusWithMessage(String action, String message) async {
-    print("Updating agreement status with message: $action, message: $message");
-    try {
-      final url = Uri.parse(
-          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/shift_agreement.php"
-      );
-
-      print("Sending POST request to $url with id=${widget.agreementId} and message=$message");
-      final response = await http.post(url, body: {
-        "id": widget.agreementId,
-        "action": action,
-        "messages": message,
-      });
-
-      print("Response status code: ${response.statusCode}");
-      print("Response body: ${response.body}");
-
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body);
-        print("Decoded response: $decoded");
-
-        if (decoded["success"] == true) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Agreement Rejected Successfully"),
-              duration: const Duration(seconds: 1),
-            ),
-          );
-
-          // Wait 1 second, then navigate
-          await Future.delayed(const Duration(seconds: 1));
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const AdminDashboard()),
-                (route) => false,
-          );
-        } else {
-          print("Action with message failed: ${decoded["message"]}");
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(decoded["message"] ?? "Failed to update"),
-              duration: const Duration(seconds: 1),
-            ),
-          );
-        }
-      } else {
-        print("Server error");
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Server error, try again later"),
-            duration: Duration(seconds: 1),
-          ),
-        );
-      }
-    } catch (e) {
-      print("Exception caught: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Error: $e"),
-          duration: const Duration(seconds: 1),
-        ),
-      );
-    }
-  }
-
-  Widget _glassContainer({required Widget child, EdgeInsets? padding}) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
+  Widget _buildCard({required String title, required List<Widget> children}) {
     return Container(
-      width: double.infinity,
-      padding: padding ?? const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.grey[900]!.withOpacity(0.85) // dark mode
-            : Colors.white,                       // light mode
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isDark ? Colors.grey[700]! : Colors.grey.shade300,
-          width: 1,
-        ),
-      ),
-      child: child,
+      width: 400,
+      margin: const EdgeInsets.only(right: 20),
+      child: _sectionCard(title: title, children: children),
     );
   }
 
-  Widget _sectionCard({required String title, required List<Widget> children}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
-          _glassContainer(
-            child: Column(children: children),
-            padding: const EdgeInsets.all(14),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _kv(String k, String? v) {
-    if (v == null || v.trim().isEmpty) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-              width: 140,
-              child: Text('$k:',
-                  style: const TextStyle(fontWeight: FontWeight.w600))),
-          Expanded(child: Text(v)),
-        ],
-      ),
-    );
-  }
-
-  Widget _kvImage(String k, String? url) {
-    if (url == null || url.trim().isEmpty) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 140,
-            child: Text(
-              '$k:',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => ImagePreviewScreen(
-                      imageUrl:
-                      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$url',
-                    ),
-                  ),
-                );
-              },
-              child: Container(
-                width: 120,
-                height: 120,
-                margin: const EdgeInsets.only(right: 12),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$url",
-                    width: 160,   // force same as container
-                    height: 120,  // force same as container
-                    fit: BoxFit.cover, // ensures full fill
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: Colors.grey[300],
-                      child: Center(child: Text('No Image',style: TextStyle(color: Colors.red),))
-                    ),
-                  ),
-                ),
-              ),
+  Widget _pillButton({
+    required String label,
+    required IconData icon,
+    required List<Color> colors,
+    required VoidCallback? onPressed,
+    Color? textColor,
+    Color? iconColor,
+    Color? borderColor,
+  }) {
+    final isDisabled = onPressed == null;
+    return GestureDetector(
+      onTap: isDisabled ? null : onPressed,
+      child: AnimatedOpacity(
+        opacity: isDisabled ? 0.5 : 1.0,
+        duration: const Duration(milliseconds: 200),
+        child: Container(
+          padding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            gradient: borderColor == null
+                ? LinearGradient(
+              colors: isDisabled
+                  ? [Colors.grey.shade600, Colors.grey.shade700]
+                  : colors,
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             )
+                : null,
+            color: borderColor != null ? colors[0] : null,
+            borderRadius: BorderRadius.circular(50),
+            border: borderColor != null
+                ? Border.all(color: borderColor, width: 1.5)
+                : null,
+            boxShadow: isDisabled
+                ? []
+                : [
+              BoxShadow(
+                  color: colors.last.withOpacity(0.35),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4))
+            ],
           ),
-        ],
-      ),
-    );
-  }
-
-  void _showRejectDialog() {
-    TextEditingController messageController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Reject Agreement"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("Please enter a reason for rejection:"),
-              const SizedBox(height: 12),
-              TextField(
-                controller: messageController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8), // square-ish
-                  ),
-                  hintText: "Enter your message",
-                  contentPadding: const EdgeInsets.all(12),
-                ),
+              Icon(icon, color: iconColor ?? Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(label,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                        color: textColor ?? Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                        height: 1.3)),
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final message = messageController.text.trim();
-                if (message.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Message cannot be empty")),
-                  );
-                  return;
-                }
-
-                Navigator.pop(context); // close dialog
-
-                // Send reject action with message
-                await _updateAgreementStatusWithMessage("reject", message);
-              },
-              child: const Text("Confirm"),
-            ),
-          ],
-        );
-      },
+        ),
+      ),
     );
   }
+
+  // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    final withPolice= agreement?['is_Police']?.toString() == "true";
-
+    final withPolice = agreement?['is_Police']?.toString() == "true";
 
     if (isLoading) {
       return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+          body: Center(child: CircularProgressIndicator()));
     }
-
     if (agreement == null) {
       return const Scaffold(
-        body: Center(
-          child: Text("No details found"),
-        ),
-      );
+          body: Center(child: Text("No details found")));
     }
 
-    final D_or_T =
-    agreement?["agreement_type"] == "Commercial Agreement"
+    final D_or_T = agreement?["agreement_type"] == "Commercial Agreement"
         ? "Director"
         : "Tenant";
 
+    final bool isCom =
+        agreement?["agreement_type"] == "Commercial Agreement"; // ← yeh add karo
+
+    final bool isPolice =
+        agreement?["agreement_type"] == "Police Verification";
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('${agreement?["agreement_type"] ?? "Agreement"} Details',style: TextStyle(fontSize: 18),),
-        leading: SquareBackButton(),
+        backgroundColor: Colors.black,
+        title: Image.asset(
+            AppImages.verify, height: 70),
+        centerTitle: true,
+        surfaceTintColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ── Agreement type badge ──
+            Container(
+              padding:
+              const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                    colors: [Color(0xFF7C3AED), Color(0xFFEC4899)]),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                '${agreement?["agreement_type"] ?? ""} Details',
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: 0.3),
+              ),
+            ),
 
-            if (propertyCard != null) propertyCard!,
+            const SizedBox(height: 16),
 
-            const SizedBox(height: 20),
-
+            // ── Police notice ──
             if (withPolice) _buildPoliceNotice(),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
 
-            _buildMainSections(D_or_T),
+            // ── Property card ──
+            if (propertyCard != null) propertyCard!,
 
-            if (agreement!["agreement_type"] == "Police Verification")
+            // ── Horizontal section cards ──
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Agreement Details
+                  if (!isPolice)
+                    _buildCard(
+                      title: "Agreement Details",
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _kvCompact(
+                                isCom ? "Sqft" : "BHK",
+                                isCom ? (agreement?["Sqft"] ?? "") : (agreement?["Bhk"] ?? ""),
+                                Icons.home,
+                              ),
+                            ),
+                            Expanded(
+                              child: _kvCompact(
+                                "Floor",
+                                agreement?["floor"] ?? "",
+                                Icons.layers,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        _kv("Rented Address", agreement?["rented_address"]),
+                        _kvAmount("Monthly Rent",
+                            "₹${agreement?["monthly_rent"] ?? ""}"),
+                        _kvAmount("Security",
+                            "₹${agreement?["securitys"] ?? ""}"),
+                        _kvAmount("Installment Security",
+                            "₹${agreement?["installment_security_amount"] ?? ""}"),
+                        _kv("Meter", agreement?["meter"]),
+                        _kv("Custom Unit", agreement?["custom_meter_unit"]),
+                        _kv("Maintenance", agreement?["maintaince"]),
+                        if (agreement?["maintaince"] == "Excluding")
+                          _kv("Maintenance Amount",
+                              agreement?["custom_maintenance_charge"]),
+                        _kv("Parking", agreement?["parking"]),
+                        _kvHighlight(
+                            "Shifting Date",
+                            agreement?["shifting_date"]
+                                ?.toString()
+                                .split("T")[0] ??
+                                ""),
+                        _furnitureList(agreement?['furniture']),
+                        const Divider(height: 20),
+                        Row(
+                          children: [
+                            Expanded(
+                                child: _hkCompact(
+                                    "Agreement Price",
+                                    agreement?["agreement_price"] ?? "",
+                                    Icons.receipt_long_outlined)),
+                            Expanded(
+                                child: _hkCompact(
+                                    "Notary",
+                                    agreement?["notary_price"] ?? "",
+                                    Icons.verified_outlined)),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                  // Owner Details
+                  _buildCard(
+                    title: "Owner Details",
+                    children: [
+                      _kvRow("Owner Name", agreement?["owner_name"],
+                          "Relation",
+                          "${agreement?["owner_relation"] ?? ""} ${agreement?["relation_person_name_owner"] ?? ""}"),
+                      _kvFull("Address",
+                          agreement?["parmanent_addresss_owner"]),
+                      _kvRow("Mobile", agreement?["owner_mobile_no"],
+                          "Aadhar", agreement?["owner_addhar_no"]),
+                      const SizedBox(height: 8),
+                      Row(children: [
+                        _docImage(agreement?["owner_aadhar_front"]),
+                        _docImage(agreement?["owner_aadhar_back"]),
+                      ]),
+                    ],
+                  ),
+
+                  // Tenant / Director Details
+                  _buildCard(
+                    title: "$D_or_T Details",
+                    children: [
+                      _kvRow("$D_or_T Name", agreement?["tenant_name"],
+                          "Relation",
+                          "${agreement?["tenant_relation"] ?? ""} ${agreement?["relation_person_name_tenant"] ?? ""}"),
+                      _kvFull("Address",
+                          agreement?["permanent_address_tenant"]),
+                      _kvRow("Mobile", agreement?["tenant_mobile_no"],
+                          "Aadhar", agreement?["tenant_addhar_no"]),
+
+                      if (agreement?["agreement_type"] ==
+                          "Commercial Agreement") ...[
+                        const Divider(height: 20),
+                        const Text("Company Details",
+                            style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF1D4ED8))),
+                        const SizedBox(height: 8),
+                        _kvRow("Company Name", agreement?["company_name"],
+                            "DOC Type", agreement?["gst_type"]),
+                        _kvRow("DOC Number", agreement?["gst_no"],
+                            "PAN Number", agreement?["pan_no"]),
+                        const SizedBox(height: 8),
+                        Row(children: [
+                          _docImage(agreement?["gst_photo"]),
+                          _docImage(agreement?["pan_photo"]),
+                        ]),
+                      ],
+
+                      const SizedBox(height: 8),
+                      Row(children: [
+                        _docImage(agreement?["tenant_aadhar_front"]),
+                        _docImage(agreement?["tenant_aadhar_back"]),
+                        _docImage(agreement?["tenant_image"]),
+                      ]),
+
+                      // Additional tenants inside same card
+                      if (additionalTenants.isNotEmpty) ...[
+                        const Divider(height: 24),
+                        Text("Additional $D_or_T",
+                            style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFFC2410C))),
+                        const SizedBox(height: 10),
+                        ...List.generate(additionalTenants.length,
+                                (index) {
+                              final t = additionalTenants[index];
+                              return Padding(
+                                padding:
+                                const EdgeInsets.only(bottom: 14),
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFFF7ED),
+                                    borderRadius:
+                                    BorderRadius.circular(10),
+                                    border: Border.all(
+                                        color: const Color(0xFFC2410C)
+                                            .withOpacity(0.3)),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Text("$D_or_T ${index + 2}",
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 12,
+                                              color:
+                                              Color(0xFFC2410C))),
+                                      const SizedBox(height: 8),
+                                      _kvRow(
+                                          "$D_or_T Name",
+                                          t.name,
+                                          "Relation",
+                                          "${t.relation} ${t.relation_name}"),
+                                      _kvFull("Address", t.address),
+                                      _kvRow("Mobile", t.mobile,
+                                          "Aadhaar", t.aadhaar),
+                                      const SizedBox(height: 6),
+                                      Row(children: [
+                                        _docImage(t.front),
+                                        _docImage(t.back),
+                                        _docImage(t.photo),
+                                      ]),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // ── Police address ──
+            if (isPolice)
               _sectionCard(
                 title: "Property Residential Address",
                 children: [
-                  _kv("Property Address", agreement!["rented_address"]),
+                  _kv("Property Address", agreement?["rented_address"]),
                 ],
               ),
 
-            _buildFieldWorkerSection(),
+            // ── Field Worker ──
+            _sectionCard(
+              title: "Field Worker",
+              children: [
+                _kv("Name", agreement?["Fieldwarkarname"]),
+                _kv("Number", agreement?["Fieldwarkarnumber"]),
+              ],
+            ),
 
-            _buildDocumentsSection(),
+            // ── Documents ──
+            _sectionCard(
+              title: "Documents",
+              children: [
+                if ((agreement?["owner_aadhar_front"] ?? "").isNotEmpty ||
+                    (agreement?["owner_aadhar_back"] ?? "").isNotEmpty) ...[
+                  const Text("Owner Documents",
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF0F766E))),
+                  const SizedBox(height: 6),
+                  Row(children: [
+                    _docImage(agreement?["owner_aadhar_front"]),
+                    _docImage(agreement?["owner_aadhar_back"]),
+                  ]),
+                  const SizedBox(height: 12),
+                ],
+                if ((agreement?["tenant_aadhar_front"] ?? "").isNotEmpty ||
+                    (agreement?["tenant_aadhar_back"] ?? "").isNotEmpty ||
+                    (agreement?["tenant_image"] ?? "").isNotEmpty) ...[
+                  const Text("Tenant Documents",
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF1D4ED8))),
+                  const SizedBox(height: 6),
+                  Row(children: [
+                    _docImage(agreement?["tenant_aadhar_front"]),
+                    _docImage(agreement?["tenant_aadhar_back"]),
+                    _docImage(agreement?["tenant_image"]),
+                  ]),
+                ],
+                if (agreement?["agreement_type"] ==
+                    "Commercial Agreement") ...[
+                  const SizedBox(height: 12),
+                  const Text("Company Documents",
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF7C3AED))),
+                  const SizedBox(height: 6),
+                  Row(children: [
+                    _docImage(agreement?["gst_photo"]),
+                    _docImage(agreement?["pan_photo"]),
+                  ]),
+                ],
+              ],
+            ),
+
+            const SizedBox(height: 20),
+
+            // ── Accept / Reject buttons ──
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF111827),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _pillButton(
+                      label: "Reject",
+                      icon: Icons.close_rounded,
+                      colors: const [
+                        Color(0xFFEF4444),
+                        Color(0xFFDC2626)
+                      ],
+                      onPressed: _showRejectDialog,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _pillButton(
+                      label: "Accept",
+                      icon: Icons.check_rounded,
+                      colors: const [
+                        Color(0xFF16A34A),
+                        Color(0xFF15803D)
+                      ],
+                      onPressed: () =>
+                          _updateAgreementStatus("Accept"),
+                    ),
+                  ),
+                ],
+              ),
+            ),
 
             const SizedBox(height: 30),
-
-            _buildActionButtons(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMainSections(String D_or_T) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            children: [
-              SizedBox(width: 320, child: _buildOwnerSection()),
-              if (agreement!["agreement_type"] != "Police Verification") ...[
-                const SizedBox(height: 16),
-                SizedBox(width: 320, child: _buildAgreementSection()),
-              ],
-            ],
-          ),
-          const SizedBox(width: 16),
-          SizedBox(width: 320, child: _buildTenantSection(D_or_T)),
-
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOwnerSection() {
-    return _sectionCard(
-      title: "Owner Details",
-      children: [
-        _kv("Owner Name", agreement!["owner_name"]),
-        _kv("Relation",
-            "${agreement!["owner_relation"]} ${agreement!["relation_person_name_owner"]}"),
-        _kv("Address", agreement!["parmanent_addresss_owner"]),
-        _kv("Mobile", agreement!["owner_mobile_no"]),
-        _kv("Aadhar", agreement!["owner_addhar_no"]),
-      ],
-    );
-  }
-
-  Widget _buildTenantSection(String D_or_T) {
-    final bool isCommercial =
-        agreement?["agreement_type"] == "Commercial Agreement";
-    return _sectionCard(
-      title: "$D_or_T Details",
-      children: [
-
-        _kv("$D_or_T Name", agreement!["tenant_name"]),
-        _kv("Relation",
-            "${agreement!["tenant_relation"]} ${agreement!["relation_person_name_tenant"]}"),
-        _kv("Address", agreement!["permanent_address_tenant"]),
-        _kv("Mobile", agreement!["tenant_mobile_no"]),
-        _kv("Aadhar", agreement!["tenant_addhar_no"]),
-
-        /// 🔥 COMMERCIAL BLOCK (ONLY FOR MAIN TENANT)
-        if (isCommercial) ...[
-          const Divider(height: 30),
-
-          const Text(
-            "Company Details",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          _kv("Company Name", agreement?["company_name"]),
-          _kv("Document Type", agreement?["gst_type"]),
-          _kv("Document Number", agreement?["gst_no"]),
-          _kv("PAN Number", agreement?["pan_no"]),
-
-        ],
-
-        if (additionalTenants.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          Text(
-            "Additional $D_or_T",
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          ...List.generate(additionalTenants.length, (index) {
-            final t = additionalTenants[index];
-
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 14),
-              child: _glassContainer(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "$D_or_T ${index + 2}",
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 10),
-
-                    _kv("Name", t.name),
-                    _kv("Relation",
-                        "${t.relation} ${t.relation_name}"),
-                    _kv("Address", t.address),
-                    _kv("Mobile", t.mobile),
-                    _kv("Aadhaar", t.aadhaar),
-
-                    const SizedBox(height: 8),
-
-                    _kvImage("Aadhaar Front", t.front),
-                    _kvImage("Aadhaar Back", t.back),
-                    _kvImage("Photo", t.photo),
-                  ],
-                ),
-              ),
-            );
-          }),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildAgreementSection() {
-    final bool isCommercial = agreement?["agreement_type"] == "Commercial Agreement";
-    return _sectionCard(
-      title: "Agreement Details",
-      children: [
-        _kv("Property", agreement?["property_id"] ?? ""),
-        if(!isCommercial)
-          _kv("BHK", agreement?["Bhk"]),
-        if(isCommercial)
-          _kv("Sqft", agreement?["Sqft"]),
-        _kv("Floor", agreement?["floor"] ?? ""),
-        _kv("Rented Address", agreement!["rented_address"]),
-        _kv("Monthly Rent", "₹${agreement!["monthly_rent"]}"),
-        _kv("Security", "₹${agreement!["securitys"]}"),
-        _kv("Installment Security",
-            "₹${agreement!["installment_security_amount"]}"),
-        _kv("Meter", agreement!["meter"]),
-        _kv("Custom Unit", agreement?["custom_meter_unit"] ?? ""),
-        _kv("Maintenance", agreement!["maintaince"]),
-        if (agreement!["maintaince"] == "Excluding")
-          _kv("Maintenance Amount",
-              agreement?["custom_maintenance_charge"]),
-        _kv("Parking", agreement!["parking"] ?? ""),
-        _kv("Shifting Date",
-            agreement!["shifting_date"].toString().split("T")[0]),
-        _kv("Agreement Price",
-            agreement?["agreement_price"] ?? 'Not Added'),
-        _kv("Notary Amount",
-            agreement?["notary_price"] ?? 'Not Added'),
-        _furnitureList(agreement!['furniture']),
-      ],
-    );
-  }
-
-  Widget _buildFieldWorkerSection() {
-    return _sectionCard(
-      title: "Field Worker",
-      children: [
-        _kv("Name", agreement!["Fieldwarkarname"]),
-        _kv("Number", agreement!["Fieldwarkarnumber"]),
-      ],
-    );
-  }
-
-  Widget _buildDocumentsSection() {
-    return _sectionCard(
-      title: "Documents",
-      children: [
-        _kvImage("Owner Aadhaar Front",
-            agreement!["owner_aadhar_front"]),
-        _kvImage("Owner Aadhaar Back",
-            agreement!["owner_aadhar_back"]),
-        _kvImage("Tenant Aadhaar Front",
-            agreement!["tenant_aadhar_front"]),
-        _kvImage("Tenant Aadhaar Back",
-            agreement!["tenant_aadhar_back"]),
-        _kvImage("Tenant Photo",
-            agreement!["tenant_image"]),
-
-        if (agreement!["agreement_type"] ==
-            "Commercial Agreement") ...[
-          const Divider(),
-          _kvImage("GST Photo", agreement!["gst_photo"]),
-          _kvImage("PAN Photo", agreement!["pan_photo"]),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-            ),
-            onPressed: _showRejectDialog,
-            icon: const Icon(Icons.close, color: Colors.white),
-            label: const Text("Reject",
-                style: TextStyle(color: Colors.white)),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-            ),
-            onPressed: () => _updateAgreementStatus("Accept"),
-            icon: const Icon(Icons.check, color: Colors.white),
-            label: const Text("Accept",
-                style: TextStyle(color: Colors.white)),
-          ),
-        ),
-      ],
-    );
-  }
+  // ── Sub-widgets ────────────────────────────────────────────────────────────
 
   Widget _buildPoliceNotice() {
     return Container(
@@ -746,9 +1288,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
             child: Text(
               'Note: Police verification must be created by Admin for this agreement.',
               style: TextStyle(
-                color: Colors.redAccent,
-                fontWeight: FontWeight.w600,
-              ),
+                  color: Colors.redAccent, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -756,187 +1296,100 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     );
   }
 
-  Future<void> fetchPropertyCard() async {
-    final propertyId = agreement?["property_id"];
-    if (propertyId == null || propertyId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Enter Property ID first")),
-      );
-      return;
-    }
-
-    try {
-      final response = await http.post(
-        Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
-        body: {"P_id": propertyId},
-      );
-
-      if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
-
-        if (json['status'] == "success") {
-          final data = json['data'];
-
-          setState(() {
-            propertyCard = _propertyCard(data);
-          });
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(json['message'] ?? "Property not found")),
-          );
-        }
-      }
-    } catch (e) {
-      print("Error: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to fetch property details")),
-      );
-    }
-  }
-
-  Widget _propertyCard(Map<String, dynamic> data) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
+  Widget _buildPropertyCard(Map<String, dynamic> data) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final String imageUrl =
         "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${data['property_photo'] ?? ''}";
 
-    Color textPrimary = isDark ? Colors.white : Colors.black87;
-    Color textSecondary = isDark ? Colors.grey[400]! : Colors.grey[700]!;
-    Color cardColor = isDark ? Colors.grey[900]! : Colors.white;
-    Color shadowColor = isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.2);
+    final Color textPrimary = isDark ? Colors.white : Colors.black87;
+    final Color textSecondary =
+    isDark ? Colors.grey[300]! : Colors.grey[700]!;
+    final Color textMuted = isDark ? Colors.grey[400]! : Colors.grey[600]!;
 
     return Card(
-      color: cardColor,
+      color: isDark ? Colors.grey[900] : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       elevation: 8,
       margin: const EdgeInsets.only(bottom: 20),
-      shadowColor: shadowColor,
+      shadowColor: Colors.black.withOpacity(0.15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            borderRadius:
+            const BorderRadius.vertical(top: Radius.circular(20)),
             child: Image.network(
               imageUrl,
               height: 200,
               width: double.infinity,
               fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 200,
-                  width: double.infinity,
-                  color: isDark ? Colors.grey[800] : Colors.grey[200],
-                  alignment: Alignment.center,
-                  child: Text(
-                    "No Image",
-                    style: TextStyle(color: textSecondary),
-                  ),
-                );
-              },
+              errorBuilder: (_, __, ___) => Container(
+                height: 200,
+                color: isDark ? Colors.grey[800] : Colors.grey[200],
+                alignment: Alignment.center,
+                child:
+                Text("No Image", style: TextStyle(color: textMuted)),
+              ),
             ),
           ),
-
-          // 📋 Property Details
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 💰 Price + BHK + Floor
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      "₹${data['show_Price'] ?? "--"}",
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                    Text(
-                      data['Bhk'] ?? "",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: textPrimary,
-                      ),
-                    ),
-                    Text(
-                      data['Floor_'] ?? "--",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: textSecondary,
-                      ),
-                    ),
+                    Text("₹${data['show_Price'] ?? '--'}",
+                        style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green)),
+                    Text(data['Bhk'] ?? "",
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: textPrimary)),
+                    Text(data['Floor_'] ?? "--",
+                        style:
+                        TextStyle(fontSize: 14, color: textMuted)),
                   ],
                 ),
                 const SizedBox(height: 12),
-
-                // 🧑 Name + 📍 Location
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      "Name: ${data['field_warkar_name'] ?? "--"}",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: textSecondary,
-                      ),
-                    ),
-                    Text(
-                      "Location: ${data['locations'] ?? "--"}",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: textSecondary,
-                      ),
-                    ),
+                    Text("Name: ${data['field_warkar_name'] ?? '--'}",
+                        style: TextStyle(
+                            fontSize: 14, color: textSecondary)),
+                    Text("Location: ${data['locations'] ?? '--'}",
+                        style: TextStyle(
+                            fontSize: 14, color: textSecondary)),
                   ],
                 ),
                 const SizedBox(height: 10),
-
-                // ⚡ Meter + 🚗 Parking
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      "Meter: ${data['meter'] ?? "--"}",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: textSecondary,
-                      ),
-                    ),
-                    Text(
-                      "Parking: ${data['parking'] ?? "--"}",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: textSecondary,
-                      ),
-                    ),
+                    Text("Meter: ${data['meter'] ?? '--'}",
+                        style: TextStyle(
+                            fontSize: 14, color: textSecondary)),
+                    Text("Parking: ${data['parking'] ?? '--'}",
+                        style: TextStyle(
+                            fontSize: 15, color: textSecondary)),
                   ],
                 ),
                 const SizedBox(height: 6),
-
-                // 🛠️ Maintenance + ID
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    Text("Maintenance: ${data['maintance'] ?? '--'}",
+                        style: TextStyle(
+                            fontSize: 15, color: textSecondary)),
                     Text(
-                      "Maintenance: ${data['maintance'] ?? "--"}",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: textSecondary,
-                      ),
-                    ),
-                    Text(
-                      "ID: ${agreement?["property_id"] ?? "--"}",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: textSecondary,
-                      ),
-                    ),
+                        "ID: ${agreement?["property_id"] ?? '--'}",
+                        style:
+                        TextStyle(fontSize: 15, color: textMuted)),
                   ],
                 ),
               ],
@@ -948,12 +1401,74 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
   }
 }
 
+// ─── Top-level helpers ────────────────────────────────────────────────────────
+
+Widget _statusCard({
+  required String title,
+  required String value,
+  required bool isPositive,
+  String? dateTime,
+}) {
+  String formattedTime = "";
+  if (dateTime != null && dateTime.isNotEmpty) {
+    try {
+      final dt = DateTime.parse(dateTime).toLocal();
+      formattedTime =
+      "${dt.day.toString().padLeft(2, '0')} ${_monthName(dt.month)} ${dt.year}, ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
+    } catch (_) {}
+  }
+  return Container(
+    constraints: const BoxConstraints(minWidth: 160),
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: Colors.grey),
+      color: const Color(0xFF1E1E2C).withOpacity(0.9),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title,
+            style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.white)),
+        const SizedBox(height: 6),
+        Text(value,
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: isPositive ? Colors.green : Colors.red)),
+        if (formattedTime.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(formattedTime,
+              style: const TextStyle(
+                  fontSize: 11,
+                  color: Colors.white,
+                  fontStyle: FontStyle.italic)),
+        ],
+      ],
+    ),
+  );
+}
+
+String _monthName(int month) {
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ];
+  return months[month - 1];
+}
+
 class ElevatedGradientButton extends StatelessWidget {
   final String text;
   final IconData icon;
   final VoidCallback onPressed;
   const ElevatedGradientButton(
-      {required this.text, required this.icon, required this.onPressed, super.key});
+      {required this.text,
+        required this.icon,
+        required this.onPressed,
+        super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -974,14 +1489,14 @@ class ElevatedGradientButton extends StatelessWidget {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 18),
         child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-          Icon(icon, color: Colors.white),
-          const SizedBox(width: 12),
-          Text(text,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.w600)),
-        ]
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white),
+            const SizedBox(width: 12),
+            Text(text,
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.w600)),
+          ],
         ),
       ),
     );

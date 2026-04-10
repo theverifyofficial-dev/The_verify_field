@@ -784,7 +784,8 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                   }));
                 },
                 child: Text('See All →', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
-              ),            ],
+              ),
+            ],
           ),
         ),
         SizedBox(
@@ -799,7 +800,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
               final property = sortedProperties[i];
               _cardKeys[property.id.toString()] ??= GlobalKey();
               return SizedBox(
-                width: 340,
+                width: 370,
                 child: _buildCard(property, sortedProperties.length - i),
               );
             },

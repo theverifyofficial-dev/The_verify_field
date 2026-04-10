@@ -183,11 +183,7 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
               child: TabBar(
                 controller: _tabController,
                 indicator: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.green.shade600, Colors.green.shade400],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                 color: Colors.purple,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
@@ -230,7 +226,7 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
           child: DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.greenAccent.shade400, Colors.green.shade700],
+                colors: [Colors.purple, Colors.pink],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),

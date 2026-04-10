@@ -76,7 +76,7 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: Colors.black,
-        title: Image.asset(AppImages.verify, height: 75),
+        title: Image.asset(AppImages.verify, height: 70),
         leading: InkWell(
             onTap: () {
               if (Navigator.canPop(context)) {
@@ -158,7 +158,7 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
               ),
               child: TabBar(
                 indicator: BoxDecoration(
-                  color: Colors.green,
+                  color: Colors.purple,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 labelColor: Colors.white,

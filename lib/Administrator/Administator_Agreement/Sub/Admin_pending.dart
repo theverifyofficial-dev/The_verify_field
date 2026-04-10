@@ -16,6 +16,7 @@ class _AdminPendingState extends State<AdminPending> {
   List<AgreementModel2> agreements = [];
   bool isLoading = true;
 
+
   @override
   void initState() {
     super.initState();
@@ -57,364 +58,222 @@ class _AdminPendingState extends State<AdminPending> {
     }
   }
 
-  List<Color> _getCardColors(String? type, bool isDark) {
-    if (type != null && type.toLowerCase() == "police verification") {
-      return isDark
-          ? [Colors.blue.shade900, Colors.black]
-          : [ Colors.blue.shade400,Colors.grey.shade400,];
+
+  Widget _buildAgreementCard(AgreementModel2 agreement,
+      {required int displayIndex}) {
+    final status = agreement.status?.toLowerCase() ?? '';
+    final isDark = Theme
+        .of(context)
+        .brightness == Brightness.dark;
+
+    Color statusColor;
+    String statusText;
+
+    if (status == "rejected") {
+      statusColor = Colors.red;
+      statusText = "REJECTED";
+    } else if (status == "fields updated") {
+      statusColor = Colors.blue;
+      statusText = "UPDATED";
+    } else if (status == "awaiting signature") {
+      statusColor = Colors.pink;
+      statusText = "AWAITING SIGNATURE";
+    }
+    else {
+      statusColor = Colors.green;
+      statusText = "UNDER REVIEW";
     }
 
-    // Default green theme
-    return isDark
-        ? [Colors.green.shade900, Colors.black]
-        : [Colors.grey.shade500, Colors.green.shade400];
-  }
-
-  Widget _buildAgreementCard(AgreementModel2 agreement, {required int displayIndex}) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final status = agreement.status?.toLowerCase() ?? '';
-    final bool isRejected = status == "rejected";
-    final bool isUpdated = status == "fields updated";
-
-    final bool isPolice = agreement.Type == "Police Verification";
-
-    final Color glowColor = isRejected
-        ? Colors.redAccent
-        : isUpdated
-        ? (isPolice ? Colors.blueAccent : Colors.greenAccent)
-        : (isPolice ? Colors.blue : Colors.green);
-
-
-    final size = MediaQuery.of(context).size;
-    final double textScale = size.width < 360
-        ? 0.85
-        : size.width < 420
-        ? 0.95
-        : 1.0;
-
-    final baseTextColor = isDark ? Colors.white : Colors.white;
-    final subTextColor = isDark ? Colors.white70 : Colors.black;
-
     return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: size.width * 0.04,
-        vertical: size.height * 0.012,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white: Colors.grey.shade900 ,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          gradient: LinearGradient(
-            colors: _getCardColors(agreement.Type, isDark),
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          border: Border.all(
-            color: glowColor.withOpacity(0.25),
-            width: 1.2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: glowColor.withOpacity(0.15),
-              blurRadius: 12,
-              spreadRadius: 0.6,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: EdgeInsets.all(size.width * 0.045),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          /// 🔹 TOP ROW (Status + View Details)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // 🔘 Bottom Buttons Row
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final bool isSmall = constraints.maxWidth < 340;
+              Container(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                ),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                  "ID: ${agreement.id}",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
 
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.8), // circle background
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white,
-                            width: 2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 4,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          "$displayIndex",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: 6,),
-                      // 🔴 Type Label
-                      Expanded(
-                        child: Container(
-                          alignment: Alignment.center,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: size.width * 0.03,
-                            vertical: size.height * 0.012,
-                          ),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            color: isDark
-                                ? Colors.grey.shade100
-                                : Colors.black,
-                            boxShadow: [
-                              BoxShadow(
-                                color: glowColor.withOpacity(0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              agreement.Type.toUpperCase(),
-                              style: TextStyle(
-                                color: isDark
-                                    ? Colors.black
-                                    : Colors.grey.shade100,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12.5 * textScale,
-                                letterSpacing: 0.7,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: isSmall ? 8 : 14),
-
-                      // 🟢 View Details Button
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: isDark
-                                ? Colors.grey.shade100
-                                : Colors.black,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            elevation: 6,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: size.width * 0.03,
-                              vertical: size.height * 0.012,
-                            ),
-                          ),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => AdminAgreementDetails(
-                                    agreementId: agreement.id),
-                              ),
-                            );
-                          },
-                          icon: Icon(Icons.visibility_rounded,
-                              size: 18 * textScale, color: Colors.green),
-                          label: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              "View Details",
-                              style: TextStyle(
-                                color: isDark
-                                    ? Colors.black
-                                    : Colors.grey.shade100,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13 * textScale,
-                                letterSpacing: 0.3,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AdminAgreementDetails(
+                          agreementId: agreement.id),
+                    ),
                   );
                 },
-              ),
-              SizedBox(height: size.height * 0.008),
-
-              // 🔷 Top Row (Owner & Tenant)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Flexible(
-                    child: Text(
-                      "🧑 Owner: ${agreement.ownerName}",
-                      style: TextStyle(
-                        color: baseTextColor,
-                        fontSize: 14.5 * textScale,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.3,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
                     ),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  Flexible(
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: Text(
-                        "🏠 Tenant: ${agreement.tenantName}",
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.touch_app, color: Colors.white, size: 16),
+                      SizedBox(width: 6),
+                      Text(
+                        "VIEW DETAILS",
                         style: TextStyle(
-                          color: baseTextColor,
-                          fontSize: 14.5 * textScale,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.3,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
                         ),
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: size.height * 0.015),
-
-              // 📍 Address
-              Row(
-                children: [
-                  Icon(Icons.location_on_rounded, color: subTextColor, size: 18),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      agreement.rentedAddress,
-                      style: TextStyle(
-                        color: subTextColor,
-                        fontSize: 13.2 * textScale,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: size.height * 0.008),
-
-              // ⏰ Shifting Date
-              Row(
-                children: [
-                  Icon(Icons.schedule_rounded, color: subTextColor, size: 18),
-                  const SizedBox(width: 6),
-                  Text(
-                    "Shifting Date: ${_formatDate(agreement.shiftingDate.toString().split(' ')[0])}",
-                    style: TextStyle(
-                      color: subTextColor,
-                      fontSize: 13.2 * textScale,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Spacer(),
-
-                  Text(
-                    "by: ${agreement.fieldwarkarname.toString().split(' ')[0]}",
-                    style: TextStyle(
-                      color: subTextColor,
-                      fontSize: 13.2 * textScale,
-                      fontWeight: FontWeight.w500,
-                      fontStyle: FontStyle.italic
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: size.height * 0.018),
-
-              // 🟢 Status Section
-              Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: size.width * 0.035,
-                  vertical: size.height * 0.012,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  gradient: LinearGradient(
-                    colors: [
-                      glowColor.withOpacity(isDark ? 0.15 : 0.08),
-                      glowColor.withOpacity(isDark ? 0.05 : 0.09),
                     ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
                   ),
                 ),
-                child: Row(
-                  children: [
-                    Icon(
-                      isRejected
-                          ? Icons.cancel_rounded
-                          : isUpdated
-                          ? Icons.auto_fix_high
-                          : Icons.verified_rounded,
-                      color: glowColor,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        "${agreement.status ?? 'Pending'} • ${agreement.messages ?? ''}",
-                        style: TextStyle(
-                          color: isDark
-                              ? Colors.grey.shade100
-                              : Colors.white70,
-                          fontSize: 13.5 * textScale,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.2,
-                          shadows: [
-                            Shadow(
-                              color: glowColor.withOpacity(0.4),
-                              blurRadius: 6,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
               ),
-              SizedBox(height: size.height * 0.008),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "cost: ₹${agreement.agreement_price}",
-                    style: const TextStyle(
-                      fontStyle: FontStyle.italic,
-                      fontSize: 12,
-                      color: Colors.white70,
-                    ),
-                  ),
-                  Text(
-                    "Filled On ${_formatDate(agreement.currentDate)}",
-                    style: const TextStyle(
-                      fontStyle: FontStyle.italic,
-                      fontSize: 12,
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
-              ),
-
-
             ],
           ),
-        ),
+
+          const SizedBox(height: 12),
+
+          /// 🔹 TITLE
+          Text(
+            agreement.Type,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.black : Colors
+                  .white,
+            ),
+          ),
+
+          const SizedBox(height: 6),
+
+          /// 🔹 OWNER + TENANT
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  "Owner: ${agreement.ownerName}",
+                  style:  TextStyle(fontWeight: FontWeight.w500,
+                      color: isDark ? Colors.black : Colors
+                          .white),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  "Tenant: ${agreement.tenantName}",
+                  textAlign: TextAlign.end,
+                  style:  TextStyle(fontWeight: FontWeight.w500,
+                    color: isDark ? Colors.black : Colors
+                        .white,),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          /// 🔹 ADDRESS
+          Text(
+            "📍${agreement.rentedAddress}",
+            style: TextStyle( color: isDark ? Colors.black87: Colors.white ,),
+          ),
+
+          const SizedBox(height: 12),
+
+          /// 🔹 DATE ROW
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Shifting: ${_formatDate(agreement.shiftingDate.toString().split(' ')[0])}",
+                style: TextStyle( color: isDark ? Colors.black : Colors
+                    .white, fontSize: 12),
+              ),
+              Text(
+                "Filled: ${_formatDate(agreement.currentDate)}",
+                style: TextStyle( color: isDark ? Colors.black : Colors
+                    .white, fontSize: 12),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          /// 🔹 STATUS MESSAGE BOX
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+                color: isDark ? Colors.black87: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline, size: 18, color: statusColor),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    "${agreement.status ?? 'Pending'} • ${agreement.messages ?? ''}",
+                    style:  TextStyle(fontSize: 12, color: isDark ? Colors.white : Colors
+                        .black87,),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          /// 🔹 BOTTOM ROW
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Cost ₹${agreement.agreement_price}",
+                style:  TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.black : Colors
+                      .white,
+                ),
+              ),
+              Text(
+                "By: ${agreement.fieldwarkarname}",
+                style: TextStyle( color: isDark ? Colors.black : Colors
+                    .white, fontSize: 12),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -444,7 +303,7 @@ class _AdminPendingState extends State<AdminPending> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFF7C3AED),))
           : agreements.isEmpty
           ? const Center(child: Text("No agreements found"))
           : ListView.builder(

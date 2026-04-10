@@ -794,6 +794,10 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
     }
     if (prop.meter.isNotEmpty) {
       row2Cards.add(buildSimpleInfoCard("Meter", prop.meter, Icons.electric_meter, Colors.blue));
+
+    } if (prop.balcony.isNotEmpty) {
+      row2Cards.add(buildSimpleInfoCard("Balcony", prop.balcony, Icons.balcony, Colors.purpleAccent));
+
     }
     if (row2Cards.isNotEmpty) {
       rows.add(Padding(

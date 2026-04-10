@@ -59,7 +59,6 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
 
     if (data["status"] == true) {
       final total = int.tryParse(data["total_agreement"].toString()) ?? 0;
-
       return RewardStatus(
         totalAgreements: total,
         isDiscounted: total > 20,
@@ -69,34 +68,29 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
     return RewardStatus(totalAgreements: 0, isDiscounted: false);
   }
 
-
   void _navigateToEditForm(BuildContext context, AgreementData agreement) async {
     Widget page;
     final reward = await fetchRewardStatus();
 
     switch (agreement.Type.toLowerCase()) {
       case "rental agreement":
-        page = RentalWizardPage(agreementId: agreement.id,rewardStatus: reward);
+        page = RentalWizardPage(agreementId: agreement.id, rewardStatus: reward);
         break;
-
       case "external rental agreement":
-        page = ExternalWizardPage(agreementId: agreement.id,rewardStatus: reward);
+        page = ExternalWizardPage(agreementId: agreement.id, rewardStatus: reward);
         break;
-
       case "renewal agreement":
-        page = RenewalForm(agreementId: agreement.id,rewardStatus: reward);
+        page = RenewalForm(agreementId: agreement.id, rewardStatus: reward);
         break;
       case "commercial agreement":
-        page = CommercialWizardPage(agreementId: agreement.id,rewardStatus: reward);
+        page = CommercialWizardPage(agreementId: agreement.id, rewardStatus: reward);
         break;
       case "furnished agreement":
-        page = FurnishedForm(agreementId: agreement.id,rewardStatus: reward);
+        page = FurnishedForm(agreementId: agreement.id, rewardStatus: reward);
         break;
-
       case "police verification":
-        page = VerificationWizardPage(agreementId: agreement.id,rewardStatus: reward);
+        page = VerificationWizardPage(agreementId: agreement.id, rewardStatus: reward);
         break;
-
       default:
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Unknown agreement type: ${agreement.Type}")),
@@ -104,21 +98,16 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
         return;
     }
 
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => page),
-    );
-
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => page));
     _refreshAgreements();
   }
-
 
   Future<void> _refreshAgreements() async {
     try {
       setState(() => isLoading = true);
       await _fetchRentalAgreements();
     } catch (e) {
-      print("❌ Error refreshing agreements: $e");
+      debugPrint("❌ Error refreshing agreements: $e");
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -135,11 +124,9 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
         if (decoded["status"] == "success") {
           final model = AgreementResponse.fromJson(decoded);
           setState(() {
-            //agreements = model.data;
             agreements = model.data.reversed.toList();
             isLoading = false;
-          }
-          );
+          });
         } else {
           setState(() => isLoading = false);
         }
@@ -147,396 +134,308 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
         setState(() => isLoading = false);
       }
     } catch (e) {
-      print("❌ Error fetching agreements: $e");
+      debugPrint("❌ Error fetching agreements: $e");
       setState(() => isLoading = false);
     }
   }
-  List<Color> _getCardColors(String? type, bool isDark) {
-    if (type != null && type.toLowerCase() == "police verification") {
-      return isDark
-          ? [Colors.blue.shade900, Colors.black]
-          : [ Colors.blue.shade400,Colors.grey.shade400,];
-    }
 
-    // Default green theme
-    return isDark
-        ? [Colors.green.shade900, Colors.black]
-        : [Colors.grey.shade500, Colors.green.shade400];
+  // ── Status color logic — same as AdminPending ──────────────────────────────
+  Color _statusColor(String status) {
+    final s = status.toLowerCase();
+    if (s == "rejected") return Colors.red;
+    if (s == "fields updated") return Colors.blue;
+    if (s == "awaiting signature") return Colors.pink;
+    return Colors.green;
   }
 
+  String _formatDate(dynamic rawDate) {
+    try {
+      String actualDate =
+      rawDate is Map ? rawDate['date'] ?? '' : rawDate.toString();
+      if (actualDate.isEmpty) return "--";
+      final date = DateTime.parse(actualDate.split(' ')[0]);
+      return "${_twoDigits(date.day)} ${_monthName(date.month)} ${date.year}";
+    } catch (_) {
+      return "--";
+    }
+  }
+
+  String _twoDigits(int n) => n.toString().padLeft(2, '0');
+
+  String _monthName(int month) {
+    const months = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+    return months[month - 1];
+  }
+
+  // ── Card — exact same structure as AdminPending._buildAgreementCard ─────────
   Widget _buildAgreementCard(AgreementData agreement) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     final status = agreement.status?.toLowerCase() ?? '';
     final bool isRejected = status == "rejected";
-    final bool isUpdated = status == "fields updated";
+    final statusColor = _statusColor(status);
 
-    final bool isPolice = agreement.Type.toLowerCase() == "police verification";
-
-    final Color glowColor = isRejected
-        ? Colors.redAccent
-        : isUpdated
-        ? (isPolice ? Colors.blueAccent : Colors.greenAccent)
-        : (isPolice ? Colors.blue : Colors.green);
-
-
-    final size = MediaQuery.of(context).size;
-    final double textScale = size.width < 360
-        ? 0.85
-        : size.width < 420
-        ? 0.95
-        : 1.0;
-
-    final baseTextColor = isDark ? Colors.white : Colors.white;
-    final subTextColor = isDark ? Colors.white70 : Colors.white;
-
-    return Container(
-      margin: EdgeInsets.symmetric(
-        horizontal: size.width * 0.04,
-        vertical: size.height * 0.012,
-      ),
-      child: Stack(
-        children: [
-          Container(
+    return Stack(
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            gradient: LinearGradient(
-              colors: _getCardColors(agreement.Type, isDark),
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            border: Border.all(
-              color: glowColor.withOpacity(0.25),
-              width: 1.2,
-            ),
+            color: isDark ? Colors.white : Colors.grey.shade900,
+            borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: glowColor.withOpacity(0.15),
-                blurRadius: 12,
-                spreadRadius: 0.6,
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
             ],
           ),
-          child: Padding(
-            padding: EdgeInsets.all(size.width * 0.045),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 🔷 Top Row (Owner & Tenant)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        "👤 Owner: ${agreement.ownerName}",
-                        style: TextStyle(
-                          color: baseTextColor,
-                          fontSize: 14.5 * textScale,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.3,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    Flexible(
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          "🏠 Tenant: ${agreement.tenantName}",
-                          style: TextStyle(
-                            color: baseTextColor,
-                            fontSize: 14.5 * textScale,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.3,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: size.height * 0.015),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
 
-                // 📍 Address
-                Row(
-                  children: [
-                    Icon(Icons.location_on_rounded, color: subTextColor, size: 18),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        agreement.rentedAddress,
-                        style: TextStyle(
-                          color: subTextColor,
-                          fontSize: 13.2 * textScale,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: size.height * 0.008),
-
-                // ⏰ Shifting Date
-                Row(
-                  children: [
-                    Icon(Icons.schedule_rounded, color: subTextColor, size: 18),
-                    const SizedBox(width: 6),
-                    Text(
-                      "Shifting Date: ${agreement.shiftingDate != null
-                          ? agreement.shiftingDate!.toLocal().toString().split(' ')[0]
-                          : "Not Provided"}",
-                      style: TextStyle(
-                        color: subTextColor,
-                        fontSize: 13.2 * textScale,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-
-                SizedBox(height: size.height * 0.018),
-
-
+              // ── TOP ROW (ID badge + View Details button) ────────────────
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
                   Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: size.width * 0.035,
-                    vertical: size.height * 0.012,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    gradient: LinearGradient(
-                      colors: [
-                        glowColor.withOpacity(isDark ? 0.15 : 0.08),
-                        glowColor.withOpacity(isDark ? 0.05 : 0.03),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child:  // ── TITLE (Agreement Type) ───────────────────────────────────
+                    Text(
+                      agreement.Type,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        isRejected
-                            ? Icons.cancel_rounded
-                            : isUpdated
-                            ? Icons.auto_fix_high
-                            : Icons.verified_rounded,
-                        color: glowColor,
-                        size: 20,
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              AgreementDetailPage(agreementId: agreement.id),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 10),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                        ),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          "${agreement.status ?? 'Pending'} | Reason : ${agreement.messages ?? 'On Hold'}",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 13.5 * textScale,
-                            fontWeight: FontWeight.w600,
-                            letterSpacing: 0.2,
-                            shadows: [
-                              Shadow(
-                                color: glowColor.withOpacity(0.4),
-                                blurRadius: 6,
-                              ),
-                            ],
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.touch_app, color: Colors.white, size: 16),
+                          SizedBox(width: 6),
+                          Text(
+                            "VIEW DETAILS",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
                           ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                if (isRejected) ...[
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                        isDark ? Colors.red.shade700 : Colors.red.shade500,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        elevation: 6,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                      onPressed: () => _navigateToEditForm(context, agreement),
-                      icon: const Icon(Icons.edit, size: 18),
-                      label: const Text(
-                        "Edit & Resubmit",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.3,
-                        ),
+                        ],
                       ),
                     ),
                   ),
                 ],
-                SizedBox(height: size.height * 0.018),
+              ),
 
-                // 🔘 Bottom Buttons Row
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final bool isSmall = constraints.maxWidth < 340;
+              const SizedBox(height: 6),
 
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // 🔴 Type Label
-                        Expanded(
-                          child: Container(
-                            alignment: Alignment.center,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: size.width * 0.03,
-                              vertical: size.height * 0.012,
-                            ),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: isDark
-                                  ? Colors.grey.shade100
-                                  : Colors.black,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: glowColor.withOpacity(0.3),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                agreement.Type.toUpperCase(),
-                                style: TextStyle(
-                                  color: isDark
-                                      ? Colors.black
-                                      : Colors.grey.shade100,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12.5 * textScale,
-                                  letterSpacing: 0.7,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        SizedBox(width: isSmall ? 8 : 14),
+              // ── OWNER + TENANT ───────────────────────────────────────────
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      "Owner: ${agreement.ownerName}",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: isDark ? Colors.black : Colors.white,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      "Tenant: ${agreement.tenantName}",
+                      textAlign: TextAlign.end,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: isDark ? Colors.black : Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
 
-                        // 🟢 View Details Button
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: isDark
-                                  ? Colors.grey.shade100
-                                  : Colors.black,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              elevation: 6,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: size.width * 0.03,
-                                vertical: size.height * 0.012,
-                              ),
-                            ),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => AgreementDetailPage(
-                                      agreementId: agreement.id),
-                                ),
-                              );
-                            },
-                            icon: Icon(Icons.visibility_rounded,
-                                size: 18 * textScale, color: Colors.green),
-                            label: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                "View Details",
-                                style: TextStyle(
-                                  color: isDark
-                                      ? Colors.black
-                                      : Colors.grey.shade100,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13 * textScale,
-                                  letterSpacing: 0.3,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
+              const SizedBox(height: 10),
+
+              // ── ADDRESS ──────────────────────────────────────────────────
+              Text(
+                "📍${agreement.rentedAddress}",
+                style: TextStyle(
+                  color: isDark ? Colors.black87 : Colors.white,
                 ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // ── DATE ROW ─────────────────────────────────────────────────
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Shifting: ${_formatDate(agreement.shiftingDate?.toString().split(' ')[0] ?? '')}",
+                    style: TextStyle(
+                      color: isDark ? Colors.black : Colors.white,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              // ── STATUS MESSAGE BOX ───────────────────────────────────────
+
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.black87 : Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, size: 18, color: statusColor),
+                    const SizedBox(width: 6),
+                      Expanded(
+                      child: Text(
+                      "${agreement.status ?? 'Pending'} | Reason : ${agreement.messages ?? 'On Hold'}",
+                      style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13.5 ,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.2,
+                      shadows: [
+                      // Shadow(
+                      // color: Colors.black87,
+                      // blurRadius: 6,
+                      // ),
+                  ],
+                ),
+              ),
+    ),
               ],
             ),
+              ),
+
+              // ── EDIT & RESUBMIT (only if rejected) ──────────────────────
+              if (isRejected) ...[
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                      isDark ? Colors.red.shade700 : Colors.red.shade500,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      elevation: 6,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    onPressed: () => _navigateToEditForm(context, agreement),
+                    icon: const Icon(Icons.edit, size: 18),
+                    label: const Text(
+                      "Edit & Resubmit",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
           ),
         ),
-          if (isRejected)
-            Positioned(
-              top: 12,
-              left: -30,
-              child: Transform.rotate(
-                angle: -0.785398, // -45 degrees in radians
-                child: Container(
-                  width: 140,
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.redAccent.shade400,
-                        Colors.red.shade700,
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.redAccent.withOpacity(0.4),
-                        blurRadius: 6,
-                        offset: const Offset(2, 2),
-                      ),
+
+        // ── REJECTED ribbon — same diagonal banner as AdminPending ──────────
+        if (isRejected)
+          Positioned(
+            top: 12,
+            left: -30,
+            child: Transform.rotate(
+              angle: -0.785398,
+              child: Container(
+                width: 140,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.redAccent.shade400,
+                      Colors.red.shade700,
                     ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  alignment: Alignment.center,
-                  child: const Text(
-                    "REJECTED   ",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
-                      fontSize: 11.5,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.redAccent.withOpacity(0.4),
+                      blurRadius: 6,
+                      offset: const Offset(2, 2),
                     ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: const Text(
+                  "REJECTED   ",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                    fontSize: 11.5,
                   ),
                 ),
               ),
             ),
-    ]
-      ),
+          ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     return Scaffold(
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : agreements.isEmpty
           ? const Center(
-        child: Text(
-          "No agreements found",
-          style: TextStyle(color: Colors.white70),
-        ),
+        child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
       )
+          : agreements.isEmpty
+          ? const Center(child: Text("No agreements found"))
           : RefreshIndicator(
         onRefresh: _refreshAgreements,
         child: ListView.builder(
-          padding: EdgeInsets.only(bottom: size.height * 0.02),
+          padding: const EdgeInsets.only(bottom: 20),
           itemCount: agreements.length,
           itemBuilder: (context, index) =>
               _buildAgreementCard(agreements[index]),
@@ -544,5 +443,4 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
       ),
     );
   }
-
 }

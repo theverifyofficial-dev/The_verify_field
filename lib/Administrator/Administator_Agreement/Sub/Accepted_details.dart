@@ -23,8 +23,28 @@ import '../PDFs/furnished pdf.dart';
 import 'package:image/image.dart' as img;
 import 'dart:io';
 import 'dart:typed_data';
-class AcceptedDetails extends StatefulWidget {
 
+// ─── Custom Clause Model ─────────────────────────────────────────────────────
+class CustomClause {
+  final TextEditingController titleCtrl;
+  final TextEditingController subtitleCtrl;
+
+  CustomClause()
+      : titleCtrl = TextEditingController(),
+        subtitleCtrl = TextEditingController();
+
+  void dispose() {
+    titleCtrl.dispose();
+    subtitleCtrl.dispose();
+  }
+
+  Map<String, String> toMap() => {
+    'title': titleCtrl.text.trim(),
+    'subtitle': subtitleCtrl.text.trim(),
+  };
+}
+
+class AcceptedDetails extends StatefulWidget {
   final String agreementId;
   const AcceptedDetails({super.key, required this.agreementId});
 
@@ -43,10 +63,21 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
   File? panPhoto;
   List<AdditionalTenant> additionalTenants = [];
 
+  // ─── Custom Clauses list ──────────────────────────────────────────
+  final List<CustomClause> _customClauses = [];
+
   @override
   void initState() {
     super.initState();
     _loadAllData();
+  }
+
+  @override
+  void dispose() {
+    for (final c in _customClauses) {
+      c.dispose();
+    }
+    super.dispose();
   }
 
   Future<void> _loadAllData() async {
@@ -96,7 +127,8 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
 
     try {
       final response = await http.post(
-        Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
+        Uri.parse(
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
         body: {"P_id": propertyId},
       );
 
@@ -151,14 +183,11 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
       File compressed = file;
 
       while (true) {
-        // 🔥 Correct resize function
         img.Image resized = img.copyResize(image, width: width);
-
-        // 🔥 Correct JPG encoder
         List<int> jpgBytes = img.encodeJpg(resized, quality: quality);
 
-        // Write file
-        File temp = File("${file.path}_${DateTime.now().millisecondsSinceEpoch}.jpg");
+        File temp = File(
+            "${file.path}_${DateTime.now().millisecondsSinceEpoch}.jpg");
         await temp.writeAsBytes(jpgBytes);
 
         int sizeKB = temp.lengthSync() ~/ 1024;
@@ -178,15 +207,14 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         }
       }
 
-      AppLogger.api("📦 AFTER Compress: ${compressed.lengthSync() ~/ 1024} KB");
+      AppLogger.api(
+          "📦 AFTER Compress: ${compressed.lengthSync() ~/ 1024} KB");
       return compressed;
-
     } catch (e) {
       AppLogger.api("❌ Compress Error: $e");
       return file;
     }
   }
-
 
   String _formatDate(dynamic shiftingDate) {
     if (shiftingDate == null) return "";
@@ -207,7 +235,6 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
       return "";
     }
   }
-
 
   Widget _furnitureList(dynamic furnitureData) {
     if (furnitureData == null || furnitureData.toString().trim().isEmpty) {
@@ -233,24 +260,24 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-              'Furnished Items:',
+          Text('Furnished Items:',
               style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white : Colors.black87)
-          ),
+                  color: isDark ? Colors.white : Colors.black87)),
           const SizedBox(height: 6),
           Wrap(
             spacing: 8,
             runSpacing: 6,
             children: furnitureMap.entries.map((e) {
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.green.shade100,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green.shade700, width: 1),
+                  border:
+                  Border.all(color: Colors.green.shade700, width: 1),
                 ),
                 child: Text(
                   "${e.key} (${e.value})",
@@ -282,7 +309,6 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
             agreement = Map<String, dynamic>.from(decoded["data"][0]);
           });
           fetchPropertyCard();
-        } else {
         }
       }
     } catch (e) {
@@ -295,7 +321,6 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
 
     return Container(
       width: double.infinity,
-
       padding: padding ?? const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDark
@@ -311,8 +336,8 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
     );
   }
 
-  Widget _sectionCard({required String title, required List<Widget> children}) {
-    // filter out empty children
+  Widget _sectionCard(
+      {required String title, required List<Widget> children}) {
     final visibleChildren = children.where((c) => c is! SizedBox).toList();
     if (visibleChildren.isEmpty) return const SizedBox.shrink();
 
@@ -322,8 +347,8 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(title,
-              style:
-              const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+              style: const TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           _glassContainer(
             child: Column(children: visibleChildren),
@@ -335,9 +360,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
   }
 
   Widget _kv(String k, dynamic v) {
-    // if (v == null) return const SizedBox.shrink();
     final value = v.toString().trim();
-    // if (value.isEmpty) return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -353,7 +376,6 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
       ),
     );
   }
-
 
   Future<void> _submitAll() async {
     if (agreement == null) return;
@@ -372,23 +394,25 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
       final request = http.MultipartRequest('POST', uri);
       request.headers['Accept'] = 'application/json';
 
-      final bool isPolice = agreement?["agreement_type"] == "Police Verification";
+      final bool isPolice =
+          agreement?["agreement_type"] == "Police Verification";
 
-      // ----------------------
-      // BASIC FIELDS
-      // ----------------------
       final fields = <String, String>{
         "accept_delete_id": widget.agreementId,
         "owner_name": agreement?["owner_name"] ?? "",
         "owner_relation": agreement?["owner_relation"] ?? "",
-        "relation_person_name_owner": agreement?["relation_person_name_owner"] ?? "",
-        "parmanent_addresss_owner": agreement?["parmanent_addresss_owner"] ?? "",
+        "relation_person_name_owner":
+        agreement?["relation_person_name_owner"] ?? "",
+        "parmanent_addresss_owner":
+        agreement?["parmanent_addresss_owner"] ?? "",
         "owner_mobile_no": agreement?["owner_mobile_no"] ?? "",
         "owner_addhar_no": agreement?["owner_addhar_no"] ?? "",
         "tenant_name": agreement?["tenant_name"] ?? "",
         "tenant_relation": agreement?["tenant_relation"] ?? "",
-        "relation_person_name_tenant": agreement?["relation_person_name_tenant"] ?? "",
-        "permanent_address_tenant": agreement?["permanent_address_tenant"] ?? "",
+        "relation_person_name_tenant":
+        agreement?["relation_person_name_tenant"] ?? "",
+        "permanent_address_tenant":
+        agreement?["permanent_address_tenant"] ?? "",
         "tenant_mobile_no": agreement?["tenant_mobile_no"] ?? "",
         "tenant_addhar_no": agreement?["tenant_addhar_no"] ?? "",
         "Bhk": agreement?["Bhk"] ?? "",
@@ -396,12 +420,14 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         "rented_address": agreement?["rented_address"] ?? "",
         "monthly_rent": agreement?["monthly_rent"] ?? "",
         "securitys": agreement?["securitys"] ?? "",
-        "installment_security_amount": agreement?["installment_security_amount"] ?? "",
+        "installment_security_amount":
+        agreement?["installment_security_amount"] ?? "",
         "meter": agreement?["meter"] ?? "",
         "custom_meter_unit": agreement?["custom_meter_unit"] ?? "",
         "shifting_date": agreement?["shifting_date"]?.toString() ?? "",
         "maintaince": agreement?["maintaince"] ?? "",
-        "custom_maintenance_charge": agreement?["custom_maintenance_charge"] ?? "",
+        "custom_maintenance_charge":
+        agreement?["custom_maintenance_charge"] ?? "",
         "parking": agreement?["parking"] ?? "",
         "current_dates": DateTime.now().toIso8601String(),
         "Fieldwarkarname": agreement?["Fieldwarkarname"] ?? "",
@@ -421,19 +447,16 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         "agreement_price": agreement?["agreement_price"] ?? "",
         "notary_price": agreement?["notary_price"] ?? "",
         "is_Police": agreement?["is_Police"] ?? "",
-
       };
 
       fields.forEach((k, v) {
         if (v.trim().isNotEmpty) request.fields[k] = v.trim();
       });
 
-      // ----------------------
-      // FILE ATTACH FUNCTION
-      // ----------------------
       Future<void> attachFile(String key, File? file) async {
         if (file == null) return;
-        final mime = lookupMimeType(file.path) ?? "application/octet-stream";
+        final mime =
+            lookupMimeType(file.path) ?? "application/octet-stream";
         final parts = mime.split("/");
         request.files.add(await http.MultipartFile.fromPath(
           key,
@@ -442,9 +465,6 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         ));
       }
 
-      // ----------------------
-      // DOWNLOAD OLD DB IMAGES
-      // ----------------------
       Future<File?> downloadIfNeeded(String? imgPath, String name) async {
         if (imgPath == null || imgPath.isEmpty) return null;
 
@@ -459,9 +479,6 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         return file.writeAsBytes(response.bodyBytes);
       }
 
-      // ----------------------
-      // REQUIRED DB IMAGES
-      // ----------------------
       final ownerFront = await downloadIfNeeded(
           agreement?["owner_aadhar_front"], "owner_front.jpg");
       final ownerBack = await downloadIfNeeded(
@@ -473,54 +490,35 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
       final tenantImg = await downloadIfNeeded(
           agreement?["tenant_image"], "tenant_img.jpg");
 
-      // ----------------------
-// COMMERCIAL FILES
-// ----------------------
       if (agreement?["agreement_type"] == "Commercial Agreement") {
-
         gstPhoto = await downloadIfNeeded(
             agreement?["gst_photo"], "gst_photo.jpg");
-
         panPhoto = await downloadIfNeeded(
             agreement?["pan_photo"], "pan_photo.jpg");
-
         await attachFile("gst_photo", gstPhoto);
         await attachFile("pan_photo", panPhoto);
       }
 
-
-
-      // ----------------------
-      // POLICE VERIFICATION MODE
-      // ----------------------
       if (isPolice) {
         if (policeVerificationFile == null) {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Upload Police Verification PDF")),
+            const SnackBar(
+                content: Text("Upload Police Verification PDF")),
           );
           return;
         }
 
-        // Only upload police verification PDF
         await attachFile("police_verification_pdf", policeVerificationFile);
-
-        // Still upload Aadhar & tenant images from DB
         await attachFile("owner_aadhar_front", ownerFront);
         await attachFile("owner_aadhar_back", ownerBack);
         await attachFile("tenant_aadhar_front", tenantFront);
         await attachFile("tenant_aadhar_back", tenantBack);
         await attachFile("tenant_image", tenantImg);
-
       } else {
-        // ----------------------
-        // NORMAL AGREEMENT
-        // ----------------------
         await attachFile("police_verification_pdf", policeVerificationFile);
         await attachFile("notry_img", notaryImageFile);
         await attachFile("agreement_pdf", pdfFile);
-
-        // Attach DB images
         await attachFile("owner_aadhar_front", ownerFront);
         await attachFile("owner_aadhar_back", ownerBack);
         await attachFile("tenant_aadhar_front", tenantFront);
@@ -528,9 +526,6 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         await attachFile("tenant_image", tenantImg);
       }
 
-      // ----------------------
-      // SEND REQUEST
-      // ----------------------
       final streamed = await request.send();
       final response = await http.Response.fromStream(streamed);
 
@@ -541,7 +536,8 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         Navigator.pop(context, true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Submit failed (${response.statusCode})")),
+          SnackBar(
+              content: Text("Submit failed (${response.statusCode})")),
         );
       }
     } catch (e) {
@@ -558,19 +554,33 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
 
     File file;
 
-    final String type = (agreement!['agreement_type'] ?? '').toString().trim();
+    final String type =
+    (agreement!['agreement_type'] ?? '').toString().trim();
 
     setState(() => isLoading = true);
 
     try {
+      // ─── Pass custom clauses to PDF generator ────────────────────
+      final List<Map<String, String>> clausesData =
+      _customClauses.map((c) => c.toMap()).toList();
+
+      // ✅ DEBUG: verify clauses are captured before passing
+      print('🧾 [PDF] Total custom clauses to insert: ${clausesData.length}');
+      for (int i = 0; i < clausesData.length; i++) {
+        print('  → Clause ${i + 1}: title="${clausesData[i]['title']}" | subtitle="${clausesData[i]['subtitle']}"');
+      }
 
       if (type == "Furnished Agreement") {
         file = await generateFurnishedAgreementPdf(agreement!);
-      }
-      else if (type == "Commercial Agreement" || type == "External Commercial Agreement" ) {
+      } else if (type == "Commercial Agreement" ||
+          type == "External Commercial Agreement") {
         file = await generateCommercialAgreementPdf(agreement!);
       } else {
-        file = await generateAgreementPdf(agreement!);
+        // ✅ Pass customClauses to the PDF function
+        file = await generateAgreementPdf(
+          agreement!,
+          customClauses: clausesData,
+        );
       }
 
       setState(() {
@@ -590,10 +600,251 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
     }
   }
 
+  // ─── Custom Clause Builder UI ─────────────────────────────────────
+  Widget _buildCustomClausesSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Header row ────────────────────────────────────────────
+        Row(
+          children: [
+            const Icon(Icons.playlist_add_rounded,
+                color: Colors.indigo, size: 22),
+            const SizedBox(width: 8),
+            const Expanded(
+              child: Text(
+                "Add Custom Clauses",
+                style: TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.w700),
+              ),
+            ),
+            // ── + Add button ────────────────────────────────────
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _customClauses.add(CustomClause());
+                });
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.indigo,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 6),
+                child: const Row(
+                  children: [
+                    Icon(Icons.add, color: Colors.white, size: 18),
+                    SizedBox(width: 4),
+                    Text("Add",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+
+        // ── Clause cards ──────────────────────────────────────────
+        if (_customClauses.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 18),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.grey[850]
+                  : Colors.indigo.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: Colors.indigo.shade100, width: 1),
+            ),
+            child: Column(
+              children: [
+                Icon(Icons.note_add_outlined,
+                    color: Colors.indigo.shade200, size: 36),
+                const SizedBox(height: 8),
+                Text(
+                  "No custom clauses added yet.\nTap + Add to insert one.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      color: Colors.indigo.shade300, fontSize: 13),
+                ),
+              ],
+            ),
+          )
+        else
+          ...List.generate(_customClauses.length, (index) {
+            final clause = _customClauses[index];
+            return _buildClauseCard(index, clause, isDark);
+          }),
+      ],
+    );
+  }
+
+  Widget _buildClauseCard(
+      int index, CustomClause clause, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[900] : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+            color: isDark
+                ? Colors.indigo.shade700
+                : Colors.indigo.shade200,
+            width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.indigo.withOpacity(0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // ── Clause number + delete ──────────────────────────────
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.indigo,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  "Clause ${index + 1}",
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12),
+                ),
+              ),
+              const Spacer(),
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _customClauses[index].dispose();
+                    _customClauses.removeAt(index);
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: const Icon(Icons.delete_outline,
+                      color: Colors.red, size: 18),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // ── Title field ─────────────────────────────────────────
+          Text(
+            "Title  (Bold in PDF)",
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.grey[300] : Colors.grey[700]),
+          ),
+          const SizedBox(height: 6),
+          TextField(
+            controller: clause.titleCtrl,
+            style: const TextStyle(
+                fontWeight: FontWeight.w600, fontSize: 14),
+            decoration: InputDecoration(
+              hintText: "e.g. Pet Policy",
+              hintStyle: TextStyle(color: Colors.grey[400]),
+              filled: true,
+              fillColor:
+              isDark ? Colors.grey[850] : Colors.grey.shade50,
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12, vertical: 10),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide:
+                BorderSide(color: Colors.indigo.shade200),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(
+                    color: Colors.indigo, width: 1.5),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                    color: isDark
+                        ? Colors.grey[600]!
+                        : Colors.grey.shade300),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // ── Subtitle field ──────────────────────────────────────
+          Text(
+            "Subtitle  (Normal text in PDF)",
+            style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.grey[300] : Colors.grey[700]),
+          ),
+          const SizedBox(height: 6),
+          TextField(
+            controller: clause.subtitleCtrl,
+            maxLines: 3,
+            style: const TextStyle(fontSize: 13),
+            decoration: InputDecoration(
+              hintText:
+              "e.g. No pets allowed without written permission...",
+              hintStyle: TextStyle(color: Colors.grey[400]),
+              filled: true,
+              fillColor:
+              isDark ? Colors.grey[850] : Colors.grey.shade50,
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12, vertical: 10),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide:
+                BorderSide(color: Colors.indigo.shade200),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(
+                    color: Colors.indigo, width: 1.5),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                    color: isDark
+                        ? Colors.grey[600]!
+                        : Colors.grey.shade300),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final bool isPolice = agreement?["agreement_type"] == "Police Verification";
-    final withPolice= agreement?['is_Police']?.toString() == "true";
+    final bool isPolice =
+        agreement?["agreement_type"] == "Police Verification";
+    final withPolice =
+        agreement?['is_Police']?.toString() == "true";
 
     if (isLoading) {
       return const Scaffold(
@@ -618,7 +869,6 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
 
     List<int> policeTenants = [];
 
-// 🔹 Main tenant (Tenant 1)
     final mainPolice =
         agreement?['is_Police']?.toString().toLowerCase() == "true";
 
@@ -626,7 +876,6 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
       policeTenants.add(1);
     }
 
-// 🔹 Additional tenants (Tenant 2,3...)
     for (int i = 0; i < additionalTenants.length; i++) {
       final t = additionalTenants[i];
 
@@ -636,15 +885,15 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
           .trim();
 
       if (value == "true" || value == "1") {
-        policeTenants.add(i + 2); // because main = 1
+        policeTenants.add(i + 2);
       }
     }
-
 
     return Scaffold(
       appBar: AppBar(
         surfaceTintColor: Colors.black,
-        title: Text('${agreement?["agreement_type"] ?? "Agreement"} Details'),
+        title: Text(
+            '${agreement?["agreement_type"] ?? "Agreement"} Details'),
         leading: const SquareBackButton(),
       ),
       body: SingleChildScrollView(
@@ -652,21 +901,23 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             if (propertyCard != null) propertyCard!,
-            // 🔹 First Horizontal Row (Owner / Tenant / Agreement / Field Worker)
+
             _buildMainTopSections(D_or_T),
 
-            SizedBox(height: 20,),
+            const SizedBox(height: 20),
             if (policeTenants.isNotEmpty)
               _buildPoliceNotice(policeTenants),
 
-            SizedBox(height: 20,),
+            const SizedBox(height: 20),
 
             if (agreement!["agreement_type"] == "Police Verification")
-              _sectionCard(title: "Property Residential Address ", children: [
-                _kv("Property Address", agreement!["rented_address"]),
-              ]),
+              _sectionCard(
+                  title: "Property Residential Address",
+                  children: [
+                    _kv("Property Address",
+                        agreement!["rented_address"]),
+                  ]),
 
             _buildCard(
               title: "Field Worker",
@@ -676,48 +927,66 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
               ],
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 24),
 
-              Row(
-                children: [
-                  // Police Verification upload
-                  Expanded(
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                      child: ElevatedButton.icon(
-                        onPressed: () async {
-                          final result = await FilePicker.platform.pickFiles(type: FileType.any);
-                          if (result != null && result.files.single.path != null) {
-                            setState(() {
-                              policeVerificationFile = File(result.files.single.path!);
-                            });
-                          }
-                        },
-                        icon: const Icon(Icons.upload_sharp, color: Colors.white),
-                        label: const Text(
-                          "P. Verification",
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                        ),
+            // ═══════════════════════════════════════════════════════
+            // 🔷 CUSTOM CLAUSES SECTION (only for non-police)
+            // ═══════════════════════════════════════════════════════
+            if (!isPolice) ...[
+              _buildCustomClausesSection(),
+              const SizedBox(height: 24),
+            ],
+
+            // ── Upload buttons ─────────────────────────────────────
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 6, vertical: 8),
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        final result = await FilePicker.platform
+                            .pickFiles(type: FileType.any);
+                        if (result != null &&
+                            result.files.single.path != null) {
+                          setState(() {
+                            policeVerificationFile =
+                                File(result.files.single.path!);
+                          });
+                        }
+                      },
+                      icon: const Icon(Icons.upload_sharp,
+                          color: Colors.white),
+                      label: const Text(
+                        "P. Verification",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        padding:
+                        const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
                       ),
                     ),
                   ),
+                ),
 
-                  if (!isPolice)
-                  // Notary upload
+                if (!isPolice)
                   Expanded(
                     child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                      margin: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 8),
                       child: ElevatedButton.icon(
                         onPressed: () async {
                           showModalBottomSheet(
                             context: context,
                             shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                              borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(16)),
                             ),
                             builder: (context) {
                               return SizedBox(
@@ -726,43 +995,67 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                                   children: [
                                     const SizedBox(height: 10),
                                     const Text("Select Image",
-                                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight:
+                                            FontWeight.w600)),
                                     const SizedBox(height: 10),
-
                                     Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                      mainAxisAlignment:
+                                      MainAxisAlignment
+                                          .spaceEvenly,
                                       children: [
                                         TextButton.icon(
                                           onPressed: () async {
                                             Navigator.pop(context);
-                                            final picked = await ImagePicker().pickImage(
-                                              source: ImageSource.camera,
+                                            final picked =
+                                            await ImagePicker()
+                                                .pickImage(
+                                              source:
+                                              ImageSource.camera,
                                               imageQuality: 90,
                                             );
                                             if (picked != null) {
-                                              File f = File(picked.path);
-                                              f = await compressImageTo150KB(f);
-                                              setState(() => notaryImageFile = f);
+                                              File f =
+                                              File(picked.path);
+                                              f = await compressImageTo150KB(
+                                                  f);
+                                              setState(() =>
+                                              notaryImageFile =
+                                                  f);
                                             }
                                           },
-                                          icon: const Icon(Icons.camera_alt, size: 28),
-                                          label: const Text("Camera"),
+                                          icon: const Icon(
+                                              Icons.camera_alt,
+                                              size: 28),
+                                          label:
+                                          const Text("Camera"),
                                         ),
                                         TextButton.icon(
                                           onPressed: () async {
                                             Navigator.pop(context);
-                                            final picked = await ImagePicker().pickImage(
-                                              source: ImageSource.gallery,
+                                            final picked =
+                                            await ImagePicker()
+                                                .pickImage(
+                                              source:
+                                              ImageSource.gallery,
                                               imageQuality: 90,
                                             );
                                             if (picked != null) {
-                                              File f = File(picked.path);
-                                              f = await compressImageTo150KB(f);
-                                              setState(() => notaryImageFile = f);
+                                              File f =
+                                              File(picked.path);
+                                              f = await compressImageTo150KB(
+                                                  f);
+                                              setState(() =>
+                                              notaryImageFile =
+                                                  f);
                                             }
                                           },
-                                          icon: const Icon(Icons.photo, size: 28),
-                                          label: const Text("Gallery"),
+                                          icon: const Icon(
+                                              Icons.photo,
+                                              size: 28),
+                                          label:
+                                          const Text("Gallery"),
                                         ),
                                       ],
                                     ),
@@ -772,37 +1065,44 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                             },
                           );
                         },
-                        icon: const Icon(Icons.upload_sharp, color: Colors.white),
+                        icon: const Icon(Icons.upload_sharp,
+                            color: Colors.white),
                         label: const Text("Notary",
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600)),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.red,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          padding:
+                          const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
                         ),
                       ),
                     ),
                   ),
-                ],
-              ),
+              ],
+            ),
 
             const SizedBox(height: 30),
+
             if (policeVerificationFile != null)
               _glassContainer(
                 child: ListTile(
-                  leading: const Icon(Icons.picture_as_pdf, color: Colors.orange),
-                  title: Text(policeVerificationFile!.path.split('/').last),
-                  subtitle: const Text("Police Verification File"),
+                  leading: const Icon(Icons.picture_as_pdf,
+                      color: Colors.orange),
+                  title:
+                  Text(policeVerificationFile!.path.split('/').last),
+                  subtitle:
+                  const Text("Police Verification File"),
                   onTap: () async {
                     await OpenFilex.open(policeVerificationFile!.path);
                   },
                 ),
               ),
+
             const SizedBox(height: 20),
 
-
-
-// Notary Image Preview
             if (!isPolice && notaryImageFile != null)
               _glassContainer(
                 child: Column(
@@ -817,14 +1117,14 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                         fit: BoxFit.cover,
                       ),
                     ),
-                    const SizedBox(height: 8),if (isCompressing)
+                    const SizedBox(height: 8),
+                    if (isCompressing)
                       const Center(
                         child: Padding(
                           padding: EdgeInsets.all(10),
                           child: CircularProgressIndicator(),
                         ),
                       ),
-
                     if (!isCompressing && compressedSizeText.isNotEmpty)
                       Center(
                         child: Text(
@@ -835,10 +1135,10 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                               color: Colors.green),
                         ),
                       ),
-
-
                     const Text("Notary Image",
-                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+                        style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16)),
                   ],
                 ),
               ),
@@ -848,18 +1148,17 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
             if (!isPolice && pdfFile != null)
               _glassContainer(
                 child: ListTile(
-                  leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
+                  leading: const Icon(Icons.picture_as_pdf,
+                      color: Colors.red),
                   title: Text(pdfFile!.path.split('/').last),
                   subtitle: const Text("Tap to open in browser"),
                   onTap: () async {
-                    final uri = Uri.file(pdfFile!.path);
-                    // inside onTap
                     if (pdfFile != null) {
                       await OpenFilex.open(pdfFile!.path);
-                    }
-                    else {
+                    } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Could not open PDF")),
+                        const SnackBar(
+                            content: Text("Could not open PDF")),
                       );
                     }
                   },
@@ -872,21 +1171,28 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
               GenerateAgreementButton(onGenerate: _handleGeneratePdf),
 
             Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              margin:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               width: double.infinity,
               child: ElevatedButton.icon(
-
-                onPressed: isPolice ? _submitAll : (pdfGenerated ? _submitAll : null),
-
+                onPressed: isPolice
+                    ? _submitAll
+                    : (pdfGenerated ? _submitAll : null),
                 icon: const Icon(Icons.check, color: Colors.white),
                 label: const Text(
                   "Done",
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isPolice ? Colors.green : (pdfGenerated ? Colors.green : Colors.grey),
+                  backgroundColor: isPolice
+                      ? Colors.green
+                      : (pdfGenerated ? Colors.green : Colors.grey),
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12)),
                 ),
               ),
             ),
@@ -932,12 +1238,13 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
           borderRadius: BorderRadius.circular(10),
           child: Image.network(
             "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$imageUrl",
-            width: 160,   // force same as container
-            height: 120,  // force same as container
-            fit: BoxFit.cover, // ensures full fill
+            width: 160,
+            height: 120,
+            fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) => Container(
               color: Colors.grey[300],
-              child: const Icon(Icons.broken_image, color: Colors.red, size: 40),
+              child: const Icon(Icons.broken_image,
+                  color: Colors.red, size: 40),
             ),
           ),
         ),
@@ -945,15 +1252,14 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
     );
   }
 
-
-  Widget _buildCard({required String title, required List<Widget> children}) {
+  Widget _buildCard(
+      {required String title, required List<Widget> children}) {
     return Container(
       width: 300,
       margin: const EdgeInsets.only(right: 20),
       child: _sectionCard(title: title, children: children),
     );
   }
-
 
   Widget? propertyCard;
 
@@ -964,7 +1270,6 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           if (agreement!["agreement_type"] != "Police Verification")
             Column(
               children: [
@@ -972,17 +1277,13 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                   width: 320,
                   child: _buildAgreementCard(),
                 ),
-
                 SizedBox(
                   width: 320,
                   child: _buildOwnerCard(),
                 ),
-
               ],
             ),
-
           const SizedBox(width: 20),
-
           SizedBox(
             width: 320,
             child: _buildTenantCard(D_or_T),
@@ -993,23 +1294,23 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
   }
 
   Widget _buildAgreementCard() {
-    final bool isCommercial = agreement?["agreement_type"] == "Commercial Agreement";
+    final bool isCommercial =
+        agreement?["agreement_type"] == "Commercial Agreement";
     return _sectionCard(
       title: "Agreement Details",
       children: [
-        if(!isCommercial)
-        _kv("BHK", agreement?["Bhk"]),
-        if(isCommercial)
-          _kv("Sqft", agreement?["Sqft"]),
-
-
-
+        if (!isCommercial) _kv("BHK", agreement?["Bhk"]),
+        if (isCommercial) _kv("Sqft", agreement?["Sqft"]),
         _kv("Floor", agreement?["floor"]),
         _kv("Rented Address", agreement?["rented_address"]),
         _kv("Monthly Rent",
-            agreement?["monthly_rent"] != null ? "₹${agreement?["monthly_rent"]}" : ""),
+            agreement?["monthly_rent"] != null
+                ? "₹${agreement?["monthly_rent"]}"
+                : ""),
         _kv("Security",
-            agreement?["securitys"] != null ? "₹${agreement?["securitys"]}" : ""),
+            agreement?["securitys"] != null
+                ? "₹${agreement?["securitys"]}"
+                : ""),
         _kv("Installment Security",
             agreement?["installment_security_amount"] != null
                 ? "₹${agreement?["installment_security_amount"]}"
@@ -1021,9 +1322,12 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
           _kv("Maintenance Amount",
               agreement?["custom_maintenance_charge"]),
         _kv("Parking", agreement?["parking"]),
-        _kv("Shifting Date", _formatDate(agreement?["shifting_date"])),
-        _kv("Agreement Price", agreement?["agreement_price"] ?? "Not Added"),
-        _kv("Notary Amount", agreement?["notary_price"] ?? "Not Added"),
+        _kv("Shifting Date",
+            _formatDate(agreement?["shifting_date"])),
+        _kv("Agreement Price",
+            agreement?["agreement_price"] ?? "Not Added"),
+        _kv("Notary Amount",
+            agreement?["notary_price"] ?? "Not Added"),
         _furnitureList(agreement!['furniture']),
       ],
     );
@@ -1039,9 +1343,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         _kv("Address", agreement?["parmanent_addresss_owner"]),
         _kv("Mobile", agreement?["owner_mobile_no"]),
         _kv("Aadhar", agreement?["owner_addhar_no"]),
-
         const SizedBox(height: 8),
-
         Wrap(
           spacing: 12,
           children: [
@@ -1057,51 +1359,41 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
     return _sectionCard(
       title: "$D_or_T Details",
       children: [
-
         _kv("$D_or_T Name", agreement?["tenant_name"]),
         _kv("Relation",
             "${agreement?["tenant_relation"] ?? ""} ${agreement?["relation_person_name_tenant"] ?? ""}"),
         _kv("Address", agreement?["permanent_address_tenant"]),
         _kv("Mobile", agreement?["tenant_mobile_no"]),
         _kv("Aadhar", agreement?["tenant_addhar_no"]),
-
         if (agreement!["agreement_type"] == "Commercial Agreement") ...[
           const Divider(),
           _kv("Company Name", agreement!["company_name"]),
           _kv("DOC Type ", agreement!["gst_type"]),
           _kv("DOC Number", agreement!["gst_no"]),
           _kv("PAN Number", agreement!["pan_no"]),
-
         ],
-
         const SizedBox(height: 8),
-
         Wrap(
           spacing: 12,
           children: [
             _docImage(agreement?["tenant_aadhar_front"]),
             _docImage(agreement?["tenant_aadhar_back"]),
             _docImage(agreement?["tenant_image"]),
-
-            if (agreement!["agreement_type"] == "Commercial Agreement") ...[
-
-            _docImage(agreement?["gst_photo"]),
-            _docImage(agreement?["pan_photo"]),
+            if (agreement!["agreement_type"] ==
+                "Commercial Agreement") ...[
+              _docImage(agreement?["gst_photo"]),
+              _docImage(agreement?["pan_photo"]),
             ],
           ],
         ),
-
-        // 🔥 ADDITIONAL TENANTS
         if (additionalTenants.isNotEmpty) ...[
           const SizedBox(height: 20),
           Text(
             "Additional $D_or_T",
             style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700),
+                fontSize: 16, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 10),
-
           ...List.generate(additionalTenants.length, (index) {
             final t = additionalTenants[index];
 
@@ -1117,16 +1409,13 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                           fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 8),
-
                     _kv("Name", t.name),
                     _kv("Relation",
                         "${t.relation} ${t.relation_name}"),
                     _kv("Address", t.address),
                     _kv("Mobile", t.mobile),
                     _kv("Aadhaar", t.aadhaar),
-
                     const SizedBox(height: 8),
-
                     Wrap(
                       children: [
                         _docImage(t.front),
@@ -1172,9 +1461,6 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
     );
   }
 
-
-
-
   Widget _propertyCard(Map<String, dynamic> data) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -1183,22 +1469,26 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${data['property_photo'] ?? ''}";
 
     Color textPrimary = isDark ? Colors.white : Colors.black87;
-    Color textSecondary = isDark ? Colors.grey[400]! : Colors.grey[700]!;
+    Color textSecondary =
+    isDark ? Colors.grey[400]! : Colors.grey[700]!;
     Color cardColor = isDark ? Colors.grey[900]! : Colors.white;
-    Color shadowColor = isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.2);
+    Color shadowColor = isDark
+        ? Colors.black.withOpacity(0.3)
+        : Colors.grey.withOpacity(0.2);
 
     return Card(
       color: cardColor,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20)),
       elevation: 8,
       margin: const EdgeInsets.only(bottom: 20),
       shadowColor: shadowColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 🖼️ Property Image
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20)),
             child: Image.network(
               imageUrl,
               height: 200,
@@ -1208,7 +1498,8 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                 return Container(
                   height: 200,
                   width: double.infinity,
-                  color: isDark ? Colors.grey[800] : Colors.grey[200],
+                  color:
+                  isDark ? Colors.grey[800] : Colors.grey[200],
                   alignment: Alignment.center,
                   child: Text(
                     "No Image",
@@ -1218,14 +1509,11 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
               },
             ),
           ),
-
-          // 📋 Property Details
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 💰 Price + BHK + Floor
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -1234,7 +1522,9 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.greenAccent.shade200 : Colors.green,
+                        color: isDark
+                            ? Colors.greenAccent.shade200
+                            : Colors.green,
                       ),
                     ),
                     Text(
@@ -1255,69 +1545,42 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                   ],
                 ),
                 const SizedBox(height: 12),
-
-                // 🧑 Name + 📍 Location
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
+                    Text("Name: ${data['field_warkar_name'] ?? "--"}",
+                        style: TextStyle(
+                            fontSize: 14, color: textSecondary)),
                     Text(
-                      "Name: ${data['field_warkar_name'] ?? "--"}",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: textSecondary,
-                      ),
-                    ),
-                    Text(
-                      "Location: ${data['locations'] ?? "--"}",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: textSecondary,
-                      ),
-                    ),
+                        "Location: ${data['locations'] ?? "--"}",
+                        style: TextStyle(
+                            fontSize: 14, color: textSecondary)),
                   ],
                 ),
                 const SizedBox(height: 10),
-
-                // ⚡ Meter + 🚗 Parking
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      "Meter: ${data['meter'] ?? "--"}",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: textSecondary,
-                      ),
-                    ),
-                    Text(
-                      "Parking: ${data['parking'] ?? "--"}",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: textSecondary,
-                      ),
-                    ),
+                    Text("Meter: ${data['meter'] ?? "--"}",
+                        style: TextStyle(
+                            fontSize: 14, color: textSecondary)),
+                    Text("Parking: ${data['parking'] ?? "--"}",
+                        style: TextStyle(
+                            fontSize: 15, color: textSecondary)),
                   ],
                 ),
                 const SizedBox(height: 6),
-
-                // 🛠️ Maintenance + ID
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Maintenance: ${data['maintance'] ?? "--"}",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: textSecondary,
-                      ),
-                    ),
+                        "Maintenance: ${data['maintance'] ?? "--"}",
+                        style: TextStyle(
+                            fontSize: 15, color: textSecondary)),
                     Text(
-                      "ID: ${agreement?["property_id"] ?? "--"}",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: textSecondary,
-                      ),
-                    ),
+                        "ID: ${agreement?["property_id"] ?? "--"}",
+                        style: TextStyle(
+                            fontSize: 15, color: textSecondary)),
                   ],
                 ),
               ],
@@ -1327,17 +1590,19 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
       ),
     );
   }
-
-
-
 }
+
+// ─── Helper Widgets ───────────────────────────────────────────────────────────
 
 class ElevatedGradientButton extends StatelessWidget {
   final String text;
   final IconData icon;
   final VoidCallback onPressed;
   const ElevatedGradientButton(
-      {required this.text, required this.icon, required this.onPressed, super.key});
+      {required this.text,
+        required this.icon,
+        required this.onPressed,
+        super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -1367,19 +1632,21 @@ class ElevatedGradientButton extends StatelessWidget {
       ),
     );
   }
-
 }
 
 class GenerateAgreementButton extends StatefulWidget {
   final Future<void> Function() onGenerate;
 
-  const GenerateAgreementButton({super.key, required this.onGenerate});
+  const GenerateAgreementButton(
+      {super.key, required this.onGenerate});
 
   @override
-  State<GenerateAgreementButton> createState() => _GenerateAgreementButtonState();
+  State<GenerateAgreementButton> createState() =>
+      _GenerateAgreementButtonState();
 }
 
-class _GenerateAgreementButtonState extends State<GenerateAgreementButton> {
+class _GenerateAgreementButtonState
+    extends State<GenerateAgreementButton> {
   bool _isLoading = false;
   int _countdown = 0;
   Timer? _timer;
@@ -1387,10 +1654,9 @@ class _GenerateAgreementButtonState extends State<GenerateAgreementButton> {
   Future<void> _startCountdown() async {
     setState(() {
       _isLoading = true;
-      _countdown = 5; // seconds (you can change this)
+      _countdown = 5;
     });
 
-    // Start countdown
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_countdown == 0) {
         timer.cancel();
@@ -1401,10 +1667,8 @@ class _GenerateAgreementButtonState extends State<GenerateAgreementButton> {
       }
     });
 
-    // Execute your function
     await widget.onGenerate();
 
-    // Stop loader after done
     _timer?.cancel();
     setState(() {
       _isLoading = false;
@@ -1439,13 +1703,15 @@ class _GenerateAgreementButtonState extends State<GenerateAgreementButton> {
               ? 'Generating ($_countdown s)...'
               : 'Generate Agreement',
           style: const TextStyle(
-              color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w600),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.blue,
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12)),
         ),
       ),
     );

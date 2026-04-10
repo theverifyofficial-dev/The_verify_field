@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -80,7 +81,7 @@ class _Owner_DocumentState extends State<Owner_Document> {
     super.initState();
     _loaduserdata();
 
-    print(_name_Owner);
+    AppLogger.api(_name_Owner);
     _name_Owner = _name.text;
 
     _name.text = _name_Owner;
@@ -91,7 +92,7 @@ class _Owner_DocumentState extends State<Owner_Document> {
   Future<void> _uploadData()
   async {
     if (_AddharCard_FrontImage == null || _AddharCard_BackImage == null || _PasportSize_Photo == null) {
-      print('Image and name are required');
+      AppLogger.api('Image and name are required');
       Fluttertoast.showToast(
           msg: "Image and name are required",
           toastLength: Toast.LENGTH_LONG,
@@ -159,7 +160,7 @@ class _Owner_DocumentState extends State<Owner_Document> {
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200) {
-        print('Data uploaded successfully');
+        AppLogger.api('Data uploaded successfully');
         Fluttertoast.showToast(
             msg: "Data uploaded successfully",
             toastLength: Toast.LENGTH_LONG,
@@ -178,7 +179,7 @@ class _Owner_DocumentState extends State<Owner_Document> {
         setState(() {
           _isLoading = true;
         });
-        /*print('Data upload failed with status: ${response.statusCode}');
+        /*AppLogger.api('Data upload failed with status: ${response.statusCode}');
 
         Fluttertoast.showToast(
             msg: "Press Button Again...",
@@ -194,13 +195,13 @@ class _Owner_DocumentState extends State<Owner_Document> {
 
       }
     } catch (e) {
-      print('Error uploading data: $e');
+      AppLogger.api('Error uploading data: $e');
     }
   }
 
   Future<void> _uploadData_two() async {
     if (_AddharCard_FrontImage == null || _AddharCard_BackImage == null || _PasportSize_Photo == null) {
-      print('Image and name are required');
+      AppLogger.api('Image and name are required');
       Fluttertoast.showToast(
           msg: "Image and name are required",
           toastLength: Toast.LENGTH_LONG,
@@ -268,7 +269,7 @@ class _Owner_DocumentState extends State<Owner_Document> {
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200) {
-        print('Data uploaded successfully');
+        AppLogger.api('Data uploaded successfully');
         Fluttertoast.showToast(
             msg: "Data uploaded successfully",
             toastLength: Toast.LENGTH_LONG,
@@ -287,7 +288,7 @@ class _Owner_DocumentState extends State<Owner_Document> {
         setState(() {
           _isLoading = true;
         });
-        /*print('Data upload failed with status: ${response.statusCode}');
+        /*AppLogger.api('Data upload failed with status: ${response.statusCode}');
 
         Fluttertoast.showToast(
             msg: "Press Button Again...",
@@ -303,7 +304,7 @@ class _Owner_DocumentState extends State<Owner_Document> {
 
       }
     } catch (e) {
-      print('Error uploading data: $e');
+      AppLogger.api('Error uploading data: $e');
     }
   }
 

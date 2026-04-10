@@ -4,11 +4,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_tab.dart';
+import '../../AppLogger.dart';
 import '../../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 
@@ -167,7 +167,7 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
       if (decoded["status"] == "success" && decoded["data"] != null && decoded["data"].isNotEmpty) {
         final data = decoded["data"][0]; // 👈 Get first record
 
-        debugPrint("✅ Parsed Agreement Data: $data");
+        AppLogger.api("✅ Parsed Agreement Data: $data");
 
         setState(() {
           // 🔹 Owner
@@ -224,10 +224,10 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
         updateAgreementPrice();
 
       } else {
-        debugPrint("⚠️ No agreement data found");
+        AppLogger.api("⚠️ No agreement data found");
       }
     } else {
-      debugPrint("❌ Failed to load agreement details: ${response.body}");
+      AppLogger.api("❌ Failed to load agreement details: ${response.body}");
     }
   }
 
@@ -382,6 +382,269 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _name = prefs.getString('name') ?? '';
     _number = prefs.getString('number') ?? '';
+  }
+
+  // ── OCR Channel ────────────────────────────────────────────────────────────
+  static const _ocrChannel = MethodChannel('com.verify.app/ocr');
+
+  Future<String?> _recognizeTextNative(String imagePath) async {
+    try {
+      final String? result = await _ocrChannel.invokeMethod('recognizeText', {'imagePath': imagePath});
+      return result;
+    } on PlatformException catch (e) {
+      print('OCR error: ${e.message}');
+      rethrow;
+    }
+  }
+
+  Map<String, String?> _parseAadhaarText(String fullText) {
+    final result = <String, String?>{'aadhaarNumber': null, 'name': null, 'address': null, 'mobile': null};
+    final lines = fullText.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+    final aadhaarRegex = RegExp(r'\b(\d{4}\s?\d{4}\s?\d{4})\b');
+    for (final line in lines) {
+      final m = aadhaarRegex.firstMatch(line);
+      if (m != null) { result['aadhaarNumber'] = m.group(1)!.replaceAll(' ', ''); break; }
+    }
+    final skipKw = RegExp(r'(Government|India|INDIA|Aadhaar|UIDAI|DOB|Date|Male|Female|Address|VID|Enrollment|Download|www|\.in|\.com|\d{4})', caseSensitive: false);
+    String? foundName;
+    for (int i = 0; i < lines.length; i++) {
+      if (lines[i].toLowerCase().startsWith('name') && i + 1 < lines.length) {
+        final next = lines[i + 1];
+        if (!skipKw.hasMatch(next) && next.length > 2) { foundName = _titleCase(next); break; }
+      }
+    }
+    if (foundName == null) {
+      for (final line in lines) {
+        if (skipKw.hasMatch(line)) continue;
+        if (RegExp(r'^[A-Za-z\s\.]+\$').hasMatch(line) && line.split(' ').length >= 2 && line.length >= 5 && line.length <= 60) {
+          foundName = _titleCase(line); break;
+        }
+      }
+    }
+    result['name'] = foundName;
+    final addrTrigger = RegExp(r'\b(Address|S\/O|C\/O|W\/O|D\/O|House|Flat|Village|Ward|Dist|PIN|PO|PS)\b', caseSensitive: false);
+    final addrLines = <String>[];
+    bool capturing = false;
+    for (final line in lines) {
+      if (addrTrigger.hasMatch(line)) capturing = true;
+      if (capturing) {
+        if (aadhaarRegex.hasMatch(line)) break;
+        if (RegExp(r'^\d[\d\s\-\/]+\$').hasMatch(line) && line.length < 20) continue;
+        addrLines.add(line);
+        if (addrLines.length >= 6) break;
+      }
+    }
+    if (addrLines.isNotEmpty) result['address'] = addrLines.join(', ');
+    final mobileRegex = RegExp(r'\b([6-9]\d{9})\b');
+    for (final line in lines) {
+      final m = mobileRegex.firstMatch(line);
+      if (m != null) { result['mobile'] = m.group(1); break; }
+    }
+    return result;
+  }
+
+  String _titleCase(String s) => s.toLowerCase().split(' ')
+      .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}').join(' ');
+
+  void _showScanErrorDialog(String title, String message) {
+    showDialog(context: context, builder: (_) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+      content: Text(message, style: const TextStyle(fontSize: 14, height: 1.5)),
+      actions: [ElevatedButton(
+        style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+        onPressed: () => Navigator.pop(context),
+        child: const Text('OK', style: TextStyle(color: Colors.white)),
+      )],
+    ));
+  }
+
+  Widget _ocrRow(String label, String value) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 3),
+    child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      SizedBox(width: 70, child: Text('$label:', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
+      Expanded(child: Text(value, style: const TextStyle(fontSize: 13))),
+    ]),
+  );
+
+  Future<void> _applyOcrResult({required Map<String, String?> ocr, required bool fillOwner}) async {
+    final aadhaar = ocr['aadhaarNumber']; final name = ocr['name'];
+    final address = ocr['address']; final mobile = ocr['mobile'];
+    if (aadhaar == null && name == null && address == null) {
+      _showScanErrorDialog('Scan Unsuccessful', 'Unable to read Aadhaar card clearly.');
+      return;
+    }
+    final confirmed = await showDialog<bool>(context: context, builder: (_) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Row(children: const [Icon(Icons.document_scanner, color: Colors.green), SizedBox(width: 8),
+        Text('Scan Result', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700))]),
+      content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('Following data was detected:', style: TextStyle(color: Colors.white, fontSize: 13)),
+        const SizedBox(height: 10),
+        if (aadhaar != null) _ocrRow('Aadhaar', aadhaar),
+        if (name    != null) _ocrRow('Name',    name),
+        if (address != null) _ocrRow('Address', address),
+        if (mobile  != null) _ocrRow('Mobile',  mobile),
+        const SizedBox(height: 12),
+        const Text('Apply this data to the form fields?', style: TextStyle(fontWeight: FontWeight.w600)),
+      ]),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade700, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Apply to Fields', style: TextStyle(color: Colors.white)),
+        ),
+      ],
+    ));
+    if (confirmed != true) return;
+    setState(() {
+      if (fillOwner) {
+        if (aadhaar != null) ownerAadhaar.text = aadhaar;
+        if (name    != null) ownerName.text    = name.toUpperCase();
+        if (address != null) ownerAddress.text = address.toUpperCase();
+        if (mobile  != null) ownerMobile.text  = mobile;
+      } else {
+        if (aadhaar != null) tenantAadhaar.text = aadhaar;
+        if (name    != null) tenantName.text    = name.toUpperCase();
+        if (address != null) tenantAddress.text = address.toUpperCase();
+        if (mobile  != null) tenantMobile.text  = mobile;
+      }
+    });
+    _showToast('Fields updated successfully!');
+  }
+
+  void _showImageFullScreen({File? file, String? url}) {
+    if (file == null && (url == null || url.isEmpty)) return;
+    final img = file != null ? Image.file(file, fit: BoxFit.contain)
+        : Image.network('https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$url',
+        fit: BoxFit.contain,
+        loadingBuilder: (_, child, p) => p == null ? child : const Center(child: CircularProgressIndicator(color: Colors.white)),
+        errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image, color: Colors.white, size: 60)));
+    showDialog(context: context, barrierColor: Colors.black.withOpacity(0.92),
+      builder: (_) => GestureDetector(onTap: () => Navigator.of(context).pop(),
+        child: Scaffold(backgroundColor: Colors.transparent,
+          body: Stack(children: [
+            Center(child: InteractiveViewer(minScale: 0.5, maxScale: 5.0, child: img)),
+            Positioned(top: 48, right: 16, child: GestureDetector(onTap: () => Navigator.of(context).pop(),
+                child: Container(padding: const EdgeInsets.all(8), decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                    child: const Icon(Icons.close, color: Colors.white, size: 24)))),
+            Positioned(bottom: 32, left: 0, right: 0,
+                child: Center(child: Text('Tap anywhere to close • Pinch to zoom', style: TextStyle(color: Colors.white60, fontSize: 12)))),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  Widget _aadhaarImageCard({
+    required String label, required File? file, required String? url,
+    required VoidCallback onUpload, IconData placeholderIcon = Icons.add_a_photo_outlined,
+  }) {
+    final hasImage = file != null || (url != null && url.isNotEmpty);
+    const baseUrl = 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/';
+    Widget imageContent;
+    if (file != null) {
+      imageContent = Stack(fit: StackFit.expand, children: [Image.file(file, fit: BoxFit.cover), Positioned(top: 8, right: 8, child: _zoomBadge())]);
+    } else if (url != null && url.isNotEmpty) {
+      imageContent = Stack(fit: StackFit.expand, children: [
+        Image.network('${baseUrl}$url', fit: BoxFit.cover,
+            loadingBuilder: (_, child, p) => p == null ? child : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image, color: Colors.grey, size: 40))),
+        Positioned(top: 8, right: 8, child: _zoomBadge()),
+      ]);
+    } else {
+      imageContent = Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Icon(placeholderIcon, color: Colors.grey, size: 32),
+        const SizedBox(height: 6),
+        const Text('Tap to upload', style: TextStyle(fontSize: 11, color: Colors.grey)),
+      ]);
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // ── Label ──────────────────────────────────────────────────
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Colors.black54,
+          ),
+        ),
+        const SizedBox(height: 6),
+
+        // ── Image Box (tap to zoom if has image, tap to upload if empty) ──
+        GestureDetector(
+          onTap: hasImage ? () => _showImageFullScreen(file: file, url: url) : onUpload,
+          child: Container(
+            width: double.infinity,
+            height: 140,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: hasImage ? Colors.grey.shade100 : Colors.grey.shade200,
+              border: Border.all(
+                color: hasImage ? Colors.green.shade400 : Colors.grey.shade400,
+                width: 2,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: imageContent,
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+
+        // ── Upload / Change Button ─────────────────────────────────
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: onUpload,
+            icon: Icon(
+              hasImage ? Icons.cached_rounded : Icons.upload_file_rounded,
+              color: Colors.white,
+              size: 16,
+            ),
+            label: Text(
+              hasImage ? 'Change' : 'Upload',
+              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: hasImage ? Colors.green.shade700 : Colors.black87,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              elevation: 0,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _zoomBadge() => Container(
+    padding: const EdgeInsets.all(5),
+    decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+    child: const Icon(Icons.zoom_in, color: Colors.white, size: 16),
+  );
+
+  Future<void> _scanAndApply(String imagePath, bool fillOwner) async {
+    showDialog(context: context, barrierDismissible: false,
+        builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 14), Text('Scanning Aadhaar card...')])))));
+    try {
+      final rawText = await _recognizeTextNative(imagePath);
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+      if (rawText != null && rawText.trim().isNotEmpty) {
+        final parsed = _parseAadhaarText(rawText);
+        await _applyOcrResult(ocr: parsed, fillOwner: fillOwner);
+        if (mounted) setState(() {});
+      }
+    } catch (e) {
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+    }
   }
 
   Future<void> _fetchUserData({
@@ -897,7 +1160,7 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        title: Text('Renewal Agreement', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+        title: Text('Renewal Agreement', style: const TextStyle(fontFamily: 'PoppinsMedium', fontWeight: FontWeight.w600)),
         centerTitle: true,
         leading: Padding(
           padding: const EdgeInsets.all(10),
@@ -1408,7 +1671,7 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Owner Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+            Text('Owner Details', style: const TextStyle(fontFamily: 'PoppinsMedium', fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black)),
             Align(
               alignment: Alignment.centerRight,
               child: ElevatedButton.icon(
@@ -1523,24 +1786,47 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
             const SizedBox(height: 12),
             _glowTextField(controller: ownerAddress, label: 'Permanent Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
             const SizedBox(height: 12),
-            Column(children: [
-              Row(
-                children: [
-                  _imageTile(file: ownerAadhaarFront, url: ownerAadharFrontUrl, hint: 'Front'),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(onPressed: () => _pickImage('ownerFront'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Front')),
-                ],
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.grey.shade300),
               ),
-
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  _imageTile(file: ownerAadhaarBack, url: ownerAadharBackUrl, hint: 'Back'),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  const Icon(Icons.badge_outlined, size: 18, color: Colors.black54),
+                  const SizedBox(width: 6),
+                  const Text('Owner Aadhaar Documents',
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.black87)),
+                  const Spacer(),
+                  if (ownerAadhaarFront != null || (ownerAadharFrontUrl?.isNotEmpty ?? false))
+                    const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                ]),
+                const SizedBox(height: 14),
+                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Expanded(child: _aadhaarImageCard(
+                    label: 'Aadhaar Front', file: ownerAadhaarFront, url: ownerAadharFrontUrl,
+                    onUpload: () async {
+                      final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+                      if (picked == null) return;
+                      setState(() => ownerAadhaarFront = File(picked.path));
+                      await _scanAndApply(picked.path, true);
+                    },
+                  )),
                   const SizedBox(width: 12),
-                  ElevatedButton.icon(onPressed: () => _pickImage('ownerBack'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Back')),
-                ],
-              ),
-            ]),
+                  Expanded(child: _aadhaarImageCard(
+                    label: 'Aadhaar Back', file: ownerAadhaarBack, url: ownerAadharBackUrl,
+                    onUpload: () async {
+                      final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+                      if (picked == null) return;
+                      setState(() => ownerAadhaarBack = File(picked.path));
+                      await _scanAndApply(picked.path, true);
+                    },
+                  )),
+                ]),
+              ]),
+            ),
             const SizedBox(height: 12),
           ]),
         ),
@@ -1554,7 +1840,7 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Tenant Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+            Text('Tenant Details', style: const TextStyle(fontFamily: 'PoppinsMedium', fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black)),
             Align(
               alignment: Alignment.centerRight,
               child: ElevatedButton.icon(
@@ -1661,33 +1947,57 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
             _glowTextField(controller: tenantAddress, label: 'Permanent Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
             const SizedBox(height: 12),
 
-            Column(children: [
-              Row(
-                children: [
-                  _imageTile(file: tenantAadhaarFront, url: tenantAadharFrontUrl, hint: 'Front'),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(onPressed: () => _pickImage('tenantFront'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Front')),
-                ],
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Colors.grey.shade300),
               ),
-
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  _imageTile(file: tenantAadhaarBack, url: tenantAadharBackUrl, hint: 'Back'),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(onPressed: () => _pickImage('tenantBack'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Back')),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              Row(
-                children: [
-                  _imageTile(file: tenantImage, url: tenantPhotoUrl, hint: 'Tenant Photo'),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(onPressed: () => _pickImage('tenantImage'), icon: const Icon(Icons.upload_file), label: const Text('Upload Photo')),
-                ],
-              ),
-            ]),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  const Icon(Icons.badge_outlined, size: 18, color: Colors.black54),
+                  const SizedBox(width: 6),
+                  const Text('Tenant Aadhaar Documents',
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.black87)),
+                  const Spacer(),
+                  if (tenantAadhaarFront != null || (tenantAadharFrontUrl?.isNotEmpty ?? false))
+                    const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                ]),
+                const SizedBox(height: 14),
+                Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Expanded(child: _aadhaarImageCard(
+                    label: 'Aadhaar Front', file: tenantAadhaarFront, url: tenantAadharFrontUrl,
+                    onUpload: () async {
+                      final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+                      if (picked == null) return;
+                      setState(() => tenantAadhaarFront = File(picked.path));
+                      await _scanAndApply(picked.path, false);
+                    },
+                  )),
+                  const SizedBox(width: 8),
+                  Expanded(child: _aadhaarImageCard(
+                    label: 'Aadhaar Back', file: tenantAadhaarBack, url: tenantAadharBackUrl,
+                    onUpload: () async {
+                      final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+                      if (picked == null) return;
+                      setState(() => tenantAadhaarBack = File(picked.path));
+                      await _scanAndApply(picked.path, false);
+                    },
+                  )),
+                  const SizedBox(width: 8),
+                  Expanded(child: _aadhaarImageCard(
+                    label: 'Photo', file: tenantImage, url: tenantPhotoUrl,
+                    placeholderIcon: Icons.person_outline,
+                    onUpload: () async {
+                      final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 75);
+                      if (picked == null) return;
+                      setState(() => tenantImage = File(picked.path));
+                    },
+                  )),
+                ]),
+              ]),
+            ),
 
             const SizedBox(height: 12),
           ]),
@@ -2387,7 +2697,7 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
     return _glassContainer(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text('Preview', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+          Text('Preview', style: const TextStyle(fontFamily: 'PoppinsMedium', fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black)),
           Row(children: [
             IconButton(onPressed: () {
               // _jumpToStep(0); //Currently, not important!!

@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import '../../Custom_Widget/constant.dart';
 import '../New_TenandDemand/Accepted_demand.dart';
+import '../New_TenandDemand/Admin_disclose.dart';
 import 'ShowTenantDemant.dart';
-import 'SubAdmin_disclose.dart';
 
 class SubadminTabbar extends StatefulWidget {
   const SubadminTabbar({super.key});
@@ -46,37 +47,54 @@ class _Show_New_Real_EstateState extends State<SubadminTabbar> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 5,),
+
+            /// 🔥 MODERN TAB BAR
             Container(
-              margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-              height: 50,
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(4),
+              height: 48,
               decoration: BoxDecoration(
-                color: Colors.grey[800],
-                borderRadius: BorderRadius.circular(10),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  )
+                ],
               ),
+
               child: TabBar(
+                dividerColor: Colors.transparent, // 🔥 REMOVE BLACK LINE
                 indicator: BoxDecoration(
-                  color: Colors.blue,
+                  color: const Color(0xFFDC2626), // 🔴 RED
                   borderRadius: BorderRadius.circular(10),
                 ),
+
                 labelColor: Colors.white,
-                unselectedLabelColor: Colors.white70,
+                unselectedLabelColor: Colors.grey.shade600,
                 labelStyle: TextStyle(fontWeight: FontWeight.bold),
                 unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
                 indicatorSize: TabBarIndicatorSize.tab, // Full width of tab
+
+
                 tabs: const [
-                  Tab(text: 'New Demand'),
+                  Tab(text: 'New'),
                   Tab(text: 'Accepted'),
-                  Tab(text: 'Closed Demand'),
+                  Tab(text: 'Closed'),
                 ],
               ),
             ),
+
+            const SizedBox(height: 10),
 
             Expanded(
               child: TabBarView(children: [
                 ShowTenantDemandPage(),
                 AcceptedDemand(),
-                SubadminDisclose(),
+                AdminDisclosedDemand(),
+                // SubadminDisclose(),
               ]),
             )
           ],

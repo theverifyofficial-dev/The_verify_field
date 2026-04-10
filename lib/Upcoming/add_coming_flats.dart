@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
@@ -304,12 +305,12 @@ class _RegisterPropertyState extends State<AddComingFlats> {
       );
 
       if (compressedBytes == null) {
-        print('❌ Image compression failed');
+        AppLogger.api('❌ Image compression failed');
         return;
       }
 
       final kbSize = compressedBytes.lengthInBytes / 1024;
-      print('✅ Compressed image size: ${kbSize.toStringAsFixed(2)} KB');
+      AppLogger.api('✅ Compressed image size: ${kbSize.toStringAsFixed(2)} KB');
 
       final tempDir = Directory.systemTemp;
       final compressedFile = await File('${tempDir.path}/${DateTime
@@ -321,9 +322,9 @@ class _RegisterPropertyState extends State<AddComingFlats> {
         _imageFile = compressedFile;
       });
 
-      print("✅ Image path: ${compressedFile.path}");
+      AppLogger.api("✅ Image path: ${compressedFile.path}");
     } else {
-      print('❌ No image selected.');
+      AppLogger.api('❌ No image selected.');
     }
   }
 
@@ -338,12 +339,12 @@ class _RegisterPropertyState extends State<AddComingFlats> {
         setState(() {
           _images = pickedImages;
         });
-        print("Picked ${_images.length} images");
+        AppLogger.api("Picked ${_images.length} images");
       } else {
-        print("No images selected.");
+        AppLogger.api("No images selected.");
       }
     } catch (e) {
-      print("Error picking images: $e");
+      AppLogger.api("Error picking images: $e");
     }
   }
 

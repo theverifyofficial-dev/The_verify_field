@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../Administrator/imagepreviewscreen.dart';
 import '../Custom_Widget/constant.dart';
+import '../AppLogger.dart';
 import '../model/Additional_agreement_tenants.dart';
 
 
@@ -836,7 +837,7 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
       else if (furnitureData is Map<String, dynamic>)
         furnitureMap = furnitureData;
     } catch (e) {
-      debugPrint("⚠️ Furniture parse error: $e");
+      AppLogger.api("⚠️ Furniture parse error: $e");
     }
     if (furnitureMap.isEmpty) return const SizedBox.shrink();
     return Padding(
@@ -976,6 +977,33 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isPolice = agreement?["agreement_type"] == "Police Verification";
+
+
+    List<int> policeTenants = [];
+
+// 🔹 Main tenant (Tenant 1)
+    final mainPolice =
+        agreement?['is_Police']?.toString().toLowerCase() == "true";
+
+    if (mainPolice) {
+      policeTenants.add(1);
+    }
+
+// 🔹 Additional tenants (Tenant 2,3...)
+    for (int i = 0; i < additionalTenants.length; i++) {
+      final t = additionalTenants[i];
+
+      final value = (t.policeVerification ?? "")
+          .toString()
+          .toLowerCase()
+          .trim();
+
+      if (value == "true" || value == "1") {
+        policeTenants.add(i + 2); // because main = 1
+      }
+    }
+
     final bool isPolice =
         agreement?["agreement_type"] == "Police Verification";
     final withPolice = agreement?['is_Police']?.toString() == "true";
@@ -1055,6 +1083,10 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
 
             const SizedBox(height: 20),
 
+            SizedBox(height: 20,),
+
+            if (policeTenants.isNotEmpty)
+              _buildPoliceNotice(policeTenants),
             // ── Police note ──
             if (withPolice)
               Container(
@@ -1409,6 +1441,205 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
   }
 
   // ── Property Card ──────────────────────────
+  Widget _buildCard({required String title, required List<Widget> children}) {
+    return Container(
+      width: 300,
+      margin: const EdgeInsets.only(right: 20),
+      child: _sectionCard(title: title, children: children),
+    );
+  }
+
+  Widget _statusCard({
+    required String title,
+    required String value,
+    required bool isPositive,
+    String? dateTime, // 👈 NEW (ISO string from API)
+  }) {
+    String formattedTime = "";
+
+    if (dateTime != null && dateTime.isNotEmpty) {
+      try {
+        final dt = DateTime.parse(dateTime).toLocal();
+        formattedTime =
+        "${dt.day.toString().padLeft(2, '0')} "
+            "${_monthName(dt.month)} "
+            "${dt.year}, "
+            "${dt.hour.toString().padLeft(2, '0')}:"
+            "${dt.minute.toString().padLeft(2, '0')}";
+      } catch (_) {
+        formattedTime = "";
+      }
+    }
+
+    return Container(
+      constraints: const BoxConstraints(minWidth: 160),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.grey),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: isPositive ? Colors.green : Colors.red,
+            ),
+          ),
+
+          // 🕒 TIME (only if available)
+          if (formattedTime.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              formattedTime,
+              style: const TextStyle(
+                fontSize: 11,
+                color: Colors.white70,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _monthName(int month) {
+    const months = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+    return months[month - 1];
+  }
+
+
+
+  Widget _docImage(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ImagePreviewScreen(
+              imageUrl:
+              'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$imageUrl',
+            ),
+          ),
+        );
+      },
+      child: Container(
+        width: 120,
+        height: 120,
+        margin: const EdgeInsets.only(right: 12),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Image.network(
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$imageUrl",
+            width: 160,   // force same as container
+            height: 120,  // force same as container
+            fit: BoxFit.cover, // ensures full fill
+            errorBuilder: (context, error, stackTrace) =>
+            const SizedBox.shrink(), // Hide if image fails to load
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPoliceNotice(List<int> tenants) {
+    final tenantText = tenants.join(', ');
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.redAccent),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline, color: Colors.redAccent),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Police verification required for Tenant(s): $tenantText',
+              style: const TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  _launchURL(String pdf_url) async {
+    final Uri url = Uri.parse(pdf_url);
+    if (!await launchUrl(url)) {
+      throw Exception('Could not launch $url');
+    }
+  }
+
+
+  Widget? propertyCard;
+
+
+  Future<void> fetchPropertyCard() async {
+    final propertyId = agreement?["property_id"];
+    if (propertyId == null || propertyId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Property ID not found")),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
+        body: {"P_id": propertyId},
+      );
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+
+        if (json['status'] == "success") {
+          final data = json['data'];
+
+          setState(() {
+            propertyCard = _propertyCard(data);
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(json['message'] ?? "Property not found")),
+          );
+        }
+      }
+    } catch (e) {
+      print("Error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to fetch property details")),
+      );
+    }
+  }
+
   Widget _propertyCard(Map<String, dynamic> data) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final String imageUrl =

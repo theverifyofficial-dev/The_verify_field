@@ -211,42 +211,33 @@ class Agreement {
   }
 }
 
-/// =======================
-/// API CALL
-/// =======================
-Future<List<Agreement>> fetchAgreements(String num) async {
+Future<Map<String, dynamic>> fetchAgreements(String num) async {
   final url = Uri.parse(
-    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/agreement_external_yearly_show.php?Fieldwarkarnumber=$num",
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/count_api_agreement_yealry_with_reward.php?Fieldwarkarnumber=$num",
   );
 
   final res = await http.get(url);
-
-  if (res.statusCode != 200) {
-    throw Exception("Server Error");
-  }
+  if (res.statusCode != 200) throw Exception("Server Error");
 
   final decoded = json.decode(res.body);
+  if (decoded['status'] != true) throw Exception("API Status False");
 
-  if (decoded['status'] != true) {
-    throw Exception("API Status False");
-  }
+  final List list = decoded['agreements'] ?? decoded['data'] ?? [];
+  final int total = int.tryParse(decoded['total_agreement']?.toString() ?? '0') ?? list.length;
 
-  final List list = decoded['data'] ?? [];
-
-  return list.map((e) => Agreement.fromJson(e)).toList();
+  return {
+    'list': list.map((e) => Agreement.fromJson(e)).toList(),
+    'total': total,
+  };
 }
 
-/// =======================
-/// UI SCREEN
-/// =======================
 class AgreementYearly extends StatelessWidget {
   final String num;
-  const AgreementYearly({super.key,required this.num});
+  const AgreementYearly({super.key, required this.num});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -256,225 +247,248 @@ class AgreementYearly extends StatelessWidget {
         title: Image.asset(AppImages.transparent, height: 40),
         centerTitle: true,
       ),
-
-      /// 🔥 SAME AS BUILDING UI
-      body: FutureBuilder<List<Agreement>>(
+      body: FutureBuilder<Map<String, dynamic>>(        // ✅ type change
         future: fetchAgreements(num),
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: Image.asset(AppImages.loader, height: 40),
-            );
+            return Center(child: Image.asset(AppImages.loader, height: 40));
           }
 
           if (snap.hasError) {
             return Center(child: Text("Error: ${snap.error}"));
           }
 
-          final list = snap.data ?? [];
+          final list = snap.data!['list'] as List<Agreement>;   // ✅
+          final int total = snap.data!['total'] as int;         // ✅
 
           if (list.isEmpty) {
             return const Center(child: Text("No Agreements Found"));
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: list.length,
-            itemBuilder: (context, i) {
-              final a = list[i];
+          return Column(
+            children: [
 
-              return GestureDetector(
-                onTap: (){
-              Navigator.push(
-                  context, MaterialPageRoute(
-                  builder: (_)=> AgreementExternalDetail(agreement: a,),
+              // ✅ TOTAL BANNER
+              Container(
+                margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEF4444),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-              );
-                },
-                  child:
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 18),
-                    decoration: BoxDecoration(
-                      color: theme.cardColor,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          blurRadius: 10,
-                          color: Colors.black.withOpacity(.05),
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                child: Row(
+                  children: [
+                    const Icon(Icons.gavel_outlined, color: Colors.white, size: 20),
+                    const SizedBox(width: 10),
+                    Text(
+                      "Total Agreements: $total",
+                      style: const TextStyle(
+                        fontSize: 15,
+                        color: Colors.white,
+                        fontFamily: "PoppinsBold",
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                  ],
+                ),
+              ),
 
-                        /// ✅ IMAGE
-                        ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(18),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: list.length,
+                  itemBuilder: (context, i) {
+                    final a = list[i];
+
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AgreementExternalDetail(agreement: a),
                           ),
-                          child: Stack(
-                            children: [
-                              Image.network(
-                                "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/${a.tenantImage}",
-                                height: 190,
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => Container(
-                                  color: Colors.grey,
-                                  height: 190,
-                                  width: double.infinity,
-                                ),
-                              ),
+                        );
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 18),
+                        decoration: BoxDecoration(
+                          color: theme.cardColor,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              blurRadius: 10,
+                              color: Colors.black.withOpacity(.05),
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
 
-                              /// ✅ BADGE
-                              Positioned(
-                                top: 12,
-                                left: 12,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: Color(0xFFEF4444),
-                                    borderRadius: BorderRadius.circular(30),
+                            /// IMAGE
+                            ClipRRect(
+                              borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(18),
+                              ),
+                              child: Stack(
+                                children: [
+                                  Image.network(
+                                    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/${a.tenantImage}",
+                                    height: 190,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        Container(
+                                          color: Colors.grey,
+                                          height: 190,
+                                          width: double.infinity,
+                                        ),
                                   ),
-                                  child: Text(
-                                    a.agreementType,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontFamily: "PoppinsMedium",
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                  Positioned(
+                                    top: 12,
+                                    left: 12,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 14, vertical: 6),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEF4444),
+                                        borderRadius: BorderRadius.circular(30),
+                                      ),
+                                      child: Text(
+                                        a.agreementType,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontFamily: "PoppinsMedium",
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        Padding(
-                          padding: const EdgeInsets.all(14),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-
-                              /// ✅ ADDRESS
-                              Text(
-                                a.rentedAddress,
-                                style:  TextStyle(
-                                  fontSize: 16,
-                                  color: theme.brightness==Brightness.dark?Colors.white:Colors.black87,
-
-                                  fontFamily: "PoppinsMedium",
-                                  fontWeight: FontWeight.bold,
-                                ),
-
-                              ),
-
-                              const SizedBox(height: 10),
-
-                              /// ✅ INFO ROW
-                              Row(
-                                children: [
-                                  _iconInfo(Icons.bed, a.bhk,context),
-                                  _divider(),
-                                  _iconInfo(Icons.layers, a.floor,context),
-                                  _divider(),
-                                  _iconInfo(Icons.local_parking, a.parking,context),
                                 ],
                               ),
+                            ),
 
-                              const SizedBox(height: 12),
-
-                              /// ✅ RENT
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            Padding(
+                              padding: const EdgeInsets.all(14),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+
                                   Text(
-                                    "Monthly Rent",
+                                    a.rentedAddress,
                                     style: TextStyle(
-                                      fontFamily: "PoppinsMedium",
-                                      fontSize: 12,
-                                      color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey.shade600,
-                                    ),
-                                  ),
-                                  Text(
-                                    "₹${a.monthlyRent}",
-                                    style:  TextStyle(
-                                      fontFamily: "PoppinsMedium",
                                       fontSize: 16,
-                                      color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey.shade600,
+                                      color: theme.brightness == Brightness.dark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                      fontFamily: "PoppinsMedium",
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
+
+                                  const SizedBox(height: 10),
+
+                                  Row(
+                                    children: [
+                                      _iconInfo(Icons.bed, a.bhk, context),
+                                      _divider(),
+                                      _iconInfo(Icons.layers, a.floor, context),
+                                      _divider(),
+                                      _iconInfo(Icons.local_parking, a.parking, context),
+                                    ],
+                                  ),
+
+                                  const SizedBox(height: 12),
+
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text("Monthly Rent",
+                                          style: TextStyle(
+                                            fontFamily: "PoppinsMedium",
+                                            fontSize: 12,
+                                            color: theme.brightness == Brightness.dark
+                                                ? Colors.white
+                                                : Colors.grey.shade600,
+                                          )),
+                                      Text("₹${a.monthlyRent}",
+                                          style: TextStyle(
+                                            fontFamily: "PoppinsMedium",
+                                            fontSize: 16,
+                                            color: theme.brightness == Brightness.dark
+                                                ? Colors.white
+                                                : Colors.grey.shade600,
+                                            fontWeight: FontWeight.bold,
+                                          )),
+                                    ],
+                                  ),
+
+                                  const SizedBox(height: 4),
+
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text("Security Deposit",
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            fontFamily: "PoppinsMedium",
+                                            color: theme.brightness == Brightness.dark
+                                                ? Colors.white
+                                                : Colors.grey.shade600,
+                                          )),
+                                      Text("₹${a.security}",
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontFamily: "PoppinsMedium",
+                                            fontWeight: FontWeight.w600,
+                                            color: theme.brightness == Brightness.dark
+                                                ? Colors.white
+                                                : Colors.grey.shade600,
+                                          )),
+                                    ],
+                                  ),
+
+                                  const SizedBox(height: 12),
+
+                                  Row(
+                                    children: [
+                                      Icon(Icons.person,
+                                          size: 16,
+                                          color: theme.brightness == Brightness.dark
+                                              ? Colors.white
+                                              : Colors.grey.shade600),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        "Field Worker: ${a.fieldWorkerName}",
+                                        style: TextStyle(
+                                          fontFamily: "PoppinsMedium",
+                                          fontSize: 12,
+                                          color: theme.brightness == Brightness.dark
+                                              ? Colors.white
+                                              : Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
-
-                              const SizedBox(height: 4),
-
-                              /// ✅ SECURITY
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "Security Deposit",
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontFamily: "PoppinsMedium",
-                                      color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey.shade600,
-                                    ),
-                                  ),
-                                  Text(
-                                    "₹${a.security}",
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontFamily: "PoppinsMedium",
-                                      fontWeight: FontWeight.w600,
-                                      color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey.shade600,
-
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(height: 12),
-
-                              /// ✅ FIELD WORKER
-                              Row(
-                                children: [
-                                  Icon(Icons.person,
-                                    size: 16,
-                                    color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey.shade600,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    "Field Worker: ${a.fieldWorkerName}",
-                                    style:  TextStyle(
-                                      fontFamily: "PoppinsMedium",
-                                      fontSize: 12,
-                                      color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey.shade600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-              );
-
-            },
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         },
       ),
     );
   }
 }
-
 /// INFO ITEM
 
 class _InfoItem extends StatelessWidget {
@@ -537,7 +551,7 @@ class _DocBtn extends StatelessWidget {
         final url =
             "https://verifyrealestateandservices.in/Second%20PHP%20FILE/$path";
         // yahan tum url_launcher ya PDF viewer open kara sakte ho
-        debugPrint("OPEN: $url");
+        //AppLogger.log("OPEN: $url");
       },
     );
   }

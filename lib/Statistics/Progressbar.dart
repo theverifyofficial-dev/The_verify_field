@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
 import 'package:flutter/material.dart';
-
 class RealEstateAnalyticsPage extends StatelessWidget {
   const RealEstateAnalyticsPage({super.key});
 

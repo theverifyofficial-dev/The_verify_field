@@ -1,9 +1,11 @@
 import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
+import '../../AppLogger.dart';
 import '../../Custom_Widget/constant.dart';
 import '../Administater_Realestate_Details.dart';
 import 'package:intl/intl.dart';
@@ -313,7 +315,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
 
       final resp = await http.get(url);
       if (resp.statusCode != 200) {
-        debugPrint("HTTP ${resp.statusCode}: ${resp.body}");
+        AppLogger.api("HTTP ${resp.statusCode}: ${resp.body}");
         return;
       }
 
@@ -356,7 +358,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
         _filteredData = List<SeeALLModel>.from(_allData);
       });
     } catch (e) {
-      debugPrint("fetchData error: $e");
+      AppLogger.api("fetchData error: $e");
     }
   }
   String _formatDate(String? dateString) {

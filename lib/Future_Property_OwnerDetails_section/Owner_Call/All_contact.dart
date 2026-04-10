@@ -75,7 +75,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
         }
       }
     } catch (e) {
-      debugPrint("Error fetching logs: $e");
+      //AppLogger.log("Error fetching logs: $e");
     }
 
     if (!context.mounted) return;
@@ -312,9 +312,9 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
         },
       );
 
-      debugPrint("Update Status Response: ${response.body}");
+      //AppLogger.log("Update Status Response: ${response.body}");
     } catch (e) {
-      debugPrint("Update Status Error: $e");
+      //AppLogger.log("Update Status Error: $e");
     }
   }
 
@@ -335,7 +335,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
         }
       }
     } catch (e) {
-      debugPrint("Error fetching flats: $e");
+      //AppLogger.log("Error fetching flats: $e");
     } finally {
       setState(() {
         isLoading = false;
@@ -399,7 +399,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
 
       print("Future call log response: ${response.body}");
     } catch (e) {
-      debugPrint("Error logging future call: $e");
+      //AppLogger.log("Error logging future call: $e");
     }
   }
 
@@ -420,7 +420,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
         }
       }
     } catch (e) {
-      debugPrint("Error fetching latest log: $e");
+      //debugPrint("Error fetching latest log: $e");
     }
     return null;
   }

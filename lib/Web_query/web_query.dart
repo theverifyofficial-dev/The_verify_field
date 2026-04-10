@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -51,16 +53,31 @@ class _WebQueryPageState extends State<WebQueryPage> with SingleTickerProviderSt
   late Animation<double> _fadeAnimation;
 
   Future<List<WebQuery>> fetchQueries() async {
-    final response = await http.get(Uri.parse(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate_for_website/show_contact.php"));
+    try {
+      final response = await http.get(
+        Uri.parse(
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate_for_website/show_contact.php"),
+      ).timeout(const Duration(seconds: 10));
 
-    if (response.statusCode == 200) {
-      final List<dynamic> data = json.decode(response.body);
-      // Reverse the list to show newest first
-      final List<WebQuery> queries = data.map((e) => WebQuery.fromJson(e)).toList();
-      return queries.reversed.toList();
-    } else {
-      throw Exception("Failed to load queries");
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        final List<WebQuery> queries =
+        data.map((e) => WebQuery.fromJson(e)).toList();
+        return queries.reversed.toList();
+      } else {
+        throw Exception("Server error (${response.statusCode})");
+      }
+    } on TimeoutException {
+      throw Exception("Request timed out. Please try again.");
+    } catch (e) {
+      final msg = e.toString().toLowerCase();
+      if (msg.contains("clientexception") ||
+          msg.contains("socketexception") ||
+          msg.contains("failed host lookup") ||
+          msg.contains("network")) {
+        throw Exception("NO_INTERNET");
+      }
+      rethrow;
     }
   }
 
@@ -201,35 +218,47 @@ class _WebQueryPageState extends State<WebQueryPage> with SingleTickerProviderSt
               ),
             );
           } else if (snapshot.hasError) {
-            return ShakeAnimation(
-              child: Center(
+            final isNoInternet =
+            snapshot.error.toString().contains("NO_INTERNET");
+
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Colors.red.shade400,
+                    ShakeAnimation(
+                      child: Icon(
+                        isNoInternet
+                            ? Icons.wifi_off_rounded
+                            : Icons.error_outline_rounded,
+                        size: 64,
+                        color: isNoInternet ? Colors.orange : Colors.red.shade400,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      "Failed to load inquiries",
+                      isNoInternet
+                          ? "No Internet Connection"
+                          : "Failed to Load Inquiries",
                       style: TextStyle(
                         fontSize: 18,
                         color: primaryTextColor,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      "Error: ${snapshot.error}",
+                      isNoInternet
+                          ? "Please check your network and try again."
+                          : "Something went wrong. Please try again later.",
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14,
                         color: secondaryTextColor,
                       ),
-                      textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
                     ElevatedButton.icon(
                       onPressed: () {
                         _animationController.reset();
@@ -238,13 +267,23 @@ class _WebQueryPageState extends State<WebQueryPage> with SingleTickerProviderSt
                         });
                         _animationController.forward();
                       },
-                      icon: const Icon(Icons.refresh),
-                      label: const Text("Try Again"),
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text("Retry"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 28, vertical: 13),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
             );
+
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return FadeTransition(
               opacity: _fadeAnimation,
@@ -377,7 +416,7 @@ class _WebQueryPageState extends State<WebQueryPage> with SingleTickerProviderSt
             // Header with avatar and name
             GestureDetector(
               onTap: () {
-                print("SubID:"+'${q.subid}');
+                //print("SubID:"+'${q.subid}');
                 if (q.subid != null) {
                   _launchDetails(q.subid!);
                 }

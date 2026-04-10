@@ -1,6 +1,7 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
 
 class PropertyIdProvider with ChangeNotifier {
   int? _latestPropertyId;
@@ -24,7 +25,7 @@ class PropertyIdProvider with ChangeNotifier {
         }
       }
     } catch (e) {
-      print("Error fetching ID: $e");
+      AppLogger.api("Error fetching ID: $e");
     }
 
     _isLoading = false;

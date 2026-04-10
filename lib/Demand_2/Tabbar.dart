@@ -1,95 +1,111 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+
+import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:verify_feild_worker/Demand_2/Costumer_demand.dart';
-import 'package:verify_feild_worker/Upcoming/All_flats.dart';
-import 'package:verify_feild_worker/Upcoming/add_flats.dart';
-import 'package:verify_feild_worker/Upcoming/user_flat.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Accepted_field.dart';
 import 'Disclosed_demand.dart';
 
-
-
 class Tabbar extends StatefulWidget {
-  const Tabbar({super.key});
+  final bool fromNotification;
+
+  const Tabbar({
+    super.key,
+    this.fromNotification = false,
+  });
 
   @override
   State<Tabbar> createState() => _Show_New_Real_EstateState();
 }
 
 class _Show_New_Real_EstateState extends State<Tabbar> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F6FA), // 🔥 LIGHT BG
+
       appBar: AppBar(
         centerTitle: true,
-        elevation: 0, // Make sure there's no shadow
-        surfaceTintColor: Colors.black,
-        backgroundColor: Colors.black,
-        title: Image.asset(AppImages.verify, height: 75),
+        elevation: 0,
+        backgroundColor: Colors.black, // ✅ KEEP BLACK
+        title: Image.asset(AppImages.verify, height: 70),
         leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: const Row(
-            children: [
-              SizedBox(
-                width: 3,
-              ),
-              Icon(
-                PhosphorIcons.caret_left_bold,
-                color: Colors.white,
-                size: 30,
-              ),
-            ],
+          onTap: () => Navigator.pop(context),
+          child: const Icon(
+            PhosphorIcons.caret_left_bold,
+            color: Colors.white,
+            size: 28,
           ),
         ),
       ),
+
       body: DefaultTabController(
         length: 3,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 5,),
+
+            const SizedBox(height: 12),
+
+            /// 🔥 MODERN TAB BAR
             Container(
-              margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-              height: 50,
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.all(4),
+              height: 48,
               decoration: BoxDecoration(
-                color: Colors.grey[800],
-                borderRadius: BorderRadius.circular(10),
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  )
+                ],
               ),
+
               child: TabBar(
+                dividerColor: Colors.transparent, // 🔥 REMOVE BLACK LINE
                 indicator: BoxDecoration(
-                  color: Colors.blue,
                   borderRadius: BorderRadius.circular(10),
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFF2563EB), // 🔵 Blue
+                      Color(0xFF7C3AED), // 🟣 Purple
+                    ],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
                 ),
+
                 labelColor: Colors.white,
-                unselectedLabelColor: Colors.white70,
+                unselectedLabelColor: Colors.grey.shade600,
                 labelStyle: TextStyle(fontWeight: FontWeight.bold),
                 unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
                 indicatorSize: TabBarIndicatorSize.tab, // Full width of tab
+
+
                 tabs: const [
-                  Tab(text: 'New Demand'),
+                  Tab(text: 'New'),
                   Tab(text: 'Accepted'),
-                  Tab(text: 'Closed Demand'),
+                  Tab(text: 'Closed'),
                 ],
               ),
             ),
 
+            const SizedBox(height: 10),
+
+            /// 🔥 TAB CONTENT
             Expanded(
               child: TabBarView(
-                  children: [
-                CostumerDemand(),
-                AcceptedField(),
-                DisclosedDemand(),
-              ]),
-            )
+                children: [
+                  CostumerDemand(),
+                  AcceptedField(),
+                  DisclosedDemand(),
+                ],
+              ),
+            ),
           ],
         ),
       ),
-
-
     );
   }
 }

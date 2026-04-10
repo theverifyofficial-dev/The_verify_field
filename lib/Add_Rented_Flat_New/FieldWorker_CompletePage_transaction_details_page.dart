@@ -31,12 +31,12 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     final propUrl =
         "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_complete_page_for_admin.php";
 
-    debugPrint("🟡 PROPERTY API URL: $propUrl");
+    //AppLogger.log("🟡 PROPERTY API URL: $propUrl");
 
     final propRes = await http.get(Uri.parse(propUrl));
 
-    debugPrint("🟡 PROPERTY STATUS: ${propRes.statusCode}");
-    debugPrint("🟡 PROPERTY RAW BODY: ${propRes.body}");
+    //AppLogger.log("🟡 PROPERTY STATUS: ${propRes.statusCode}");
+    //AppLogger.log("🟡 PROPERTY RAW BODY: ${propRes.body}");
 
     final propJson = json.decode(propRes.body);
 
@@ -54,26 +54,26 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
     );
 
     // 🔵 IMPORTANT PRINTS
-    debugPrint("🟢 PROPERTY FOUND");
-    debugPrint("🟢 PROPERTY ID: ${property.id}");
-    debugPrint("🟢 PROPERTY SUBID: ${property.subid}");
+    //AppLogger.log("🟢 PROPERTY FOUND");
+    //AppLogger.log("🟢 PROPERTY ID: ${property.id}");
+    //AppLogger.log("🟢 PROPERTY SUBID: ${property.subid}");
 
     // ================== 2️⃣ PAYMENT HISTORY ==================
     final payUrl =
         "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_final_payment_api_for_complete.php?subid=${property.id}";
 
-    debugPrint("🟡 PAYMENT API URL: $payUrl");
+    //AppLogger.log("🟡 PAYMENT API URL: $payUrl");
 
     final payRes = await http.get(Uri.parse(payUrl));
 
-    debugPrint("🟡 PAYMENT STATUS: ${payRes.statusCode}");
-    debugPrint("🟡 PAYMENT RAW BODY: ${payRes.body}");
+    //AppLogger.log("🟡 PAYMENT STATUS: ${payRes.statusCode}");
+    //AppLogger.log("🟡 PAYMENT RAW BODY: ${payRes.body}");
 
     final payJson = json.decode(payRes.body);
 
-    debugPrint(
-      "🟢 PAYMENT JSON:\n${const JsonEncoder.withIndent('  ').convert(payJson)}",
-    );
+    // AppLogger.log(
+    //   "🟢 PAYMENT JSON:\n${const JsonEncoder.withIndent('  ').convert(payJson)}",
+    // );
 
     final List<PaymentStepStatus> payments =
     payJson["success"] == true && payJson["data"] is List
@@ -82,7 +82,7 @@ class _TransactionDetailsPageState extends State<TransactionDetailsPage> {
         .toList()
         : [];
 
-    debugPrint("🟢 PAYMENT COUNT: ${payments.length}");
+    //AppLogger.log("🟢 PAYMENT COUNT: ${payments.length}");
 
     return _PageData(property, payments);
   }

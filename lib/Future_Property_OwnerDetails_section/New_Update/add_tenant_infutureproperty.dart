@@ -87,7 +87,7 @@ class _AddTenantUnderFuturePropertyState
           const SnackBar(content: Text("Tenant added successfully")),
         );
       } else {
-        debugPrint(response.body);
+        //AppLogger.log(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Upload failed (${response.statusCode})")),
         );

@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../model/upcoming_model.dart';
 import '../ui_decoration_tools/app_images.dart';
@@ -139,7 +140,7 @@ class _Show_New_Real_EstateState extends State<UserFlat> {
         _isLoading = false;
       });
     } catch (e) {
-      print("❌ Error: $e");
+      AppLogger.api("❌ Error: $e");
       setState(() => _isLoading = false);
     }
   }
@@ -154,7 +155,7 @@ class _Show_New_Real_EstateState extends State<UserFlat> {
         _isLoading = false;
       });
     } catch (e) {
-      print("❌ Error fetching data: $e");
+      AppLogger.api("❌ Error fetching data: $e");
       setState(() => _isLoading = false);
     }
   }
@@ -171,7 +172,7 @@ class _Show_New_Real_EstateState extends State<UserFlat> {
 
     });
 
-    print("Search for: $text");
+    AppLogger.api("Search for: $text");
   }
 
   bool get _isSearchActive {
@@ -390,7 +391,7 @@ class _Show_New_Real_EstateState extends State<UserFlat> {
                                     builder: (context) => UpcomingDetailsPage(id: _filteredProperties[index].pId??0),
                                   ),
                                 );
-                                print(_filteredProperties[index].pId??0);
+                                // print(_filteredProperties[index].pId??0);
                               },
                               child: Container(
                                 margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),

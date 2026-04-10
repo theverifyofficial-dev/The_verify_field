@@ -1,35 +1,68 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter/services.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Custom_Widget/constant.dart';
+import 'package:verify_feild_worker/Demand_2/redemand_detailpage.dart';
+import '../../Custom_Widget/constant.dart';
 import '../../utilities/bug_founder_fuction.dart';
+import 'Demand_detail.dart';
 
-class AddDemandField extends StatefulWidget {
-  const AddDemandField({super.key});
-
-  @override
-  State<AddDemandField> createState() => _CustomerDemandFormPageState();
+enum DemandEditMode {
+  add,
+  updateDemand,
+  updateRedemand,
 }
 
-class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTickerProviderStateMixin  {
+class AddDemandField extends StatefulWidget {
+  final DemandEditMode mode;
+  final String? demandId;     // main demand id
+  final String? redemandId;   // redemand id
+
+  const AddDemandField({
+    super.key,
+    required this.mode,
+    this.demandId,
+    this.redemandId,
+  });
+
+  @override
+  State<AddDemandField> createState() =>
+      _AddDemandFieldPageState();
+}
+
+class _AddDemandFieldPageState extends State<AddDemandField> with SingleTickerProviderStateMixin  {
 
   String? _selectedBudgetLabel;
   bool _showCustomSlider = false;
+
   final _formKey = GlobalKey<FormState>();
   final Dio _dio = Dio();
   final _nameCtrl = TextEditingController();
   final _numberCtrl = TextEditingController();
   final _messageCtrl = TextEditingController();
-  bool _fetchingCustomer = false;
-  Map<String, dynamic>? _existingCustomer;
+  final TextEditingController _furnitureCtrl = TextEditingController();
+  final TextEditingController _totalCtrl = TextEditingController();
+
+
+  Map<String, dynamic>? _demandData;
+  bool _loadingDemand = false;
+
   String? _buyRent, _reference, _location;
   bool _isSubmitting = false;
-  final String _status = "assigned to fieldworker";
+  String get _status {
+    if (widget.mode == DemandEditMode.add) return "New";
+    return _demandData?["Status"] ?? "New";
+  }
   bool _isUrgent = false;
+
+  RangeValues _buyBudget = const RangeValues(1000000, 5000000);
+
+  RangeValues _rentBudget = const RangeValues(5000, 20000);
 
   void _resetBudgetState() {
     _selectedBudgetLabel = null;
@@ -40,24 +73,46 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
     _rentBudget = const RangeValues(5000, 20000);
   }
 
-  RangeValues _buyBudget = const RangeValues(1000000, 5000000);
 
+  String? _parking;
+  String? _lift;
+  String? _furnished;
+  String? _familyStructure;
+  String? _familyMember;
+  int _adultCount = 1;
+  int _childrenCount = 0;
+  String? _religion;
+  DateTime? _shiftingDate;
 
-  RangeValues _rentBudget = const RangeValues(5000, 20000);
+  DateTime? _visitingDate;
 
+  final Set<String> _floor = {};
+  Map<String, int> _selectedFurniture = {}; // e.g., {'Sofa': 2, 'Bed': 1}
 
   final List<String> _buyRentOptions = ["Buy", "Rent"];
   final List<String> _referenceOptions = ["99 Acres", "Housing", "Instagram", "Youtube","facebook","Website","Other"];
   final List<String> _locationOptions = [
-    "Sultanpur", "Chhattarpur", "Rajpur Khurd", "Aya Nagar", "Ghitorni",""
+    "Sultanpur", "Chhattarpur", "Rajpur Khurd", "Aya Nagar", "Ghitorni"];
+
+  final List<String> _floorOptions = [
+    "Ground",
+    "Upper Ground",
+    "First",
+    "Second",
+    "Third",
+    "Fourth",
+    "Fifth",
+    "Top"
+  ];
+
+  final List<String> furnishingOptions = [
+    'Fully Furnished',
+    'Semi Furnished',
+    'Unfurnished',
   ];
 
   late final AnimationController _pulseController;
   late final Animation<double> _pulseAnimation;
-
-
-
-
 
   @override
   void initState() {
@@ -69,6 +124,22 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+    // 🔥 LOAD DATA FOR UPDATE MODE
+    if (widget.mode != DemandEditMode.add) {
+      _loadDemandForEdit();
+    }
+
+    _totalCtrl.text = (_adultCount + _childrenCount).toString();
+
+
+    AppLogger.api(" redemand id from add page : ${widget.redemandId}");
+
+  }
+
+  void _updateFamilyTotal() {
+    final total = _adultCount + _childrenCount;
+    _totalCtrl.text = total.toString();
+    setState(() {});
   }
 
   @override
@@ -77,8 +148,12 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
     _nameCtrl.dispose();
     _numberCtrl.dispose();
     _messageCtrl.dispose();
+    _furnitureCtrl.dispose(); // 🔥 ADD THIS
+    _totalCtrl.dispose();
     super.dispose();
   }
+
+
 
   String _extractLast10Digits(String input) {
     final digitsOnly = input.replaceAll(RegExp(r'\D'), '');
@@ -88,270 +163,274 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
     return "";
   }
 
-  Future<void> _fetchCustomerByPhone(String phone) async {
-    if (phone.length != 10) return;
-
-    setState(() => _fetchingCustomer = true);
+  Future<void> _loadDemandForEdit() async {
+    setState(() => _loadingDemand = true);
 
     try {
-      final res = await _dio.get(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/fecth_tenant_number.php?Tnumber=$phone",
-      );
-
-      if (res.statusCode == 200 && res.data["success"] == true) {
-        final List list = res.data["data"];
-        if (list.isEmpty) return;
-
-        final data = list.first;
-
-        setState(() {
-          _existingCustomer = data;
-          _autofillFromExistingCustomer(data);
-        });
+      if (widget.mode == DemandEditMode.updateDemand) {
+        await _fetchMainDemand();
+      } else {
+        await _fetchRedemand();
       }
-    } catch (_) {
     } finally {
-      if (mounted) setState(() => _fetchingCustomer = false);
+      if (mounted) setState(() => _loadingDemand = false);
     }
   }
 
-  void _autofillFromExistingCustomer(Map<String, dynamic> data) {
-    // NAME
-    if (_nameCtrl.text.isEmpty && data["Tname"] != null) {
-      _nameCtrl.text = data["Tname"].toString();
+  Future<Response> _updateDemandDispatcher(FormData formData) {
+    if (widget.mode == DemandEditMode.updateDemand) {
+      return _updateMainDemand(formData);
+    } else {
+      return _updateRedemand(formData);
     }
+  }
 
-    // BUY / RENT
-    if (_buyRent == null && data["Buy_rent"] != null) {
-      _buyRent = data["Buy_rent"];
-    }
+  Future<void> _fetchMainDemand() async {
+    final res = await http.get(Uri.parse(
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}",
+    ));
 
-    // LOCATION
-    if (_location == null && data["Location"] != null) {
-      _location = data["Location"];
-    }
-
-    // MESSAGE (append, don’t replace)
-    if (_messageCtrl.text.isEmpty && data["Message"] != null) {
-      _messageCtrl.text = data["Message"].toString();
-    }
-
-    // BHK (multi-select safe)
-    if (_selectedBhks.isEmpty && data["Bhk"] != null) {
-      _selectedBhks.clear();
-      final bhks = data["Bhk"].toString().split(",");
-      for (final b in bhks) {
-        _selectedBhks.add(b.trim());
-      }
-    }
-
-    // PRICE → BUDGET
-    _resetBudgetState();
-
-    if (data["Price"] != null) {
-      final parts = data["Price"].toString().split("-");
-      if (parts.length == 2) {
-        final start = double.tryParse(parts[0]);
-        final end = double.tryParse(parts[1]);
-
-        if (start != null && end != null) {
-          if (_buyRent == "Buy") {
-            _buyBudget = RangeValues(start, end);
-          } else {
-            _rentBudget = RangeValues(start, end);
-          }
-        }
+    if (res.statusCode == 200) {
+      final jsonRes = jsonDecode(res.body);
+      if (jsonRes["success"] == true &&
+          jsonRes["data"] is List &&
+          jsonRes["data"].isNotEmpty) {
+        _demandData = Map<String, dynamic>.from(jsonRes["data"][0]);
       }
     }
   }
 
+  Future<void> _fetchRedemand() async {
+    AppLogger.api(" redemand id from add page : ${widget.redemandId}");
+    final res = await http.get(Uri.parse(
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?id=${widget.redemandId}",
+    ));
+
+    if (res.statusCode == 200) {
+      final jsonRes = jsonDecode(res.body);
+      if (jsonRes["success"] == true &&
+          jsonRes["data"] is List &&
+          jsonRes["data"].isNotEmpty) {
+        _demandData = Map<String, dynamic>.from(jsonRes["data"][0]);
+      }
+    }
+  }
+
+  Future<Response> _updateMainDemand(FormData formData) async {
+    try {
+      final res = await _dio.post(
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/edit_tenant_demand_api_for_admin.php",
+        data: formData,
+        options: Options(
+          contentType: "multipart/form-data",
+        ),
+      );
+      return res;
+    } on DioException catch (e) {
+      await BugLogger.log(
+        apiLink: "edit_tenant_demand_api_for_admin.php",
+        error: e.response?.data.toString() ?? e.message ?? "Unknown error",
+        statusCode: e.response?.statusCode ?? 0,
+      );
+      rethrow;
+    }
+  }
+
+  Future<Response> _updateRedemand(FormData formData) async {
+    try {
+      final res = await _dio.post(
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/edit_redemand_option.php",
+        data: formData,
+        options: Options(
+          contentType: "multipart/form-data",
+        ),
+      );
+      return res;
+    } on DioException catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/edit_redemand_option.php",
+        error: e.response?.data.toString() ?? e.message ?? "Unknown error",
+        statusCode: e.response?.statusCode ?? 0,
+      );
+      rethrow;
+    }
+  }
+
+
+  String extractCreatedDate(dynamic value) {
+    if (value == null) return "--";
+
+    try {
+      if (value is Map && value["date"] != null) {
+        return formatDate(value["date"]);
+      }
+
+      return formatDate(value.toString());
+    } catch (_) {
+      return "--";
+    }
+  }
+
+  String? safeString(dynamic value) {
+    if (value == null) return null;
+    final str = value.toString().trim();
+    if (str.isEmpty || str == "--" || str.toLowerCase() == "null") {
+      return null;
+    }
+    return str;
+  }
+
+  int safeInt(dynamic value, {int defaultValue = 0}) {
+    if (value == null) return defaultValue;
+    return int.tryParse(value.toString()) ?? defaultValue;
+  }
+
+  double? safeDouble(dynamic value) {
+    if (value == null) return null;
+    return double.tryParse(value.toString());
+  }
 
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
+
     setState(() => _isSubmitting = true);
 
-    final prefs = await SharedPreferences.getInstance();
-    final FName = prefs.getString('name') ?? "";
-    final FLocation = prefs.getString('location') ?? "";
-    print(FName);
-    print(FLocation);
-
-    if (FName.isEmpty || FLocation.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("User info missing. Please login again.")),
-      );
-      return;
-    }
-
-
-
-    String resolveSubAdmin(String location) {
-      final loc = location.toLowerCase().trim();
-
-      if (loc.contains("sultanpur")) {
-        return "Saurabh Yadav";
-      }
-      if (loc.contains("rajpur")) {
-        return "Shivani Joshi";
-      }
-
-      return "";
-    }
-
-    final subAdminName = resolveSubAdmin(FLocation);
-
-    if (subAdminName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("No SubAdmin mapped for your location")),
-      );
-      return;
-    }
-
-    final encodedName = Uri.encodeQueryComponent(FName);
-    final encodedLoc = Uri.encodeQueryComponent(FLocation);
-
-
-    final now = DateTime.now();
-    final isBuy = _buyRent == "Buy";
-
-    if (_selectedBhks.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Colors.redAccent,
-          content: Text("Please select at least one BHK option"),
-        ),
-      );
-      setState(() => _isSubmitting = false);
-      return;
-    }
-
-    final formData = FormData.fromMap({
-      "Tname": _nameCtrl.text.trim(),
-      "Tnumber": _numberCtrl.text.trim(),
-      "Buy_rent": _buyRent,
-      "Reference": _reference ?? "",
-      "Price": _buyRent == "Buy"
-          ? "${_buyBudget.start.toInt()}-${_buyBudget.end.toInt()}"
-          : "${_rentBudget.start.toInt()}-${_rentBudget.end.toInt()}",
-      "Message": _messageCtrl.text.trim(),
-      "Bhk": _selectedBhks.join(", "),
-      "Location": _location ?? "",
-      "Status": _status,
-      "mark": _isUrgent ? "1" : "0", // IMPORTANT: string
-      "Result": "",
-      "Date": DateFormat("dd-MM-yyyy").format(DateTime.now()),
-      "Time": DateFormat("HH:mm").format(DateTime.now()),
-
-      "assigned_subadmin_name": subAdminName,
-      "assigned_fieldworker_name": FName, // ❌ DO NOT encode
-      "assigned_fieldworker_location": FLocation,
-      "assigned_subadmin_location": FLocation,
-      "by_field": "true", // STRING, not bool
-    });
-    print("sending data: ${formData}");
-
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final FName = prefs.getString('name') ?? "";
+      final FLocation = prefs.getString('location') ?? "";
+
+      if (_buyRent == null) {
+        _showError("Select Buy/Rent");
+        setState(() => _isSubmitting = false);
+
+        return;
+      }
+
+      if (_selectedBudgetLabel == null && !_showCustomSlider) {
+        _showError("Select Budget");
+        setState(() => _isSubmitting = false);
+        return;
+      }
+
+      final formData = FormData.fromMap({
+        "Tname": _nameCtrl.text.trim(),
+        "Tnumber": _numberCtrl.text.trim(),
+        "Price": _getPrice(),
+        "Bhk": _selectedBhks.join(", "),
+        "Location": _location ?? "",
+        "Buy_rent": _buyRent ?? "",
+        "Reference": _reference ?? "",
+        "Message": _messageCtrl.text.trim(),
+
+        "mark": _isUrgent ? "1" : "0",
+        "assigned_fieldworker_name": FName,
+        "assigned_fieldworker_location": FLocation,
+        "assigned_subadmin_name": "Saurabh Yadav",
+        "assigned_subadmin_location": FLocation,
+        "Status": "assigned to fieldworker",
+        "by_field": "true",
+
+        "parking": _parking ?? "",
+        "lift": _lift ?? "",
+        "furnished_unfurnished": _furnished ?? "",
+        "family_structur": _familyStructure ?? "",
+        "family_member": _familyMember ?? "",
+        "count_of_person": "${_adultCount}A-${_childrenCount}C",
+        "religion": _religion ?? "",
+        "shifting_date": _formatDate(_shiftingDate),
+        "visiting_dates": _formatDate(_visitingDate),
+        "floor": _floor.join(','),
+        "furnished_item": _selectedFurniture.isNotEmpty
+            ? jsonEncode(_selectedFurniture)
+            : "--",
+
+        if (widget.mode == DemandEditMode.add)
+          "created_date": DateFormat('yyyy-MM-dd').format(DateTime.now()),
+
+        if (widget.mode != DemandEditMode.add)
+          "id": widget.mode == DemandEditMode.updateDemand
+              ? widget.demandId
+              : widget.redemandId,
+      });
+
       final res = await _dio.post(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php",
+        widget.mode == DemandEditMode.add
+            ? "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php"
+            : "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/edit_redemand_option.php",
         data: formData,
+        options: Options(contentType: "multipart/form-data"),
       );
 
-      print('printing response ${res.data}');
+      final msg = _parseMessage(res.data);
 
       if (res.statusCode == 200) {
-        final data = res.data;
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.green,
-            content: Text(data["message"]),
-          ),
-        );
-
-
-        Navigator.pop(context);
+        _showSuccess(msg);
+        if (mounted) Navigator.pop(context, true);
+      } else {
+        _showError(msg);
       }
-      else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.redAccent,
-            content: Text(res.data["message"] ?? "Failed to Add Demand"),
-          ),
-        );
 
-        await BugLogger.log(
-          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php",
-          error: res.data.toString(),
-          statusCode: res.statusCode ?? 0,
-        );
-
-      }
     } on DioException catch (e) {
-      String errorMessage = "Something went wrong";
-
-      // ✅ Backend responded with error
-      if (e.response != null) {
-        final status = e.response?.statusCode;
-        final data = e.response?.data;
-
-        if (data is Map && data["message"] != null) {
-          errorMessage = data["message"];
-        } else {
-          errorMessage = "Server error ($status)";
-        }
-
-        print(errorMessage);
-
-        // 🔍 LOG REAL ERROR
-        await BugLogger.log(
-          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php",
-          error: data.toString(),
-          statusCode: status ?? 0,
-        );
-      }
-
-      // ❌ No response → network / timeout / SSL
-      else {
-        errorMessage = "Network error. Check internet connection.";
-
-        await BugLogger.log(
-          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php",
-          error: e.message ?? "Unknown Dio error",
-          statusCode: 0,
-        );
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: Colors.redAccent,
-          content: Text(errorMessage),
-        ),
-      );
+      final msg = _parseMessage(e.response?.data) ?? "Network error";
+      _showError(msg);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
-    finally {
-      setState(() => _isSubmitting = false);
+  }
+  String _getPrice() {
+    if (_buyRent == "Buy") {
+      return "${_buyBudget.start.toInt()}-${_buyBudget.end.toInt()}";
+    } else {
+      return "${_rentBudget.start.toInt()}-${_rentBudget.end.toInt()}";
     }
   }
 
-  // 🎨 Input decoration
-  InputDecoration _inputStyle(String label, IconData icon) {
-    final theme = Theme.of(context);
-    return InputDecoration(
-      labelText: label,
-      prefixIcon: Icon(icon),
-      filled: true,
-      fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.2),
-      border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.4),
-      ),
+  String _formatDate(DateTime? date) {
+    return date != null ? DateFormat("yyyy-MM-dd").format(date) : "";
+  }
+
+  String _parseMessage(dynamic data) {
+    final msg = data?["message"] ?? data?["msg"];
+
+    if (msg is String) return msg;
+    if (msg is Map) return msg.values.join(", ");
+    return "Something went wrong";
+  }
+
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(backgroundColor: Colors.red, content: Text(msg)),
     );
   }
 
+  void _showSuccess(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(backgroundColor: Colors.green, content: Text(msg)),
+    );
+  }
+  // 🎨 Input decoration
+  InputDecoration _modernInput(String hint, IconData icon) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: Colors.grey.shade600),
+      prefixIcon: Icon(icon, size: 18, color: Colors.grey.shade600),
+
+      filled: true,
+      fillColor: const Color(0xFFF1F3F6),
+
+      contentPadding: const EdgeInsets.symmetric(
+        vertical: 16,
+        horizontal: 12,
+      ),
+
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
+      ),
+    );
+  }
 
   final List<String> _bhkOptions = [
     "1 RK",
@@ -367,317 +446,592 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    return Theme(
+      data: ThemeData(
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: const Color(0xFFF7F8FA),
 
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.black,
-        title: Image.asset(AppImages.verify, height: 70),
-        leading: InkWell(
-          onTap: () => Navigator.pop(context),
-          child: const Icon(PhosphorIcons.caret_left_bold,
-              color: Colors.white, size: 30),
+        colorScheme: const ColorScheme.light(
+          primary: Color(0xFF4F46E5),
+          secondary: Color(0xFF6366F1),
+        ),
+
+        cardColor: Colors.white,
+
+        textTheme: const TextTheme(
+          bodyMedium: TextStyle(fontSize: 14),
+          titleMedium: TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(children: [
-              if (_existingCustomer != null) ...[
-                _ExistingCustomerCard(
-                  data: _existingCustomer!,
-                  isDark: Theme.of(context).brightness == Brightness.dark,
-                ),
-                const SizedBox(height: 16),
-              ],
+      child: Scaffold(
 
-              // 🚨 Premium Urgent Demand Swipe Toggle (Pulse + Bounce)
-              const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  // --- Left Label & Description ---
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Mark as Urgent",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: _isUrgent ? Colors.redAccent : Theme.of(context).hintColor,
-                        ),
-                      ),
-                      Text(
-                        _isUrgent ? "High priority demand" : "Normal priority demand",
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: _isUrgent
-                              ? Colors.redAccent.withOpacity(0.8)
-                              : Theme.of(context).hintColor.withOpacity(0.6),
-                        ),
-                      ),
-                    ],
-                  ),
+        appBar: AppBar(
+          surfaceTintColor: Colors.black,
+          backgroundColor: Colors.black,
+          centerTitle: true,
+          elevation: 0,
 
-                  // --- Right Swipe Button ---
-                  GestureDetector(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      setState(() => _isUrgent = !_isUrgent);
-                    },
-                    onHorizontalDragUpdate: (details) {
-                      if (details.primaryDelta != null) {
-                        final dx = details.primaryDelta!;
-                        if (dx > 5 && !_isUrgent) setState(() => _isUrgent = true);
-                        if (dx < -5 && _isUrgent) setState(() => _isUrgent = false);
-                      }
-                    },
-                    child: ScaleTransition(
-                      scale: _isUrgent
-                          ? _pulseAnimation
-                          : const AlwaysStoppedAnimation(1.0),
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        curve: Curves.easeInOut,
-                        width: 74,
-                        height: 36,
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(30),
-                          color: _isUrgent
-                              ? Colors.redAccent.withOpacity(0.85)
-                              : Colors.grey.shade400.withOpacity(0.5),
-                          boxShadow: _isUrgent
-                              ? [
-                            BoxShadow(
-                              color: Colors.redAccent.withOpacity(0.5),
-                              blurRadius: 10,
-                              spreadRadius: 2,
-                            ),
-                          ]
-                              : [],
-                        ),
-                        child: Stack(
-                          children: [
-                            AnimatedAlign(
-                              duration: const Duration(milliseconds: 250),
-                              alignment: _isUrgent
-                                  ? Alignment.centerRight
-                                  : Alignment.centerLeft,
-                              curve: Curves.easeOutBack,
-                              child: AnimatedScale(
-                                scale: _isUrgent ? 1.05 : 1.0,
-                                duration: const Duration(milliseconds: 200),
-                                curve: Curves.easeOutBack,
-                                child: Container(
-                                  width: 28,
-                                  height: 28,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.white,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: _isUrgent
-                                            ? Colors.redAccent.withOpacity(0.4)
-                                            : Colors.black26,
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Icon(
-                                    _isUrgent
-                                        ? Icons.flash_on_rounded
-                                        : Icons.power_settings_new_rounded,
-                                    color: _isUrgent ? Colors.redAccent : Colors.grey,
-                                    size: 17,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+          title: Image.asset(AppImages.verify, height: 70),
+          leading: InkWell(
+            onTap: () => Navigator.pop(context),
+            child: const Icon(
+              PhosphorIcons.caret_left_bold,
+              color: Colors.white,
+              size: 30,
+            ),
+          ),
+        ),
+
+        body: _loadingDemand
+            ? const Center(child: CircularProgressIndicator())
+            : Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Add New Demand",
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              TextFormField(
-                controller: _numberCtrl,
-                enabled: _existingCustomer == null,
-                decoration: _inputStyle("Phone Number", Icons.phone).copyWith(
-                  hintText: "Enter number (e.g. +91XXXXXXXXXX)",
-                  suffixIcon: _fetchingCustomer
-                      ? const Padding(
-                    padding: EdgeInsets.all(12),
-                    child: SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                    const SizedBox(height: 4),
+                    Text(
+                      "You will find this demand in your accept tab after the form submit.",
+                      style: TextStyle(color: Colors.grey.shade600),
                     ),
-                  )
-                      : null,
-                ),
-                keyboardType: TextInputType.phone,
-                maxLength: 14, // ✅ allow +91 / spaces
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
-                ],
-                onChanged: (value) {
-                  final last10 = _extractLast10Digits(value);
-
-                  if (last10.length == 10 && !_fetchingCustomer) {
-                    _fetchCustomerByPhone(last10); // 🔥 ONLY 10 DIGITS SENT
-                  }
-                },
-                validator: (value) {
-                  final last10 = _extractLast10Digits(value ?? "");
-                  if (last10.length != 10) {
-                    return "Enter valid 10-digit mobile number";
-                  }
-                  return null;
-                },
-              ),
-
-              TextFormField(
-                controller: _nameCtrl,
-                decoration: _inputStyle("Customer Name", Icons.person),
-                validator: (v) => v!.isEmpty ? "Enter name" : null,
-              ),
-              const SizedBox(height: 10),
-
-              GestureDetector(
-                onTap: () => _showSelectBottomSheet(
-                  title: "Select Type (Buy or Rent)",
-                  items: _buyRentOptions,
-                  onSelect: (v) {
-                    if (_buyRent != v) {
-                      setState(() {
-                        _buyRent = v;
-                        _resetBudgetState(); // 🔥 FIX
-                      });
-                    }
-                  },
+                  ],
                 ),
 
-                child: _optionBox("Buy / Rent", _buyRent),
-              ),
-              GestureDetector(
-                onTap: () => _showSelectBottomSheet(
-                  title: "Select Reference",
-                  items: _referenceOptions,
-                  onSelect: (v) => setState(() => _reference = v),
-                ),
-                child: _optionBox("Reference From", _reference),
-              ),
-              GestureDetector(
-                onTap: () => _showSelectBottomSheet(
-                  title: "Select Location",
-                  items: _locationOptions,
-                  onSelect: (v) => setState(() => _location = v),
-                ),
-                child: _optionBox("Location", _location),
-              ),
+                const SizedBox(height: 12),
 
-              if (_buyRent != null) ...[
-                const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    color: theme.colorScheme.surfaceVariant.withOpacity(0.1),
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 10,
+                      )
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.error, color: Colors.red),
+                      ),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Mark as Urgent",
+                                style: TextStyle(fontWeight: FontWeight.w600)),
+                            SizedBox(height: 2),
+                            Text("Prioritize this demand",
+                                style: TextStyle(fontSize: 12, color: Colors.grey)),
+                          ],
+                        ),
+                      ),
+                      Switch(
+                        activeColor: Colors.red,
+                        value: _isUrgent,
+                        onChanged: (v) => setState(() => _isUrgent = v),
+                      )
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      budgetDropdown(
-                        type: _buyRent!,
-                        theme: theme,
+                      const Text(
+                        "Basic Details",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        controller: _numberCtrl,
+                        decoration: _modernInput("Customer Number", Icons.phone),
+                        keyboardType: TextInputType.phone,
+                        maxLength: 12,
+                        onChanged: (value) {},
+                        validator: (value) {
+                          final last10 = _extractLast10Digits(value ?? "");
+                          return last10.length != 10 ? "Invalid number" : null;
+                        },
                       ),
 
                       const SizedBox(height: 12),
 
-                      Text(
-                        "Select BHK",
-                        style: theme.textTheme.titleSmall!
-                            .copyWith(fontWeight: FontWeight.w600),
+                      TextFormField(
+                        controller: _nameCtrl,
+                        decoration: _modernInput("Customer Name", Icons.person),
+                        validator: (v) =>
+                        v == null || v.trim().isEmpty ? "Required" : null,
                       ),
+
+                      const SizedBox(height: 12),
+
+                      DropdownButtonFormField<String>(
+                        value: _buyRent,
+                        decoration: _modernInput("Buy/Rent", Icons.currency_rupee),
+
+                        items: _buyRentOptions
+                            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (v) {
+                          setState(() {
+                            _buyRent = v;
+                            _resetBudgetState();
+                          });
+                        },
+                        validator: (v) => v == null ? "Select type" : null,
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      DropdownButtonFormField<String>(
+                        value: _location,
+                        decoration: _modernInput("e.g. Sultanpur", Icons.location_on_sharp),
+
+
+
+                        items: _locationOptions
+                            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (v) => setState(() => _location = v),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      DropdownButtonFormField<String>(
+                        value: _reference,
+                        decoration: _modernInput("e.g. 99 Acres", Icons.source),
+                        items: _referenceOptions
+                            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (v) => setState(() => _reference = v),
+                      ),
+                      // 👉 move all basic fields here
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child:
+                  _buyRent != null ?
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.04),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Property Preferences",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+
+                        const SizedBox(height: 16),
+
+                        Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              children: [
+                                budgetDropdown(type: _buyRent!, theme: Theme.of(context)),
+
+                                const SizedBox(height: 12),
+
+                                Wrap(
+                                  spacing: 8,
+                                  children: _bhkOptions.map((e) {
+                                    final selected = _selectedBhks.contains(e);
+                                    return ChoiceChip(
+                                      label: Text(e),
+                                      selected: selected,
+                                      selectedColor: Color(0xFFDC2626),
+                                      onSelected: (val) {
+                                        setState(() {
+                                          val
+                                              ? _selectedBhks.add(e)
+                                              : _selectedBhks.remove(e);
+                                        });
+                                      },
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                      : const SizedBox(),
+                ),
+
+                const SizedBox(height: 16),
+
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Additional Details",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      DropdownButtonFormField<String>(
+                        value: _furnished,
+                        decoration: _modernInput("Furnishing Requirement", Icons.chair),
+                        items: furnishingOptions
+                            .map((e) =>
+                            DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (v) {
+                          setState(() {
+                            _furnished = v;
+                            if (v == "Unfurnished") _selectedFurniture.clear();
+                          });
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      if (_furnished == "Fully Furnished" ||
+                          _furnished == "Semi Furnished")
+                        GestureDetector(
+                          onTap: () => _showFurnitureBottomSheet(context),
+                          child: AbsorbPointer(
+                            child: TextFormField(
+                              controller: _furnitureCtrl,
+                              readOnly: true,
+                              decoration: _modernInput("e.g. Fan", Icons.chair).copyWith(
+                                hintText: "Tap to select furniture",
+                                suffixIcon: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (_selectedFurniture.isNotEmpty)
+                                      IconButton(
+                                        icon: const Icon(Icons.close),
+                                        onPressed: () {
+                                          setState(() {
+                                            _selectedFurniture.clear();
+                                            _furnitureCtrl.clear();
+                                          });
+                                        },
+                                      ),
+                                    const Icon(Icons.keyboard_arrow_down),
+                                  ],
+                                ),                              ),
+                              onTap: () => _showFurnitureBottomSheet(context),
+                            ),
+                          ),
+                        ),
+
+                      const SizedBox(height: 16),
+
+                      DropdownButtonFormField<String>(
+                        value: _familyStructure,
+                        decoration: _modernInput("Family Type", Icons.family_restroom),
+                        items: ["Joint", "Nuclear", "Bachelor", "Live-In relation"]
+                            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (v) => setState(() => _familyStructure = v),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      Row(
+                        children: [
+                          /// 👨 Adults
+                          Expanded(
+                            child: TextFormField(
+                              decoration: _modernInput("Adults", Icons.person),
+                              keyboardType: TextInputType.number,
+                              initialValue: _adultCount.toString(),
+                              style: const TextStyle(color: Colors.black),
+                              textAlign: TextAlign.center,
+                              onChanged: (v) {
+                                _adultCount = int.tryParse(v) ?? 0;
+                                _updateFamilyTotal();
+                              },
+                            ),
+                          ),
+
+                          /// ➕ PLUS SIGN
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(
+                              "+",
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+
+                          /// 👶 Children
+                          Expanded(
+                            child: TextFormField(
+                              decoration: _modernInput("Child", Icons.child_care),
+                              keyboardType: TextInputType.number,
+                              initialValue: _childrenCount.toString(),
+                              style: const TextStyle(color: Colors.black),
+                              textAlign: TextAlign.center,
+                              onChanged: (v) {
+                                _childrenCount = int.tryParse(v) ?? 0;
+                                _updateFamilyTotal();
+                              },
+                            ),
+                          ),
+
+                          /// ➡️ EQUAL SIGN
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8),
+                            child: Text(
+                              "=",
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+
+                          /// 👥 TOTAL
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              _totalCtrl.text.isEmpty ? "0" : _totalCtrl.text,
+                              style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+
+                      const SizedBox(height: 16),
+
+                      DropdownButtonFormField<String>(
+                        value: _religion,
+                        decoration: _modernInput("e.g. Hindu", Icons.temple_hindu),
+                        items: ["Hindu", "Muslim", "Sikh", "Christian", "Other"]
+                            .map((e) =>
+                            DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (v) => setState(() => _religion = v),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      DropdownButtonFormField<String>(
+                        value: _parking,
+                        decoration: _modernInput("Parking", Icons.local_parking),
+                        items: ["Car", "Bike", "Both", "None"]
+                            .map((e) =>
+                            DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (v) => setState(() => _parking = v),
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      DropdownButtonFormField<String>(
+                        value: _lift,
+                        decoration: _modernInput("Lift", Icons.elevator),
+                        items: ["Yes", "No"]
+                            .map((e) =>
+                            DropdownMenuItem(value: e, child: Text(e)))
+                            .toList(),
+                        onChanged: (v) => setState(() => _lift = v),
+                      ),
+
+                      const SizedBox(height: 16),
+
                       Wrap(
-                        spacing: 10,
-                        runSpacing: 8,
-                        children: _bhkOptions.map((e) {
-                          final isSelected = _selectedBhks.contains(e);
+                        spacing: 8,
+                        children: _floorOptions.map((e) {
+                          final selected = _floor.contains(e);
                           return ChoiceChip(
                             label: Text(e),
-                            selected: isSelected,
-                            selectedColor: theme.colorScheme.primary.withOpacity(0.25),
-                            onSelected: (selected) {
+                            selected: selected,
+                            selectedColor: Color(0xFFDC2626),
+                            labelStyle: TextStyle(
+                              color: selected ? Colors.white : Colors.black,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            onSelected: (val) {
                               setState(() {
-                                selected ? _selectedBhks.add(e) : _selectedBhks.remove(e);
+                                val ? _floor.add(e) : _floor.remove(e);
                               });
                             },
                           );
                         }).toList(),
                       ),
 
-                      if (_selectedBhks.isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          "Selected: ${_selectedBhks.join(', ')}",
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ],
+                      const SizedBox(height: 16),
+
+                      ListTile(
+                        title: Text(_shiftingDate == null
+                            ? "Select Shifting Date"
+                            : DateFormat("yyyy-MM-dd").format(_shiftingDate!)),
+                        trailing: const Icon(Icons.calendar_today),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2040),
+                          );
+                          if (picked != null) {
+                            setState(() => _shiftingDate = picked);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      ListTile(
+                        title: Text(_visitingDate == null
+                            ? "Select Visiting Date"
+                            : DateFormat("yyyy-MM-dd").format(_visitingDate!)),
+                        trailing: const Icon(Icons.calendar_today),
+                        onTap: () async {
+                          final picked = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(2020),
+                            lastDate: DateTime(2040),
+                          );
+                          if (picked != null) {
+                            setState(() => _visitingDate = picked);
+                          }
+                        },
+                      ),
                     ],
                   ),
                 ),
-              ],
 
-              const SizedBox(height: 10),
-              TextFormField(
-                controller: _messageCtrl,
-                decoration:
-                _inputStyle("Message", Icons.note_alt_outlined),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton.icon(
-                  icon: _isSubmitting
-                      ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.upload, color: Colors.white, size: 25),
-                  label: Text(
-                    _isSubmitting ? "Submitting..." : "Submit Demand",
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: _messageCtrl,
+                  maxLines: 3,
+                  decoration: _modernInput(
+                    "Describe the specific needs...",
+                    Icons.notes,
                   ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: _isSubmitting ? null : _submitForm,
                 ),
-              ),
-            ]),
+
+                const SizedBox(height: 20),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: (_isSubmitting)
+                        ? null
+                        : _submitForm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _submitButtonColor(Theme.of(context)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      elevation: 2,
+                    ),
+                    child: _isSubmitting
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : Text(_submitButtonText,style: TextStyle(color: Colors.white),),
+                  ),
+                ),
+
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  String get _submitButtonText {
+    if (_isSubmitting) return "Submitting...";
+    if (widget.mode == DemandEditMode.add) return "Submit Demand";
+    if (widget.mode == DemandEditMode.updateDemand) return "Update Demand";
+    return "Update Redemand";  }
+
+  Color _submitButtonColor(ThemeData theme) {
+    if (_isSubmitting) return Colors.grey.shade600;;
+
+    return const Color(0xFFDC2626);
   }
 
   Widget _optionBox(String label, String? value) {
@@ -705,58 +1059,6 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
       ),
     );
   }
-  void _showSelectBottomSheet({
-    required String title,
-    required List<String> items,
-    required Function(String) onSelect,
-  }) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              title,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium!
-                  .copyWith(fontWeight: FontWeight.bold),
-            ),
-            const Divider(),
-            ...items.map((e) => ListTile(
-              title: Text(e),
-              onTap: () {
-                Navigator.pop(ctx);
-                onSelect(e);
-              },
-            )),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-  final List<Map<String, RangeValues>> buyBudgetPresets = [
-    {"₹20L – ₹40L": const RangeValues(2000000, 4000000)},
-    {"₹40L – ₹80L": const RangeValues(4000000, 8000000)},
-    {"₹80L – ₹1.2Cr": const RangeValues(8000000, 12000000)},
-    {"₹1.2Cr – ₹2Cr": const RangeValues(12000000, 20000000)},
-    {"Custom Range": const RangeValues(0, 0)},
-  ];
-
-  final List<Map<String, RangeValues>> rentBudgetPresets = [
-    {"₹8k – ₹12k": const RangeValues(8000, 12000)},
-    {"₹12k – ₹20k": const RangeValues(12000, 20000)},
-    {"₹20k – ₹30k": const RangeValues(20000, 30000)},
-    {"₹30k+": const RangeValues(30000, 60000)},
-    {"Custom Range": const RangeValues(0, 0)},
-  ];
 
   Widget budgetDropdown({
     required String type, // Buy / Rent
@@ -770,7 +1072,8 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
         Text(
           type == "Buy" ? "Budget Range" : "Monthly Rent Budget",
           style: theme.textTheme.titleSmall!.copyWith(
-            fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w600,
+              color: Colors.black
           ),
         ),
         const SizedBox(height: 6),
@@ -827,11 +1130,219 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
     );
   }
 
+  Widget dropdownField({
+    required String title,
+    required String? value,
+    required VoidCallback onTap,
+  }) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: theme.textTheme.titleSmall!.copyWith(
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface.withOpacity(0.9),
+          ),
+        ),
+        const SizedBox(height: 6),
+        GestureDetector(
+          onTap: onTap,
+          child: _optionBox(title, value),
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  void _showFurnitureBottomSheet(BuildContext context) {
+    final List<String> furnitureItems = [
+      'Refrigerator',
+      'Washing Machine',
+      'Wardrobe',
+      'AC',
+      'Water Purifier',
+      'Single Bed',
+      'Double Bed',
+      'Geyser',
+      'LED TV',
+      'Sofa Set',
+      'Induction',
+      'Gas Stove',
+    ];
+
+    final Map<String, int> tempSelection = Map.from(_selectedFurniture);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return SizedBox(
+              height: MediaQuery.of(context).size.height * 0.65,
+              child: Column(
+                children: [
+                  /// 🔥 HEADER (CLEAN)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            "Select Furniture",
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87
+                            ),
+                          ),
+                        ),
+                        TextButton(
+
+                          onPressed: () {
+                            setState(() {
+                              _selectedFurniture = Map.fromEntries(
+                                tempSelection.entries.where((e) => e.value > 0),
+                              );
+
+                              _furnitureCtrl.text = _selectedFurniture.isEmpty
+                                  ? ""
+                                  : _selectedFurniture.entries
+                                  .map((e) => "${e.key} (${e.value})")
+                                  .join(", ");
+                            });
+
+                            Navigator.pop(ctx);
+                          },
+                          child: const Text(
+                            "SAVE",
+                            style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black87),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+
+                  const Divider(height: 1),
+
+                  /// 🔥 GRID STYLE (BETTER THAN LIST)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: GridView.builder(
+                        itemCount: furnitureItems.length,
+                        gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 2.8,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                        ),
+                        itemBuilder: (context, index) {
+                          final item = furnitureItems[index];
+                          final isSelected = tempSelection.containsKey(item);
+                          final count = tempSelection[item] ?? 0;
+
+                          return GestureDetector(
+                            onTap: () {
+                              setModalState(() {
+                                if (isSelected) {
+                                  tempSelection.remove(item);
+                                } else {
+                                  tempSelection[item] = 1;
+                                }
+                              });
+                            },
+
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? Colors.black
+                                      : Colors.grey.shade300,
+                                ),
+                                color: isSelected
+                                    ? Colors.black.withOpacity(0.05)
+                                    : Colors.white,
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      item,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: isSelected
+                                            ? Colors.black
+                                            : Colors.grey.shade700,
+                                      ),
+                                    ),
+                                  ),
+
+                                  /// 🔥 COUNTER
+                                  if (isSelected)
+                                    Row(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            setModalState(() {
+                                              if (count > 1) {
+                                                tempSelection[item] = count - 1;
+                                              }
+                                            });
+                                          },
+                                          child: const Icon(Icons.remove, size: 18,color: Colors.black,),
+                                        ),
+                                        Padding(
+                                          padding:
+                                          const EdgeInsets.symmetric(horizontal: 6),
+                                          child: Text(
+                                            "$count",
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,color: Colors.black,),
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () {
+                                            setModalState(() {
+                                              tempSelection[item] = count + 1;
+                                            });
+                                          },
+                                          child: const Icon(Icons.add, size: 18,color: Colors.black,),
+                                        ),
+                                      ],
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
 }
 
-
 class BudgetSelector extends StatelessWidget {
-  final String type; // "Buy" or "Rent"
+  final String type;
   final RangeValues buyBudget;
   final RangeValues rentBudget;
   final Function(RangeValues) onBuyChange;
@@ -858,6 +1369,17 @@ class BudgetSelector extends StatelessWidget {
     final theme = Theme.of(context);
     final bool isBuy = type == "Buy";
 
+    final presets = isBuy
+        ? [
+      const RangeValues(2000000, 4000000),
+      const RangeValues(4000000, 8000000),
+      const RangeValues(8000000, 12000000),
+    ]
+        : [
+      const RangeValues(8000, 12000),
+      const RangeValues(12000, 20000),
+      const RangeValues(20000, 30000),
+    ];
 
     final current = isBuy ? buyBudget : rentBudget;
 
@@ -878,18 +1400,6 @@ class BudgetSelector extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // TITLE
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "Custom Range Amount",
-                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
-
           Text(
             isBuy ? "Buy Budget" : "Monthly Rent Budget",
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
@@ -907,6 +1417,25 @@ class BudgetSelector extends StatelessWidget {
             ),
           ),
 
+          const SizedBox(height: 12),
+
+          // PRESET CHIPS
+          Wrap(
+            spacing: 8,
+            children: presets.map((r) {
+              final label = isBuy
+                  ? "${_formatAmount(r.start)} - ${_formatAmount(r.end)}"
+                  : "₹${r.start.toInt()} - ₹${r.end.toInt()}";
+
+              return ChoiceChip(
+                label: Text(label),
+                selected: false,
+
+                onSelected: (_) =>
+                isBuy ? onBuyChange(r) : onRentChange(r),
+              );
+            }).toList(),
+          ),
 
           const SizedBox(height: 12),
 
@@ -934,168 +1463,23 @@ class BudgetSelector extends StatelessWidget {
   }
 }
 
-class _ExistingCustomerCard extends StatelessWidget {
-  final Map<String, dynamic> data;
-  final bool isDark;
+final List<Map<String, RangeValues>> buyBudgetPresets = [
+  {"₹20L – ₹40L": const RangeValues(2000000, 4000000)},
+  {"₹40L – ₹80L": const RangeValues(4000000, 8000000)},
+  {"₹80L – ₹1.2Cr": const RangeValues(8000000, 12000000)},
+  {"₹1.2Cr – ₹2Cr": const RangeValues(12000000, 20000000)},
+  {"Custom Range": const RangeValues(0, 0)},
+];
 
-  const _ExistingCustomerCard({
-    required this.data,
-    required this.isDark,
-  });
+final List<Map<String, RangeValues>> rentBudgetPresets = [
+  {"₹8k – ₹12k": const RangeValues(8000, 12000)},
+  {"₹12k – ₹20k": const RangeValues(12000, 20000)},
+  {"₹20k – ₹30k": const RangeValues(20000, 30000)},
+  {"₹30k+": const RangeValues(30000, 60000)},
+  {"Custom Range": const RangeValues(0, 0)},
+];
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final accent = theme.colorScheme.primary;
-
-    Widget row(String label, dynamic value) {
-      if (value == null || value.toString().trim().isEmpty) {
-        return const SizedBox.shrink(); // 🔥 hide row completely
-      }
-
-      return Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 110,
-              child: Text(
-                "$label:",
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: theme.hintColor,
-                ),
-              ),
-            ),
-            Expanded(
-              child: Text(
-                value.toString(),
-                style: TextStyle(
-                  fontSize: 13.5,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white70 : Colors.black87,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            accent.withOpacity(isDark ? 0.10 : 0.08),
-            accent.withOpacity(isDark ? 0.08 : 0.10),
-          ],
-        ),
-        border: Border.all(
-          color: accent.withOpacity(0.35),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: accent.withOpacity(0.18),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // HEADER
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: accent.withOpacity(0.9),
-                child: Text(
-                  (data["Tname"] ?? "?")
-                      .toString()
-                      .trim()
-                      .substring(0, 1)
-                      .toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      data["Tname"] ?? "--",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                    Text(
-                      data["Tnumber"] ?? "--",
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: theme.hintColor,
-                      ),
-                    ),
-
-                  ],
-                ),
-              ),
-              Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  color: accent.withOpacity(0.85),
-                ),
-                child: Text(
-                  "EXISTING",
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 14),
-          Divider(color: Colors.white.withOpacity(0.25)),
-          const SizedBox(height: 6),
-
-          row("Type", data["Buy_rent"]),
-          row("Budget", data["Price"] != null ? "₹ ${data["Price"]}" : null),
-          row("BHK", data["Bhk"]),
-          row("Location", data["Location"]),
-          row("Family Members", data["family_member"]),
-          row("Parking", data["parking"]),
-          row("Shifting Date", data["shifting_date"]),
-          row("Floor", data["floor"]),
-
-          const SizedBox(height: 8),
-          Divider(color: Colors.white.withOpacity(0.22)),
-          const SizedBox(height: 6),
-
-          row("Fieldworker", data["assigned_fieldworker_name"]),
-          row("FW Location", data["assigned_fieldworker_location"]),
-
-        ],
-      ),
-    );
-  }
+String formatDate(String date) {
+  final parsedDate = DateTime.parse(date);
+  return DateFormat('d MMMM yyyy').format(parsedDate);
 }

@@ -9,6 +9,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../Administrator/imagepreviewscreen.dart';
+
+import '../AppLogger.dart';
 import '../Custom_Widget/Custom_backbutton.dart';
 import '../Custom_Widget/constant.dart';
 import '../model/Additional_agreement_tenants.dart';
@@ -200,13 +202,293 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>
           "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=${widget.agreementId}"));
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
+        AppLogger.api("🔹 API Response: $decoded");
         if (decoded["status"] == "success" && decoded["count"] > 0) {
           setState(() => agreement = decoded["data"][0]);
         }
       }
     } catch (e) {
-      debugPrint("Error: $e");
+      AppLogger.api("Error: $e");
     }
+  }
+
+
+  // ====== Design helpers (kept and expanded) ======
+  Color get _panel => Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFF121212)
+      : Colors.white;
+  Color get _ink => Theme.of(context).brightness == Brightness.dark
+      ? Colors.white
+      : Colors.black87;
+  Color get _muted => _ink.withOpacity(.68);
+  Color get _stroke => Theme.of(context).dividerColor.withOpacity(.22);
+
+  double _labelWidth(BoxConstraints c) {
+    final w = c.maxWidth;
+    if (w < 360) return 110;
+    if (w < 480) return 130;
+    if (w < 700) return 150;
+    return 180;
+  }
+
+  Color _statusColor(String s) {
+    final t = s.toLowerCase();
+    if (t.contains('rejected')) return Colors.redAccent;
+    if (t.contains('resubmit') || t.contains('approved')) return Colors.greenAccent;
+    if (t.contains('pending')) return Colors.orangeAccent;
+    return Theme.of(context).colorScheme.secondary;
+  }
+
+  Widget _badge(String text, {IconData? icon, Color? color}) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final Color bg = color?.withOpacity(isDark ? .18 : .12) ??
+        (isDark ? Colors.white.withOpacity(.06) : Colors.black.withOpacity(.06));
+    final Color fg = color != null ? (color.computeLuminance() < 0.35 ? Colors.white : Colors.black87) : (isDark ? Colors.white : Colors.black87);
+    final Color brd = color?.withOpacity(.28) ?? (_stroke);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: bg,
+        border: Border.all(color: brd),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        if (icon != null) ...[
+          Icon(icon, size: 16, color: fg),
+          const SizedBox(width: 6),
+        ],
+        Text(text, style: TextStyle(color: fg, fontWeight: FontWeight.w700)),
+      ]),
+    );
+  }
+
+  Widget _sectionCard({
+    required String title,
+    required List<Widget> children,
+    IconData icon = Icons.folder_open_outlined,
+    Color? accent,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      decoration: BoxDecoration(
+        color: _panel,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _stroke),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(isDark ? .45 : .06), blurRadius: 20, offset: const Offset(0, 8)),
+        ],
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // header
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+          child: Row(children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: (accent ?? Colors.green).withOpacity(.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, color: Theme.of(context).brightness == Brightness.dark ? Colors.green.shade100 : Colors.green.shade800),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+              ),
+            ),
+            const SizedBox(width: 8),
+          ]),
+        ),
+        Divider(height: 1, color: _stroke),
+        Padding(
+          padding: const EdgeInsets.all(14),
+          child: Column(children: children),
+        ),
+      ]),
+    );
+  }
+
+  Widget _imageThumb(String path) {
+    if ((path ?? '').toString().trim().isEmpty) return const SizedBox.shrink();
+
+    final full =
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$path";
+
+    Future<void> _downloadImage() async {
+      try {
+        // Ask permission for photos/storage
+        if (await Permission.photos.request().isDenied &&
+            await Permission.storage.request().isDenied) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Storage permission denied")),
+          );
+          return;
+        }
+
+        // Download the image
+        final response = await http.get(Uri.parse(full));
+        if (response.statusCode != 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("❌ Failed to download image")),
+          );
+          return;
+        }
+
+        // Write bytes to a temporary file
+        final tempDir = await getTemporaryDirectory();
+        final fileName =
+            "verifyserve_${DateTime.now().millisecondsSinceEpoch}.jpg";
+        final filePath = "${tempDir.path}/$fileName";
+        final file = File(filePath);
+        await file.writeAsBytes(response.bodyBytes);
+
+        // Save directly to system gallery using gal
+        await Gal.putImage(filePath, album: "VerifyServe");
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("✅ Image saved to phone gallery"),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } catch (e) {
+        AppLogger.api("Error saving image: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("❌ Error saving image")),
+        );
+      }
+    }
+
+    return GestureDetector(
+      onTap: () => showDialog(
+        context: context,
+        builder: (_) => Dialog(
+          clipBehavior: Clip.hardEdge,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              InteractiveViewer(
+                child: Image.network(
+                  full,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const SizedBox(
+                    height: 200,
+                    child: Center(
+                      child: Icon(Icons.broken_image, color: Colors.red),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: FloatingActionButton.extended(
+                  onPressed: (){
+                    _downloadImage();
+                    Navigator.pop(context);
+                  },
+                  backgroundColor: Colors.green.shade600,
+                  icon: const Icon(Icons.download, color: Colors.white),
+                  label: const Text("Save", style: TextStyle(color: Colors.white)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      onLongPress: _downloadImage, // 👈 long press also downloads directly
+      child: Container(
+        width: 120,
+        height: 92,
+        margin: const EdgeInsets.only(right: 12, bottom: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: _stroke),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Image.network(
+          full,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) =>
+          const Center(child: Icon(Icons.broken_image, color: Colors.red)),
+          loadingBuilder: (c, w, p) => p == null
+              ? w
+              : Container(
+            color: Theme.of(context)
+                .colorScheme
+                .surfaceVariant
+                .withOpacity(.45),
+            child: const Center(
+              child: SizedBox(
+                height: 18,
+                width: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _detailRow({required String label, required String value, bool isImage = false}) {
+    if ((value ?? '').toString().trim().isEmpty) return const SizedBox.shrink();
+    return LayoutBuilder(builder: (context, c) {
+      final lw = _labelWidth(c);
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          SizedBox(
+            width: lw,
+            child: Text(
+              "$label:",
+              style: TextStyle(fontWeight: FontWeight.w700, color: _muted),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: isImage
+                ? _imageThumb(value)
+                : SelectableText(
+              (value ?? '').toString(),
+              style: TextStyle(color: _ink, height: 1.35),
+            ),
+          ),
+        ]),
+      );
+    });
+  }
+
+  Widget _diagonalRibbon(bool show, String text) {
+    if (!show) return const SizedBox.shrink();
+    return Positioned(
+      top: 12,
+      left: -32,
+      child: Transform.rotate(
+        angle: -0.785398, // -45°
+        child: Container(
+          width: 170,
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [Colors.redAccent.shade200, Colors.red.shade700]),
+            boxShadow: [BoxShadow(color: Colors.redAccent.withOpacity(.3), blurRadius: 6, offset: const Offset(2, 2))],
+            borderRadius: BorderRadius.circular(6),
+          ),
+          alignment: Alignment.bottomCenter,
+          child: Text(
+            text.toUpperCase(),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+          ),
+        ),
+      ),
+    );
   }
 
   Future<RewardStatus> fetchRewardStatus() async {
@@ -781,6 +1063,127 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>
         surfaceTintColor: Colors.black,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: BoxDecoration(gradient: pageGradient),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1000),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 90, 16, 24),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      _buildMainContent(a, D_or_T, personLabel, isDirector, isRejected, withPolice),
+                      _diagonalRibbon(isRejected, 'REJECTED'),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMainContent(
+      Map<String, dynamic> a,
+      String D_or_T,
+      String personLabel,
+      bool isDirector,
+      bool isRejected,
+      bool withPolice,
+      ) {
+
+    List<int> policeTenants = [];
+
+// 🔹 Main tenant (Tenant 1)
+    final mainPolice =
+        agreement?['is_Police']?.toString().toLowerCase() == "true";
+
+    if (mainPolice) {
+      policeTenants.add(1);
+    }
+
+// 🔹 Additional tenants (Tenant 2,3...)
+    for (int i = 0; i < additionalTenants.length; i++) {
+      final t = additionalTenants[i];
+
+      final value = (t.policeVerification ?? "")
+          .toString()
+          .toLowerCase()
+          .trim();
+
+      if (value == "true" || value == "1") {
+        policeTenants.add(i + 2); // because main = 1
+      }
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.black.withOpacity(.45)
+            : Colors.white.withOpacity(.95),
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(.22),
+            blurRadius: 30,
+            offset: const Offset(0, 12),
+          )
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          if (policeTenants.isNotEmpty)
+            _buildPoliceNotice(policeTenants),
+
+          const SizedBox(height: 20),
+
+          _buildBadges(a),
+
+          const SizedBox(height: 20),
+
+          if (a['agreement_type'] != "Police Verification")
+            if (a['status'] != null)
+              _buildStatusCard(a, isRejected),
+
+          const SizedBox(height: 20),
+
+          _buildDetailSections(a, D_or_T, personLabel, isDirector),
+
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPoliceNotice(List<int> tenants) {
+    final tenantText = tenants.join(', ');
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.redAccent),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline, color: Colors.redAccent),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Police verification required for Tenant(s): $tenantText',
+              style: const TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.w600,
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(14),
         child: Column(
@@ -1046,6 +1449,112 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>
                 ],
               ),
             ),
+              if (additionalTenants.isNotEmpty)
+                _buildAdditionalTenants(D_or_T),
+            ],
+          ),
+        ),
+
+        /// PROPERTY
+        SizedBox(
+          width: 320,
+          child: _sectionCard(
+            title: "Property Details",
+            icon: Icons.apartment_outlined,
+            children: [
+              _detailRow(
+                  label: "Property ID",
+                  value: a['property_id']?.toString() ?? ''),
+              _detailRow(
+                  label: "BHK",
+                  value: a['Bhk']?.toString() ?? ''),
+              _detailRow(
+                  label: "Floor",
+                  value: a['floor']?.toString() ?? ''),
+              _detailRow(
+                  label: "Rented Address",
+                  value: a['rented_address'] ?? ''),
+              _detailRow(
+                  label: "Cost",
+                  value: a['agreement_price'] ?? ''),
+              _detailRow(
+                  label: "Meter Type",
+                  value: a['meter'] ?? ''),
+              _detailRow(
+                  label: "Maintenance",
+                  value: a['maintaince'] ?? ''),
+              _detailRow(
+                  label: "Parking",
+                  value: a['parking'] ?? ''),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAdditionalTenants(String D_or_T) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 20),
+        Text(
+          "Additional $D_or_T",
+          style: Theme.of(context)
+              .textTheme
+              .titleMedium
+              ?.copyWith(fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: 12),
+
+        ...List.generate(additionalTenants.length, (index) {
+          final t = additionalTenants[index];
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: _stroke),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "$D_or_T ${index + 2}",
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 8),
+                _detailRow(label: "Name", value: t.name),
+                _detailRow(label: "Relation", value: t.relation),
+                _detailRow(label: "Person name", value: t.relation_name),
+                _detailRow(label: "Mobile", value: t.mobile),
+                _detailRow(label: "Aadhaar", value: t.aadhaar),
+                _detailRow(label: "Address", value: t.address),
+
+                Wrap(
+                  children: [
+                    _detailRow(
+                        label: "Aadhaar Front",
+                        value: t.front,
+                        isImage: true),
+                    _detailRow(
+                        label: "Aadhaar Back",
+                        value: t.back,
+                        isImage: true),
+                    _detailRow(
+                        label: "Photo",
+                        value: t.photo,
+                        isImage: true),
+                  ],
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
 
             // ── Police address ──
             // if (isPolice)

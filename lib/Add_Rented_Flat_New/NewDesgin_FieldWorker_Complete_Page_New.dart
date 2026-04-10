@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../AppLogger.dart';
 import 'FieldWorker_Complete_Detail_Page.dart';
 import 'CompletePropertyCalculationFieldWorker.dart';
 class TenToTenGroup {
@@ -637,68 +638,92 @@ class _NewDesignFieldWorkerCompleteFlatsNewState
   static Map<dynamic, DateTime>? _lastTapTimes;
 
   Future<List<Property>> fetchBookingData() async {
-    final url = Uri.parse(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_api_complete_page_for_fieldworkar.php?field_workar_number=${_fieldworkarnumber}");
-    print("User Name :" + "${userName}");
-    print("User Number :" + "${userNumber}");
-    print("User Number :" + "${_fieldworkarnumber}");
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final decoded = json.decode(response.body);
-      if (decoded["success"] == true) {
-        List data = decoded["data"];
-        return data.map((e) => Property.fromJson(e)).toList().reversed.toList();
+    try {
+      final url = Uri.parse(
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_api_complete_page_for_fieldworkar.php?field_workar_number=${_fieldworkarnumber}");
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+
+        if (decoded["success"] == true) {
+          List data = decoded["data"];
+          return data
+              .map((e) => Property.fromJson(e))
+              .toList()
+              .reversed
+              .toList();
+        } else {
+          AppLogger.api("⚠️ Booking API success false");
+          return [];
+        }
+      } else {
+        AppLogger.api("❌ Booking Status Code: ${response.statusCode}");
+        return [];
       }
+    } catch (e) {
+      AppLogger.api("❌ Booking Exception: $e");
+      return [];
     }
-    throw Exception("Failed to load data");
   }
 
   Future<List<Tenant>> fetchTenants(int subId) async {
-    final response = await http.get(
-      Uri.parse(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_api_for_owner_tenant_api_for_complete_api.php?subid=$subId",
-      ),
-    );
+    try {
+      final response = await http.get(
+        Uri.parse(
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_api_for_owner_tenant_api_for_complete_api.php?subid=$subId",
+        ),
+      );
 
-    debugPrint("🔵 STATUS CODE: ${response.statusCode}");
-    debugPrint("🔵 RAW RESPONSE: ${response.body}");
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
 
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
-
-      if (jsonResponse["success"] == true) {
-        List data = jsonResponse["data"];
-        debugPrint("🟢 TENANT COUNT: ${data.length}");
-        return data.map((e) => Tenant.fromJson(e)).toList();
+        if (jsonResponse["success"] == true) {
+          List data = jsonResponse["data"];
+          return data.map((e) => Tenant.fromJson(e)).toList();
+        } else {
+          AppLogger.api("⚠️ Tenant API success false");
+          return [];
+        }
       } else {
-        throw Exception("API success = false");
+        AppLogger.api("❌ Tenant Status Code: ${response.statusCode}");
+        return [];
       }
-    } else {
-      throw Exception("Failed to load tenants");
+    } catch (e) {
+      AppLogger.api("❌ Tenant Exception: $e");
+      return [];
     }
   }
 
   Future<List<OwnerData>> fetchPersonDetail(int subid) async {
-    final url = Uri.parse(
-        'https://verifyrealestateandservices.in/PHP_Files/owner_tenant_api.php?subid=$subid');
-    final response = await http.get(url);
+    try {
+      final url = Uri.parse(
+          'https://verifyrealestateandservices.in/PHP_Files/owner_tenant_api.php?subid=$subid');
 
-    print("API Response: ${response.body}");
+      final response = await http.get(url);
 
-    if (response.statusCode == 200) {
-      final decoded = json.decode(response.body);
-      if (decoded['success'] == true) {
-        final data = decoded['data'] as List<dynamic>;
-        print("Decoded Owner Data: $data"); // ✅ Check decoded list
-        return data.map((e) => OwnerData.fromJson(e)).toList();
+      AppLogger.api("🔵 OWNER RAW: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+
+        if (decoded['success'] == true) {
+          final data = decoded['data'] as List<dynamic>;
+          return data.map((e) => OwnerData.fromJson(e)).toList();
+        } else {
+          AppLogger.api("⚠️ Owner API success false");
+          return [];
+        }
       } else {
+        AppLogger.api("❌ Owner Status Code: ${response.statusCode}");
         return [];
       }
-    } else {
-      throw Exception("Failed to fetch owner data");
+    } catch (e) {
+      AppLogger.api("❌ Owner Exception: $e");
+      return [];
     }
   }
-
   @override
   void initState() {
     super.initState();

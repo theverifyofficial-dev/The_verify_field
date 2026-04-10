@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
 import '../../Custom_Widget/Custom_backbutton.dart';
 import '../../Custom_Widget/constant.dart';
 import '../../model/Additional_agreement_tenants.dart';
@@ -207,6 +208,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
         }
       }
     } catch (e) {
+      AppLogger.api("⚠️ Furniture parse error: $e");
       debugPrint("Property error: $e");
     }
   }
@@ -904,6 +906,30 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
   Widget build(BuildContext context) {
     final withPolice = agreement?['is_Police']?.toString() == "true";
 
+    List<int> policeTenants = [];
+
+// 🔹 Main tenant (Tenant 1)
+    final mainPolice =
+        agreement?['is_Police']?.toString().toLowerCase() == "true";
+
+    if (mainPolice) {
+      policeTenants.add(1);
+    }
+
+// 🔹 Additional tenants (Tenant 2,3...)
+    for (int i = 0; i < additionalTenants.length; i++) {
+      final t = additionalTenants[i];
+
+      final value = (t.policeVerification ?? "")
+          .toString()
+          .toLowerCase()
+          .trim();
+
+      if (value == "true" || value == "1") {
+        policeTenants.add(i + 2); // because main = 1
+      }
+    }
+
     if (isLoading) {
       return const Scaffold(
           body: Center(child: CircularProgressIndicator()));
@@ -958,6 +984,10 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
 
             const SizedBox(height: 16),
 
+            const SizedBox(height: 20),
+
+            if (policeTenants.isNotEmpty)
+              _buildPoliceNotice(policeTenants),
             // ── Police notice ──
             if (withPolice) _buildPoliceNotice(),
 
@@ -1272,7 +1302,9 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
 
   // ── Sub-widgets ────────────────────────────────────────────────────────────
 
-  Widget _buildPoliceNotice() {
+  Widget _buildPoliceNotice(List<int> tenants) {
+    final tenantText = tenants.join(', ');
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -1281,20 +1313,68 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
         border: Border.all(color: Colors.redAccent),
       ),
       child: Row(
-        children: const [
-          Icon(Icons.info_outline, color: Colors.redAccent),
-          SizedBox(width: 8),
+        children: [
+          const Icon(Icons.info_outline, color: Colors.redAccent),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               'Note: Police verification must be created by Admin for this agreement.',
               style: TextStyle(
                   color: Colors.redAccent, fontWeight: FontWeight.w600),
+              'Police verification required for Tenant(s): $tenantText',
+              style: const TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
       ),
     );
   }
+
+  Future<void> fetchPropertyCard() async {
+    final propertyId = agreement?["property_id"];
+    if (propertyId == null || propertyId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Enter Property ID first")),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
+        body: {"P_id": propertyId},
+      );
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+
+        if (json['status'] == "success") {
+          final data = json['data'];
+
+          setState(() {
+            propertyCard = _propertyCard(data);
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(json['message'] ?? "Property not found")),
+          );
+        }
+      }
+    } catch (e) {
+      print("Error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to fetch property details")),
+      );
+    }
+  }
+
+  Widget _propertyCard(Map<String, dynamic> data) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
 
   Widget _buildPropertyCard(Map<String, dynamic> data) {
     final isDark = Theme.of(context).brightness == Brightness.dark;

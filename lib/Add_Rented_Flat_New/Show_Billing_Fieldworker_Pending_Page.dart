@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as AppLogger;
 import 'dart:ui' show FontFeature;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -475,11 +476,11 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
       if (p == null) return;
 
       if (_subId == null) {
-        debugPrint("❌ subId not available");
+        //AppLogger.log("❌ subId not available");
         return;
       }
 
-      debugPrint("✅ INIT with subId=$_subId");
+      //AppLogger.log("✅ INIT with subId=$_subId");
 
       await _loadBooking(_subId!);
       await _refreshStatus(_subId!);
@@ -499,8 +500,8 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
 
     final res = await http.get(uri);
 
-    // debugPrint("🟣 STATUS API CODE: ${res.statusCode}");
-    // debugPrint("🟣 STATUS API BODY: ${res.body}");
+    // AppLogger.log("🟣 STATUS API CODE: ${res.statusCode}");
+    // AppLogger.log("🟣 STATUS API BODY: ${res.body}");
 
     if (res.statusCode != 200) return null;
 
@@ -516,7 +517,7 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
     final Map<String, dynamic> latest =
     Map<String, dynamic>.from(list.last);
 
-    debugPrint("🟢 STATUS FINAL ROW: $latest");
+    //AppLogger.log("🟢 STATUS FINAL ROW: $latest");
 
     return PaymentRecord.fromJson(latest);
   }
@@ -528,7 +529,7 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
     final booking = await _fetchBookingBySubId(subid);
 
     if (booking == null) {
-      debugPrint("❌ No booking found for subid $subid");
+      //AppLogger.log("❌ No booking found for subid $subid");
       return;
     }
 
@@ -589,15 +590,15 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
 
     final response = await http.get(url);
 
-    // debugPrint("🟡 TENANT STATUS: ${response.statusCode}");
-    // debugPrint("🟡 TENANT RAW RESPONSE: ${response.body}");
+    // AppLogger.log("🟡 TENANT STATUS: ${response.statusCode}");
+    // AppLogger.log("🟡 TENANT RAW RESPONSE: ${response.body}");
 
     if (response.statusCode != 200) {
       throw Exception("HTTP ${response.statusCode}");
     }
 
     final jsonResponse = json.decode(response.body);
-    // debugPrint("🟢 TENANT PARSED JSON: $jsonResponse");
+    // AppLogger.log("🟢 TENANT PARSED JSON: $jsonResponse");
 
     if (jsonResponse["success"] == true &&
         jsonResponse["data"] is List) {
@@ -616,22 +617,22 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
 
     final res = await http.get(url);
 
-    debugPrint("🟡 PROPERTY STATUS CODE: ${res.statusCode}");
-    debugPrint("🟡 PROPERTY RAW RESPONSE: ${res.body}");
+    AppLogger.log("🟡 PROPERTY STATUS CODE: ${res.statusCode}");
+    AppLogger.log("🟡 PROPERTY RAW RESPONSE: ${res.body}");
 
     if (res.statusCode != 200) {
       throw Exception("Failed to load properties");
     }
 
     final body = json.decode(res.body);
-    debugPrint("🟢 PROPERTY PARSED JSON: $body");
+    AppLogger.log("🟢 PROPERTY PARSED JSON: $body");
 
     if (body["success"] != true) {
       throw Exception(body["message"] ?? "API error");
     }
 
     final List data = body["data"] as List;
-    debugPrint("🟢 PROPERTY COUNT: ${data.length}");
+    AppLogger.log("🟢 PROPERTY COUNT: ${data.length}");
 
     final list = data.map((e) => Property.fromJson(e)).toList();
 
@@ -642,7 +643,7 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
 
 // ✅ ADD THIS LINE
     _subId = int.tryParse(match.subid.toString());
-    debugPrint("🟢 SUBID SET = $_subId");
+    AppLogger.log("🟢 SUBID SET = $_subId");
     return match;
 
   }
@@ -654,18 +655,18 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
 
     final res = await http.get(uri);
 
-    debugPrint("🟡 BOOKING STATUS CODE: ${res.statusCode}");
-    debugPrint("🟡 BOOKING RAW RESPONSE: ${res.body}");
+    AppLogger.log("🟡 BOOKING STATUS CODE: ${res.statusCode}");
+    AppLogger.log("🟡 BOOKING RAW RESPONSE: ${res.body}");
 
     if (res.statusCode != 200) return null;
 
     final body = json.decode(res.body);
-    debugPrint("🟢 BOOKING PARSED JSON: $body");
+    AppLogger.log("🟢 BOOKING PARSED JSON: $body");
 
     if (body['success'] != true) return null;
 
     final List list = body['data'] ?? [];
-    debugPrint("🟢 BOOKING DATA COUNT: ${list.length}");
+    AppLogger.log("🟢 BOOKING DATA COUNT: ${list.length}");
 
     if (list.isEmpty) return null;
 
@@ -673,7 +674,7 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
     final Map<String, dynamic> booking =
     Map<String, dynamic>.from(list.last);
 
-    debugPrint("🟢 BOOKING FINAL ROW: $booking");
+    AppLogger.log("🟢 BOOKING FINAL ROW: $booking");
 
     return booking;
   }
@@ -805,8 +806,8 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
 
     final response = await http.get(url);
 
-    // debugPrint("🟡 BOOKING LIST STATUS: ${response.statusCode}");
-    // debugPrint("🟡 BOOKING LIST RAW RESPONSE: ${response.body}");
+    // AppLogger.log("🟡 BOOKING LIST STATUS: ${response.statusCode}");
+    // AppLogger.log("🟡 BOOKING LIST RAW RESPONSE: ${response.body}");
 
     if (response.statusCode != 200) {
       throw Exception("HTTP ${response.statusCode}");

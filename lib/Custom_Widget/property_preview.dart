@@ -1,3 +1,4 @@
+import '../../AppLogger.dart';
 import 'package:flutter/material.dart';
 
 class PropertyPreview extends StatefulWidget {

@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/material.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:provider/provider.dart';
 import 'package:verify_feild_worker/Notification_demo/notification_Service.dart';
 import 'package:verify_feild_worker/provider/Theme_provider.dart';
@@ -26,51 +26,58 @@ import 'Home_Screen_click/live_tabbar.dart';
 import 'Internet_Connectivity/NetworkListener.dart';
 import 'SocialMediaHandler/SocialMediaHomePage.dart';
 import 'SocialMediaHandler/VideoSubmitPage.dart';
-
+import 'dart:async';
+import 'dart:developer' as developer;
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
 GlobalKey<ScaffoldMessengerState>();
 
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  print("📩 Background Message: ${message.data}");
+
+
+
+void main() {
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    AppLogger.enableDebugLogs = false;
+    AppLogger.enableReleaseLogs = false;
+
+    await Firebase.initializeApp();
+
+    FirebaseMessaging.onBackgroundMessage(
+      firebaseMessagingBackgroundHandler,
+    );
+
+    await FireBaseApi().initNotifications();
+
+    final model = GenerativeModel(
+      model: 'gemini-1.5-flash-latest',
+      apiKey: 'AIzaSyDri7Gn2OPFa70G3fq2UFCeQj4u8xDLs94',
+    );
+
+    runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ThemeProvider()),
+          ChangeNotifierProvider(create: (_) => PropertyProvider()),
+          ChangeNotifierProvider(create: (_) => PropertyIdProvider()),
+          ChangeNotifierProvider(create: (_) => MultiImageUploadProvider()),
+          ChangeNotifierProvider(create: (_) => RealEstateShowDataProvider()),
+        ],
+        child: const MyApp(),
+      ),
+    );
+
+  }, (error, stack) {
+    if (kDebugMode) {
+      AppLogger.api("ERROR: $error");
+      AppLogger.api("STACK: $stack");
+    }
+  });
 }
-
-void main() async {
-
-
-  WidgetsFlutterBinding.ensureInitialized();
-
-  await Firebase.initializeApp();
-
-
-
-  FirebaseMessaging.onBackgroundMessage(
-    firebaseMessagingBackgroundHandler,
-  );
-
-  await FireBaseApi().initNotifications();
-
-  final model = GenerativeModel(
-    model: 'gemini-1.5-flash-latest',
-    apiKey: 'AIzaSyDri7Gn2OPFa70G3fq2UFCeQj4u8xDLs94',
-  );
-
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => PropertyProvider()),
-        ChangeNotifierProvider(create: (_) => PropertyIdProvider()),
-        ChangeNotifierProvider(create: (_) => MultiImageUploadProvider()),
-        ChangeNotifierProvider(create: (_) => RealEstateShowDataProvider()),
-      ],
-      child: const MyApp(),
-    ),
-  );
-}
-
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -90,13 +97,13 @@ class _MyAppState extends State<MyApp> {
     });
 
     FirebaseMessaging.instance.getToken().then((token) {
-      print("🔑 FCM Token: $token");
+      AppLogger.api("🔑 FCM Token: $token");
     });
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print("📩 Foreground: ${message.notification?.title}");
-      print("Body: ${message.notification?.body}");
-      print("Payload: ${message.data}");
+      AppLogger.api("📩 Foreground: ${message.notification?.title}");
+      AppLogger.api("Body: ${message.notification?.body}");
+      AppLogger.api("Payload: ${message.data}");
 
     });
 
@@ -173,7 +180,7 @@ class _MyAppState extends State<MyApp> {
           body.contains("final payment") &&
               body.contains("completed");
 
-      print("🔍 isFinalPaymentCompleted: $isFinalPaymentCompleted");
+      AppLogger.api("🔍 isFinalPaymentCompleted: $isFinalPaymentCompleted");
 
       if (type == "move_to_completed") {
         navigatorKey.currentState?.pushNamedAndRemoveUntil(
@@ -206,13 +213,12 @@ class _MyAppState extends State<MyApp> {
         return;
       }
 
-      /// 🛡 NEW INSURANCE → ADMIN / SUBADMIN
       if (type == "NEW_INSURANCE_ADMIN" || type == "NEW_INSURANCE_SUBADMIN") {
 
         final insuranceId = data['insurance_id']?.toString();
 
         if (insuranceId == null) {
-          print("⚠️ Missing insurance_id");
+          AppLogger.api("⚠️ Missing insurance_id");
           return;
         }
 
@@ -280,18 +286,6 @@ class _MyAppState extends State<MyApp> {
         return;
       }
 
-
-      if (type == "NEW_DEMAND") {
-        openFromNotification(
-          homeRoute: Home_Screen.route,
-          detailRoute: Routes.fieldNewDemand,
-          arguments: {
-            "fromNotification": true,
-          },
-        );
-        return;
-      }
-
       if (type == "RENTED_OUT_UPDATED") {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           navigatorKey.currentState?.pushNamedAndRemoveUntil(
@@ -353,7 +347,7 @@ class _MyAppState extends State<MyApp> {
           flatId ??= payloadMap['flat_id']?.toString() ??
               payloadMap['flatId']?.toString();
         } catch (e) {
-          print("❌ Error parsing nested payload: $e");
+          AppLogger.api("❌ Error parsing nested payload: $e");
         }
       }
 
@@ -462,7 +456,7 @@ class _MyAppState extends State<MyApp> {
       }
 
       if (type == "CONTACT_FORM") {
-        print("📨 Navigating to WebQueryPage with payload: $data");
+        AppLogger.api("📨 Navigating to WebQueryPage with payload: $data");
 
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
@@ -547,60 +541,32 @@ class _MyAppState extends State<MyApp> {
                 return;
               }
 
-      if (type == "DEMAND_ASSIGNED" && demandId != null) {
-        openFromNotification(
-          homeRoute: SubAdminHomeScreen.route,
-          detailRoute: Routes.subAdminDemandDetail,
-          arguments: {
-            "fromNotification": true,
-            "demandId": demandId,
-          },
-        );
-        return;
-      }
-
-
-      if (type == "Demand_Transfer_to_subadmin" && demandId != null) {
-        openFromNotification(
-          homeRoute: SubAdminHomeScreen.route,
-          detailRoute: Routes.subAdminDemandDetail,
-          arguments: {
-            "fromNotification": true,
-            "demandId": demandId,
-          },
-        );
-        return;
-      }
-
-
-      if (type == "REDEMAND_ASSIGNED" && redemandId != null) {
-        openFromNotification(
-          homeRoute: SubAdminHomeScreen.route,
-          detailRoute: Routes.subAdminRedemandDetail,
-          arguments: {
-            "fromNotification": true,
-            "demandId": redemandId,
-          },
-        );
-        return;
-      }
-
-      if (type == "ReDemand_Transfer_to_subadmin" && redemandId != null) {
-        openFromNotification(
-          homeRoute: SubAdminHomeScreen.route,
-          detailRoute: Routes.subAdminRedemandDetail,
-          arguments: {
-            "fromNotification": true,
-            "demandId": redemandId,
-          },
-        );
-        return;
-      }
-
-      if (type == "DEMAND_ASSIGNED_TO_FIELD_WORKAR" && demandId != null) {
+      if (type == "NEW_DEMAND") {
         openFromNotification(
           homeRoute: Home_Screen.route,
-          detailRoute: Routes.FieldDemandDetail,
+          detailRoute: Routes.DemandList,
+          arguments: {
+            "fromNotification": true,
+          },
+        );
+        return;
+      }
+
+      if (type == "NEW_DEMAND_TO_SUBADMIN") {
+        openFromNotification(
+          homeRoute: SubAdminHomeScreen.route,
+          detailRoute: Routes.DemandList,
+          arguments: {
+            "fromNotification": true,
+          },
+        );
+        return;
+      }
+
+      if (type == "NEW_DEMAND_WEBSITE" && demandId != null) {
+        openFromNotification(
+          homeRoute: Home_Screen.route,
+          detailRoute: Routes.DemandDetails,
           arguments: {
             "fromNotification": true,
             "demandId": demandId,
@@ -609,40 +575,26 @@ class _MyAppState extends State<MyApp> {
         return;
       }
 
-      /// 🔒 DEMAND CLOSED → ADMIN
+      if (type == "REDEMAND" && redemandId != null) {
+        openFromNotification(
+          homeRoute: Home_Screen.route,
+          detailRoute: Routes.RedemandDetail,
+          arguments: {
+            "fromNotification": true,
+            "demandId": redemandId,
+          },
+        );
+        return;
+      }
+
+      //Admin
       if (type == "DEMAND_UPDATE_ADMIN" && demandId != null) {
         openFromNotification(
           homeRoute: AdministratorHome_Screen.route,
-          detailRoute: Routes.AdminDemandDetails,
+          detailRoute: Routes.DemandDetails,
           arguments: {
             "fromNotification": true,
-            "demandId": demandId,
-          },
-        );
-        return;
-      }
-
-
-      /// 🔒 DEMAND CLOSED → SUBADMIN
-      if (type == "DEMAND_UPDATE_SUBADMIN" && demandId != null) {
-        openFromNotification(
-          homeRoute: SubAdminHomeScreen.route,
-          detailRoute: Routes.subAdminDemandDetail,
-          arguments: {
-            "fromNotification": true,
-            "demandId": demandId,
-          },
-        );
-        return;
-      }
-
-      if (type == "REDEMAND_ASSIGNED_TO_FIELDWORKER" && redemandId != null) {
-        openFromNotification(
-          homeRoute: Home_Screen.route,
-          detailRoute: Routes.FieldRedemandDetail,
-          arguments: {
-            "fromNotification": true,
-            "demandId": redemandId,
+            "demandId": demandId, // 👈 yes, key stays demandId
           },
         );
         return;
@@ -651,7 +603,7 @@ class _MyAppState extends State<MyApp> {
       if (type == "REDEMAND_CLOSED_TO_ADMIN" && redemandId != null) {
         openFromNotification(
           homeRoute: AdministratorHome_Screen.route,
-          detailRoute: Routes.AdminRedemandDetail,
+          detailRoute: Routes.RedemandDetail,
           arguments: {
             "fromNotification": true,
             "demandId": redemandId, // 👈 yes, key stays demandId
@@ -661,13 +613,25 @@ class _MyAppState extends State<MyApp> {
       }
 
 
-      if (type == "REDEMAND_CLOSED_TO_SUBADMIN" && redemandId != null) {
+      if (type == "DEMAND_UPDATE_SUBADMIN" && demandId != null) {
         openFromNotification(
           homeRoute: SubAdminHomeScreen.route,
-          detailRoute: Routes.subAdminRedemandDetail,
+          detailRoute: Routes.DemandDetails,
           arguments: {
             "fromNotification": true,
-            "demandId": redemandId,
+            "demandId": demandId, // 👈 yes, key stays demandId
+          },
+        );
+        return;
+      }
+
+      if (type == "REDEMAND_CLOSED_TO_SUBADMIN" && redemandId != null) {
+        openFromNotification(
+          homeRoute: SubAdminHomeScreen .route,
+          detailRoute: Routes.RedemandDetail,
+          arguments: {
+            "fromNotification": true,
+            "demandId": redemandId, // 👈 yes, key stays demandId
           },
         );
         return;
@@ -684,12 +648,12 @@ class _MyAppState extends State<MyApp> {
         final propertyId = data['property_id']?.toString() ?? '';
 
         if (agreementId.isEmpty) {
-          print("⚠️ Missing agreementId in notification");
+          AppLogger.api("⚠️ Missing agreementId in notification");
           return;
         }
 
-        print("🔔 Notification Data => ${message.data}");
-        print("📨 Type => ${data['type']}");
+        AppLogger.api("🔔 Notification Data => ${message.data}");
+        AppLogger.api("📨 Type => ${data['type']}");
 
         String? targetRoute;
 
@@ -723,7 +687,7 @@ class _MyAppState extends State<MyApp> {
             );
           });
         } else {
-          print("⚠️ No matching route for agreement type: $type");
+          AppLogger.api("⚠️ No matching route for agreement type: $type");
         }
 
 
@@ -731,7 +695,7 @@ class _MyAppState extends State<MyApp> {
       }
 
     } catch (e) {
-      print("❌ Navigation error: $e");
+      AppLogger.api("❌ Navigation error: $e");
     }
   }
 
@@ -746,7 +710,7 @@ class _MyAppState extends State<MyApp> {
     FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
       _handleDeepLink(dynamicLinkData.link);
     }).onError((error) {
-      print('❌ Dynamic Link error: $error');
+      AppLogger.api('❌ Dynamic Link error: $error');
     });
   }
 

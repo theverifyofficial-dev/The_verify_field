@@ -1,5 +1,6 @@
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
 import 'package:flutter/material.dart';
-
 class GeminiTheme {
   static bool isDark(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;

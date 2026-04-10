@@ -7,8 +7,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -257,7 +258,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
     if (response.statusCode != 200) {
       throw Exception("HTTP ${response.statusCode}: ${response.body}");
     }
-    print('data response : ${response.body}');
+    //print('data response : ${response.body}');
 
     final decoded = json.decode(response.body);
     final dynamic raw = decoded is Map<String, dynamic> ? decoded['data'] : decoded;
@@ -285,12 +286,12 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
     final url =
         'https://verifyrealestateandservices.in/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$id';
 
-    print('multiple image subid${id}');
+    //print('multiple image subid${id}');
 
     final response = await http.get(Uri.parse(url));
 
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    //print('Response status: ${response.statusCode}');
+    //print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);

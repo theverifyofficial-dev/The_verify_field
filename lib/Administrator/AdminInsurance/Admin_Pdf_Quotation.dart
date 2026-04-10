@@ -963,6 +963,7 @@ class _UpdateQuotationSheetState extends State<_UpdateQuotationSheet> {
                       ),
                     ],
                   ),
+Spacer(),
                   SizedBox(width: 120),
                   Text(
                     'ID: ${widget.item.id}',

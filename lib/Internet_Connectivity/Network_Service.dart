@@ -6,11 +6,19 @@ class NetworkService {
   final _controller = StreamController<String>.broadcast();
   ConnectivityResult? _lastConnectivity;
   bool? _lastInternetStatus;
+  Timer? _periodicTimer;
 
   NetworkService() {
     _checkInitialConnection();
 
     Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) async {
+      final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
+      await _emitConnectionStatus(result, initial: false);
+    });
+
+    // 🔁 Periodic check every 5 seconds (catches missed reconnects)
+    _periodicTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
+      final results = await Connectivity().checkConnectivity();
       final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
       await _emitConnectionStatus(result, initial: false);
     });
@@ -29,10 +37,10 @@ class NetworkService {
     }
   }
 
-  Future<void> _emitConnectionStatus(ConnectivityResult result, {bool initial = false}) async {
+  Future<void> _emitConnectionStatus(ConnectivityResult result,
+      {bool initial = false}) async {
     bool isOnline = await InternetConnectionChecker().hasConnection;
 
-    // 🔹 Avoid duplicate messages (no change)
     if (!initial &&
         result == _lastConnectivity &&
         isOnline == _lastInternetStatus) return;
@@ -47,19 +55,19 @@ class NetworkService {
 
     switch (result) {
       case ConnectivityResult.mobile:
-        _controller.sink.add("Connected to Mobile Data !");
+        _controller.sink.add("Connected to Mobile Data ✅");
         break;
       case ConnectivityResult.wifi:
-        _controller.sink.add("Connected to WiFi !");
+        _controller.sink.add("Connected to WiFi ✅");
         break;
       case ConnectivityResult.ethernet:
-        _controller.sink.add("Connected to Ethernet !");
+        _controller.sink.add("Connected to Ethernet ✅");
         break;
       case ConnectivityResult.vpn:
-        _controller.sink.add("Connected via VPN !");
+        _controller.sink.add("Connected via VPN ✅");
         break;
       case ConnectivityResult.none:
-        _controller.sink.add("No Connection !");
+        _controller.sink.add("No Connection ❌");
         break;
       default:
         _controller.sink.add("Unknown Network !");
@@ -70,6 +78,7 @@ class NetworkService {
   Stream<String> get connectionStream => _controller.stream;
 
   void dispose() {
+    _periodicTimer?.cancel();
     _controller.close();
   }
 }

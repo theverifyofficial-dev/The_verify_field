@@ -5,50 +5,52 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:verify_feild_worker/Demand_2/redemand_detailpage.dart';
-
-import '../Administrator/New_TenandDemand/Add_demand.dart';
-import '../model/demand_model.dart';
 import '../utilities/bug_founder_fuction.dart';
 import 'demand_Form.dart';
 
 class DemandDetail extends StatefulWidget {
   final String demandId;
   final bool fromNotification;
+  final bool isReadOnly; // 🔥 NEW
   const DemandDetail({
     super.key, required
     this.demandId,
-    this.fromNotification = false,});
+    this.fromNotification = false,
+    this.isReadOnly = false, // default = fieldworker
+
+  });
 
   @override
   State<DemandDetail> createState() => _AdminDemandDetailState();
 }
 
 class _AdminDemandDetailState extends State<DemandDetail> {
+
+  static const _textPrimary = Color(0xFF111827);   // strong black
+  static const _textSecondary = Color(0xFF374151); // dark grey
+  static const _borderColor = Color(0xFFE5E7EB);   // visible border
+  static const _cardBg = Colors.white;
+
   Map<String, dynamic>? _demand;
   bool _isLoading = true;
+  static const borderColor = Color(0xFFE5E7EB);
   String? _finalReason;
   bool _isSubmittingFinal = false;
   final TextEditingController _otherReasonCtrl = TextEditingController();
   bool _isDisclosing = false;
-  List<Map<String, dynamic>> _redemands = [];
-  bool _isRedemandLoading = true;
-
-
-
 
   @override
   void initState() {
     super.initState();
     _fetchDemandDetails();
-    _fetchRedemands();
-
   }
 
   Future<void> _fetchDemandDetails() async {
     try {
       final response = await http.get(Uri.parse(
           "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}"));
+
+      print("demand ID: ${widget.demandId}");
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> jsonRes = jsonDecode(response.body);
@@ -83,70 +85,6 @@ class _AdminDemandDetailState extends State<DemandDetail> {
         error: e.toString(),
         statusCode: 500,
       );
-    }
-  }
-
-  Future<void> _fetchRedemands() async {
-    try {
-
-
-      final prefs = await SharedPreferences.getInstance();
-      final FieldName = prefs.getString('name') ?? "";
-      final FieldLocation = prefs.getString('location') ?? "";
-      print(FieldName);
-      print(FieldLocation);
-
-      if (FieldName.isEmpty || FieldLocation.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("User info missing. Please login again.")),
-        );
-        return;
-      }
-      final encodedName = Uri.encodeQueryComponent(FieldName);
-      final encodedLoc = Uri.encodeQueryComponent(FieldLocation);
-
-      String url = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_based_on_subid_fieldworkar_name_and_location.php?subid=${widget.demandId}&assigned_fieldworker_name=$encodedName&assigned_fieldworker_location=$encodedLoc";
-
-      print(url);
-      final res = await http.get(Uri.parse(url,));
-
-      if (res.statusCode == 200) {
-        final json = jsonDecode(res.body);
-        if (json["success"] == true && json["data"] is List) {
-          final List list = json["data"];
-
-          // newest first
-          list.sort((a, b) =>
-              DateTime.parse(b["created_date"]["date"])
-                  .compareTo(DateTime.parse(a["created_date"]["date"])));
-
-          setState(() {
-            _redemands = List<Map<String, dynamic>>.from(list);
-            _isRedemandLoading = false;
-          });
-        } else {
-          _isRedemandLoading = false;
-        }
-      }
-      else{
-        await BugLogger.log(
-          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_based_on_subid_fieldworkar_name_and_location.php?subid=${widget.demandId}&assigned_fieldworker_name=$encodedName&assigned_fieldworker_location=$encodedLoc",
-          error: res.body.toString(),
-          statusCode: res.statusCode ?? 0,
-        );
-      }
-    } catch (e) {
-      _isRedemandLoading = false;
-      if (mounted) {
-        await BugLogger.log(
-          apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_redemand_based_on_subid_fieldworkar_name_and_location.php?subid=${widget.demandId}&assigned_fieldworker_name=encodedName&assigned_fieldworker_location=encodedLoc",
-          error: e.toString(),
-          statusCode: 500,
-        );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to load redemands")),
-        );
-      }
     }
   }
 
@@ -278,8 +216,10 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     final isDark = theme.brightness == Brightness.dark;
     final bool isUrgent = _demand?["mark"] == "1";
     final Color accent =
-    isUrgent ? Colors.redAccent : theme.colorScheme.primary;
+    isUrgent ? Colors.redAccent : Colors.black87;
     final status = _demand?["Status"]?.toLowerCase();
+    print(_demand?["Status"]);
+
 
     bool _isAddedByFieldWorker(dynamic value) {
       if (value == null) return false;
@@ -293,7 +233,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     final bool isDisclosed = _demand?["Status"]?.toString().toLowerCase() == "disclosed" || _demand?["Status"]?.toString().toLowerCase() == "redemand" ;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0B0C10) : const Color(0xFFF7F5F0),
+      backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
         backgroundColor: Colors.black,
         elevation: 0,
@@ -304,7 +244,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
         title: Text(
           "Demand Details",
           style:
-          TextStyle(color: accent, fontWeight: FontWeight.bold, fontSize: 18),
+          TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
         ),
         centerTitle: true,
       ),
@@ -313,231 +253,138 @@ class _AdminDemandDetailState extends State<DemandDetail> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: accent))
           : _demand == null
-          ? const Center(child: Text("No data found"))
-          : SingleChildScrollView(
-        padding: const EdgeInsets.all(18),
-        child: Column(
+          ? const Center(child: Text("No data found",style: TextStyle(color: Colors.grey),))
+          : Stack(
           children: [
-            if (_redemands.isNotEmpty) ...[
-              const SizedBox(height: 22),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  "Redemands",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: accent,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
+            SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 90),
+              child: Column(
+                children: [
+                  if (addedByField) _fieldWorkerNotice(isDark),
 
-              _isRedemandLoading
-                  ? const CircularProgressIndicator()
-                  : Column(
-                children: List.generate(_redemands.length, (index) {
-                  final bool isLatest = index == 0;
+                  _buildTenantCard(isDark, accent),
 
-                  final TenantDemandModel d =
-                  TenantDemandModel.fromJson(_redemands[index]);
+                  if (status == "assigned to fieldworker" || status == "disclosed" || status == "progressing")
+                    _buildProgressDetailsCard(_demand!, isDark, accent),
 
-                  return _redemandListTile(
-                    d,
-                    theme,
-                    isLatest,
-                  );
-                }),
+                  if (status == "progressing")
+                    if (!widget.isReadOnly)
+                      _buildCompletionSection(isDark, accent),
 
 
-              ),
-            ],
+                  if (status == "disclosed" )
+                    _buildFinalSummarySection(isDark, accent),
 
-            if (addedByField) _fieldWorkerNotice(isDark),
 
-            if (status == "redemand")
-              infoBanner(
-                icon: Icons.repeat,
-                color: Colors.blue,
-                title: "Demand Reopened",
-                message:
-                "A new redemand was added after the parent demand was disclosed. "
-                    "Work is active again.",
-              ),
+                  if (widget.isReadOnly)
+                    _buildHandlerInfoCard(), // 🔥 ADD THIS
 
-            Divider(),
-            _buildTenantCard(isDark, accent),
-            const SizedBox(height: 24),
 
-            if (status == "progressing" || status == "disclosed" || status == "redemand")
-              _buildProgressDetailsCard(_demand!, isDark, accent),
+                  const SizedBox(height: 10),
 
-            if (status == "progressing")
-              _buildCompletionSection(isDark, accent),
 
-            if (status == "disclosed" || status == "redemand")
-              _buildFinalSummarySection(isDark, accent),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: () =>
+                          _openContactSheet(context, Colors.red, false),
 
-            const SizedBox(height: 24),
+                      icon: const Icon(Icons.call, color: Colors.white),
+                      label: const Text("Contact",
+                          style: TextStyle(color: Colors.white)),
 
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isDisclosed
-                      ? Colors.grey.shade300   // 🔒 disabled state
-                      : theme.colorScheme.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: isDisclosed
-                    ? null // 🔒 fully disabled
-                    : () {
-                  if (_demand == null) return;
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          TenantDemandUpdatePage(demand: _demand!),
                     ),
-                  ).then((_) => _fetchDemandDetails());
-                },
-                child: Text(
-                  isDisclosed  ? "Demand Closed" : "Add More Details",
-                  style: const TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
                   ),
-                ),
+
+                ],
               ),
             ),
+          ]
+      ),
 
-            const SizedBox(height: 24),
 
-            // if (status != "disclosed" && status != "redemand")
-            //
-            //   SizedBox(
-            //   width: double.infinity,
-            //   child: ElevatedButton.icon(
-            //     style: ElevatedButton.styleFrom(
-            //       backgroundColor: Colors.red,
-            //       padding: const EdgeInsets.symmetric(vertical: 14),
-            //       shape: RoundedRectangleBorder(
-            //         borderRadius: BorderRadius.circular(12),
-            //       ),
-            //     ),
-            //     icon: const Icon(Icons.dangerous, color: Colors.white),
-            //     label: const Text(
-            //       "Return to Sub Administrator",
-            //       style: TextStyle(
-            //         fontSize: 16,
-            //         fontWeight: FontWeight.bold,
-            //         color: Colors.white,
-            //       ),
-            //     ),
-            //     onPressed: () => _showReturnConfirmDialog(),
-            //   ),
-            // ),
+      bottomNavigationBar: isDisclosed ?  null :
+      _bottomActions(isDisclosed),
+    );
+  }
 
-            // const SizedBox(height: 24),
+  Widget _buildHandlerInfoCard() {
+    final d = _demand!;
 
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                icon: const Icon(Icons.phone_in_talk_rounded, color: Colors.white),
-                label: const Text(
-                  "Contact Customer",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                onPressed: () => _openContactSheet(context, accent, isDark),
-              ),
+    final name = d["assigned_fieldworker_name"];
+    final location = d["assigned_fieldworker_location"];
+    final assignedBy = d["admin_name"];
+
+    // ❌ if nothing → don't show
+    if (name == null && location == null) return const SizedBox();
+
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          /// 🔥 TITLE
+          const Text(
+            "Handled By",
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF111827),
             ),
-          ],
-        ),
+          ),
+
+          const SizedBox(height: 12),
+
+          /// 🔥 NAME
+          _handlerRow(Icons.person, "Fieldworker", name),
+
+          /// 🔥 NUMBER
+          _handlerRow(Icons.call, "Location", location),
+
+          /// 🔥 ADMIN (optional)
+          if (assignedBy != null)
+            _handlerRow(Icons.admin_panel_settings, "Assigned By", assignedBy),
+        ],
       ),
     );
   }
 
-  Widget infoBanner({
-    required IconData icon,
-    required Color color,
-    required String title,
-    required String message,
-    bool isDark = false,
-  }) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 18),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: color.withOpacity(isDark ? 0.15 : 0.12),
-        border: Border.all(
-          color: color.withOpacity(0.45),
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            icon,
-            color: color,
-            size: 26,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: "$message ",
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isDark
-                              ? color.withOpacity(0.9)
-                              : color.withOpacity(0.85),
-                        ),
-                      ),
-                      WidgetSpan(
-                        alignment: PlaceholderAlignment.middle,
-                        child: Icon(
-                          Icons.sentiment_satisfied_alt,
-                          size: 16,
-                          color: color,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+  Widget _handlerRow(IconData icon, String label, dynamic value) {
+    if (value == null || value.toString().isEmpty) return const SizedBox();
 
-              ],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: const Color(0xFFDC2626)),
+          const SizedBox(width: 10),
+
+          Text(
+            "$label: ",
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF374151),
+            ),
+          ),
+
+          Expanded(
+            child: Text(
+              value.toString(),
+              style: const TextStyle(
+                color: Color(0xFF111827),
+              ),
             ),
           ),
         ],
@@ -545,82 +392,308 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     );
   }
 
+  Widget _bottomActions(bool isDisclosed) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 10,
+          )
+        ],
+      ),
+      child: Row(
+        children: [
+
+          /// ADD DETAILS
+          Expanded(
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFDC2626),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: isDisclosed
+                  ? null
+                  : () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        TenantDemandUpdatePage(demand: _demand!),
+                  ),
+                ).then((_) => _fetchDemandDetails());
+              },
+              child: Text(
+                isDisclosed ? "Closed" : "Add Details",
+                style:  TextStyle(color: isDisclosed
+                    ? Colors.black54
+                    : Colors.white
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(width: 10),
+
+          /// NOT INTERESTED
+          Expanded(
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              icon: const Icon(Icons.block, color: Colors.white),
+              label:  Text("Not Interested",
+                  style: TextStyle(color:  isDisclosed
+                      ? Colors.black54
+                      : Colors.white)),
+              onPressed: isDisclosed ? null : _openNotInterestedSheet,
+            ),
+          ),
+
+
+        ],
+      ),
+    );
+  }
+
+  void _openNotInterestedSheet() {
+    final TextEditingController reasonCtrl = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent, // 🔥 important
+      builder: (ctx) {
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white, // ✅ pure light theme
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+
+              /// 🔥 DRAG HANDLE (pro touch)
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+
+              /// 🔥 TITLE
+              const Text(
+                "Not Interested",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF111827), // strong black
+                ),
+              ),
+
+              const SizedBox(height: 4),
+
+              Text(
+                "Tell us why you are rejecting this demand",
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+
+              const SizedBox(height: 14),
+
+              /// 🔥 INPUT FIELD
+              TextField(
+                controller: reasonCtrl,
+                maxLines: 3,
+                style: const TextStyle(color: Colors.black87),
+                decoration: InputDecoration(
+                  hintText: "Enter reason...",
+                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                  filled: true,
+                  fillColor: const Color(0xFFF9FAFB),
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 12),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.black),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              /// 🔥 SUBMIT BUTTON
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black, // 🔥 premium look
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () async {
+                    Navigator.pop(ctx);
+
+                    _finalReason = "Not Interested";
+                    _otherReasonCtrl.text = reasonCtrl.text;
+
+                    await _submitFinalUpdate();
+                  },
+                  child: const Text(
+                    "Submit",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
 
   Widget _buildFinalSummarySection(bool isDark, Color accent) {
-    final theme = Theme.of(context);
 
     return Container(
       padding: const EdgeInsets.all(18),
       margin: const EdgeInsets.only(top: 20),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(18),
-        color: isDark ? Colors.white.withOpacity(0.06) : Colors.white,
+        color: Colors.white,
+        border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: accent.withOpacity(0.2),
-            blurRadius: 18,
-            offset: const Offset(0, 5),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
           )
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Disclosing Details",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: accent,
-            ),
-          ),
-          const SizedBox(height: 16),
 
-          // Finishing Date
-          Text(
-            "Finishing Date",
-            style: theme.textTheme.titleSmall!
-                .copyWith(fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 6),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: theme.colorScheme.surfaceVariant.withOpacity(0.12),
-            ),
-            child: Text(
-              _demand?["finishing_date"] ?? "-",
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.black87,
-                fontSize: 15,
+          /// 🔥 HEADER WITH ICON
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: accent.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.verified, color: accent, size: 20),
               ),
-            ),
+              const SizedBox(width: 10),
+              Text(
+                "Disclosing Details",
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                  color: accent,
+                ),
+              ),
+            ],
           ),
 
           const SizedBox(height: 18),
 
-          // Final Reason
-          Text(
-            "Final Reason",
-            style: theme.textTheme.titleSmall!
-                .copyWith(fontWeight: FontWeight.w600),
+          /// 🔥 FINISHING DATE
+          _summaryItem(
+            title: "Finishing Date",
+            value: _formatDate(_demand?["finishing_date"]),
           ),
-          const SizedBox(height: 6),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: theme.colorScheme.surfaceVariant.withOpacity(0.12),
+
+          const SizedBox(height: 14),
+
+          /// 🔥 FINAL REASON
+          _summaryItem(
+            title: "Final Reason",
+            value: _demand?["final_reason"] ?? "-",
+            highlight: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryItem({
+    required String title,
+    required String value,
+    bool highlight = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      decoration: BoxDecoration(
+        color: highlight
+            ? const Color(0xFFDC2626).withOpacity(0.05)
+            : const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: highlight
+              ? const Color(0xFFDC2626).withOpacity(0.3)
+              : const Color(0xFFE5E7EB),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Color(0xFF6B7280),
+              fontWeight: FontWeight.w500,
             ),
-            child: Text(
-              _demand?["final_reason"] ?? "-",
-              style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.black87,
-                fontSize: 15,
-              ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: highlight
+                  ? const Color(0xFFDC2626)
+                  : const Color(0xFF111827),
             ),
           ),
         ],
@@ -628,257 +701,15 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     );
   }
 
-  Widget _buildRibbon(String text, Color c1, Color c2) {
-    return Positioned(
-      top: 12,
-      left: -30,
-      child: Transform.rotate(
-        angle: -0.785398,
-        child: Container(
-          width: 140,
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [c1, c2]),
-            boxShadow: [
-              BoxShadow(
-                color: c1.withOpacity(0.4),
-                blurRadius: 6,
-                offset: const Offset(2, 2),
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            "$text   ",
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.2,
-              fontSize: 11.5,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  String _formatDate(String? raw) {
+    if (raw == null || raw.isEmpty) return "-";
 
-
-  Widget _redemandListTile(
-      TenantDemandModel d,
-      ThemeData theme,
-      bool isFirst,
-      ) {
-    final bool isDark = theme.brightness == Brightness.dark;
-    final bool isUrgent = d.mark == "1";
-    final Color baseColor =
-    isUrgent ? Colors.redAccent : theme.colorScheme.primary;
-
-    return Stack(
-      children: [
-
-        if (d.status.toLowerCase() == "disclosed")
-          Positioned(
-            top: 12,
-            left: -30,
-            child: Transform.rotate(
-              angle: -0.785398, // -45 degrees in radians
-              child: Container(
-                width: 140,
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.red.shade500,
-                      Colors.red.shade700,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.redAccent.withOpacity(0.4),
-                      blurRadius: 6,
-                      offset: const Offset(2, 2),
-                    ),
-                  ],
-                ),
-                alignment: Alignment.center,
-                child: const Text(
-                  "DISCLOSED   ",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.2,
-                    fontSize: 11.5,
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-        GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => field_RedemandDetailPage(redemandId: d.id.toString()),
-              ),
-            ).then((_) {
-              _fetchRedemands();
-              _fetchDemandDetails();
-            });
-          },
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            margin: const EdgeInsets.only(bottom: 14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(22),
-              color: baseColor.withOpacity(isDark ? 0.35 : 0.85),
-              boxShadow: [
-                BoxShadow(
-                  color: isUrgent
-                      ? Colors.redAccent.withOpacity(0.25)
-                      : Colors.black.withOpacity(0.08),
-                  blurRadius: 12,
-                  spreadRadius: 1,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-              border: Border.all(
-                color: isUrgent
-                    ? Colors.redAccent.withOpacity(0.6)
-                    : Colors.white.withOpacity(0.05),
-                width: 1.2,
-              ),
-            ),
-            child: ListTile(
-              contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              leading: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                height: 52,
-                width: 52,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: isUrgent
-                        ? [
-                      Colors.redAccent,
-                      Colors.redAccent.shade700,
-                    ]
-                        : [
-                      theme.colorScheme.primary,
-                      theme.colorScheme.primary.withOpacity(0.8),
-                    ],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: isUrgent
-                          ? Colors.redAccent.withOpacity(0.3)
-                          : theme.colorScheme.primary.withOpacity(0.25),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    )
-                  ],
-                ),
-                child: Center(
-                  child: Text(
-                    d.tname.isNotEmpty ? d.tname[0].toUpperCase() : '?',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                ),
-              ),
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      d.tname,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-
-                  // 🔥 NEWEST BADGE HERE
-                  Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: isUrgent
-                          ? Colors.redAccent.withOpacity(0.8)
-                          : theme.colorScheme.primary.withOpacity(0.45),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(d.buyRent.toUpperCase(),
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10.5,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("${d.location} • ${d.bhk} ",
-                        style: TextStyle(
-                            color: isDark ? Colors.white70 : Colors.black54,
-                            fontSize: 14)),
-                    const SizedBox(height: 2),
-                    Text("₹ ${d.price}",
-                        style: TextStyle(
-                            color: isDark ? Colors.white60 : Colors.black54,
-                            fontSize: 14)),
-                    if (d.id.toString().isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 3),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text("ReDemand ID: ${d.id}",
-                                style: TextStyle(
-                                    color: isDark
-                                        ? Colors.white38
-                                        : Colors.black45,
-                                    fontSize: 13)),
-                            Text(
-                              formatApiDate(d.createdDate),
-                              style: TextStyle(
-                                  color: Colors.grey.shade500, fontSize: 13),
-                            )
-
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // ----- Existing ribbons -------
-        if (d.status.toLowerCase() == "assigned to fieldworker")
-          _buildRibbon("NEW", Colors.green.shade500, Colors.green.shade700),
-        if (d.status.toLowerCase() == "disclosed")
-          _buildRibbon("DISCLOSED", Colors.red.shade500, Colors.red.shade700),
-        if (d.status.toLowerCase() == "progressing")
-          _buildRibbon("Progressing", Colors.green.shade500, Colors.green.shade700),
-
-      ],
-    );
+    try {
+      final d = DateTime.parse(raw);
+      return DateFormat("dd MMM yyyy").format(d);
+    } catch (_) {
+      return raw;
+    }
   }
 
   String _fmt(dynamic v) {
@@ -905,36 +736,6 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     return v.toString();
   }
 
-  String _fmtFurnishedItems(dynamic raw) {
-    if (raw == null || raw.toString().trim().isEmpty) return "—";
-
-    try {
-      final Map<String, dynamic> items =
-      raw is String ? jsonDecode(raw) : Map<String, dynamic>.from(raw);
-
-      if (items.isEmpty) return "—";
-
-      return items.entries
-          .map((e) => "${e.key} (${e.value})")
-          .join(", ");
-    } catch (_) {
-      return "—";
-    }
-  }
-
-  String _fmtFamily(Map<String, dynamic> data) {
-    final structure = data['family_structur'];
-    final members = data['family_member'];
-    final count = data['count_of_person'];
-
-    if (structure == null && members == null) return "—";
-
-    return [
-      if (structure != null) structure,
-      if (members != null) "$members members",
-      if (count != null) "($count)"
-    ].join(' • ');
-  }
 
   Widget _buildProgressDetailsCard(
       Map<String, dynamic> data,
@@ -945,15 +746,9 @@ class _AdminDemandDetailState extends State<DemandDetail> {
       margin: const EdgeInsets.only(top: 20),
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        color: isDark ? Colors.white.withOpacity(0.06) : Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: accent.withOpacity(0.18),
-            blurRadius: 16,
-            offset: const Offset(0, 5),
-          )
-        ],
+        borderRadius: BorderRadius.circular(16),
+        color: Colors.white,
+        border: Border.all(color: _borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -966,47 +761,129 @@ class _AdminDemandDetailState extends State<DemandDetail> {
               color: accent,
             ),
           ),
+
           const SizedBox(height: 16),
 
-          _infoRow("Parking", _fmt(data["parking"])),
-          _infoRow("Lift", _fmt(data["lift"])),
-          _infoRow("Furnished", _fmt(data["furnished_unfurnished"])),
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+            childAspectRatio: 2.6,
+            children: [
 
-          if (data["furnished_unfurnished"] == "Fully Furnished" ||
-              data["furnished_unfurnished"] == "Semi Furnished")
-            _infoRow(
-              "Items",
-              _fmtFurnishedItems(data["furnished_item"]),
+              /// BASIC
+              _infoTile("Parking", _fmt(data["parking"])),
+              _infoTile("Lift", _fmt(data["lift"])),
+              _infoTile("Furnished", _fmt(data["furnished_unfurnished"])),
+
+              /// FAMILY
+              _infoTile("Family Type", _fmt(data["family_structur"])),
+              _infoTile("Members", _fmt(data["family_member"])),
+              _infoTile("Persons", _fmt(data["count_of_person"])),
+
+              /// PROPERTY
+              _infoTile("Floor", _fmt(data["floor"])),
+              _infoTile("Religion", _fmt(data["religion"])),
+
+              /// VEHICLE
+              _infoTile("Vehicle Type", _fmt(data["vichle_type"])),
+              _infoTile("Vehicle No", _fmt(data["vichle_no"])),
+
+              /// DATES
+              _infoTile("Visit Date", _fmtDate(data["visiting_dates"])),
+              _infoTile("Shift Date", _fmtDate(data["shifting_date"])),
+
+              /// TYPE
+              _infoTile("Type", _fmt(data["Buy_rent"])),
+            ],
+          ),
+
+          if (data["furnished_item"] != null &&
+              data["furnished_item"].toString().isNotEmpty &&
+              data["furnished_item"] != "--")
+            Padding(
+              padding: const EdgeInsets.only(top: 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Furniture",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    _formatFurniture(data["furnished_item"]),
+                    style: const TextStyle(color: Colors.black87),
+                  ),
+                ],
+              ),
             ),
 
-          _infoRow(
-            "Family",
-            _fmtFamily(data),
-          ),
-
-          _infoRow("Religion", _fmt(data["religion"])),
-
-          _infoRow(
-            "Visiting Date",
-            _fmtDate(data["visiting_dates"]),
-          ),
-
-          _infoRow("Vehicle Type", _fmt(data["vichle_type"])),
-
-          if (_fmt(data["vichle_no"]) != "—")
-            _infoRow("Vehicle No", _fmt(data["vichle_no"])),
-
-          _infoRow(
-            "Floor",
-            _fmt(data["floor"])!.replaceAll(',', ', '),
-          ),
-
-          _infoRow(
-            "Shifting Date",
-            _fmtDate(data["shifting_date"]),
-          ),
         ],
       ),
+    );
+  }
+
+  String _formatFurniture(String? raw) {
+    if (raw == null || raw.isEmpty || raw == "--") return "-";
+
+    try {
+      final decoded = jsonDecode(raw);
+
+      if (decoded is Map) {
+        return decoded.entries
+            .map((e) => "${e.key} (${e.value})")
+            .join(", ");
+      }
+    } catch (_) {}
+
+    return raw;
+  }
+
+  Widget _infoTile(String label, String value) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          constraints: const BoxConstraints(minHeight: 60),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: _borderColor),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min, // 🔥 IMPORTANT
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: _textSecondary,
+                ),
+              ),
+              const SizedBox(height: 4),
+
+              /// 🔥 FLEXIBLE TEXT (NO OVERFLOW EVER)
+              Flexible(
+                child: Text(
+                  value.isEmpty ? "—" : value,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: _textPrimary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -1017,13 +894,13 @@ class _AdminDemandDetailState extends State<DemandDetail> {
       padding: const EdgeInsets.all(18),
       margin: const EdgeInsets.only(top: 20),
       decoration: BoxDecoration(
+        color: _cardBg,
         borderRadius: BorderRadius.circular(18),
-        color: isDark ? Colors.white.withOpacity(0.06) : Colors.white,
+        border: Border.all(color: _borderColor), // ✅ ADD THIS
         boxShadow: [
           BoxShadow(
-            color: accent.withOpacity(0.2),
-            blurRadius: 18,
-            offset: const Offset(0, 5),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
           )
         ],
       ),
@@ -1035,7 +912,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: accent,
+              color: Colors.black87,
             ),
           ),
 
@@ -1045,15 +922,15 @@ class _AdminDemandDetailState extends State<DemandDetail> {
           // Final Reason
           Text("Final Reason",
               style: theme.textTheme.titleSmall!
-                  .copyWith(fontWeight: FontWeight.w600)),
+                  .copyWith(fontWeight: FontWeight.w600,color: Colors.black87)),
           const SizedBox(height: 6),
           GestureDetector(
             onTap: () => _showFinalReasonSheet(),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                color: theme.colorScheme.surfaceVariant.withOpacity(0.15),
+                border: Border.all(color: _borderColor),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1061,29 +938,43 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                   Text(
                     _finalReason ?? "Select Reason",
                     style: TextStyle(
-                      color: _finalReason == null
-                          ? Colors.grey
-                          : (isDark ? Colors.white70 : Colors.black87),
+                      color: Colors.black87,
                       fontSize: 15,
                     ),
                   ),
                   Icon(Icons.keyboard_arrow_down,
-                      size: 22, color: theme.iconTheme.color),
+                      size: 22, color: Colors.black87),
                 ],
               ),
             ),
           ),
 
-            const SizedBox(height: 15),
-            TextField(
-              controller: _otherReasonCtrl,
-              decoration: InputDecoration(
-                labelText: "Enter Reason Details",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          const SizedBox(height: 15),
+          TextField(
+            style: TextStyle(color: Colors.black87),
+            controller: _otherReasonCtrl,
+            decoration: InputDecoration(
+              labelText: "Enter Reason Details",
+              labelStyle: TextStyle(color: Colors.black87),
+              // 🔥 BORDER
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: borderColor),
               ),
-              maxLines: 2,
-              onChanged: (_) => setState(() {}),
+
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: borderColor),
+              ),
+
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: borderColor, width: 1.5),
+              ),
             ),
+            maxLines: 2,
+            onChanged: (_) => setState(() {}),
+          ),
 
           const SizedBox(height: 15),
 
@@ -1094,14 +985,14 @@ class _AdminDemandDetailState extends State<DemandDetail> {
             height: 50,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
+                backgroundColor: Colors.black,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: (_isDisclosing || _isSubmittingFinal)
                   ? null
                   : _showDiscloseConfirmDialog,
               child: _isDisclosing
-                  ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                  ? const CircularProgressIndicator(color: Colors.black, strokeWidth: 2)
                   : const Text(
                 "Disclose Demand",
                 style: TextStyle(
@@ -1122,27 +1013,109 @@ class _AdminDemandDetailState extends State<DemandDetail> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          title: const Text("Confirm Action"),
-          content: const Text(
-            "Are you sure you want to disclose this demand? "
-                "This action cannot be undone.",
+        return Dialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text("Cancel"),
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+
+                /// 🔥 ICON (STRONG VISUAL SIGNAL)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.red,
+                    size: 28,
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+
+                /// 🔥 TITLE
+                const Text(
+                  "Confirm Disclosure",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                /// 🔥 MESSAGE
+                const Text(
+                  "This will permanently mark the demand as completed.\nYou cannot undo this action.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.black87,
+                  ),
+                ),
+
+                const SizedBox(height: 18),
+
+                /// 🔥 ACTION BUTTONS
+                Row(
+                  children: [
+
+                    /// CANCEL
+                    Expanded(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          side: const BorderSide(color: Color(0xFFE5E7EB)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text(
+                          "Cancel",
+                          style: TextStyle(color: Colors.black87),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(width: 10),
+
+                    /// CONFIRM
+                    Expanded(
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFDC2626),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _submitFinalUpdate();
+                        },
+                        child: const Text(
+                          "Confirm",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              onPressed: () {
-                Navigator.pop(ctx);
-                _submitFinalUpdate();
-              },
-              child: const Text("Confirm"),
-            ),
-          ],
+          ),
         );
       },
     );
@@ -1161,33 +1134,88 @@ class _AdminDemandDetailState extends State<DemandDetail> {
 
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const SizedBox(height: 12),
-          const Text(
-            "Select Final Reason",
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          const Divider(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
 
-          ...reasons.map((e) {
-            return ListTile(
-              title: Text(e),
-              onTap: () {
-                Navigator.pop(ctx);
+              /// 🔥 HANDLE
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
 
-                setState(() {
-                  _finalReason = e;
-                });
-              },
-            );
-          }),
-        ],
-      ),
+              /// 🔥 TITLE
+              const Text(
+                "Select Final Reason",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Color(0xFF111827),
+                ),
+              ),
+
+              const SizedBox(height: 14),
+
+              /// 🔥 GRID STYLE OPTIONS (PRO LOOK)
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: reasons.map((e) {
+                  final isSelected = _finalReason == e;
+
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() => _finalReason = e);
+                      Navigator.pop(ctx);
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? const Color(0xFFDC2626).withOpacity(0.1)
+                            : Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected
+                              ? const Color(0xFFDC2626)
+                              : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Text(
+                        e,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: isSelected
+                              ? const Color(0xFFDC2626)
+                              : const Color(0xFF111827),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -1216,7 +1244,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
 
 
     final String finalReasonToSend =
-        (_finalReason ?? "") +
+        (_finalReason ?? "Not Interested") +
             (_otherReasonCtrl.text.trim().isEmpty
                 ? ""
                 : " - ${_otherReasonCtrl.text.trim()}");
@@ -1257,87 +1285,6 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     }
 
     setState(() => _isSubmittingFinal = false);
-  }
-
-  void _showReturnConfirmDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          title: const Text("Confirm Action"),
-          content: const Text(
-            "Are you sure you want to Return this demand to Sub Administrator? "
-                "\nThis action cannot be undone.",
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text("Cancel"),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              onPressed: () {
-                Navigator.pop(ctx);
-                _returnDemand();
-              },
-              child: const Text("Confirm"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _returnDemand() async {
-    try {
-      print("Returning Demand ID: ${_demand!["id"]}");
-
-      final uri = Uri.parse(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/fieldworkar_return_demand_to_subadmin.php",
-      );
-
-      /// ✅ FORM DATA (x-www-form-urlencoded)
-      final response = await http.post(
-        uri,
-        body: {
-          "id": _demand!["id"].toString(),
-        },
-      );
-
-      print("📡 RESPONSE BODY: ${response.body}");
-
-      final result = jsonDecode(response.body);
-
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            backgroundColor: Colors.green,
-            content: Text("Demand Returned successfully"),
-          ),
-        );
-
-        Navigator.pop(context);
-
-      } else {
-        throw Exception(result["message"] ?? "Returning failed");
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: Colors.redAccent,
-          content: Text("Returning failed: $e"),
-        ),
-      );
-
-      await BugLogger.log(
-        apiLink:
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/fieldworkar_return_demand_to_subadmin.php",
-        error: e.toString(),
-        statusCode: 500,
-      );
-    }
   }
 
   Future<List<dynamic>> _fetchLogs(String id) async {
@@ -1407,8 +1354,15 @@ class _AdminDemandDetailState extends State<DemandDetail> {
             return Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF111217) : Colors.white,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+                color: _cardBg,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: _borderColor), // ✅ ADD THIS
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.04),
+                    blurRadius: 8,
+                  )
+                ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -1436,67 +1390,67 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                   const SizedBox(height: 22),
 
                   // CONTACT BUTTONS
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _contactButton(
-                          label: "Call",
-                          color: Colors.blue,
-                          icon: Icons.call,
-                          onTap: () async {
-                            print("☎ CALL tapped");
+                  if (!widget.isReadOnly)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _contactButton(
+                            label: "Call",
+                            color: Colors.blue,
+                            icon: Icons.call,
+                            onTap: () async {
+                              print("☎ CALL tapped");
 
-                            await _logContact(
-                                message: "Try to Call ${maskPhone(number)}", id: id);
+                              await _logContact(
+                                  message: "Try to Call ${maskPhone(number)}", id: id);
 
-                            print("📌 Log Inserted → Calling...");
-                            await refreshLogs();
+                              print("📌 Log Inserted → Calling...");
+                              await refreshLogs();
 
-                            final uri = Uri.parse("tel:$number");
-                            await launchUrl(uri);
-                          },
+                              final uri = Uri.parse("tel:$number");
+                              await launchUrl(uri);
+                            },
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _contactButton(
-                          label: "WhatsApp",
-                          color: Colors.green,
-                          icon: Icons.chat,
-                          onTap: () async {
-                            print("💬 WhatsApp tapped");
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _contactButton(
+                            label: "WhatsApp",
+                            color: Colors.green,
+                            icon: Icons.chat,
+                            onTap: () async {
+                              print("💬 WhatsApp tapped");
 
-                            await _logContact(
-                                message: "Try to message on WhatsApp ${maskPhone(number)}",
-                                id: id);
+                              await _logContact(
+                                  message: "Try to message on WhatsApp ${maskPhone(number)}",
+                                  id: id);
 
-                            print("📌 Log Inserted → Opening WhatsApp...");
-                            await refreshLogs();
+                              print("📌 Log Inserted → Opening WhatsApp...");
+                              await refreshLogs();
 
-                            final phone = normalizeWhatsAppNumber(number);
-                            final txt = Uri.encodeComponent(
-                                "Hello $name, Looking for a ${Bhk} $nextWord for $BuyRent in $location? "
-                            "Feel free to contact us for further details.\n\nRegards,\nVerify Properties");
-                            final url =
-                            Uri.parse("https://wa.me/$phone?text=$txt");
+                              final phone = normalizeWhatsAppNumber(number);
+                              final txt = Uri.encodeComponent(
+                                  "Hello $name, Looking for a ${Bhk} $nextWord for $BuyRent in $location? "
+                                      "Feel free to contact us for further details.\n\nRegards,\nVerify Properties");
+                              final url =
+                              Uri.parse("https://wa.me/$phone?text=$txt");
 
-                            await launchUrl(url,
-                                mode: LaunchMode.externalApplication);
-                          },
+                              await launchUrl(url,
+                                  mode: LaunchMode.externalApplication);
+                            },
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
 
                   const SizedBox(height: 25),
 
-                  // LOG HEADER
                   Row(
                     children: [
                       Icon(Icons.history, color: accent, size: 22),
                       const SizedBox(width: 8),
                       Text(
-                        "Contact Logs",
+                        "Contact Logs History",
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -1629,23 +1583,24 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     required IconData icon,
     required VoidCallback onTap,
   }) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return
+      SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: color,
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          onPressed: onTap,
+          icon: Icon(icon, color: Colors.white),
+          label: Text(
+            label,
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold),
+          ),
         ),
-        onPressed: onTap,
-        icon: Icon(icon, color: Colors.white),
-        label: Text(
-          label,
-          style: const TextStyle(
-              color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
-    );
+      );
   }
 
   String maskPhone(String? phone) {
@@ -1653,163 +1608,180 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     return "XXXXXXX${phone.substring(phone.length - 3)}";
   }
 
-
   Widget _buildTenantCard(bool isDark, Color accent) {
+    final d = _demand!;
 
-    bool _isAddedByFieldWorker(dynamic value) {
-      if (value == null) return false;
-      if (value is bool) return value;
-      if (value is String) return value.toLowerCase() == "true";
-      return false;
-    }
-    final bool addedByField =
-    _isAddedByFieldWorker(_demand?["by_field"]);
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      padding: const EdgeInsets.all(18),
+    return Container(
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        color: isDark ? Colors.white.withOpacity(0.05) : Colors.white,
+        color: _cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _borderColor),
         boxShadow: [
           BoxShadow(
-            color: accent.withOpacity(0.2),
-            blurRadius: 22,
-            offset: const Offset(0, 5),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 6,
           )
         ],
       ),
-
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(
-            children: [
-          Container(
-            height: 55,
-            width: 55,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [accent, accent.withOpacity(0.7)],
-              ),
-              boxShadow: [
-                BoxShadow(
-                    color: accent.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4))
-              ],
-            ),
-            child: Center(
-              child: Text(
-                _demand?["Tname"]?.substring(0, 1).toUpperCase() ?? "?",
-                style: const TextStyle(
-                    color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(_demand?["Tname"] ?? "Unknown",
-                      style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black)),
-                  const SizedBox(height: 3),
-                  Text(maskPhone(_demand?["Tnumber"]),
-                      style:
-                      TextStyle(color: Colors.grey.shade500, fontSize: 14)),
-
-                  Text(
-                    "Created: ${formatApiDate(_demand!["created_date"])}",
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-                  ),
-                  Text('Demand ID: ${_demand?["id"].toString()}' ?? "0",
-                      style: TextStyle(
-                          color: isDark
-                              ? Colors.white38
-                              : Colors.black45,
-                          fontSize: 13)),
-
-
-
-                ]),
-
-
-          ),
-
-
-              if (addedByField)
-              IconButton(
-                icon: const Icon(Icons.edit_rounded),
-                tooltip: "Edit",
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) =>  CustomerDemandFormPage(mode: DemandEditMode.updateDemand, demandId: widget.demandId,)),
-                ).then((_) => _fetchDemandDetails()),
-
-              ),
-
-          if (_demand?["mark"] == "1") ...[
-            Spacer(),
-          Container(
-              width: 10,
-              height: 10,
-              decoration: BoxDecoration(
-                color: Colors.redAccent,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.redAccent.withOpacity(0.8),
-                      blurRadius: 10,
-                      spreadRadius: 1)
-                ],
-              ),
-            ),
-    ]
-        ]
-        ),
-        const SizedBox(height: 12),
-        Divider(color: Colors.grey.withOpacity(0.3)),
-
-        _infoRow("Buy / Rent", _demand?["Buy_rent"]),
-        _infoRow("Location", _demand?["Location"]),
-        _infoRow("Price Range", _demand?["Price"]),
-        _infoRow("BHK Range", _demand?["Bhk"]),
-        // _infoRow("Reference", _demand?["Reference"]),
-        _infoRow("Status", _demand?["Status"]),
-        _infoRow("Message", _demand?["Message"]),
-      ]),
-    );
-  }
-
-
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 140,
-            child: Text(
-              "$label:",
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 13.5,
+
+          /// 🔥 TOP ROW (ID + URGENT + EDIT)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    "#DM-${d["id"]}",
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+
+                  if (d["mark"] == "1") ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        "URGENT",
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ]
+                ],
               ),
-            ),
+
+            ],
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 13.5),
-            ),
+
+          const SizedBox(height: 10),
+
+          /// 🔥 NAME + PRICE (MAIN FOCUS)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  d["Tname"] ?? "Unknown",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: _textPrimary,
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 10),
+
+              Text(
+                _formatPrice(d["Price"]),
+                style: const TextStyle(
+                  color: Color(0xFFDC2626),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          /// 🔥 CHIPS (COMPACT)
+          Wrap(
+            spacing: 6,
+            children: [
+              _chip(d["Buy_rent"]),
+              _chip(d["Bhk"]),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          /// 🔥 LOCATION
+          Row(
+            children: [
+              const Icon(Icons.location_on, size: 14, color: Colors.grey),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Text(
+                  d["Location"] ?? "-",
+                  style: const TextStyle(fontSize: 13,color: Colors.grey),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 6),
+
+          /// 🔥 DATE
+          Row(
+            children: [
+              const Icon(Icons.calendar_today, size: 12, color: Colors.grey),
+              const SizedBox(width: 4),
+              Text(
+                formatApiDate(d["created_date"]),
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
+
+  Widget _chip(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: Color(0xFF334155),
+        ),
+      ),
+    );
+  }
+
+  String _formatPrice(String? raw) {
+    if (raw == null || raw.isEmpty) return "—";
+
+    try {
+      final parts = raw.split("-");
+      if (parts.length != 2) return raw;
+
+      String format(int n) {
+        if (n >= 10000000) return "₹${(n / 10000000).toStringAsFixed(1)}Cr";
+        if (n >= 100000) return "₹${(n / 100000).toStringAsFixed(0)}L";
+        if (n >= 1000) return "₹${(n / 1000).toStringAsFixed(0)}k";
+        return "₹$n";
+      }
+
+      final start = int.tryParse(parts[0]) ?? 0;
+      final end = int.tryParse(parts[1]) ?? 0;
+
+      return "${format(start)} – ${format(end)}";
+    } catch (_) {
+      return raw;
+    }
+  }
+
 
 }

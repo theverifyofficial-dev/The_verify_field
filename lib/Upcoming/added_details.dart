@@ -1,6 +1,7 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/Upcoming/update_form.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -371,8 +372,8 @@ class _UpcomingDetailsPageState extends State<AddedDetails> {
                   ),
                 );
               } else {
-                  debugPrint('P_id : ${widget.id}');
-                  debugPrint('Subid : ${data['subid']}');
+                  AppLogger.api('P_id : ${widget.id}');
+                  AppLogger.api('Subid : ${data['subid']}');
                   // either still loading or API returned nothing
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text("Property not loaded yet.")),
@@ -610,8 +611,8 @@ class _UpcomingDetailsPageState extends State<AddedDetails> {
                             );
 
                             if (deleteResponse.statusCode == 200) {
-                              print('source_id ${widget.id}');
-                              print(deleteResponse.body);
+                              //print('source_id ${widget.id}');
+                              //print(deleteResponse.body);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text("Property UnLived successfully!",

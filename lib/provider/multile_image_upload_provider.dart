@@ -1,6 +1,7 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart'; // Optional for image type
 import 'package:mime/mime.dart'; // To detect MIME type
 import 'package:path/path.dart';
@@ -30,12 +31,12 @@ class MultiImageUploadProvider with ChangeNotifier {
       final response = await request.send();
       final responseBody = await http.Response.fromStream(response);
 
-      print("Upload status code: ${response.statusCode}");
-      print("Response body: ${responseBody.body}");
+      AppLogger.api("Upload status code: ${response.statusCode}");
+      AppLogger.api("Response body: ${responseBody.body}");
 
       return response.statusCode == 200;
     } catch (e) {
-      print("Error uploading images: $e");
+      AppLogger.api("Error uploading images: $e");
       return false;
     }
   }

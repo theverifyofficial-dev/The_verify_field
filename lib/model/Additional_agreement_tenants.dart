@@ -8,6 +8,7 @@ class AdditionalTenant {
   final String front;
   final String back;
   final String photo;
+  final String? policeVerification;
 
   AdditionalTenant({
     required this.name,
@@ -19,6 +20,7 @@ class AdditionalTenant {
     required this.front,
     required this.back,
     required this.photo,
+    required this.policeVerification,
   });
 
   factory AdditionalTenant.fromJson(Map<String, dynamic> json) {
@@ -32,6 +34,7 @@ class AdditionalTenant {
       front: json['tenant_aadhar_front'] ?? '',
       back: json['tenant_aadhar_back'] ?? '',
       photo: json['tenant_photo'] ?? '',
+      policeVerification: json['police_verification_for_addtional_tenant'] ?? '',
     );
   }
 }

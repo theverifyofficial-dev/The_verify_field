@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
 
+import '../AppLogger.dart';
+
 class PropertyModel {
   PropertyModel({
     this.locations,
@@ -182,7 +184,7 @@ class PropertyModel {
 
     fields.forEach((key, value) {
       if (value == null || (value is String && value.trim().isEmpty)) {
-        debugPrint('Field "$key" is null or empty.');
+        AppLogger.api('Field "$key" is null or empty.');
       }
     });
   }

@@ -1,7 +1,8 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -70,7 +71,7 @@ class _AddOwnerPageState extends State<AddOwnerPage> {
         }
       }
     } catch (e) {
-      debugPrint("Error fetching advance amount: $e");
+      AppLogger.api("Error fetching advance amount: $e");
     }
   }
 

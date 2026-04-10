@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../../AppLogger.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../../../model/acceptAgreement.dart';
@@ -32,7 +33,7 @@ class _AdminPendingState extends State<AdminPending> {
       });
     } catch (e) {
       setState(() => isLoading = false);
-      debugPrint("Error loading agreements: $e");
+      AppLogger.api("Error loading agreements: $e");
     }
   }
 

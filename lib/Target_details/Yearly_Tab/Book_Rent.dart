@@ -7,6 +7,7 @@ import 'package:verify_feild_worker/Custom_Widget/constant.dart';
 
 import 'Target_Under_Details_/BookBuy_details.dart';
 import 'Target_Under_Details_/BookRent_details.dart';
+import 'dart:developer' as AppLogger;
 
 class yearlyBookRentModel {
   final int pId;
@@ -198,7 +199,7 @@ class yearlyBookRentModel {
 Future<List<yearlyBookRentModel>> fetchRentBookedBuildings() async {
   final prefs = await SharedPreferences.getInstance();
   final FNumber = prefs.getString('number') ?? "";
-  print(FNumber);
+  AppLogger.log(FNumber);
   final url = Uri.parse(
     "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/book_yearly_show.php?field_workar_number=$FNumber",
   );

@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 class TenantDemandModel {
   final int id;
   final int r_id;
@@ -17,8 +19,11 @@ class TenantDemandModel {
   final String createdDate;
   final String Date;
   final String finishingDate;
+  final String adminName;
   final String? assignedSubadminName;
   final String? assignedFieldworkerName;
+  final bool isPinned;
+
 
   TenantDemandModel({
     required this.id,
@@ -38,18 +43,18 @@ class TenantDemandModel {
     required this.mark,
     required this.createdDate,
     required this.Date,
-    required this.finishingDate ,
+    required this.finishingDate,
+    required this.adminName,
     this.assignedSubadminName,
     this.assignedFieldworkerName,
+    required this.isPinned,
   });
 
   factory TenantDemandModel.fromJson(Map<String, dynamic> json) {
-    // HANDLE BOTH CASES OF created_date
-    String extractCreatedDate(dynamic raw) {
-      if (raw is String) {
-        return raw; // from list API
-      } else if (raw is Map && raw['date'] != null) {
-        return raw['date'].toString(); // from detail API
+    String extractDate(dynamic raw) {
+      if (raw is String) return raw;
+      if (raw is Map && raw['date'] != null) {
+        return raw['date'].toString();
       }
       return "";
     }
@@ -70,84 +75,46 @@ class TenantDemandModel {
       re_status: json['redemand_status']?.toString() ?? '',
       result: json['final_reason']?.toString() ?? '',
       mark: json['mark']?.toString() ?? '0',
-
-      // FIXED: unify both formats
-      createdDate: extractCreatedDate(json['created_date']) ?? '',
-      finishingDate : extractCreatedDate(json['finishing_date']) ?? '',
-      Date : extractCreatedDate(json['Date']) ??'',
+      adminName: json['admin_name']?.toString() ?? '',
+      createdDate: extractDate(json['created_date']),
+      finishingDate: extractDate(json['finishing_date']),
+      Date: extractDate(json['Date']),
 
       assignedSubadminName: json['assigned_subadmin_name']?.toString(),
       assignedFieldworkerName: json['assigned_fieldworker_name']?.toString(),
+      isPinned: json['is_wishlisted']?.toString() == '1',
     );
   }
-}
 
-class RedemandTransferModel {
-  final int redemandId;
-  final int parentDemandId;
-  final int demandId;
+  DateTime? _parseDate(dynamic raw) {
+    if (raw == null) return null;
 
-  final String tname;
-  final String tnumber;
-  final String buyRent;
-  final String price;
-  final String bhk;
-  final String mark;
+    try {
+      if (raw is String && raw.isNotEmpty) {
+        return DateTime.tryParse(raw);
+      }
 
-  final String redemandStatus;
-  final String demandStatus;
+      if (raw is Map && raw['date'] != null) {
+        return DateTime.tryParse(raw['date'].toString());
+      }
+    } catch (_) {}
 
-  final String assignedSubadminName;
-  final String assignedSubadminLocation;
-  final String mainAssignedName;
-  final String mainAssignedLocation;
+    return null;
+  }
 
-  final DateTime? subadminAssignedAt;
+  /// 🔥 unified safe date
+  DateTime? get safeCreatedDate {
+    final primary = _parseDate(createdDate);
+    if (primary != null) return primary;
 
-  RedemandTransferModel({
-    required this.redemandId,
-    required this.parentDemandId,
-    required this.demandId,
-    required this.tname,
-    required this.tnumber,
-    required this.buyRent,
-    required this.price,
-    required this.bhk,
-    required this.mark,
-    required this.redemandStatus,
-    required this.demandStatus,
-    required this.assignedSubadminName,
-    required this.assignedSubadminLocation,
-    required this.mainAssignedName,
-    required this.mainAssignedLocation,
-    required this.subadminAssignedAt,
-  });
+    return _parseDate(Date);
+  }
 
-  factory RedemandTransferModel.fromJson(Map<String, dynamic> json) {
-    return RedemandTransferModel(
-      redemandId: json["redemand_id"],
-      parentDemandId: json["parent_demand_id"],
-      demandId: json["demand_id"],
+  /// ✅ UI-ready formatted date
+  String get formattedDate {
+    final date = safeCreatedDate;
+    if (date == null) return "--";
 
-      tname: json["Tname"] ?? "",
-      tnumber: json["Tnumber"] ?? "",
-      buyRent: json["Buy_rent"] ?? "",
-      price: json["Price"] ?? "",
-      bhk: json["Bhk"] ?? "",
-      mark: json["mark"] ?? "0",
-
-      redemandStatus: json["redemand_status"] ?? "",
-      demandStatus: json["demand_status"] ?? "",
-
-      assignedSubadminName: json["assigned_subadmin_name"] ?? "",
-      assignedSubadminLocation: json["assigned_subadmin_location"] ?? "",
-      mainAssignedName: json["main_assigned_name"] ?? "",
-      mainAssignedLocation: json["main_assigned_location"] ?? "",
-
-      subadminAssignedAt: json["subadmin_assigned_at"] != null
-          ? DateTime.tryParse(json["subadmin_assigned_at"]["date"])
-          : null,
-    );
+    return DateFormat('d MMM yyyy').format(date);
   }
 }
-

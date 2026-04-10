@@ -964,6 +964,7 @@ class _UpdateQuotationSheetState extends State<_UpdateQuotationSheet> {
                       ),
                     ],
                   ),
+                  Spacer(),
                   SizedBox(width: 120),
                   Text(
                     'ID: ${widget.item.id}',
@@ -1117,6 +1118,7 @@ class _SheetLabel extends StatelessWidget {
       style: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w700,
+        color: c.muted,
         color: Colors.white70,
         letterSpacing: .2,
       ),

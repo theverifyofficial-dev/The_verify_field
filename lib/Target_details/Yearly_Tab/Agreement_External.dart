@@ -7,6 +7,7 @@ import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 
 import '../../Administrator/imagepreviewscreen.dart';
 import 'Target_Under_Details_/agreementDetailScreen.dart';
+import 'dart:developer' as AppLogger;
 
 /// =======================
 /// MODEL
@@ -216,7 +217,7 @@ class Agreement {
 Future<List<Agreement>> fetchAgreements() async {
   final prefs = await SharedPreferences.getInstance();
   final FNumber = prefs.getString('number') ?? "";
-  print(FNumber);
+  AppLogger.log(FNumber);
   final url = Uri.parse(
     "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/agreement_external_yearly_show.php?Fieldwarkarnumber=$FNumber",
   );

@@ -153,22 +153,6 @@ class _VideoHomepage_ScreenState extends State<VideoHomepage> with TickerProvide
             ),
           ),
         ),
-        leadingWidth: 80,
-        // Fixed width for consistent spacing
-        actions:  [
-          IconButton(
-            icon: Icon(
-                ThemeSwitcher.of(context)?.themeMode == ThemeMode.dark
-                    ? Icons.light_mode
-                    : Icons.dark_mode,
-                color: Colors.yellow
-
-            ),
-            onPressed: () {
-              ThemeSwitcher.of(context)?.toggleTheme();
-            },
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: AnimationLimiter(

@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
@@ -275,7 +276,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
         return listData.map((e) => Catid.fromJson(e)).toList();
       }
     } catch (e) {
-      debugPrint("Fetch error for $number: $e");
+      AppLogger.api("Fetch error for $number: $e");
     }
     return [];
   }

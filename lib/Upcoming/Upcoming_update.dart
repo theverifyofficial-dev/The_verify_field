@@ -2,8 +2,9 @@
 // import 'dart:io';
 // import 'package:dio/dio.dart';
 // import 'package:flutter/cupertino.dart';
-// import 'package:flutter/material.dart';
-// import 'package:flutter/services.dart';
+// import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';// import 'package:flutter/services.dart';
 // import 'package:flutter_image_compress/flutter_image_compress.dart';
 // import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 // import 'package:fluttertoast/fluttertoast.dart';
@@ -252,8 +253,8 @@
 //
 //   void _loadSavedLatLong() async {
 //     final latLong = await getSavedLatLong();
-//     print('Latitude: ${latLong['Latitude']}');
-//     print('Longitude: ${latLong['Longitude']}');
+//     AppLogger.api('Latitude: ${latLong['Latitude']}');
+//     AppLogger.api('Longitude: ${latLong['Longitude']}');
 //
 //     // If you want to set it to a controller or variable, do it here
 //     setState(() {
@@ -304,13 +305,13 @@
 //     try {
 //       final dataList = await fetchData();
 //       if (dataList.isNotEmpty) {
-//         print(dataList);
+//         AppLogger.api(dataList);
 //         final data = dataList.first;
 //         _networkImageUrl = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/"+data.images;
 //         _facilityController.text = data.facility;
 //         apiImageUrl = data.images;
 //         _selectedItem = data.place;
-//         print(data.place);
+//         AppLogger.api(data.place);
 //         _selectedItem1 = data.buyRent;
 //         apartment_name.text = data.apartmentName;
 //         _vehicleno.text = data.ownerVehicleNumber;

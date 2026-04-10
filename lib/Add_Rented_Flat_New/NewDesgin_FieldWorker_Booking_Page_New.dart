@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../AppLogger.dart';
 import 'FieldWorker_Booking_Finacial_Detail.dart';
 import 'FieldWorker_Booking_Page_Details_New.dart';
 
@@ -268,46 +269,65 @@ class _NewDesginFieldWorkerBookingPageNewState extends State<NewDesginFieldWorke
   String _fieldworkarnumber = '';
 
   Future<List<Property>> fetchBookingData() async {
-    if (userNumber == null || userNumber!.isEmpty) {
+    try {
+      if (userNumber == null || userNumber!.isEmpty) {
+        AppLogger.api("⚠️ userNumber is null/empty");
+        return [];
+      }
+
+      final url = Uri.parse(
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_book_flat_by_fieldworkar.php?field_workar_number=$userNumber",
+      );
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+
+        if (decoded["success"] == true) {
+          final List data = decoded["data"];
+          return data.map((e) => Property.fromJson(e)).toList();
+        } else {
+          AppLogger.api("⚠️ Booking API success false");
+          return [];
+        }
+      } else {
+        AppLogger.api("❌ Booking Status Code: ${response.statusCode}");
+        return [];
+      }
+    } catch (e) {
+      AppLogger.api("❌ Booking Exception: $e");
       return [];
     }
-
-    final url = Uri.parse(
-      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_book_flat_by_fieldworkar.php?field_workar_number=$userNumber",
-    );
-
-    debugPrint("API URL => $url");
-
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final decoded = json.decode(response.body);
-      if (decoded["success"] == true) {
-        final List data = decoded["data"];
-        return data.map((e) => Property.fromJson(e)).toList();
-      }
-    }
-    return [];
   }
+
   Future<List<Tenant>> fetchTenants(int subId) async {
-    final response = await http.get(
-      Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_tenant_and_owner_api.php?subid=$subId"),
-    );
+    try {
+      final response = await http.get(
+        Uri.parse(
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_tenant_and_owner_api.php?subid=$subId",
+        ),
+      );
 
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
 
-      if (jsonResponse["success"] == true) {
-        List data = jsonResponse["data"];
-        return data.map((e) => Tenant.fromJson(e)).toList();
+        if (jsonResponse["success"] == true) {
+          List data = jsonResponse["data"];
+          return data.map((e) => Tenant.fromJson(e)).toList();
+        } else {
+          AppLogger.api("⚠️ Tenant API success false");
+          return [];
+        }
       } else {
-        throw Exception("API success = false");
+        AppLogger.api("❌ Tenant Status Code: ${response.statusCode}");
+        return [];
       }
-    } else {
-      throw Exception("Failed to load tenants");
+    } catch (e) {
+      AppLogger.api("❌ Tenant Exception: $e");
+      return [];
     }
   }
-
   @override
   void initState() {
     super.initState();

@@ -1,5 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui';
+import '../../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
@@ -56,13 +59,13 @@ final Map<String, _SectionTheme> _sectionThemes = {
     icon: Icons.people_outlined,
   ),
   "Director Details": _SectionTheme(
-    titleBg: const Color(0xFF1D4ED8),
+    titleBg: const Color_SectionTheme(0xFF1D4ED8),
     titleText: Colors.white,
     borderColor: const Color(0xFF1D4ED8),
     cardBg: const Color(0xFFEFF6FF),
     icon: Icons.business_center_outlined,
   ),
-  "Additional Tenant": _SectionTheme(
+  "Additional Tenant": (
     titleBg: const Color(0xFFC2410C),
     titleText: Colors.white,
     borderColor: const Color(0xFFC2410C),
@@ -182,7 +185,10 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
   }
 
   Future<void> _loadAllData() async {
-    setState(() => isLoading = true);
+    setState(() {
+      isLoading = true;
+    });
+
     await Future.wait([
       _fetchAgreementDetail(),
       fetchAdditionalTenants(widget.agreementId),
@@ -198,37 +204,10 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
       final decoded = jsonDecode(response.body);
       if (decoded["success"] == true) {
         setState(() {
-          additionalTenants = (decoded["data"] as List)
-              .map((e) => AdditionalTenant.fromJson(e))
-              .toList();
+          additionalTenants =
+              list.map((e) => AdditionalTenant.fromJson(e)).toList();
         });
       }
-    }
-  }
-
-  Future<void> _fetchAgreementDetail() async {
-    try {
-      final response = await http.get(Uri.parse(
-          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/detail_page_main_agreement.php?id=${widget.agreementId}"));
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body);
-        if (decoded["success"] == true &&
-            decoded["data"] != null &&
-            decoded["data"].isNotEmpty) {
-          setState(() {
-            agreement = Map<String, dynamic>.from(decoded["data"][0]);
-            isLoading = false;
-          });
-          fetchPropertyCard();
-        } else {
-          setState(() => isLoading = false);
-        }
-      } else {
-        setState(() => isLoading = false);
-      }
-    } catch (e) {
-      debugPrint("Error: $e");
-      setState(() => isLoading = false);
     }
   }
 
@@ -338,6 +317,35 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     );
   }
 
+  Widget _buildPoliceNotice(List<int> tenants) {
+    final tenantText = tenants.join(', ');
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.redAccent),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline, color: Colors.redAccent),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Police verification required for Tenant(s): $tenantText',
+              style: const TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
   Future<void> _uploadDocument(File file, {required String type}) async {
     if (!mounted) return;
     showDialog(
@@ -358,10 +366,17 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
         request.files.add(await http.MultipartFile.fromPath(
             "police_verification_pdf", file.path));
       }
+
+      AppLogger.api("📤 Upload Started : ${file.path}");
+
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
+
+      AppLogger.api("🌐 Response Code: ${response.statusCode}");
+      AppLogger.api("🧾 Raw Response: $responseBody");
+
       if (response.statusCode == 200) {
         try {
           final data = jsonDecode(responseBody);
@@ -405,6 +420,9 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
             "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/update_payment_field.php"),
         body: body,
       );
+
+      AppLogger.api("📄 Response body: ${response.body}");
+
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
         if (decoded["status"] == true) {
@@ -1064,7 +1082,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
       else if (furnitureData is Map<String, dynamic>)
         furnitureMap = furnitureData;
     } catch (e) {
-      debugPrint("⚠️ Furniture parse error: $e");
+      AppLogger.api("⚠️ Furniture parse error: $e");
     }
     if (furnitureMap.isEmpty) return const SizedBox.shrink();
     return Padding(
@@ -1296,6 +1314,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     final withPolice =
         agreement?['is_Police']?.toString() == "true";
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bool isPolice = agreement?["agreement_type"] == "Police Verification";
 
     final bool paymentDone = agreement?["payment"]?.toString() == "1";
     final bool officeReceived =
@@ -1312,6 +1331,34 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
         ? "Director"
         : "Tenant";
 
+    final String? agreementPdf = agreement?["agreement_pdf"];
+    final bool hasAgreementPdf =
+        agreementPdf != null && agreementPdf.toString().isNotEmpty;
+
+    List<int> policeTenants = [];
+
+// 🔹 Main tenant (Tenant 1)
+    final mainPolice =
+        agreement?['is_Police']?.toString().toLowerCase() == "true";
+
+    if (mainPolice) {
+      policeTenants.add(1);
+    }
+
+// 🔹 Additional tenants (Tenant 2,3...)
+    for (int i = 0; i < additionalTenants.length; i++) {
+      final t = additionalTenants[i];
+
+      final value = (t.policeVerification ?? "")
+          .toString()
+          .toLowerCase()
+          .trim();
+
+      if (value == "true" || value == "1") {
+        policeTenants.add(i + 2); // because main = 1
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
@@ -1325,6 +1372,12 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                alignment: WrapAlignment.spaceEvenly,
+                children: [
+                  _statusCard(
             // ── Agreement type badge ──
             Container(
               padding:
@@ -1388,6 +1441,10 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                   ],
                 ),
               ),
+            SizedBox(height: 20,),
+
+            if (policeTenants.isNotEmpty)
+              _buildPoliceNotice(policeTenants),
 
             const SizedBox(height: 20),
 

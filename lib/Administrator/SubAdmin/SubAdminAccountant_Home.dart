@@ -1,7 +1,8 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -9,6 +10,7 @@ import 'package:verify_feild_worker/Z-Screen/Login_page.dart';
 import '../../Adminisstrator_Target_details/Targets.dart';
 import '../../Administrator/Administator_Agreement/Admin_dashboard.dart';
 import '../../Calender/CalenderForAdmin.dart';
+import '../../Demand_2/Tabbar.dart';
 import '../../Future_Property_OwnerDetails_section/Future_Property.dart';
 import '../../Future_Property_OwnerDetails_section/Future_Property_Tabbar.dart';
 import '../../Home_Screen_click/live_tabbar.dart';
@@ -127,8 +129,8 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final storedName = prefs.getString('name');
     final storedNumber = prefs.getString('number');
-    debugPrint("User Name: $storedName");
-    debugPrint("User Number: $storedNumber");
+    AppLogger.api("User Name: $storedName");
+    AppLogger.api("User Number: $storedNumber");
     if (mounted) {
       setState(() {
         userName = storedName;
@@ -410,7 +412,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                             },
                             {
                               "image": AppImages.demand_2,
-                              "title": "Customer Demands 2.O",
+                              "title": "Customer Demands",
                               "onTap": () => Navigator.push(
                                   context,
                                   MaterialPageRoute(builder: (_) => SubadminTabbar())),
@@ -545,6 +547,14 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                 "onTap": () => Navigator.push(
                                     context,
                                     MaterialPageRoute(builder: (_) => const HistoryTab())),
+                              },
+                              {
+                                "image": AppImages.demand_2,
+                                "title": "Customer Demands (Field)",
+                                "onTap": () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => Tabbar())),
+                                "count": 0,
                               },
                             ];
 

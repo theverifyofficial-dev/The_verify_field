@@ -1,6 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
 import '../../../model/Agreement_model.dart';
 import 'All_data_details_page.dart';
 
@@ -41,6 +42,16 @@ class AllData extends StatefulWidget {
 }
 
 class _AgreementDetailsState extends State<AllData> {
+
+  // Add these alongside your other state variables
+  String? _activeFilterMonth;    // e.g. "2025-03", null = no filter
+  String? _activeFilterWorker;   // e.g. "9711775300", null = all
+  String _searchQuery = "";
+  Timer? _debounce;
+  int totalRecords = 0;
+  int? _lastOpenedId;
+  final Map<int, GlobalKey> _itemKeys = {};
+
   String? _activeFilterMonth;
   String? _activeFilterWorker;
 
@@ -50,9 +61,13 @@ class _AgreementDetailsState extends State<AllData> {
   TextEditingController searchController = TextEditingController();
   late Future<List<FieldWorkerPayment>> _paymentsFuture;
   FieldWorkerPayment? monthlyPaymentSummary;
+  final int _limit = 20;
 
   ScrollController _scrollController = ScrollController();
-  double _savedScrollOffset = 0.0;
+
+  int page = 1;
+  bool hasMore = true;
+  bool isFetchingMore = false;
 
   @override
   void initState() {
@@ -60,13 +75,21 @@ class _AgreementDetailsState extends State<AllData> {
     _scrollController = ScrollController();
     fetchAgreements();
     _paymentsFuture = fetchAllFieldWorkersPayments();
-    searchController.addListener(_onSearchChanged);
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200 &&
+          !isFetchingMore &&
+          hasMore) {
+        fetchAgreements(isInitial: false);
+      }
+    });
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
     searchController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -101,6 +124,7 @@ class _AgreementDetailsState extends State<AllData> {
     );
   }
 
+  /// Silent background refresh — preserves filter state and scroll position
   void _onSearchChanged() {
     String query = searchController.text.toLowerCase();
     setState(() {
@@ -122,10 +146,16 @@ class _AgreementDetailsState extends State<AllData> {
         return;
       }
 
+      final url =
+          'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php?page=1&limit=${agreements.length}';
+
+      // Otherwise fetch full list silently
       final response = await http.get(
         Uri.parse(
             'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php'),
+        Uri.parse(url),
       );
+
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -139,7 +169,14 @@ class _AgreementDetailsState extends State<AllData> {
           if (!mounted) return;
 
           setState(() {
-            agreements = freshList;
+            final freshMap = {
+              for (var item in freshList) item.id: item
+            };
+
+            agreements = agreements.map((oldItem) {
+              return freshMap[oldItem.id] ?? oldItem;
+            }).toList();
+
             final query = searchController.text.toLowerCase();
             filteredAgreements = query.isEmpty
                 ? agreements
@@ -150,11 +187,17 @@ class _AgreementDetailsState extends State<AllData> {
             }).toList();
           });
         }
+
+        _itemKeys.removeWhere((key, _) =>
+        !agreements.any((a) => a.id == key));
       }
     } catch (e) {
-      debugPrint("❌ Silent refresh error: $e");
+      AppLogger.api("❌ Silent refresh error: $e");
     }
   }
+
+// Keep _refreshAgreements for the pull-to-refresh use case (resets everything)
+
 
   Future<void> _refreshAgreements() async {
     try {
@@ -169,13 +212,38 @@ class _AgreementDetailsState extends State<AllData> {
       if (mounted) setState(() => isLoading = false);
     }
   }
+    _activeFilterMonth = null;
+    _activeFilterWorker = null;
+    monthlyPaymentSummary = null;
 
-  Future<void> fetchAgreements() async {
+    await fetchAgreements(isInitial: true);
+  }
+
+  Future<void> fetchAgreements({bool isInitial = true}) async {
+    if (isFetchingMore) return;
+
+    isFetchingMore = true;
+
+    if (isInitial) {
+      page = 1;
+      hasMore = true;
+      agreements.clear();
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(0);
+      }      filteredAgreements.clear();
+      setState(() => isLoading = true);
+    }
+
     try {
       final response = await http.get(
         Uri.parse(
             'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php'),
       );
+      final url = _searchQuery.isEmpty
+          ? 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php?page=$page&limit=$_limit'
+          : 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/search_api_for_final_table_for_admin.php?search=$_searchQuery&page=$page&limit=$_limit';
+
+      final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -195,13 +263,64 @@ class _AgreementDetailsState extends State<AllData> {
         }
       } else {
         throw Exception('Failed to load data');
+      AppLogger.api("RESPONSE: ${response.body}");
+
+      final decoded = jsonDecode(response.body);
+
+      if (decoded['data'] is List) {
+        final List newData = decoded['data'];
+
+        final newList = newData
+            .map((e) => AgreementModel.fromJson(e))
+            .toList();
+
+        final totalPages = decoded['total_pages'] ?? 1;
+        totalRecords = decoded['total_records'] ?? 0;
+
+        setState(() {
+          agreements.addAll(newList);
+          filteredAgreements = agreements;
+
+          page++;
+          hasMore = page < totalPages;
+          isLoading = false;
+        });
       }
     } catch (e) {
-      debugPrint('❌ Error fetching data: $e');
-      setState(() => isLoading = false);
+      AppLogger.api("❌ Search Pagination error: $e");
     }
+
+    isFetchingMore = false;
+  }
+  List<Color> _getCardColors(String? type, bool isDark) {
+    if (type == "Police Verification") {
+      return isDark
+          ? [Colors.blue.shade900, Colors.black]
+          : [Colors.black, Colors.blue.shade400];
+    }
+
+    // Default colors
+    return isDark
+        ? [Colors.green.shade700, Colors.black]
+        : [Colors.black, Colors.green.shade400];
   }
 
+  void _scrollToLastOpened() {
+    if (_lastOpenedId == null) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final key = _itemKeys[_lastOpenedId];
+
+      if (key?.currentContext != null) {
+        Scrollable.ensureVisible(
+          key!.currentContext!,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          alignment: 0.3, // keeps it slightly below top (nice UX)
+        );
+      }
+    });
+  }
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -245,6 +364,34 @@ class _AgreementDetailsState extends State<AllData> {
                         ),
                       ],
                     ),
+                     SizedBox(height: 10),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.grey[850] : Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: TextField(
+                        controller: searchController,
+                        decoration: InputDecoration(
+                          suffixIcon: IconButton(
+                            icon: Icon(Icons.search, color: Colors.green),
+                            onPressed: () {
+                              final query = searchController.text.trim();
+
+                              if (_searchQuery == query) return;
+
+                              _searchQuery = query;
+                              fetchAgreements(isInitial: true);
+                            },
+                          ),
+                          hintText: "Search by Owner, Tenant, or ID...",
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14),
+                        ),
+                      ),
+                    ),
+                  ],
                     child: TextField(
                       controller: searchController,
                       style: TextStyle(
@@ -386,6 +533,29 @@ class _AgreementDetailsState extends State<AllData> {
                               ),
                             ),
                           ],
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                'Total Agreements: ${_searchQuery.isNotEmpty ? filteredAgreements.length : totalRecords}',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: isDark
+                            ? Colors.green.shade200
+                            : Colors.green.shade800,
+                      ),
+                    ),
+
+                    ElevatedButton(
+                      onPressed: () => _openMonthFilterSheet(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.shade700,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       GestureDetector(
@@ -422,9 +592,56 @@ class _AgreementDetailsState extends State<AllData> {
                     final bool officeReceived =
                         item.recieved.toString() == "1";
 
+            if (!isLoading && filteredAgreements.isEmpty)
+              SliverFillRemaining(
+                child: Center(
+                  child: Text(
+                    "No results found",
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ),
+              ),
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      if (index < filteredAgreements.length) {
+
+                        final item = filteredAgreements[index];
+                  final renewalDate = _getRenewalDate(item.shiftingDate);
+                  final bool isPolice =
+                      item.agreementType == "Police Verification";
+
+                  final bool paymentDone = item.payment.toString() == "1";
+                  final bool officeReceived =
+                      item.recieved.toString() == "1";
+
                     return GestureDetector(
+                  return Container(
+                    key: _itemKeys.putIfAbsent(item.id, () => GlobalKey()),
+                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      gradient: LinearGradient(
+                        colors: _getCardColors(item.agreementType, isDark),
+
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.greenAccent.withOpacity(0.2),
+                          blurRadius: 10,
+                          spreadRadius: 0.6,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(18),
                       onTap: () async {
                         _savedScrollOffset = _scrollController.offset;
+                        _lastOpenedId = item.id;
+
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -439,7 +656,198 @@ class _AgreementDetailsState extends State<AllData> {
                             _scrollController.jumpTo(_savedScrollOffset);
                           }
                         });
+
+                        await _silentRefresh();
+
+                        _scrollToLastOpened();
                       },
+                      child: Padding(
+                        padding: const EdgeInsets.all(14.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // 🧾 Header Row
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 15,
+                                      backgroundColor: _getRenewalDateColor(renewalDate),
+                                      child: FittedBox(
+                                        child: Text(
+                                          '${index + 1}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      item.agreementType?.isNotEmpty == true
+                                          ? item.agreementType!
+                                          : "General Agreement",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 15,
+                                        color: Colors.amber,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Text(
+                                  "ID: ${item.id}",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white.withOpacity(0.8),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            // 👥 Owner & Tenant Info
+                            _InfoRow(title: "Owner", value: item.ownerName),
+                            _InfoRow(title: "Tenant", value: item.tenantName),
+                            if (!isPolice) ...[
+                              _InfoRow(title: "Rent", value: "₹${item.monthlyRent}"),
+                            _InfoRow(title: "Shifting Date", value: _formatDate(item.shiftingDate)),
+                            _InfoRow(
+                              title: "Renewal Date",
+                              value: renewalDate != null ? _formatDateTime(renewalDate) : '--',
+                              valueColor: _getRenewalDateColor(renewalDate),
+                            ),
+                            ],
+
+                            const Divider(height: 20, color: Colors.white30),
+
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _statusTick(
+                                  label: "Payment",
+                                  sublabel: paymentDone ? "Paid" : "Pending",
+                                  done: paymentDone,
+                                  activeColor: Colors.lightBlueAccent,
+                                ),
+                                _statusTick(
+                                  label: "Office",
+                                  sublabel: officeReceived ? "Delivered" : "Not Delivered",
+                                  done: officeReceived,
+                                  activeColor: Colors.greenAccent,
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "By ${item.fieldWorkerName}",
+                                  style: const TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    fontSize: 12,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                                if (!isPolice)
+                                Text(
+                                  "Floor: ${item.floor}",
+                                  style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.white),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                if (!officeReceived)
+                                  ElevatedButton(
+                                      onPressed: () => _confirmAndUpdateOfficeReceived(
+                                        context: context,
+                                        agreementId: item.id.toString(),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blue,
+                                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        "Mark Office Received",
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+
+                                Text(
+                                  "cost: ₹${item.agreement_price}",
+                                  style: const TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    fontSize: 12,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                                Text(
+                                  "On ${_formatDate(item.currentDate)}",
+                                  style: const TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    fontSize: 12,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 4),
+
+                            // ⚠ Missing field indicators
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 6,
+                              children: [
+                                if (item.withPolice == "true" && item.policeVerificationPdf.isEmpty ||
+                                    item.policeVerificationPdf == 'null')
+                                  _MissingBadge(label: "Police Verification Missing"),
+                                if (!isPolice)
+                                  if (item.notaryImg.isEmpty || item.notaryImg == 'null')
+                                  _MissingBadge(label: "Notary Image Missing"),
+                              ],
+                            ),
+
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+
+                      } else {
+                        return const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16),
+                          child: Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+                    },
+
+                childCount: filteredAgreements.length + (hasMore ? 1 : 0),
+              ),
+            ),
+          ],
                       child: _AgreementCard(
                         item: item,
                         index: index,
@@ -660,6 +1068,8 @@ class _AgreementDetailsState extends State<AllData> {
       'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/month_wise_agreement.php',
     ).replace(queryParameters: queryParams);
 
+    AppLogger.api("📡 Month Filter API: $uri");
+
     final response = await http.get(uri);
 
     if (response.statusCode == 200) {
@@ -684,12 +1094,15 @@ class _AgreementDetailsState extends State<AllData> {
           );
         });
       } else {
+        AppLogger.api("⚠️ No data for selected filter");
         setState(() {
           agreements = [];
           filteredAgreements = [];
           monthlyPaymentSummary = null;
         });
       }
+    } else {
+      AppLogger.api("❌ API failed: ${response.body}");
     }
   }
 

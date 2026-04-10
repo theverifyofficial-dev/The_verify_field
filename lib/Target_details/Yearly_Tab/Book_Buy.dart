@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Custom_Widget/constant.dart';
 
 import 'Target_Under_Details_/BookBuy_details.dart';
+import 'dart:developer' as AppLogger;
 
 class BookModel {
   final int pId;
@@ -208,7 +209,7 @@ class BookModel {
 Future<List<BookModel>> fetchBuyBookedBuildings() async {
   final prefs = await SharedPreferences.getInstance();
   final FNumber = prefs.getString('number') ?? "";
-  print(FNumber);
+  AppLogger.log(FNumber);
   final url = Uri.parse(
     "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/book_yearly_show.php?field_workar_number=$FNumber",
   );
@@ -220,7 +221,7 @@ Future<List<BookModel>> fetchBuyBookedBuildings() async {
   }
 
   final decoded = json.decode(res.body);
-  print(res.body);
+  AppLogger.log(res.body);
 
   List list = decoded['data'] ?? [];
 

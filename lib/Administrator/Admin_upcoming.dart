@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../model/upcoming_model.dart';
@@ -101,7 +102,7 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
         _isLoading = false;
       });
     } catch (e) {
-      print("❌ Error: $e");
+      // print("❌ Error: $e");
       setState(() => _isLoading = false);
     }
   }
@@ -132,7 +133,7 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
           "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/upcoming_show_api_for_subadmin.php"
       );
 
-      print("🚀 Admin Mode URL: $url");
+      // print("🚀 Admin Mode URL: $url");
 
       final response = await http.get(url);
       return _parsePropertyData(response);
@@ -153,7 +154,7 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
         "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/upcoming_show_api_for_subadmin.php?locations=$finalLocation"
     );
 
-    print("🚀 Sub Admin Location URL: $url");
+    // print("🚀 Sub Admin Location URL: $url");
 
     final response = await http.get(url);
     return _parsePropertyData(response);
@@ -206,9 +207,9 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
       _FAadharCard = prefs.getString('post') ?? '';
     }
 
-    print("🔥 ALL STORED KEYS: ${prefs.getKeys()}");
-    print("🔥 post: ${prefs.getString('post')}");
-    print("🔥 FAadharCard: $_FAadharCard");
+    // print("🔥 ALL STORED KEYS: ${prefs.getKeys()}");
+    // print("🔥 post: ${prefs.getString('post')}");
+    // print("🔥 FAadharCard: $_FAadharCard");
 
     await _fetchProperties();
   }
@@ -221,7 +222,7 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
         _isLoading = false;
       });
     } catch (e) {
-      print("❌ Error fetching data: $e");
+      // print("❌ Error fetching data: $e");
       setState(() => _isLoading = false);
     }
   }
@@ -466,7 +467,7 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
                                     builder: (context) => AdminUpcomingDetails(id: _filteredProperties[index].pId??0),
                                   ),
                                 );
-                                print(_filteredProperties[index].pId??0);
+                                // print(_filteredProperties[index].pId??0);
                               },
                               child: Container(
                                 margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),

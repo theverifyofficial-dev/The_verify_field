@@ -4,17 +4,12 @@ import 'package:verify_feild_worker/Home_Screen.dart';
 import 'package:verify_feild_worker/Z-Screen/Login_page.dart';
 import 'package:verify_feild_worker/Z-Screen/splash.dart';
 import '../Add_Rented_Flat_New/Add_Rented_Flat_Tabbar_New.dart';
-import '../Administrator/Admin_future _property/Administater_Future_Property.dart';
 import '../Administrator/Admin_future _property/Administater_Future_Tabbar.dart';
 import '../Administrator/Admin_future _property/Future_Property_Details.dart';
 import '../Administrator/Administator_Agreement/Admin_Agreement_details.dart';
 import '../Administrator/Administator_Realestate.dart';
 import '../Administrator/Administrator_HomeScreen.dart';
-import '../Administrator/New_TenandDemand/Admin_demand_detail.dart';
-import '../Administrator/New_TenandDemand/redemand_detailpage.dart';
-import '../Administrator/SubAdmin/Redemand_subadmin.dart';
 import '../Administrator/SubAdmin/SubAdminAccountant_Home.dart';
-import '../Administrator/SubAdmin/sub_demand_details.dart';
 import '../Demand_2/Demand_detail.dart';
 import '../Demand_2/Tabbar.dart';
 import '../Demand_2/redemand_detailpage.dart';
@@ -37,17 +32,12 @@ class Routes {
   static const String administaterAddRentedFlatTabbar = "/AdministatorAddRentedFlatTabbar";
   static const String fieldNewDemand = "/fieldNewDemand";
   static const String addRentedFlatTabbarNew = "/AddRentedFlatTabbarNew";
-  // ADMIN
-  static const String AdminDemandDetails = "/adminDemandDetail";
-  static const String AdminRedemandDetail = "/adminRedemandDetail";
 
-// SUBADMIN
-  static const String subAdminDemandDetail = "/subAdminDemandDetail";
-  static const String subAdminRedemandDetail = "/subAdminRedemandDetail";
 
 // FIELDWORKER
-  static const String FieldDemandDetail = "/fieldDemandDetail";
-  static const String FieldRedemandDetail = "/fieldRedemandDetail";
+  static const String DemandList = "/fieldDemandList";
+  static const String DemandDetails = "/fieldDemandDetail";
+  static const String RedemandDetail = "/fieldRedemandDetail";
 // Commercial
   static const String AdminFieldCommercial = "/FieldCommercial";
   static const String AdminFieldPlot = "/FieldPlot";
@@ -181,56 +171,32 @@ class Routes {
         tabIndex: args["tabIndex"] ?? 0,
       );
     },
-    subAdminDemandDetail: (context) {
+
+
+
+    DemandList: (context) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
-      return SubDemandDetails(
-        demandId: args["demandId"],
+      return Tabbar(
         fromNotification: args["fromNotification"] ?? false,
       );
     },
 
-    AdminDemandDetails: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
-      return AdminDemandDetail(
-        demandId: args["demandId"],
-        fromNotification: args["fromNotification"] ?? false,
-      );
-    },
 
-    AdminRedemandDetail: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
-      return RedemandDetailPage(
-        redemandId: args["demandId"],
-        fromNotification: args["fromNotification"] ?? false,
-        subid: args["demandId"],
-      );
-    },
-
-
-    subAdminRedemandDetail: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
-      return RedemandSubadmin(
-        redemandId: args["demandId"],
-        fromNotification: args["fromNotification"] ?? false,
-        demandId: '',
-      );
-    },
-
-
-    FieldDemandDetail: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
+    DemandDetails: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
       return DemandDetail(
         demandId: args["demandId"],
         fromNotification: args["fromNotification"] ?? false,
       );
     },
 
-    FieldRedemandDetail: (context) {
+    RedemandDetail: (context) {
       final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-      return field_RedemandDetailPage(
-        redemandId: args["demandId"],
+      return ReDemandDetailPage(
+        RedemandId: args["demandId"],
         fromNotification: args["fromNotification"] ?? false,
       );
     },
+
   };
 }

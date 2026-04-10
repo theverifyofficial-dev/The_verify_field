@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:google_generative_ai/google_generative_ai.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -438,7 +439,7 @@ class _GeminiChatBodyState extends State<GeminiChatBody> {
 
     final data = jsonDecode(response.body);
 
-    print(data);
+    //print(data);
 
     if (response.statusCode != 200) {
       throw Exception(data["error"]["message"] ?? "Unknown error");

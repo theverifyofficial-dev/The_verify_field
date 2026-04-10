@@ -1,17 +1,12 @@
 import 'dart:convert';
-
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Home_Screen_click/Add_RealEstate.dart';
 import '../Tenant_Details_Demand/ALl_Demands.dart';
-import '../Tenant_Details_Demand/Add_tenantdemand_num.dart';
 import '../Tenant_Details_Demand/Tenant_demands_details.dart';
-import '../Custom_Widget/constant.dart';
+
 class TenantModel {
   final int id;
   final String V_name;
@@ -67,40 +62,51 @@ class Administrator_Tenant_demands extends StatefulWidget {
 
 class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_demands> {
 
-  Future<List<TenantModel>> fetchData(id) async {
-    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/filter_tenant_demand_by_feildworkar_number_?FeildWorker_Number=$_num');
-    final responce = await http.get(url);
-    if (responce.statusCode == 200) {
-      List listresponce = json.decode(responce.body);
-      listresponce.sort((a, b) => b['VTD_id'].compareTo(a['VTD_id']));
-      return listresponce.map((data) => TenantModel.FromJson(data)).toList();
-    }
-    else {
-      throw Exception('Unexpected error occured!');
+
+  Future<List<TenantModel>> fetchData(String id) async {
+    var url = Uri.parse(
+        'https://verifyrealestateandservices.in/WebService4.asmx/filter_tenant_demand_by_feildworkar_number_?FeildWorker_Number=$id');
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body);
+
+      // 🔥 HANDLE BOTH CASES (wrapped + direct)
+      final List listResponse = decoded is Map
+          ? json.decode(decoded['d'])
+          : decoded;
+
+      print(response.body);
+
+      listResponse.sort((a, b) => b['VTD_id'].compareTo(a['VTD_id']));
+
+          return listResponse
+              .map<TenantModel>((data) => TenantModel.FromJson(data))
+        .toList();
+    } else {
+    throw Exception('Unexpected error occurred!');
     }
   }
-  late Future<List<TenantModel>> _futureData;
+
+  Future<List<TenantModel>>? _futureData;
   List<TenantModel> _allData = [];
   List<TenantModel> _filteredData = [];
   final TextEditingController _searchController = TextEditingController();
   String _num = '';
   String _na = '';
+
   @override
   void initState() {
     super.initState();
-    _loaduserdata();
-
     _searchController.addListener(_onSearchChanged);
+    _init();
+  }
 
-    _futureData = fetchData(""+1.toString());
-    _futureData.then((data) {
-      setState(() {
-        _allData = data;
-        _filteredData = List.from(_allData.reversed); // show all initially
-      });
-    }).catchError((e) {
-      print("Error fetching data: $e");
-    });
+  Future<void> _init() async {
+    await _loaduserdata();
+    _futureData = fetchData(_num);
+    setState(() {});
   }
 
   void _onSearchChanged() {
@@ -202,12 +208,13 @@ class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_dema
             // ),
             Expanded(
               child: FutureBuilder<List<TenantModel>>(
-                future: fetchData("" + 1.toString()), // your API call
+                future: _futureData,
                 builder: (context, abc) {
                   if (abc.connectionState == ConnectionState.waiting) {
                     return Center(child: CircularProgressIndicator());
                   } else if (abc.hasError) {
                     return Text('${abc.error}');
+
                   } else if (abc.data == null || abc.data!.isEmpty) {
                     return Center(
                       child: Column(
@@ -291,19 +298,25 @@ class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_dema
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      _buildTag(
-                                        icon: PhosphorIcons.house,
-                                        text: item.bhk,
-                                        borderColor: Colors.red,
-                                        iconColor: Colors.red,
+                                      Expanded(
+                                        child: _buildTag(
+                                          icon: PhosphorIcons.house,
+                                          text: item.bhk,
+                                          borderColor: Colors.red,
+                                          iconColor: Colors.red,
+                                        ),
                                       ),
-                                      _buildTag(
-                                        text: item.buyrent,
-                                        borderColor: Colors.blue,
+                                      Expanded(
+                                        child: _buildTag(
+                                          text: item.buyrent,
+                                          borderColor: Colors.blue,
+                                        ),
                                       ),
-                                      _buildTag(
-                                        text: item.place,
-                                        borderColor: Colors.green,
+                                      Expanded(
+                                        child: _buildTag(
+                                          text: item.place,
+                                          borderColor: Colors.green,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -435,7 +448,7 @@ class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_dema
     );
   }
 
-  void _loaduserdata() async {
+  Future _loaduserdata() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _na = prefs.getString('name') ?? '';

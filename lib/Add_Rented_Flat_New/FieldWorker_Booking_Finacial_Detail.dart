@@ -308,10 +308,10 @@ class _FieldWorkerBookingFinancialDetailPageState
 
     final propRes = await http.get(Uri.parse(propUrl));
 
-    debugPrint("🟦 PROPERTY API URL: $propUrl");
-    debugPrint("🟦 PROPERTY STATUS CODE: ${propRes.statusCode}");
-    debugPrint("🟦 PROPERTY RAW RESPONSE:");
-    debugPrint(propRes.body);
+    //AppLogger.log("🟦 PROPERTY API URL: $propUrl");
+    //AppLogger.log("🟦 PROPERTY STATUS CODE: ${propRes.statusCode}");
+    //AppLogger.log("🟦 PROPERTY RAW RESPONSE:");
+    //AppLogger.log(propRes.body);
 
     if (propRes.statusCode != 200) {
       throw "Property API HTTP error";
@@ -330,7 +330,7 @@ class _FieldWorkerBookingFinancialDetailPageState
       orElse: () => throw "Property ID not found in API list",
     );
 
-    debugPrint("✅ PROPERTY FOUND: P_ID = ${property.pId}, SUBID = ${property.subid}");
+    //AppLogger.log("✅ PROPERTY FOUND: P_ID = ${property.pId}, SUBID = ${property.subid}");
 
     // ================= TENANT API =================
     final tenantUrl =
@@ -338,10 +338,10 @@ class _FieldWorkerBookingFinancialDetailPageState
 
     final tenantRes = await http.get(Uri.parse(tenantUrl));
 
-    debugPrint("🟩 TENANT API URL: $tenantUrl");
-    debugPrint("🟩 TENANT STATUS CODE: ${tenantRes.statusCode}");
-    debugPrint("🟩 TENANT RAW RESPONSE:");
-    debugPrint(tenantRes.body);
+    //AppLogger.log("🟩 TENANT API URL: $tenantUrl");
+    //AppLogger.log("🟩 TENANT STATUS CODE: ${tenantRes.statusCode}");
+    //AppLogger.log("🟩 TENANT RAW RESPONSE:");
+    //AppLogger.log(tenantRes.body);
 
     if (tenantRes.statusCode != 200) {
       throw "Tenant API HTTP error";
@@ -355,11 +355,11 @@ class _FieldWorkerBookingFinancialDetailPageState
         .toList()
         : <Tenant>[];
 
-    debugPrint("✅ TENANT COUNT: ${tenants.length}");
+    //AppLogger.log("✅ TENANT COUNT: ${tenants.length}");
 
     if (tenants.isNotEmpty) {
-      debugPrint(
-          "👤 TENANT NAME: ${tenants.first.tenantName}, OWNER: ${tenants.first.ownerName}");
+      //AppLogger.log(
+      //     "👤 TENANT NAME: ${tenants.first.tenantName}, OWNER: ${tenants.first.ownerName}");
     }
 
     return _PageData(property, tenants.isEmpty ? null : tenants.first);

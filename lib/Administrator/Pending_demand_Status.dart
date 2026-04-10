@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -79,13 +80,13 @@ class _Pending_demand_StatusState extends State<Pending_demand_Status> {
     //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
-      print(responce.body);
+      //print(responce.body);
       Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Pending_demand_Status(id: '${widget.id}',),), (route) => route.isFirst);
 
       //SharedPreferences prefs = await SharedPreferences.getInstance();
 
     } else {
-      print('Failed Registration');
+      //print('Failed Registration');
     }
 
   }

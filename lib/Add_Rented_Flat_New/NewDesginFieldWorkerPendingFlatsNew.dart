@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Administrator/All_Rented_Flat/AdministatorPropertyDetailPage.dart';
+import '../AppLogger.dart';
 import 'Show_Billing_Fieldworker_Pending_Page.dart';
 class Property {
   final int pId;
@@ -522,72 +523,107 @@ class _NewDesginFieldWorkerPendingFlatsNewState extends State<NewDesginFieldWork
 
   /// ---------- FETCH (by subid) ----------
   Future<List<FirstPaymentRecord>> fetchFirstPaymentsBySubId(int subid) async {
-    final uri = Uri.parse(
-      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php?subid=$subid',
-    );
+    try {
+      final uri = Uri.parse(
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php?subid=$subid',
+      );
 
-    final r = await http.get(uri);
-    if (r.statusCode != 200) {
-      throw Exception('HTTP ${r.statusCode}');
+      final r = await http.get(uri);
+
+      if (r.statusCode == 200) {
+        final decoded = json.decode(r.body) as Map<String, dynamic>;
+
+        if (decoded['success'] == true) {
+          final List data = (decoded['data'] as List? ?? []);
+          return data
+              .map((e) =>
+              FirstPaymentRecord.fromJson(e as Map<String, dynamic>))
+              .toList();
+        } else {
+          AppLogger.api("⚠️ FirstPayment API success false");
+          return [];
+        }
+      } else {
+        AppLogger.api("❌ FirstPayment Status Code: ${r.statusCode}");
+        return [];
+      }
+    } catch (e) {
+      AppLogger.api("❌ FirstPayment Exception: $e");
+      return [];
     }
-
-    final decoded = json.decode(r.body) as Map<String, dynamic>;
-    if (decoded['success'] != true) {
-      throw Exception('API error: ${decoded['message'] ?? 'unknown'}');
-    }
-
-    final List data = (decoded['data'] as List? ?? []);
-    return data
-        .map((e) => FirstPaymentRecord.fromJson(e as Map<String, dynamic>))
-        .toList();
   }
 
   /// Optional: get the latest row (highest id) for that subid.
   Future<FirstPaymentRecord?> fetchLatestFirstPayment(int subid) async {
-    final list = await fetchFirstPaymentsBySubId(subid);
-    if (list.isEmpty) return null;
-    list.sort((a, b) => a.id.compareTo(b.id));
-    return list.last;
+    try {
+      final list = await fetchFirstPaymentsBySubId(subid);
+
+      if (list.isEmpty) return null;
+
+      list.sort((a, b) => a.id.compareTo(b.id));
+      return list.last;
+    } catch (e) {
+      AppLogger.api("❌ LatestPayment Exception: $e");
+      return null;
+    }
   }
 
   Future<List<Property>> fetchBookingData() async {
-    final url = Uri.parse(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_fieldworkar.php?field_workar_number=${userNumber}");
-    print("User Name :"+"${userName}");
-    print("User Number :"+"${userNumber}");
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final decoded = json.decode(response.body);
-      if (decoded["success"] == true) {
-        List data = decoded["data"];
-        return data.map((e) => Property.fromJson(e)).toList().reversed.toList();
+    try {
+      final url = Uri.parse(
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_fieldworkar.php?field_workar_number=${userNumber}");
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+
+        if (decoded["success"] == true) {
+          List data = decoded["data"];
+          return data
+              .map((e) => Property.fromJson(e))
+              .toList()
+              .reversed
+              .toList();
+        } else {
+          AppLogger.api("⚠️ Booking API success false");
+          return [];
+        }
+      } else {
+        AppLogger.api("❌ Booking Status Code: ${response.statusCode}");
+        return [];
       }
+    } catch (e) {
+      AppLogger.api("❌ Booking Exception: $e");
+      return [];
     }
-    throw Exception("Failed to load data");
   }
 
   Future<List<Tenant>> fetchTenants(int subId) async {
-    final response = await http.get(
-      Uri.parse(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_pending_rentout_api_tenant_owner.php?subid=$subId",
-      ),
-    );
+    try {
+      final response = await http.get(
+        Uri.parse(
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Payment/show_pending_rentout_api_tenant_owner.php?subid=$subId",
+        ),
+      );
 
-    debugPrint("🔵 STATUS CODE: ${response.statusCode}");
-    debugPrint("🔵 RAW RESPONSE: ${response.body}");
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
 
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
-
-      if (jsonResponse["success"] == true) {
-        List data = jsonResponse["data"];
-        debugPrint("🟢 TENANT COUNT: ${data.length}");
-        return data.map((e) => Tenant.fromJson(e)).toList();
+        if (jsonResponse["success"] == true) {
+          List data = jsonResponse["data"];
+          return data.map((e) => Tenant.fromJson(e)).toList();
+        } else {
+          AppLogger.api("⚠️ Tenant API success false");
+          return [];
+        }
       } else {
-        throw Exception("API success = false");
+        AppLogger.api("❌ Tenant Status Code: ${response.statusCode}");
+        return [];
       }
-    } else {
-      throw Exception("Failed to load tenants");
+    } catch (e) {
+      AppLogger.api("❌ Tenant Exception: $e");
+      return [];
     }
   }
 
@@ -877,7 +913,7 @@ Widget _transactionCard(BuildContext context, Property item, bool isDarkMode, Vo
                     return;
                   }
 
-                  debugPrint("➡️ Opening calculation page for subid: $propertyId");
+                  //AppLogger.log("➡️ Opening calculation page for subid: $propertyId");
 
                   await Navigator.push(
                     context,

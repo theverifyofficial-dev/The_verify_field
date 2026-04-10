@@ -1,6 +1,7 @@
 import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:dio/dio.dart';
 
 class PropertyProvider with ChangeNotifier {
   bool _isLoading = false;
@@ -39,8 +40,8 @@ class PropertyProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
 
-      print('✅ Status: ${response.statusCode}');
-      print('✅ Body: ${response.data}');
+      AppLogger.api('✅ Status: ${response.statusCode}');
+      AppLogger.api('✅ Body: ${response.data}');
 
       if (response.statusCode == 200 && response.data is Map<String, dynamic>) {
         final responseData = response.data;
@@ -51,7 +52,7 @@ class PropertyProvider with ChangeNotifier {
     } catch (e) {
       _isLoading = false;
       notifyListeners();
-      print("❌ Dio error: $e");
+      AppLogger.api("❌ Dio error: $e");
       return false;
     }
   }

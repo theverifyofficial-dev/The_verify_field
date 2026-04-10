@@ -1,7 +1,8 @@
 import 'dart:ui';
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:intl/intl.dart';
 
 class DemandColors {
   static const newDemand = Color(0xFF3B82F6);       // Blue
@@ -9,6 +10,8 @@ class DemandColors {
   static const disclosed =  Color(0xFFEF4444);     // Green
   static const redemand = Color(0xFF10B981);       // Red
 }
+
+
 
 Color demandStatusColor(String status) {
   switch (status.toLowerCase()) {
@@ -35,9 +38,9 @@ Future<List<Map<String, dynamic>>> fetchTodayDemands(String fieldworkerName,) as
         "?fieldworker_name=${Uri.encodeQueryComponent(fieldworkerName)}"
         "&date=$today";
 
-    debugPrint("📅 Today: $today");
-    debugPrint("👤 Fieldworker: $fieldworkerName");
-    debugPrint("🌐 URL: $url");
+    AppLogger.api("📅 Today: $today");
+    AppLogger.api("👤 Fieldworker: $fieldworkerName");
+    AppLogger.api("🌐 URL: $url");
 
     final res = await Dio().get(url);
 
@@ -53,7 +56,7 @@ Future<List<Map<String, dynamic>>> fetchTodayDemands(String fieldworkerName,) as
 
     return [];
   } catch (e) {
-    debugPrint("❌ fetchTodayDemands error: $e");
+    AppLogger.api("❌ fetchTodayDemands error: $e");
     return [];
   }
 }
@@ -193,7 +196,7 @@ Widget todayDemandTile(Map<String, dynamic> d) {
           d["Location"] ?? "",
           style: TextStyle(
             fontSize: 11,
-            color: Colors.grey.shade600,
+            color: Colors.grey.shade500,
           ),
         ),
       ],
@@ -204,7 +207,7 @@ Widget todayDemandTile(Map<String, dynamic> d) {
 Widget customerDemand2CompactCard({
   required bool isDark,
   required bool loading,
-  required int newCount,
+  required int acceptCount,
   required int progressing,
   required int disclosed,
   required int redemand,
@@ -213,7 +216,7 @@ Widget customerDemand2CompactCard({
 }) {
   if (loading) return demandShimmer(isDark);
 
-  final total = newCount + progressing + disclosed + redemand;
+  final total = acceptCount + progressing + disclosed + redemand;
 
   return GestureDetector(
     onTap: onTap,
@@ -258,7 +261,7 @@ Widget customerDemand2CompactCard({
               const SizedBox(width: 12),
               const Expanded(
                 child: Text(
-                  "Customer Demands 2.0",
+                  "Customer Demands",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w800,
@@ -289,9 +292,9 @@ Widget customerDemand2CompactCard({
           Row(
             children: [
               animatedCount(
-                  value: newCount,
+                  value: acceptCount,
                   color: DemandColors.newDemand,
-                  label: "New"),
+                  label: "Accepted"),
               const SizedBox(width: 8),
               animatedCount(
                   value: progressing,
@@ -333,7 +336,7 @@ Widget customerDemand2CompactCard({
               const SizedBox(width: 6),
 
               const Text(
-                "Today’s New Demands",
+                "Today’s Demands",
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,

@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -1554,7 +1555,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         }
       }
     } catch (e) {
-      debugPrint("Building Image API error: $e");
+      AppLogger.api("Building Image API error: $e");
     }
   }
 
@@ -1594,7 +1595,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         }
       }
     } catch (e) {
-      debugPrint("Fetch latest calling error: $e");
+      AppLogger.api("Fetch latest calling error: $e");
     }
 
     return null;
@@ -1623,7 +1624,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         }
       }
     } catch (e) {
-      debugPrint("Agreement yearly API error: $e");
+      AppLogger.api("Agreement yearly API error: $e");
     }
   }
 
@@ -1652,7 +1653,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         }
       }
     } catch (e) {
-      debugPrint("Police yearly API error: $e");
+      AppLogger.api("Police yearly API error: $e");
     }
   }
 
@@ -1674,17 +1675,19 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
     });
 
     if (userNumber == null || userNumber!.isEmpty) {
-      debugPrint("❌ userNumber is NULL");
+      AppLogger.api("❌ userNumber is NULL");
       return;
     }
 
-    debugPrint("✅ USER NUMBER: $userNumber");
+    AppLogger.api("✅ USER NUMBER: $userNumber");
 
     await fetchAgreementYearly();
     await _fetchPoliceYearly();
     await _fetchOverviewBuildingDetail();
     await _fetchData(_selectedDay ?? _focusedDay);
-  }  Future<List<CalendarAddFlat>> fetchCalendarAddFlats({
+  }
+
+  Future<List<CalendarAddFlat>> fetchCalendarAddFlats({
     required String date,
     required String fieldWorkerNumber,
   })
@@ -1710,7 +1713,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
     );
 
     final res = await http.get(uri);
-    print(res);
+    // AppLogger.api(res);
     if (res.statusCode != 200 || res.body.isEmpty) return;
 
     final decoded = jsonDecode(res.body);
@@ -2652,9 +2655,9 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
 
       ]);
-      print(userName);
-      print(userNumber);
-      print(formattedDate);
+      // AppLogger.api(userName);
+      // AppLogger.api(userNumber);
+      AppLogger.api(formattedDate);
       AgreementTaskResponse? a;
       FuturePropertyResponse? f;
       WebsiteVisitResponse? w;
@@ -2668,11 +2671,11 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         try {
           a = AgreementTaskResponse.fromRawJson(responses[0].body);
         } catch (e) {
-          debugPrint("Agreement API parse error: $e");
+          AppLogger.api("Agreement API parse error: $e");
           a = AgreementTaskResponse(status: "error", data: []);
         }
       } else {
-        debugPrint("Agreement API failed (${responses[0].statusCode})");
+        AppLogger.api("Agreement API failed (${responses[0].statusCode})");
         a = AgreementTaskResponse(status: "error", data: []);
       }
 
@@ -2680,15 +2683,15 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         try {
           f = FuturePropertyResponse.fromRawJson(responses[1].body);
 
-          debugPrint("🟢 BUILDING STATUS: ${f.status}");
-          debugPrint("🟢 BUILDING COUNT: ${f.data.length}");
+          AppLogger.api("🟢 BUILDING STATUS: ${f.status}");
+          AppLogger.api("🟢 BUILDING COUNT: ${f.data.length}");
 
         } catch (e) {
-          debugPrint("❌ FutureProperty parse error: $e");
+          AppLogger.api("❌ FutureProperty parse error: $e");
           f = FuturePropertyResponse(status: false, data: []);
         }
       } else {
-        debugPrint("❌ FutureProperty API failed (${responses[1].statusCode})");
+        AppLogger.api("❌ FutureProperty API failed (${responses[1].statusCode})");
         f = FuturePropertyResponse(status: false, data: []);
       }
 
@@ -2697,31 +2700,31 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         try {
           w = WebsiteVisitResponse.fromRawJson(responses[2].body);
         } catch (e) {
-          debugPrint("WebsiteVisit parse error: $e");
+          AppLogger.api("WebsiteVisit parse error: $e");
           w = WebsiteVisitResponse(status: "error", data: []);
         }
       }
       else {
-        debugPrint("WebsiteVisit API failed (${responses[2].statusCode})");
+        AppLogger.api("WebsiteVisit API failed (${responses[2].statusCode})");
         w = WebsiteVisitResponse(status: "error", data: []);
       }
       if (responses[3].statusCode == 200 && responses[3].body.isNotEmpty) {
         try {
           p = pendingAgreementResponseFromJson(responses[3].body);
         } catch (e) {
-          debugPrint("Pending Agreement parse error: $e");
+          AppLogger.api("Pending Agreement parse error: $e");
           p = PendingAgreementResponse(status: "error", data: []);
         }
       }
       else {
-        debugPrint("Pending Agreement API failed (${responses[3].statusCode})");
+        AppLogger.api("Pending Agreement API failed (${responses[3].statusCode})");
         p = PendingAgreementResponse(status: "error", data: []);
       }
       if (responses[4].statusCode == 200 && responses[4].body.isNotEmpty) {
         try {
           aa = acceptedAgreementResponseFromJson(responses[4].body);
         } catch (e) {
-          debugPrint("Accepted Agreement parse error: $e");
+          AppLogger.api("Accepted Agreement parse error: $e");
           aa = AcceptedAgreementResponse(status: "error", data: []);
         }
       }
@@ -2730,30 +2733,30 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         try {
           td = tenantDemandResponseFromJson(responses[5].body);
         } catch (e) {
-          debugPrint("Tenant Demand parse error: $e");
+          AppLogger.api("Tenant Demand parse error: $e");
           td = TenantDemandResponse(status: "error", data: []);
         }
       }
       if (responses[6].statusCode == 200) {
-        debugPrint("🟢 LIVE API RAW BODY:");
-        debugPrint(responses[6].body);
+        AppLogger.api("🟢 LIVE API RAW BODY:");
+        AppLogger.api(responses[6].body);
 
         try {
           final decoded = jsonDecode(responses[6].body);
-          debugPrint("🟢 LIVE API STATUS: ${decoded['status']}");
-          debugPrint("🟢 LIVE API DATA TYPE: ${decoded['data'].runtimeType}");
-          debugPrint("🟢 LIVE API DATA LENGTH: ${(decoded['data'] as List).length}");
+          AppLogger.api("🟢 LIVE API STATUS: ${decoded['status']}");
+          AppLogger.api("🟢 LIVE API DATA TYPE: ${decoded['data'].runtimeType}");
+          AppLogger.api("🟢 LIVE API DATA LENGTH: ${(decoded['data'] as List).length}");
 
           l = LivePropertyResponse.fromJson(decoded);
 
-          debugPrint("🟢 PARSED LIVE COUNT: ${l.data.length}");
+          AppLogger.api("🟢 PARSED LIVE COUNT: ${l.data.length}");
         } catch (e, s) {
-          // debugPrint("❌ LIVE PARSE ERROR: $e");
-          // debugPrint(s.toString());
+          // AppLogger.api("❌ LIVE PARSE ERROR: $e");
+          // debugAppLogger.api(s.toString());
           l = LivePropertyResponse(status: "error", data: []);
         }
       } else {
-        debugPrint("❌ LIVE API FAILED: ${responses[6].statusCode}");
+        // debugPrint("❌ LIVE API FAILED: ${responses[6].statusCode}");
         l = LivePropertyResponse(status: "error", data: []);
       }
 
@@ -2763,8 +2766,8 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         try {
           final decoded = jsonDecode(responses[7].body);
 
-          debugPrint("🟢 BOOKED VISIT RAW:");
-          debugPrint(responses[7].body);
+          // debugPrint("🟢 BOOKED VISIT RAW:");
+          // debugPrint(responses[7].body);
 
           if (decoded['status'] == 'success') {
             bv = BookedTenantVisitResponse.fromJson(decoded);
@@ -2772,7 +2775,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             bv = BookedTenantVisitResponse(status: "error", data: []);
           }
         } catch (e) {
-          debugPrint("Booked Visit parse error: $e");
+          //debugPrint("Booked Visit parse error: $e");
           bv = BookedTenantVisitResponse(status: "error", data: []);
         }
       } else {
@@ -2789,7 +2792,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             uf = UpcomingFlatResponse(status: "error", data: []);
           }
         } catch (e) {
-          debugPrint("Upcoming Flat parse error: $e");
+          //debugPrint("Upcoming Flat parse error: $e");
           uf = UpcomingFlatResponse(status: "error", data: []);
         }
       } else {
@@ -2800,7 +2803,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       if (responses[9].statusCode == 200 && responses[9].body.isNotEmpty) {
         try {
           final decoded = jsonDecode(responses[9].body);
-          print(responses[9].body);
+          //print(responses[9].body);
 
           if (decoded['status'] == 'success') {
             cr = CallingReminderResponse.fromJson(decoded);
@@ -2813,7 +2816,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             cr = CallingReminderResponse(status: 'error', data: []);
           }
         } catch (e) {
-          debugPrint("Calling Reminder parse error: $e");
+          //debugPrint("Calling Reminder parse error: $e");
           cr = CallingReminderResponse(status: 'error', data: []);
         }
       } else {
@@ -2848,7 +2851,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
       }
     } catch (e) {
-      debugPrint("❌ Exception fetching data: $e");
+      //debugPrint("❌ Exception fetching data: $e");
       if (!mounted) return;
       setState(() {
         _agreements = [];

@@ -211,7 +211,7 @@ Future<File> generateCommercialAgreementPdf(Map<String, dynamic> data) async {
   List<Map<String, dynamic>> additionalTenants = [];
   try {
     final res = await http.get(Uri.parse(
-      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_api_for_addtional_tenant.php?agreement_id=${data['id']}',
+      'http://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_api_addional_tenant_accept.php?agreement_id=${data['id']}',
     ));
     if (res.statusCode == 200) {
       final decoded = jsonDecode(res.body);

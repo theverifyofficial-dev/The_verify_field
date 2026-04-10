@@ -1,6 +1,7 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/Upcoming/update_form.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -70,7 +71,7 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
         "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/upcoming_flat_details_page.php?P_id=${widget.id}");
 
     final response = await http.get(url);
-    print('${widget.id}');
+    AppLogger.api('${widget.id}');
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
       if (decoded["status"] == "success" && decoded["data"].isNotEmpty) {
@@ -228,7 +229,7 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
       "date": formattedDate,
     });
 
-    print(response.body);
+    AppLogger.api(response.body);
 
     setState(() => _isLoading = false);
 

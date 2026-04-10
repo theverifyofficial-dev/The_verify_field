@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 import 'Target_Under_Details_/Building_Details.dart';
+import 'dart:developer' as AppLogger;
 
 class BuildingModel {
   final int id;
@@ -122,7 +123,7 @@ class BuildingModel {
 Future<List<BuildingModel>> fetchBuildings() async {
   final prefs = await SharedPreferences.getInstance();
   final FNumber = prefs.getString('number') ?? "";
-  print(FNumber);
+  AppLogger.log(FNumber);
   final url = Uri.parse(
     "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/building_data_yearly.php?fieldworkarnumber=$FNumber",
   );

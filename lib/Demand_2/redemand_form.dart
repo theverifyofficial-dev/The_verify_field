@@ -1,8 +1,8 @@
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:intl/intl.dart';
-import 'package:dio/dio.dart';
 import '../Custom_Widget/constant.dart';
 import '../utilities/bug_founder_fuction.dart';
 import 'package:http/http.dart' as http;
@@ -13,24 +13,31 @@ class RedemandForm extends StatefulWidget {
   const RedemandForm({super.key, required this.demand});
 
   @override
-  State<RedemandForm> createState() => _RedemandFormState ();
+  State<RedemandForm> createState() => _TenantDemandUpdatePageState();
 }
 
-class _RedemandFormState  extends State<RedemandForm>
+class _TenantDemandUpdatePageState extends State<RedemandForm>
     with SingleTickerProviderStateMixin {
-  final Dio _dio = Dio();
+
 
   // Fields
+  bool _notInterested = false;
   String? _parking;
   String? _lift;
   String? _furnished;
   String? _familyStructure;
   String? _familyMember;
-  String? _religion;
-  // RangeValues _rentBudget = const RangeValues(12000, 25000);
   int _adultCount = 1;
   int _childrenCount = 0;
-  Map<String, int> _selectedFurniture = {}; // e.g., {'Sofa': 2, 'Bed': 1}
+  String? _religion;
+
+  static const primaryRed = Color(0xFFDC2626);
+  static const bgWhite = Color(0xFFF9FAFB);
+  static const cardWhite = Colors.white;
+  static const textBlack = Color(0xFF111827);
+  static const borderColor = Color(0xFFE5E7EB);
+  final TextEditingController _furnitureCtrl = TextEditingController();
+  final TextEditingController _totalCtrl = TextEditingController();
 
 
   DateTime? _visitingDate;
@@ -38,10 +45,10 @@ class _RedemandFormState  extends State<RedemandForm>
   final TextEditingController _vehicleNoCtrl = TextEditingController();
   String? _vehicleType;
 
-  // RangeValues _buyBudget = const RangeValues(1000000, 5000000);
-
-
   final Set<String> _floor = {};
+  Map<String, int> _selectedFurniture = {}; // e.g., {'Sofa': 2, 'Bed': 1}
+
+
   DateTime? _shiftingDate;
 
   final TextEditingController _messageCtrl = TextEditingController();
@@ -51,6 +58,24 @@ class _RedemandFormState  extends State<RedemandForm>
 
   late final AnimationController _pulseController;
   late final Animation<double> _pulseAnimation;
+
+  final List<String> _floorOptions = [
+    "Ground",
+    "Upper Ground",
+    "First",
+    "Second",
+    "Third",
+    "Fourth",
+    "Fifth",
+    "Top"
+  ];
+
+  final List<String> furnishingOptions = [
+    'Fully Furnished',
+    'Semi Furnished',
+    'Unfurnished',
+    '',
+  ];
 
   @override
   void initState() {
@@ -62,81 +87,117 @@ class _RedemandFormState  extends State<RedemandForm>
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
-
+    _totalCtrl.text = (_adultCount + _childrenCount).toString();
     _loadInitialValues();
   }
 
-  void _parseMemberCount(String? value) {
-    if (value == null || value.isEmpty) return;
 
-    final match = RegExp(r'(\d+)A-(\d+)C').firstMatch(value);
-    if (match != null) {
-      _adultCount = int.parse(match.group(1)!);
-      _childrenCount = int.parse(match.group(2)!);
-    }
+  void _updateFamilyTotal() {
+    final total = _adultCount + _childrenCount;
+    _totalCtrl.text = total.toString();
+    setState(() {});
   }
 
-  final List<String> furnishingOptions = [
-    'Fully Furnished',
-    'Semi Furnished',
-    'Unfurnished',
-  ];
+  String? safeString(dynamic value) {
+    if (value == null) return null;
+    final str = value.toString().trim();
+    if (str.isEmpty || str == "--" || str.toLowerCase() == "null") {
+      return null;
+    }
+    return str;
+  }
+
+  int safeInt(dynamic value, {int defaultValue = 0}) {
+    if (value == null) return defaultValue;
+    return int.tryParse(value.toString()) ?? defaultValue;
+  }
+
+  double? safeDouble(dynamic value) {
+    if (value == null) return null;
+    return double.tryParse(value.toString());
+  }
 
   void _loadInitialValues() {
     final d = widget.demand;
 
-    _parking = d["parking"];
-    _lift = d["lift"];
-    _furnished = d["furnished_unfurnished"];
-    _familyStructure = d["family_structur"];
-    _familyMember = d["family_member"]?.toString();
-    _religion = d["religion"];
+    // SAFE BASIC FIELDS
+    _parking = safeString(d["parking"]);
+    _lift = safeString(d["lift"]);
+    _furnished = safeString(d["furnished_unfurnished"]);
+    _familyStructure = safeString(d["family_structur"]);
+    _familyMember = safeString(d["family_member"]);
+    _religion = safeString(d["religion"]);
 
-    if (d["visiting_dates"] != null && d["visiting_dates"].toString().isNotEmpty) {
+    // ✅ FURNITURE (SAFE JSON)
+    final rawFurniture = safeString(d["furnished_item"]);
+
+    if (rawFurniture != null) {
       try {
-        _visitingDate = DateTime.parse(d["visiting_dates"]);
-      } catch (_) {}
+        final decoded = jsonDecode(rawFurniture);
+        if (decoded is Map<String, dynamic>) {
+          _selectedFurniture = Map<String, int>.from(decoded);
+
+          _furnitureCtrl.text = _selectedFurniture.entries
+              .map((e) => "${e.key} (${e.value})")
+              .join(", ");
+        }
+      } catch (e) {
+        AppLogger.api("❌ Furniture JSON Error: $e");
+        _selectedFurniture = {};
+        _furnitureCtrl.clear();
+      }
+    } else {
+      _selectedFurniture = {};
+      _furnitureCtrl.clear();
     }
 
-    _vehicleNoCtrl.text = d["vichle_no"] ?? "";
-    _vehicleType = d["vichle_type"];
-
-    _buyRent = d["Buy_rent"]?.toString();
-
-    // final price = d["Price"]?.toString() ?? "";
-    // if (_buyRent == "Buy") {
-    //   final parts = price.split('-');
-    //   if (parts.length == 2) {
-    //     try {
-    //       _buyBudget = RangeValues(
-    //         double.parse(parts[0]),
-    //         double.parse(parts[1]),
-    //       );
-    //     } catch (_) {}
-    //   }
-    // } else if (_buyRent == "Rent") {
-    //   final parts = price.split('-');
-    //   if (parts.length == 2) {
-    //     try {
-    //       _rentBudget = RangeValues(
-    //         double.parse(parts[0]),
-    //         double.parse(parts[1]),
-    //       );
-    //     } catch (_) {}
-    //   }
-    // }
-
-
-    if (d["floor"] != null) {
-      _floor.addAll(d["floor"].toString().split(','));
-    }
-    if (d["shifting_date"] != null && d["shifting_date"].toString().isNotEmpty) {
-      try {
-        _shiftingDate = DateTime.parse(d["shifting_date"]);
-      } catch (_) {}
+    // ✅ FLOOR (NO DUPLICATE ADD)
+    _floor.clear();
+    final floorRaw = safeString(d["floor"]);
+    if (floorRaw != null) {
+      _floor.addAll(
+        floorRaw.split(",").map((e) => e.trim()).where((e) => e.isNotEmpty),
+      );
     }
 
-    _messageCtrl.text = d["Message"] ?? "";
+    // ✅ FAMILY MEMBER
+    final total = int.tryParse(_familyMember ?? "0") ?? 0;
+
+    // ✅ COUNT OF PERSON (A-C FORMAT)
+    final countRaw = safeString(d["count_of_person"]);
+    if (countRaw != null && countRaw.contains("-")) {
+      final parts = countRaw.split("-");
+      _adultCount = safeInt(parts[0].replaceAll("A", ""), defaultValue: 1);
+      _childrenCount = safeInt(parts[1].replaceAll("C", ""), defaultValue: 0);
+    } else if (total > 0) {
+      // fallback if count_of_person missing
+      _adultCount = 1;
+      _childrenCount = total - 1;
+    }
+
+    _updateFamilyTotal();
+
+    // ✅ VISITING DATE
+    final visitingRaw = safeString(d["visiting_dates"]);
+    if (visitingRaw != null) {
+      _visitingDate = DateTime.tryParse(visitingRaw);
+    }
+
+    // ✅ SHIFTING DATE
+    final shiftingRaw = safeString(d["shifting_date"]);
+    if (shiftingRaw != null) {
+      _shiftingDate = DateTime.tryParse(shiftingRaw);
+    }
+
+    // ✅ VEHICLE
+    _vehicleNoCtrl.text = safeString(d["vichle_no"]) ?? "";
+    _vehicleType = safeString(d["vichle_type"]);
+
+    // ✅ BUY / RENT
+    _buyRent = safeString(d["Buy_rent"]);
+
+    // ✅ MESSAGE
+    _messageCtrl.text = safeString(d["Message"]) ?? "";
   }
 
   @override
@@ -144,38 +205,51 @@ class _RedemandFormState  extends State<RedemandForm>
     _pulseController.dispose();
     _vehicleNoCtrl.dispose();
     _messageCtrl.dispose();
+    _furnitureCtrl.dispose(); // 🔥 ADD THIS
     super.dispose();
   }
 
   InputDecoration _inputStyle(String label, IconData icon) {
-    final theme = Theme.of(context);
     return InputDecoration(
       labelText: label,
-      prefixIcon: Icon(icon),
+      labelStyle: const TextStyle(color: Colors.black87),
+
+      prefixIcon: Icon(icon, color: primaryRed),
+
       filled: true,
-      fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.2),
+      fillColor: Colors.white,
+
+      contentPadding:
+      const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+
+      // 🔥 TEXT COLORS
+      hintStyle: TextStyle(color: Colors.grey.shade400),
+
+      // 🔥 BORDER
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+        borderSide: const BorderSide(color: borderColor),
       ),
+
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: borderColor),
+      ),
+
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(
-          color: theme.colorScheme.primary,
-          width: 1.4,
-        ),
+        borderSide: const BorderSide(color: primaryRed, width: 1.5),
       ),
     );
   }
 
   Widget _optionBox(String label, String? value) {
-    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
       decoration: BoxDecoration(
-        border: Border.all(color: theme.dividerColor.withOpacity(0.3)),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        color: theme.colorScheme.surfaceVariant.withOpacity(0.1),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -184,24 +258,15 @@ class _RedemandFormState  extends State<RedemandForm>
             value ?? label,
             style: TextStyle(
               fontSize: 15,
-              color: value == null ? theme.hintColor : theme.colorScheme.onSurface,
+              color: value == null ? Colors.grey : textBlack,
+              fontWeight: value == null ? FontWeight.normal : FontWeight.w600,
             ),
           ),
-          Icon(Icons.keyboard_arrow_down, color: theme.iconTheme.color),
+          const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
         ],
       ),
     );
   }
-  final List<String> _floorOptions = [
-    "Ground",
-    "Upper Ground",
-    "First",
-    "Second",
-    "Third",
-    "Fourth",
-    "Fifth",
-    "Top"
-  ];
 
 
   Widget dropdownField({
@@ -217,9 +282,8 @@ class _RedemandFormState  extends State<RedemandForm>
         Text(
           title,
           style: theme.textTheme.titleSmall!.copyWith(
-            fontWeight: FontWeight.w600,
-            color: theme.colorScheme.onSurface.withOpacity(0.9),
-          ),
+              fontWeight: FontWeight.w600,
+              color: Colors.black87          ),
         ),
         const SizedBox(height: 6),
         GestureDetector(
@@ -269,23 +333,14 @@ class _RedemandFormState  extends State<RedemandForm>
     );
   }
 
-  String _formatAmount(num n) {
-    if (n >= 10000000) return "₹${(n / 10000000).toStringAsFixed(1)}Cr";
-    if (n >= 100000) return "₹${(n / 100000).toStringAsFixed(1)}L";
-    if (n >= 1000) return "₹${(n / 1000).toStringAsFixed(0)}k";
-    return "₹${n.toInt()}";
-  }
-
-
-  Future<void> _updateDemand() async {
+  Future<void> _updateReDemand() async {
     setState(() => _isUpdating = true);
 
-    print("🚀 UPDATE DEMAND STARTED");
+    AppLogger.api("🚀 UPDATE REDEMAND STARTED");
 
     String? error;
 
-
-    if (_shiftingDate == null) {
+    if (!_notInterested && _shiftingDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: Colors.redAccent,
@@ -296,7 +351,10 @@ class _RedemandFormState  extends State<RedemandForm>
       return;
     }
 
-    print("👨‍👩‍👧 Family Ratio OK → $_adultCount A, $_childrenCount C");
+
+    _familyMember = (_adultCount + _childrenCount).toString();
+
+    AppLogger.api("👨‍👩‍👧 Family Ratio OK → $_adultCount A, $_childrenCount C");
 
     final payload = {
       "id": widget.demand["id"].toString(),
@@ -305,15 +363,16 @@ class _RedemandFormState  extends State<RedemandForm>
       "lift": _lift ?? widget.demand["lift"] ?? "",
       "furnished_unfurnished": _furnished ?? widget.demand["furnished_unfurnished"] ?? "",
       "family_structur": _familyStructure ?? widget.demand["family_structur"] ?? "",
-      "family_member": _familyMember ?? widget.demand["family_member"] ?? "",
+      "family_member": (_adultCount + _childrenCount).toString(),
       "count_of_person": (_familyMember != null)
           ? "${_adultCount}A-${_childrenCount}C"
           : widget.demand["count_of_person"] ?? "",
 
       "religion": _religion ?? widget.demand["religion"] ?? "",
 
-      // 🔥 ONLY REQUIRED FIELD
-      "shifting_date": DateFormat("yyyy-MM-dd").format(_shiftingDate!),
+      "shifting_date": (!_notInterested && _shiftingDate != null)
+          ? DateFormat("yyyy-MM-dd").format(_shiftingDate!)
+          : (widget.demand["shifting_date"] ?? ""),
 
       "visiting_dates": _visitingDate == null
           ? widget.demand["visiting_dates"] ?? ""
@@ -325,23 +384,20 @@ class _RedemandFormState  extends State<RedemandForm>
 
       "vichle_type": _vehicleType ?? widget.demand["vichle_type"] ?? "",
 
-      "floor": _floor.isNotEmpty
-          ? _floor.join(',')
-          : widget.demand["floor"] ?? "",
+      "floor": _floor.join(','), // ALWAYS send
 
       "Message": _messageCtrl.text.isNotEmpty
           ? _messageCtrl.text.trim()
           : widget.demand["Message"] ?? "",
 
       "Buy_rent": _buyRent ?? widget.demand["Buy_rent"] ?? "",
+      "not_intrested": _notInterested ? "1" : "0",
 
-      "furnished_item": _selectedFurniture.isNotEmpty
-          ? jsonEncode(_selectedFurniture)
-          : widget.demand["furnished_item"] ?? "",
+      "furnished_item": jsonEncode(_selectedFurniture),
     };
 
-    print("📦 REQUEST PAYLOAD:");
-    payload.forEach((k, v) => print("   $k → $v"));
+    AppLogger.api("📦 REQUEST PAYLOAD:");
+    payload.forEach((k, v) => AppLogger.api("   $k → $v"));
 
     final uri = Uri.parse(
       "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/update_api_redemand.php",
@@ -353,8 +409,8 @@ class _RedemandFormState  extends State<RedemandForm>
         body: payload,
       );
 
-      print("📥 RESPONSE STATUS: ${response.statusCode}");
-      print("📥 RESPONSE BODY: ${response.body}");
+      AppLogger.api("📥 RESPONSE STATUS: ${response.statusCode}");
+      AppLogger.api("📥 RESPONSE BODY: ${response.body}");
 
       if (response.statusCode == 200) {
         final data = response.body.isNotEmpty ? jsonDecode(response.body) : {};
@@ -392,7 +448,7 @@ class _RedemandFormState  extends State<RedemandForm>
         );
       }
     } catch (e) {
-      print("❌ HTTP EXCEPTION: $e");
+      AppLogger.api("❌ HTTP EXCEPTION: $e");
 
       await BugLogger.log(
         apiLink: uri.toString(),
@@ -407,17 +463,18 @@ class _RedemandFormState  extends State<RedemandForm>
         ),
       );
     } finally {
-      print("🏁 UPDATE DEMAND FINISHED");
+      AppLogger.api("🏁 UPDATE DEMAND FINISHED");
       setState(() => _isUpdating = false);
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+
     return Scaffold(
+      backgroundColor: bgWhite,
       appBar: AppBar(
         surfaceTintColor: Colors.black,
         backgroundColor: Colors.black,
@@ -441,360 +498,391 @@ class _RedemandFormState  extends State<RedemandForm>
             children: [
               Align(
                 alignment: Alignment.center,
-                child:Text(
-                  "   Update ReDemand Details\n (Only Shifting Date Required)",
-                  style: theme.textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold,fontSize: 16,color: Colors.red),
+                child: Text(
+                  "Update ReDemand",
+                  style: theme.textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold,fontSize: 16,color: textBlack),
                 ),
               ),
               const SizedBox(height: 12),
 
               // Furnished
-              DropdownButtonFormField<String>(
-                value: _furnished,
-                decoration: InputDecoration(
-                  labelText: "Select Furnished Type",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  // ✅ Error text style
-                  errorStyle: const TextStyle(
-                    color: Colors.redAccent,
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
 
-                  // ✅ Error border (deep red)
-                  errorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                      color: Colors.redAccent,
-                      width: 2,
-                    ),
-                  ),
+              _sectionCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
 
-                  // ✅ Focused border when error
-                  focusedErrorBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: const BorderSide(
-                      color: Colors.redAccent,
-                      width: 2,
-                    ),
-                  ),
-                ),
-                items: furnishingOptions.map((option) {
-                  return DropdownMenuItem(
-                    value: option,
-                    child: Text(option,style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  setState(() {
-                    _furnished = val;
-                    // Clear previously selected furniture if not furnished
-                    if (val == 'Unfurnished') {
-                      _selectedFurniture.clear();
-                    }
-                  });
-                },
+                    DropdownButtonFormField<String>(
+                      value: _furnished,
+                      decoration: InputDecoration(
+                        labelText: "Select Furnished Type",
+                        labelStyle: TextStyle(color: Colors.black87),
+                        fillColor: Colors.white,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        // ✅ Error text style
+                        errorStyle: const TextStyle(
+                          color: Colors.redAccent,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
 
-                validator: (val) =>
-                val == null || val.isEmpty ? 'Please select furnishing' : null,
-              ),
-
-              if (_furnished == 'Fully Furnished' || _furnished == 'Semi Furnished')
-                GestureDetector(
-                  onTap: () => _showFurnitureBottomSheet(context),
-                  child: AbsorbPointer(
-                    child: Padding(
-                      padding:  EdgeInsets.only(top: 16.0),
-                      child:
-                      TextFormField(
-                        decoration: InputDecoration(
-                          labelText: "Select Furniture Items",
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                        // ✅ Error border (deep red)
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Colors.redAccent,
+                            width: 2,
                           ),
-                          filled: true, // ✅ enable background color
-                          // fillColor: Colors.grey.shade800,
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         ),
-                        controller: TextEditingController(
-                          text: _selectedFurniture.isEmpty
-                              ? ''
-                              : _selectedFurniture.entries
-                              .map((e) => '${e.key} (${e.value})')
-                              .join(', '),
+
+                        // ✅ Focused border when error
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Colors.redAccent,
+                            width: 2,
+                          ),
                         ),
                       ),
+                      dropdownColor: Colors.white, // 🔥 VERY IMPORTANT (menu bg)
+                      items: furnishingOptions.map((option) {
+                        return DropdownMenuItem(
+                          value: option,
+                          child: Text(option,style: TextStyle(color: Colors.black87),
+
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        setState(() {
+                          _furnished = val;
+                          // Clear previously selected furniture if not furnished
+                          if (val == 'Unfurnished') {
+                            _selectedFurniture.clear();
+                          }
+                        });
+                      },
+
+                      validator: (val) =>
+                      val == null || val.isEmpty ? 'Please select furnishing' : null,
                     ),
-                  ),
-                ),
 
-              const SizedBox(height: 12),
+                    if (_furnished == 'Fully Furnished' || _furnished == 'Semi Furnished')
+                      GestureDetector(
+                        onTap: () => _showFurnitureBottomSheet(context),
+                        child: AbsorbPointer(
+                          child: Padding(
+                            padding:  EdgeInsets.only(top: 16.0),
+                            child:
+                            TextFormField(
+                              style: TextStyle(color: Colors.black87),
+                              decoration: InputDecoration(
+                                labelText: "Select Furniture Items",
+                                labelStyle: TextStyle(color: Colors.black87),
+                                fillColor: Colors.grey.shade100,
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                filled: true, // ✅ enable background color
+                                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              ),
+                              controller: _furnitureCtrl,
 
-              // Shifting Date
-              dropdownField(
-                title: "Shifting Date*",
-                value: _shiftingDate == null
-                    ? null
-                    : DateFormat("yyyy-MM-dd").format(_shiftingDate!),
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate:
-                    _shiftingDate ?? DateTime.now(),
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2040),
-                  );
-                  if (picked != null)
-                    setState(() => _shiftingDate = picked);
-                },
-              ),
+                            ),
+                          ),
+                        ),
+                      ),
 
-              const SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
-              dropdownField(
-                title: "Family Details",
-                value: _familyStructure == null
-                    ? null
-                    : "$_familyStructure • $_familyMember members",
-                onTap: () => _showFamilyBottomSheet(context),
-              ),
+                    // Shifting Date
+                    dropdownField(
+                      title: "Shifting Date*",
+                      value: _shiftingDate == null
+                          ? null
+                          : DateFormat("yyyy-MM-dd").format(_shiftingDate!),
+                      onTap: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate:
+                          _shiftingDate ?? DateTime.now(),
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(2040),
+                        );
+                        if (picked != null)
+                          setState(() => _shiftingDate = picked);
+                      },
+                    ),
 
-              const SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
-              // Religion
-              dropdownField(
-                title: "Religion (Optional)",
-                value: _religion,
-                onTap: () => _showSelectBottomSheet(
-                  title: "Religion",
-                  items: [
-                    "Hindu",
-                    "Muslim",
-                    "Sikh",
-                    "Christian",
-                    "Other"
+                    // 🔥 FAMILY TYPE
+                    DropdownButtonFormField<String>(
+                      value: _familyStructure,
+                      decoration: _inputStyle("Family Type", Icons.family_restroom),
+                      dropdownColor: Colors.white, // 🔥 VERY IMPORTANT (menu bg)
+
+                      items: ["Joint", "Nuclear", "Bachelor", "Live-In relation"]
+                          .map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(e),
+                      ))
+                          .toList(),
+                      onChanged: (v) => setState(() => _familyStructure = v),
+                      style: const TextStyle(color: Colors.black),
+                    ),
+
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        /// 👨 Adults
+                        Expanded(
+                          child: TextFormField(
+                            decoration: _inputStyle("Adults", Icons.person),
+                            keyboardType: TextInputType.number,
+                            initialValue: _adultCount.toString(),
+                            style: const TextStyle(color: Colors.black),
+                            textAlign: TextAlign.center,
+                            onChanged: (v) {
+                              _adultCount = int.tryParse(v) ?? 0;
+                              _updateFamilyTotal();
+                            },
+                          ),
+                        ),
+
+                        /// ➕ PLUS SIGN
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(
+                            "+",
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+
+                        /// 👶 Children
+                        Expanded(
+                          child: TextFormField(
+                            decoration: _inputStyle("Child", Icons.child_care),
+                            keyboardType: TextInputType.number,
+                            initialValue: _childrenCount.toString(),
+                            style: const TextStyle(color: Colors.black),
+                            textAlign: TextAlign.center,
+                            onChanged: (v) {
+                              _childrenCount = int.tryParse(v) ?? 0;
+                              _updateFamilyTotal();
+                            },
+                          ),
+                        ),
+
+                        /// ➡️ EQUAL SIGN
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          child: Text(
+                            "=",
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+
+                        /// 👥 TOTAL
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            _totalCtrl.text.isEmpty ? "0" : _totalCtrl.text,
+                            style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+
+                    const SizedBox(height: 12),
+
+                    // Religion
+                    dropdownField(
+                      title: "Religion (Optional)",
+                      value: _religion,
+                      onTap: () => _showSelectBottomSheet(
+                        title: "Religion",
+                        items: [
+                          "Hindu",
+                          "Muslim",
+                          "Sikh",
+                          "Christian",
+                          "Other"
+                        ],
+                        onSelect: (v) => setState(() => _religion = v),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12),
+
+
+
+                    // Visiting Date
+                    dropdownField(
+                      title: "Visiting Date",
+                      value: _visitingDate == null
+                          ? null
+                          : DateFormat("yyyy-MM-dd")
+                          .format(_visitingDate!),
+                      onTap: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate:
+                          _visitingDate ?? DateTime.now(),
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(2040),
+                        );
+                        if (picked != null)
+                          setState(() => _visitingDate = picked);
+                      },
+                    ),
+
+
+                    // Parking
+                    Row(
+                      children: [
+                        Expanded(
+                          child: dropdownField(
+                            title: "Parking",
+                            value: _parking,
+                            onTap: () => _showSelectBottomSheet(
+                              title: "Parking",
+                              items: ["Car", "Bike","Both","None"],
+                              onSelect: (v) => setState(() => _parking = v),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        // Lift
+                        Expanded(
+                          child: dropdownField(
+                            title: "Lift",
+                            value: _lift,
+                            onTap: () => _showSelectBottomSheet(
+                              title: "Lift",
+                              items: ["Yes", "No"],
+                              onSelect: (v) => setState(() => _lift = v),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+
+                    dropdownField(
+                      title: "Vehicle Type",
+                      value: _vehicleType,
+
+
+                      onTap: () => _showSelectBottomSheet(
+                        title: "Vehicle Type",
+                        items: ["2-Wheeler", "4-Wheeler", "None"],
+                        onSelect: (v) =>
+                            setState(() => _vehicleType = v),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    TextField(
+                      controller: _vehicleNoCtrl,
+                      textCapitalization: TextCapitalization.characters, // 🔥 ALWAYS CAPS
+                      keyboardType: TextInputType.text,
+                      style: const TextStyle(color: Colors.black),
+                      decoration:
+                      _inputStyle("Vehicle Number (Optional)", Icons.car_crash),
+                    ),
+                    const SizedBox(height: 12),
+
+                    Text(
+                      "Select Floor",
+                      style: theme.textTheme.titleSmall!
+                          .copyWith(fontWeight: FontWeight.w600,color: Colors.black87),
+                    ),
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 8,
+                      children: _floorOptions.map((e) {
+                        final isSelected = _floor.contains(e);
+                        return ChoiceChip(
+                          label: Text(e),
+                          labelStyle: TextStyle(color: Colors.white),
+                          selected: isSelected,
+                          selectedColor: primaryRed,
+
+                          onSelected: (selected) {
+                            setState(() {
+                              selected ? _floor.add(e) : _floor.remove(e);
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+
+                    const SizedBox(height: 10),
+
+                    // Message
+                    TextField(
+                      controller: _messageCtrl,
+                      maxLines: 3,
+                      decoration:
+                      _inputStyle("Message", Icons.note_alt_outlined),
+                      style: const TextStyle(color: Colors.black),
+                    ),
+                    const SizedBox(height: 25),
+
+                    // Submit Button
+                    SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryRed,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: _isUpdating ? null : _updateReDemand,
+                          icon: _isUpdating
+                              ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
+                          )
+                              : const Icon(Icons.save, color: Colors.white),
+                          label: Text(
+                            _isUpdating ? "Updating..." : "Update Demand",
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        )
+                    ),
+                    const SizedBox(height: 50),
                   ],
-                  onSelect: (v) => setState(() => _religion = v),
                 ),
               ),
 
-              const SizedBox(height: 12),
-
-
-
-              // Visiting Date
-              dropdownField(
-                title: "Visiting Date",
-                value: _visitingDate == null
-                    ? null
-                    : DateFormat("yyyy-MM-dd")
-                    .format(_visitingDate!),
-                onTap: () async {
-                  final picked = await showDatePicker(
-                    context: context,
-                    initialDate:
-                    _visitingDate ?? DateTime.now(),
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2040),
-                  );
-                  if (picked != null)
-                    setState(() => _visitingDate = picked);
-                },
-              ),
-
-
-              // Parking
-              Row(
-                children: [
-                  Expanded(
-                    child: dropdownField(
-                      title: "Parking",
-                      value: _parking,
-                      onTap: () => _showSelectBottomSheet(
-                        title: "Parking",
-                        items: ["Car", "Bike","Both","None"],
-                        onSelect: (v) => setState(() => _parking = v),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-                  // Lift
-                  Expanded(
-                    child: dropdownField(
-                      title: "Lift (Optional)",
-                      value: _lift,
-                      onTap: () => _showSelectBottomSheet(
-                        title: "Lift",
-                        items: ["Yes", "No"],
-                        onSelect: (v) => setState(() => _lift = v),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-
-              dropdownField(
-                title: "Vehicle Type",
-                value: _vehicleType,
-
-                onTap: () => _showSelectBottomSheet(
-                  title: "Vehicle Type",
-                  items: ["2-Wheeler", "4-Wheeler", "None"],
-                  onSelect: (v) =>
-                      setState(() => _vehicleType = v),
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              TextField(
-                controller: _vehicleNoCtrl,
-                textCapitalization: TextCapitalization.characters, // 🔥 ALWAYS CAPS
-                keyboardType: TextInputType.text,
-                decoration:
-                _inputStyle("Vehicle Number (Optional)", Icons.car_crash),
-              ),
-              const SizedBox(height: 12),
-
-              // Price
-              // Text(
-              //   "Price",
-              //   style: theme.textTheme.titleSmall!
-              //       .copyWith(fontWeight: FontWeight.w600),
-              // ),
-              // const SizedBox(height: 6),
-              //
-              // Text(
-              //   _buyRent == "Buy"
-              //       ? "Buy Budget"
-              //       : "Rent Budget (per month)",
-              //   style: theme.textTheme.titleSmall!
-              //       .copyWith(fontWeight: FontWeight.w600),
-              // ),
-              // const SizedBox(height: 6),
-
-              // Container(
-              //   padding: const EdgeInsets.all(14),
-              //   decoration: BoxDecoration(
-              //     borderRadius: BorderRadius.circular(14),
-              //     color: theme.colorScheme.surfaceVariant.withOpacity(0.1),
-              //   ),
-              //   child: Column(
-              //     crossAxisAlignment: CrossAxisAlignment.start,
-              //     children: [
-              //       Text(
-              //         _buyRent == "Buy"
-              //             ? "${_formatAmount(_buyBudget.start)} – ${_formatAmount(_buyBudget.end)}"
-              //             : "₹${_rentBudget.start.toInt()} – ₹${_rentBudget.end.toInt()} / month",
-              //         style: const TextStyle(
-              //           fontSize: 16,
-              //           fontWeight: FontWeight.bold,
-              //         ),
-              //       ),
-              //
-              //       RangeSlider(
-              //         values: _buyRent == "Buy" ? _buyBudget : _rentBudget,
-              //         min: _buyRent == "Buy" ? 500000 : 5000,
-              //         max: _buyRent == "Buy" ? 20000000 : 100000,
-              //         divisions: _buyRent == "Buy" ? 40 : 19,
-              //         labels: _buyRent == "Buy"
-              //             ? RangeLabels(
-              //           _formatAmount(_buyBudget.start),
-              //           _formatAmount(_buyBudget.end),
-              //         )
-              //             : RangeLabels(
-              //           "₹${_rentBudget.start.toInt()}",
-              //           "₹${_rentBudget.end.toInt()}",
-              //         ),
-              //         onChanged: (range) {
-              //           setState(() {
-              //             if (_buyRent == "Buy") {
-              //               _buyBudget = range;
-              //             } else {
-              //               _rentBudget = range;
-              //             }
-              //           });
-              //         },
-              //       ),
-              //     ],
-              //   ),
-              // ),
-
-              Text(
-                "Select Floor",
-                style: theme.textTheme.titleSmall!
-                    .copyWith(fontWeight: FontWeight.w600),
-              ),
-              Wrap(
-                spacing: 10,
-                runSpacing: 8,
-                children: _floorOptions.map((e) {
-                  final isSelected = _floor.contains(e);
-                  return ChoiceChip(
-                    label: Text(e),
-                    selected: isSelected,
-                    selectedColor: theme.colorScheme.primary.withOpacity(0.25),
-                    onSelected: (selected) {
-                      setState(() {
-                        selected ? _floor.add(e) : _floor.remove(e);
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-
-              const SizedBox(height: 10),
-
-              // Message
-              TextField(
-                controller: _messageCtrl,
-                maxLines: 3,
-                decoration:
-                _inputStyle("Message", Icons.note_alt_outlined),
-              ),
-              const SizedBox(height: 25),
-
-              // Submit Button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton.icon(
-                  icon: _isUpdating
-                      ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.save, color: Colors.white),
-                  label: Text(
-                    _isUpdating ? "Updating..." : "Update Redemand",
-                    style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                    theme.colorScheme.primary,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed:
-                  _isUpdating ? null : _updateDemand,
-                ),
-              ),
-              const SizedBox(height: 50),
             ],
           ),
         ),
       ),
     );
   }
-
 
   void _showFurnitureBottomSheet(BuildContext context) {
     final List<String> furnitureItems = [
@@ -814,15 +902,10 @@ class _RedemandFormState  extends State<RedemandForm>
 
     final Map<String, int> tempSelection = Map.from(_selectedFurniture);
 
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: isDark
-          ? theme.colorScheme.surface
-          : Colors.green.shade50,
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -830,162 +913,148 @@ class _RedemandFormState  extends State<RedemandForm>
         return StatefulBuilder(
           builder: (context, setModalState) {
             return SizedBox(
-              height: MediaQuery.of(context).size.height * 0.55,
+              height: MediaQuery.of(context).size.height * 0.65,
               child: Column(
                 children: [
-                  // HEADER
-                  Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: isDark
-                            ? [
-                          Colors.grey.shade900,
-                          Colors.grey.shade800,
-                        ]
-                            :  [
-                          theme.colorScheme.primary,
-                          theme.colorScheme.primary,
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(20)),
-                    ),
+
+                  /// 🔥 HEADER (CLEAN)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'Select Furniture',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                            isDark ? Colors.grey.shade700 : Colors.white,
-                            foregroundColor:
-                            isDark ? Colors.white : theme.colorScheme.primary,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                        const Expanded(
+                          child: Text(
+                            "Select Furniture",
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87
                             ),
                           ),
+                        ),
+                        TextButton(
+
                           onPressed: () {
                             setState(() {
                               _selectedFurniture = Map.fromEntries(
-                                tempSelection.entries
-                                    .where((e) => e.value > 0),
+                                tempSelection.entries.where((e) => e.value > 0),
                               );
+
+                              _furnitureCtrl.text = _selectedFurniture.isEmpty
+                                  ? ""
+                                  : _selectedFurniture.entries
+                                  .map((e) => "${e.key} (${e.value})")
+                                  .join(", ");
                             });
+
                             Navigator.pop(ctx);
                           },
                           child: const Text(
-                            "Save",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            "SAVE",
+                            style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black87),
                           ),
                         )
                       ],
                     ),
                   ),
 
-                  // LIST
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: furnitureItems.map((item) {
-                          final isSelected = tempSelection.containsKey(item);
+                  const Divider(height: 1),
 
-                          return Container(
-                            margin: const EdgeInsets.symmetric(vertical: 6),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? (isDark
-                                  ? theme.colorScheme.primary.withOpacity(0.2)
-                                  : Colors.white)
-                                  : theme.cardColor,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                if (!isDark)
-                                  const BoxShadow(
-                                    color: Colors.black12,
-                                    blurRadius: 4,
-                                    offset: Offset(1, 2),
-                                  ),
-                              ],
-                            ),
-                            child: ListTile(
-                              leading: Checkbox(
-                                activeColor: theme.colorScheme.primary,
-                                value: isSelected,
-                                onChanged: (checked) {
-                                  setModalState(() {
-                                    if (checked == true) {
-                                      tempSelection[item] = 1;
-                                    } else {
-                                      tempSelection.remove(item);
-                                    }
-                                  });
-                                },
-                              ),
-                              title: Text(
-                                item,
-                                style: TextStyle(
-                                  fontSize: 16,
+                  /// 🔥 GRID STYLE (BETTER THAN LIST)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: GridView.builder(
+                        itemCount: furnitureItems.length,
+                        gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 2.8,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                        ),
+                        itemBuilder: (context, index) {
+                          final item = furnitureItems[index];
+                          final isSelected = tempSelection.containsKey(item);
+                          final count = tempSelection[item] ?? 0;
+
+                          return GestureDetector(
+                            onTap: () {
+                              setModalState(() {
+                                if (isSelected) {
+                                  tempSelection.remove(item);
+                                } else {
+                                  tempSelection[item] = 1;
+                                }
+                              });
+                            },
+
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
                                   color: isSelected
-                                      ? theme.colorScheme.primary
-                                      : theme.textTheme.bodyLarge!.color,
+                                      ? Colors.black
+                                      : Colors.grey.shade300,
                                 ),
+                                color: isSelected
+                                    ? Colors.black.withOpacity(0.05)
+                                    : Colors.white,
                               ),
-                              trailing: isSelected
-                                  ? Row(
-                                mainAxisSize: MainAxisSize.min,
+                              child: Row(
                                 children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                        Icons.remove_circle),
-                                    color: theme.colorScheme.primary,
-                                    onPressed: () {
-                                      setModalState(() {
-                                        if (tempSelection[item]! > 1) {
-                                          tempSelection[item] =
-                                              tempSelection[item]! - 1;
-                                        }
-                                      });
-                                    },
+                                  Expanded(
+                                    child: Text(
+                                      item,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        color: isSelected
+                                            ? Colors.black
+                                            : Colors.grey.shade700,
+                                      ),
+                                    ),
                                   ),
-                                  Text(
-                                    '${tempSelection[item]}',
-                                    style: theme.textTheme.bodyLarge!
-                                        .copyWith(
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  IconButton(
-                                    icon:
-                                    const Icon(Icons.add_circle),
-                                    color: theme.colorScheme.primary,
-                                    onPressed: () {
-                                      setModalState(() {
-                                        tempSelection[item] =
-                                            tempSelection[item]! + 1;
-                                      });
-                                    },
-                                  ),
+
+                                  /// 🔥 COUNTER
+                                  if (isSelected)
+                                    Row(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            setModalState(() {
+                                              if (count > 1) {
+                                                tempSelection[item] = count - 1;
+                                              }
+                                            });
+                                          },
+                                          child: const Icon(Icons.remove, size: 18,color: Colors.black,),
+                                        ),
+                                        Padding(
+                                          padding:
+                                          const EdgeInsets.symmetric(horizontal: 6),
+                                          child: Text(
+                                            "$count",
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,color: Colors.black,),
+                                          ),
+                                        ),
+                                        GestureDetector(
+                                          onTap: () {
+                                            setModalState(() {
+                                              tempSelection[item] = count + 1;
+                                            });
+                                          },
+                                          child: const Icon(Icons.add, size: 18,color: Colors.black,),
+                                        ),
+                                      ],
+                                    ),
                                 ],
-                              )
-                                  : null,
+                              ),
                             ),
                           );
-                        }).toList(),
+                        },
                       ),
                     ),
                   ),
@@ -998,215 +1067,16 @@ class _RedemandFormState  extends State<RedemandForm>
     );
   }
 
-  void _showFamilyBottomSheet(BuildContext context) {
-    String? tempStructure = _familyStructure;
-    int tempMembers = int.tryParse(_familyMember ?? "") ?? 0;
-    int tempAdults = _adultCount;
-    int tempChildren = _childrenCount;
-
-    final TextEditingController memberCtrl =
-    TextEditingController(text: tempMembers > 0 ? tempMembers.toString() : "");
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  Widget _sectionCard({required Widget child}) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardWhite,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor),
       ),
-      builder: (ctx) {
-        bool isValid =
-            tempMembers > 0 &&
-                tempAdults >= 1 &&
-                tempChildren >= 0 &&
-                (tempAdults + tempChildren == tempMembers);
-
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(ctx).viewInsets.bottom,
-          ),
-          child: SingleChildScrollView( // ✅ FIX OVERFLOW
-            child: StatefulBuilder(
-              builder: (context, setSheetState) {
-                return Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Family Details",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // FAMILY STRUCTURE
-                      ...[
-                        "Joint",
-                        "Nuclear",
-                        "Bachelor",
-                        "Live-In relation"
-                      ].map(
-                            (type) => RadioListTile<String>(
-                          value: type,
-                          groupValue: tempStructure,
-                          title: Text(type),
-                          onChanged: (v) {
-                            setSheetState(() => tempStructure = v);
-                          },
-                        ),
-                      ),
-
-                      const Divider(),
-
-                      const Text(
-                        "Total Family Members",
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(height: 6),
-
-                      TextField(
-                        controller: memberCtrl,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          hintText: "Enter total members",
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.group),
-                        ),
-                        onChanged: (v) {
-                          setSheetState(() {
-                            tempMembers = int.tryParse(v) ?? 0;
-
-                            if (tempAdults > tempMembers) {
-                              tempAdults = tempMembers;
-                            }
-
-                            if (tempChildren > tempMembers - tempAdults) {
-                              tempChildren = tempMembers - tempAdults;
-                            }
-                          });
-                        },
-                      ),
-
-                      if (tempMembers > 0)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            "Adults + Children must equal $tempMembers",
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.red,
-                            ),
-                          ),
-                        ),
-
-                      const SizedBox(height: 12),
-
-                      _sheetCounter(
-                        label: "Adults",
-                        value: tempAdults,
-                        min: 1,
-                        max: tempMembers - tempChildren,
-                        enabled: tempMembers > 0,
-                        onChanged: (v) {
-                          setSheetState(() {
-                            tempAdults = v;
-                          });
-                        },
-                      ),
-
-                      _sheetCounter(
-                        label: "Children",
-                        value: tempChildren,
-                        min: 0, // ✅ FIX
-                        max: tempMembers - tempAdults,
-                        enabled: tempMembers > 0,
-                        onChanged: (v) {
-                          setSheetState(() {
-                            tempChildren = v;
-                          });
-                        },
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: isValid
-                              ? () {
-                            setState(() {
-                              _familyStructure = tempStructure;
-                              _familyMember = tempMembers.toString();
-                              _adultCount = tempAdults;
-                              _childrenCount = tempChildren;
-                            });
-                            Navigator.pop(ctx);
-                          }
-                              : null,
-                          style: ElevatedButton.styleFrom(
-                            elevation: isValid ? 4 : 0,
-                            backgroundColor: isValid
-                                ? Theme.of(context).colorScheme.primary
-                                : Colors.grey.shade400,
-                            disabledBackgroundColor: Colors.grey.shade800,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                          ),
-                          child: Text(
-                            "Save",
-                            style: TextStyle(
-                              fontSize: isValid ? 16 : 14,
-                              fontWeight: FontWeight.bold,
-                              color: isValid ? Colors.white : Colors.grey,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _sheetCounter({
-    required String label,
-    required int value,
-    required int min,
-    required int max,
-    required bool enabled,
-    required ValueChanged<int> onChanged,
-  }) {
-    return Opacity(
-      opacity: enabled ? 1 : 0.4,
-      child: IgnorePointer(
-        ignoring: !enabled,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.remove_circle_outline),
-                  onPressed: value > min ? () => onChanged(value - 1) : null,
-                ),
-                Text("$value", style: const TextStyle(fontSize: 16)),
-                IconButton(
-                  icon: const Icon(Icons.add_circle_outline),
-                  onPressed: value < max ? () => onChanged(value + 1) : null,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+      child: child,
     );
   }
 

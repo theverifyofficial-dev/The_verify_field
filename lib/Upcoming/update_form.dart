@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
@@ -311,7 +312,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
           } catch (e) {
             // If parsing fails, set to empty or default
             _flatAvailableController.text = '';
-            print("Invalid date format: ${data.availableDate}");
+            //print("Invalid date format: ${data.availableDate}");
           }
         } else {
           _flatAvailableController.text = '';
@@ -357,7 +358,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
       }
     }
     catch (e) {
-      print('Error fetching data: $e');
+      //print('Error fetching data: $e');
       setState(() {
         _isLoading = false;
       });
@@ -420,13 +421,13 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
 
       // 📍 Get saved lat/long
       final saved = await getSavedLatLong();
-      print("Latitude: ${saved['Latitude']}");
-      print("Longitude: ${saved['Longitude']}");
+      //print("Latitude: ${saved['Latitude']}");
+      //print("Longitude: ${saved['Longitude']}");
 
       _Google_Location.text +=
       "\nSaved: ${saved['Latitude']}, ${saved['Longitude']}";
     } catch (e) {
-      print("Error: $e");
+      //print("Error: $e");
       _Google_Location.text = 'Error loading location';
     }
   }
@@ -539,12 +540,12 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
       );
 
       if (compressedBytes == null) {
-        print('❌ Image compression failed');
+        //print('❌ Image compression failed');
         return;
       }
 
       final kbSize = compressedBytes.lengthInBytes / 1024;
-      print('✅ Compressed image size: ${kbSize.toStringAsFixed(2)} KB');
+      //print('✅ Compressed image size: ${kbSize.toStringAsFixed(2)} KB');
 
       final tempDir = Directory.systemTemp;
       final compressedFile = await File('${tempDir.path}/${DateTime
@@ -556,9 +557,9 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
         _imageFile = compressedFile;
       });
 
-      print("✅ Image path: ${compressedFile.path}");
+      //print("✅ Image path: ${compressedFile.path}");
     } else {
-      print('❌ No image selected.');
+      //print('❌ No image selected.');
     }
   }
 
@@ -586,15 +587,15 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
-      print("✅ Status code: ${response.statusCode}");
-      print("✅ Response body: ${response.body}");
+      //print("✅ Status code: ${response.statusCode}");
+      //print("✅ Response body: ${response.body}");
 
       if (response.statusCode != 200) {
         // Handle common errors
-        print("❌ Upload failed: ${response.statusCode}");
+        //print("❌ Upload failed: ${response.statusCode}");
       }
     } catch (e) {
-      print("❌ Upload error: $e");
+      //print("❌ Upload error: $e");
     }
   }
 
@@ -608,12 +609,12 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
         setState(() {
           _images = pickedImages;
         });
-        print("Picked ${_images.length} images");
+        //print("Picked ${_images.length} images");
       } else {
-        print("No images selected.");
+        //print("No images selected.");
       }
     } catch (e) {
-      print("Error picking images: $e");
+      //print("Error picking images: $e");
     }
   }
 

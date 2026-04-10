@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import '../../AppLogger.dart';
+import '../../AppLogger.dart';
+import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../model/demand_model.dart';
 import '../utilities/bug_founder_fuction.dart';
+import 'Add_demand_field.dart';
 
 class CostumerDemand extends StatefulWidget {
   const CostumerDemand({super.key});
@@ -15,47 +17,53 @@ class CostumerDemand extends StatefulWidget {
 class _TenantDemandState extends State<CostumerDemand> {
 
   List<TenantDemandModel> _parentDemands = [];
-  List<TenantDemandModel> _crossRedemands = [];
-
   List<TenantDemandModel> _filteredParent = [];
-  List<TenantDemandModel> _filteredCross = [];
+
+  int _page = 1;
+  final int _limit = 10;
+
+  bool _isFetchingMore = false;
+  bool _hasMore = true;
+
+  final ScrollController _scrollController = ScrollController();
 
   Set<int> _accepting = {};
 
   bool _isLoading = true;
-  final TextEditingController _searchController = TextEditingController();
-  Timer? _debounce;
 
 
   @override
   void initState() {
     super.initState();
     _loadDemands();
-    _searchController.addListener(_onSearchChanged);
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 200) {
+        if (_hasMore && !_isFetchingMore) {
+          _loadDemands();
+        }
+      }
+    });
   }
 
-  Future<void> _loadDemands() async {
-    setState(() => _isLoading = true);
+  Future<void> _loadDemands({bool isRefresh = false}) async {
+    if (_isFetchingMore) return;
+
+    if (isRefresh) {
+      _page = 1;
+      _hasMore = true;
+    }
+
+    setState(() {
+      if (_page == 1) _isLoading = true;
+      _isFetchingMore = true;
+    });
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final FName = prefs.getString('name') ?? "";
-      final FLocation = prefs.getString('location') ?? "";
-      print(FName);
-      print(FLocation);
-
-      if (FName.isEmpty || FLocation.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("User info missing. Please login again.")),
-        );
-        return;
-      }
-
-      // Encode name & location for URL safety
-      final encodedName = Uri.encodeQueryComponent(FName);
-      final encodedLoc = Uri.encodeQueryComponent(FLocation);
-
-      final url = Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php?Status=new");
+      final url = Uri.parse(
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php"
+              "?Status=new&page=$_page&limit=$_limit"
+      );
 
       final response = await http.get(url);
 
@@ -63,51 +71,39 @@ class _TenantDemandState extends State<CostumerDemand> {
         final decoded = jsonDecode(response.body);
 
         if (decoded["success"] == true) {
-          final parents = (decoded["data"] as List)
+          final newData = (decoded["data"] as List)
               .map((e) => TenantDemandModel.fromJson(e))
               .toList();
-              // .reversed
-              // .toList();
+
           setState(() {
-            _parentDemands = parents;
-            // _crossRedemands = crossRedemands;
+            if (_page == 1) {
+              _parentDemands = newData;
+            } else {
+              _parentDemands.addAll(newData);
+            }
 
-            _filteredParent = parents;
-            // _filteredCross = crossRedemands;
+            _filteredParent = _parentDemands;
+
+            // 🔥 pagination end check
+            if (newData.length < _limit) {
+              _hasMore = false;
+            } else {
+              _page++;
+            }
           });
-        } else {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("No demand data found")),
-            );
-          }
-        }
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("HTTP Error: ${response.statusCode}")),
-          );
         }
       }
-
     } catch (e) {
-      await BugLogger.log(
-        apiLink: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/show_api_for_fieldworkar_page.php?assigned_fieldworker_name=encodedName&Location=encodedLoc",
-        error: e.toString(),
-        statusCode: 500,
-      );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error fetching data: $e")),
-        );
-      }
+      print(e);
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+          _isFetchingMore = false;
+        });
       }
     }
   }
-
   Future<void> _acceptDemand(int demandId) async {
     setState(() {
       _parentDemands.removeWhere((d) => d.id == demandId);
@@ -132,6 +128,8 @@ class _TenantDemandState extends State<CostumerDemand> {
 
       final data = jsonDecode(res.body);
 
+      AppLogger.api(data);
+
       if (data["success"] != true) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(data["message"] ?? "Error")),
@@ -139,265 +137,120 @@ class _TenantDemandState extends State<CostumerDemand> {
       }
 
     } catch (e) {
-      print(e);
+      // print(e);
     }
   }
 
-  // Future<List<TenantDemandModel>> _loadCrossRedemand() async {
-  //   try {
-  //     final prefs = await SharedPreferences.getInstance();
-  //     final name = prefs.getString('name') ?? "";
-  //     final location = prefs.getString('location') ?? "";
-  //
-  //     if (name.isEmpty || location.isEmpty) return [];
-  //
-  //     final encodedName = Uri.encodeQueryComponent(name);
-  //     final encodedLoc = Uri.encodeQueryComponent(location);
-  //
-  //     final url =
-  //         "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/"
-  //         "share_demand_one_field_two_fieldwoarkar.php"
-  //         "?assigned_fieldworker_location=$encodedLoc"
-  //         "&assigned_fieldworker_name=$encodedName";
-  //
-  //     print(url);
-  //
-  //
-  //     final res = await http.get(Uri.parse(url));
-  //
-  //     if (res.statusCode == 200) {
-  //       final decoded = jsonDecode(res.body);
-  //
-  //       if (decoded["success"] == true && decoded["data"] is List) {
-  //         return (decoded["data"] as List)
-  //             .map((e) => TenantDemandModel.fromJson(e))
-  //             .toList();
-  //       }
-  //     }
-  //   } catch (e) {
-  //     await BugLogger.log(
-  //       apiLink:
-  //       "show_redemand_based_on_sub_id_and_name_location.php",
-  //       error: e.toString(),
-  //       statusCode: 500,
-  //     );
-  //   }
-  //
-  //   return [];
-  // }
-
-  void _onSearchChanged() {
-    if (_debounce?.isActive ?? false) _debounce!.cancel();
-
-    _debounce = Timer(const Duration(milliseconds: 250), () {
-      final q = _searchController.text.toLowerCase().trim();
-
-      setState(() {
-        _filteredParent = _parentDemands.where((d) => _matchDemand(d, q)).toList();
-        _filteredCross = _crossRedemands.where((d) => _matchDemand(d, q)).toList(); });
-    });
-  }
-
-  bool _matchDemand(TenantDemandModel d, String q) {
-    final date = formatApiDate(d.createdDate).toLowerCase();
-
-    return [
-      d.tname,
-      d.tnumber,
-      d.buyRent,
-      d.reference,
-      d.price,
-      d.message,
-      d.bhk,
-      d.location,
-      d.status,
-      d.result,
-      date,
-    ].any((field) =>
-        field.toString().toLowerCase().contains(q));
-  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor:
-      isDark ? const Color(0xFF090B11) : const Color(0xFFF4F6FA),
+      backgroundColor: const Color(0xFFF8FAFC),
 
-      // floatingActionButton: Container(
-      //   decoration: BoxDecoration(
-      //     borderRadius: BorderRadius.circular(14),
-      //     gradient: LinearGradient(
-      //       colors: [
-      //         theme.colorScheme.primary.withOpacity(0.9),
-      //         theme.colorScheme.primaryContainer.withOpacity(0.9)
-      //       ],
-      //     ),
-      //     boxShadow: [
-      //       BoxShadow(
-      //         color: theme.colorScheme.primary.withOpacity(0.4),
-      //         blurRadius: 18,
-      //         spreadRadius: 1,
-      //         offset: const Offset(0, 6),
-      //       ),
-      //     ],
-      //   ),
-      //   child: FloatingActionButton.extended(
-      //     backgroundColor: Colors.transparent,
-      //     elevation: 0,
-      //     icon: const Icon(Icons.add, color: Colors.white),
-      //     label: const Text(
-      //       "Add Demand",
-      //       style: TextStyle(
-      //         color: Colors.white,
-      //         fontWeight: FontWeight.w600,
-      //         fontSize: 15,
-      //         letterSpacing: 0.3,
-      //       ),
-      //     ),
-      //     onPressed: () => Navigator.push(
-      //       context,
-      //       MaterialPageRoute(builder: (_) => const AddDemandField()),
-      //     ).then((_) => _loadDemands()),
-      //   ),
-      // ),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          gradient: LinearGradient(
+            colors: [
+              theme.colorScheme.primary.withOpacity(0.9),
+              theme.colorScheme.primaryContainer.withOpacity(0.9)
+            ],
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: theme.colorScheme.primary.withOpacity(0.4),
+              blurRadius: 18,
+              spreadRadius: 1,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          backgroundColor: const Color(0xFFDC2626),
+          elevation: 0,
+          icon: const Icon(Icons.add, color: Colors.white),
+          label: const Text(
+            "Add Demand",
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+              letterSpacing: 0.3,
+            ),
+          ),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AddDemandField(mode: DemandEditMode.add,)),
+          ).then((_) => _loadDemands()),
+        ),
+      ),
 
 
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Colors.red,))
           : Stack(
         children: [
-          // background glow gradient
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: isDark
-                      ? [
-                    const Color(0xFF0E1018),
-                    const Color(0xFF11131D),
-                    const Color(0xFF0A0B11),
-                  ]
-                      : [
-                    Colors.white,
-                    const Color(0xFFE9ECF3),
-                    const Color(0xFFDDE2ED),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-            ),
-          ),
-
           Column(
             children: [
-              const SizedBox(height: 10),
-              // floating search
+              const SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: isDark
-                        ? Colors.white.withOpacity(0.06)
-                        : Colors.white.withOpacity(0.85),
-                    boxShadow: [
-                      BoxShadow(
-                        color: isDark
-                            ? Colors.black.withOpacity(0.3)
-                            : Colors.grey.withOpacity(0.2),
-                        blurRadius: 20,
-                        offset: const Offset(0, 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Loaded: ${_parentDemands.length}",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade700,
+                        fontWeight: FontWeight.w500,
                       ),
-                    ],
-                    border: Border.all(
-                      color: isDark
-                          ? Colors.white.withOpacity(0.1)
-                          : Colors.black.withOpacity(0.1),
-                      width: 0.6,
                     ),
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: "Search Here",
-                      hintStyle: TextStyle(
-                        color: isDark
-                            ? Colors.white.withOpacity(0.4)
-                            : Colors.black54,
-                        fontSize: 15,
-                      ),
-                      prefixIcon: Icon(Icons.search,
-                          color: isDark
-                              ? Colors.white70
-                              : Colors.black54),
-                      suffixIcon: _searchController.text.isNotEmpty
-                          ? IconButton(
-                        icon: Icon(Icons.close_rounded,
-                            color: isDark
-                                ? Colors.white54
-                                : Colors.black54),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {
-                            _filteredParent = _parentDemands;
-                            _filteredCross = _crossRedemands;
-                          });
-
-                        },
-                      )
-                          : null,
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(
-                          vertical: 14, horizontal: 14),
-                    ),
-                  ),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: 16),
               Expanded(
                 child:  (_filteredParent.isEmpty)
                 ? Center(
                 child: Text(
                 "No demands found",
                 style: TextStyle(
-                color: isDark ? Colors.white70 : Colors.grey.shade700,
+                color: Colors.grey.shade700,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 ),
                 ),
                 )
                     : RefreshIndicator(
-                onRefresh: _loadDemands,
-                color: theme.colorScheme.primary,
+                  onRefresh: () => _loadDemands(isRefresh: true),
+                  color: theme.colorScheme.primary,
                 child:
                 ListView(
+                  controller: _scrollController,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   children: [
 
                     if (_filteredParent.isNotEmpty) ...[
-                      _sectionTitle("Demands"),
-                      ..._filteredParent.map((d) => KeyedSubtree(
-                        key: ValueKey(d.id),
-                        child: _buildDemandTile(d, isDark),
-                      )),
-                    ],
+                      _sectionTitle("New Demands"),
+              ..._filteredParent.asMap().entries.map((entry) {
+              final index = entry.key;
+              final d = entry.value;
 
-                    // if (_filteredCross.isNotEmpty) ...[
-                    //   const SizedBox(height: 24),
-                    //   _sectionTitle("Cross ReDemands"),
-                    //   ..._filteredCross.map((d) => _buildCrossRedemandTile(d, isDark)),
-                    // ],
+              return KeyedSubtree(
+              key: ValueKey(d.id),
+              child: demandCard(d: d, onAccept: () { _acceptDemand(d.id); }),
+              );
+              }
+              ),
+                    ],
+                    if (_isFetchingMore)
+                      const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Center(child: CircularProgressIndicator()),
+                      ),
                   ],
                 ),
               )            ),
@@ -418,300 +271,271 @@ class _TenantDemandState extends State<CostumerDemand> {
           fontSize: 16,
           fontWeight: FontWeight.bold,
           letterSpacing: 0.4,
+          color: Colors.black,
         ),
       ),
     );
   }
 
-  Widget _buildDemandTile(TenantDemandModel d, bool isDark) {
-    return _buildCommonTile(
-      d,
-      isDark,
-      onTap: () {
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (_) => DemandDetail(
-        //       demandId: d.id.toString(),
-        //     ),
-        //   ),
-        // ).then((_) => _loadDemands());
-      },
-    );
-  }
-
-  // Widget _buildCrossRedemandTile(TenantDemandModel d, bool isDark) {
-  //   return _buildCommonTile(
-  //     d,
-  //     isDark,
-  //     onTap: () {
-  //       Navigator.push(
-  //         context,
-  //         MaterialPageRoute(
-  //           builder: (_) => field_RedemandDetailPage(
-  //             redemandId: d.r_id.toString(),
-  //             // demandId: d.subid.toString(),
-  //           ),
-  //         ),
-  //       ).then((_) => _loadDemands());
-  //     },
-  //   );
-  // }
-
-  Widget _buildCommonTile(
-      TenantDemandModel d,
-      bool isDark, {
-        required VoidCallback onTap,
-      }) {
+  Widget demandCard({
+    required TenantDemandModel d,
+    required VoidCallback onAccept,
+    bool isAccepting = false,
+  }) {
     final isUrgent = d.mark == "1";
-    final baseColor = isDark ? const Color(0xFF1C1F27) : Colors.white;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
 
-    return Stack(
-      children: [
-        GestureDetector(
-          onTap: onTap, // ✅ single source of truth
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 250),
-            margin: const EdgeInsets.only(bottom: 14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(22),
-              color: baseColor.withOpacity(isDark ? 0.35 : 0.85),
-              boxShadow: [
-                BoxShadow(
-                  color: isUrgent
-                      ? Colors.redAccent.withOpacity(0.25)
-                      : Colors.black.withOpacity(0.08),
-                  blurRadius: 12,
-                  spreadRadius: 1,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-              border: Border.all(
-                color: isUrgent
-                    ? Colors.redAccent.withOpacity(0.6)
-                    : Colors.white.withOpacity(0.05),
-                width: 1.2,
-              ),
-            ),
-            child: ListTile(
-              contentPadding:
-              const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
 
-              leading: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                height: 52,
-                width: 52,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: isUrgent
-                        ? [Colors.redAccent, Colors.redAccent.shade700]
-                        : [
-                      Theme.of(context).colorScheme.primary,
-                      Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withOpacity(0.8),
-                    ],
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: isUrgent
-                          ? Colors.redAccent.withOpacity(0.3)
-                          : Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withOpacity(0.25),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    )
-                  ],
-                ),
-                child: Center(
-                  child: Text(
-                    d.tname.isNotEmpty ? d.tname[0].toUpperCase() : '?',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                ),
-              ),
+          /// 🔥 TOP ROW (ID + URGENT + PRICE)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
 
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Row(
                 children: [
-                  Expanded(
-                    child: Text(
-                      d.tname,
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                  Text(
+                    "ID${d.id}",
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: isUrgent
-                          ? Colors.redAccent.withOpacity(0.8)
-                          : Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withOpacity(0.45),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      d.buyRent.toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10.5,
+
+                  if (isUrgent) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text(
+                        "URGENT",
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
+                  ]
                 ],
               ),
 
-              subtitle: Padding(
-                padding: const EdgeInsets.only(top: 6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    Text(
-                      "${d.location} • ${d.bhk}",
-                      style: TextStyle(
-                        color: isDark ? Colors.white70 : Colors.black54,
-                        fontSize: 14,
-                      ),
-                    ),
-
-                    const SizedBox(height: 2),
-
-                    Text(
-                      "₹ ${d.price}",
-                      style: TextStyle(
-                        color: isDark ? Colors.white60 : Colors.black54,
-                        fontSize: 14,
-                      ),
-                    ),
-
-
-                    if (d.reference.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Ref: ${d.reference}",
-                              style: TextStyle(
-                                color: isDark
-                                    ? Colors.white38
-                                    : Colors.black45,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          formatApiDate(d.createdDate),
-                          style: TextStyle(
-                            color: Colors.grey.shade500,
-                            fontSize: 13,
-                          ),
-                        ),
-
-                        GestureDetector(
-                          onTap: _accepting.contains(d.id)
-                              ? null
-                              : () async {
-                            setState(() {
-                              _accepting.add(d.id);
-                            });
-
-                            await _acceptDemand(d.id);
-
-                            setState(() {
-                              _accepting.remove(d.id);
-                            });
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.green,
-                                  Colors.green.withOpacity(0.85),
-                                ],
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.green.withOpacity(0.35),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.check_circle_outline, color: Colors.white, size: 16),
-                                SizedBox(width: 6),
-                                Text(
-                                  "Accept",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  ],
+              Text(
+                formatPriceRange(d.price),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.green,
                 ),
               ),
+            ],
+          ),
 
+          const SizedBox(height: 10),
+
+          /// 🔥 NAME
+          Text(
+            d.tname,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
             ),
           ),
-        ),
 
-        // // 🎯 STATUS RIBBONS (UNCHANGED)
-        // if (d.status.toLowerCase() == "redemand")
-        //   _buildRibbon("REDEMAND", Colors.green.shade500, Colors.green.shade700),
-        //
-        // if (d.status.toLowerCase() == "disclosed")
-        //   _buildRibbon("DISCLOSED", Colors.red.shade500, Colors.red.shade700),
-        //
-        // if (d.status.toLowerCase() == "assigned to fieldworker")
-        //   _buildRibbon("NEW", Colors.green.shade500, Colors.green.shade700),
-        // if (d.re_status.toLowerCase() == "redemand")
-        //   _buildRibbon("REDEMAND", Colors.green.shade500, Colors.green.shade700),
-        //
-        // if (d.re_status.toLowerCase() == "disclosed")
-        //   _buildRibbon("DISCLOSED", Colors.red.shade500, Colors.red.shade700),
-        //
-        // if (d.re_status.toLowerCase() == "assigned to fieldworker")
-        //   _buildRibbon("NEW", Colors.green.shade500, Colors.green.shade700),
-      ],
+          const SizedBox(height: 10),
+
+          if (d.buyRent.isNotEmpty || d.bhk.isNotEmpty) ...[
+
+            Row(
+              children: [
+                if (d.buyRent.isNotEmpty) _chip(d.buyRent),
+
+                if (d.buyRent.isNotEmpty && d.bhk.isNotEmpty)
+                  const SizedBox(width: 8),
+
+                if (d.bhk.isNotEmpty) _chip2(d.bhk),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+          ],
+
+          /// 🔥 LOCATION
+          Row(
+            children: [
+              const Icon(Icons.location_on, size: 16, color: Colors.black),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  d.location,
+                  style: const TextStyle(color: Colors.black),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          /// 🔥 DATE + TIME
+          Row(
+            children: [
+              const Icon(Icons.calendar_today, size: 14, color: Colors.black),
+              const SizedBox(width: 6),
+              Text(
+                formatApiDate(d.createdDate),
+                style: const TextStyle(color: Colors.black),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          /// 🔥 BUTTON
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: ElevatedButton(
+              onPressed: isAccepting ? null : onAccept,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFDC2626),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                elevation: 4,
+                shadowColor: Colors.red.withOpacity(0.4),
+              ),
+              child: isAccepting
+                  ? const SizedBox(
+                height: 18,
+                width: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+                  : const Text(
+                "Accept Request",
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                  color: Colors.white
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
-
   }
+
+  String formatPrice(num value) {
+    if (value >= 10000000) {
+      return "₹${(value / 10000000).toStringAsFixed(1)}Cr";
+    } else if (value >= 100000) {
+      return "₹${(value / 100000).toStringAsFixed(1)}L";
+    } else if (value >= 1000) {
+      return "₹${(value / 1000).toStringAsFixed(0)}k";
+    } else {
+      return "₹${value.toInt()}";
+    }
+  }
+
+  String formatPriceRange(dynamic price) {
+    // 🔥 HANDLE NULL / EMPTY
+    if (price == null || price.toString().trim().isEmpty) {
+      return "₹ --";
+    }
+
+    try {
+      final str = price.toString();
+
+      // 🔥 HANDLE RANGE
+      if (str.contains("-")) {
+        final parts = str.split("-");
+
+        if (parts.length != 2) return "₹ --";
+
+        final start = double.tryParse(parts[0].trim());
+        final end = double.tryParse(parts[1].trim());
+
+        if (start == null || end == null) return "₹ --";
+
+        return "${formatPrice(start)} – ${formatPrice(end)}";
+      }
+
+      // 🔥 HANDLE SINGLE VALUE
+      final single = double.tryParse(str);
+      if (single != null) {
+        return formatPrice(single);
+      }
+
+      return "₹ --";
+    } catch (e) {
+      return "₹ --"; // 💣 NEVER CRASH UI
+    }
+  }
+
+  Widget _chip(String text) {
+    final isRent = text.toLowerCase() == "rent";
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: isRent ? const Color(0xFF7C3AED) : Colors.orange, // purple / cyan
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.white, // 🔥 better contrast
+        ),
+      ),
+    );
+  }
+
+  Widget _chip2(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color:
+        const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color:
+          Color(0xFF334155),
+        ),
+      ),
+    );
+  }
+
 
   String formatApiDate(String apiDate) {
     if (apiDate.isEmpty) return "";

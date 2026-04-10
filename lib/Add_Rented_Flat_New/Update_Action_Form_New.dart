@@ -77,7 +77,7 @@ class _UpdateActionFormNewState extends State<UpdateActionFormNew> {
         }
       }
     } catch (e) {
-      debugPrint("Auto-fill error: $e");
+      //AppLogger.log("Auto-fill error: $e");
     }
   }
 

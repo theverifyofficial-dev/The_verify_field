@@ -4,7 +4,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,32 +14,82 @@ import 'package:http_parser/http_parser.dart';
 
 import '../../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../Dashboard_screen.dart';
-import 'Agreement_Form.dart';
 
 class ExtraTenant {
-  String? id; // 🔥 (for update case)
-
-  final formKey = GlobalKey<FormState>();  // ✅ ADD THIS
-
-
+  String? id;
+  final formKey = GlobalKey<FormState>();
   final name = TextEditingController();
   final relationPerson = TextEditingController();
   final address = TextEditingController();
   final mobile = TextEditingController();
   final aadhaar = TextEditingController();
   bool includePoliceVerification = false;
-
   String relation = 'S/O';
-
   File? aadhaarFront;
   File? aadhaarBack;
   File? photo;
-
   String? aadhaarFrontUrl;
   String? aadhaarBackUrl;
   String? photoUrl;
 }
 
+class BuildingSuggestion {
+  final int id;
+  final String ownerName;
+  final String place;
+  final String propertyAddressForFieldworkar;
+  final List<FlatSuggestion> flats;
+
+  BuildingSuggestion({
+    required this.id,
+    required this.ownerName,
+    required this.place,
+    required this.flats,
+    required this.propertyAddressForFieldworkar,
+  });
+
+  factory BuildingSuggestion.fromJson(Map<String, dynamic> json) {
+    return BuildingSuggestion(
+      id: json["id"],
+      ownerName: json["ownername"] ?? "",
+      propertyAddressForFieldworkar:
+      json["property_address_for_fieldworkar"] ?? "",
+      place: json["place"] ?? "",
+      flats: (json["flats"] as List)
+          .map((e) => FlatSuggestion.fromJson(e))
+          .toList(),
+    );
+  }
+}
+
+class FlatSuggestion {
+  final String id;
+  final String bhk;
+  final String price;
+  final String floor;
+  final String address;
+  final String fieldworkarAddress;
+
+  FlatSuggestion({
+    required this.id,
+    required this.bhk,
+    required this.price,
+    required this.floor,
+    required this.address,
+    required this.fieldworkarAddress,
+  });
+
+  factory FlatSuggestion.fromJson(Map<String, dynamic> json) {
+    return FlatSuggestion(
+      id: json["P_id"].toString(),
+      bhk: json["Bhk"] ?? "",
+      price: json["show_Price"] ?? "",
+      floor: json["Floor_"] ?? "",
+      address: json["Apartment_Address"] ?? "",
+      fieldworkarAddress: json["fieldworkar_address"] ?? "",
+    );
+  }
+}
 
 class ExternalWizardPage extends StatefulWidget {
   final String? agreementId;
@@ -48,14 +97,15 @@ class ExternalWizardPage extends StatefulWidget {
   const ExternalWizardPage({Key? key, this.agreementId,required this.rewardStatus}) : super(key: key);
 
   @override
-  State<ExternalWizardPage> createState() => _RentalWizardPageState();
+  State<ExternalWizardPage> createState() => _ExternalWizardPageState();
 }
 
-class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProviderStateMixin {
+class _ExternalWizardPageState extends State<ExternalWizardPage> with TickerProviderStateMixin {
 
   final PageController _pageController = PageController();
   int _currentStep = 0;
   bool isAgreementHide = false;
+  bool isPropertyFetched = false;
   List<ExtraTenant> tenants = [];
 
   // Form keys & controllers
@@ -69,19 +119,8 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
   File? ownerAadhaarFront;
   File? ownerAadhaarBack;
   File? agreementPdf;
-  final _tenantFormKey = GlobalKey<FormState>();
-  final tenantName = TextEditingController();
-  String tenantRelation = 'S/O';
-  final tenantRelationPerson = TextEditingController();
-  final tenantAddress = TextEditingController();
-  final tenantMobile = TextEditingController();
-  final tenantAadhaar = TextEditingController();
-  File? tenantAadhaarFront;
-  File? tenantAadhaarBack;
-  File? tenantImage;
 
   Map<String, dynamic>? fetchedData;
-
 
   final _propertyFormKey = GlobalKey<FormState>();
   final propertyID = TextEditingController();
@@ -130,9 +169,8 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
 
   String? ownerAadharFrontUrl;
   String? ownerAadharBackUrl;
-  String? tenantAadharFrontUrl;
-  String? tenantAadharBackUrl;
-  String? tenantPhotoUrl;
+
+
 
   @override
   void initState() {
@@ -261,9 +299,6 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           // 🔹 Documents
           ownerAadharFrontUrl = data["owner_aadhar_front"] ?? "";
           ownerAadharBackUrl  = data["owner_aadhar_back"] ?? "";
-          tenantAadharFrontUrl = data["tenant_aadhar_front"] ?? "";
-          tenantAadharBackUrl  = data["tenant_aadhar_back"] ?? "";
-          tenantPhotoUrl       = data["tenant_image"] ?? "";
           isAgreementHide = data["is_agreement_hide"] == "1";
 
           firstTenant.aadhaarFrontUrl =
@@ -332,7 +367,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
 
 
   @override
-  void dispose()  {
+  void dispose() {
     _fabController.dispose();
     _pageController.dispose();
     ownerName.dispose();
@@ -340,11 +375,13 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     ownerAddress.dispose();
     ownerMobile.dispose();
     ownerAadhaar.dispose();
-    tenantName.dispose();
-    tenantRelationPerson.dispose();
-    tenantAddress.dispose();
-    tenantMobile.dispose();
-    tenantAadhaar.dispose();
+    for (final t in tenants) {
+      t.name.dispose();
+      t.mobile.dispose();
+      t.aadhaar.dispose();
+      t.address.dispose();
+      t.relationPerson.dispose();
+    }
     Bhk.dispose();
     floor.dispose();
     Address.dispose();
@@ -357,8 +394,9 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
   }
 
   Future<void> _pickImage(String which) async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 75);
+    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
+
     setState(() {
       switch (which) {
         case 'ownerFront':
@@ -367,18 +405,39 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         case 'ownerBack':
           ownerAadhaarBack = File(picked.path);
           break;
-        case 'tenantFront':
-          tenantAadhaarFront = File(picked.path);
-          break;
-        case 'tenantBack':
-          tenantAadhaarBack = File(picked.path);
-          break;
-
-        case 'tenantImage':
-          tenantImage = File(picked.path);
-          break;
       }
     });
+
+    // 🔍 OCR scan
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 14),
+              Text('Scanning Aadhaar card...', style: TextStyle(fontSize: 14)),
+            ]),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final rawText = await _recognizeTextNative(picked.path);
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+      if (rawText != null && rawText.trim().isNotEmpty) {
+        final parsed = _parseAadhaarText(rawText);
+        await _applyOcrResult(ocr: parsed, fillOwner: true);
+        if (mounted) setState(() {});
+      }
+    } catch (e) {
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+      _showScanErrorDialog('Scan Failed', 'Could not process image.\n\nError: $e');
+    }
   }
 
   int getBaseNotaryAmount(String value, bool discounted) {
@@ -577,8 +636,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     required String? aadhaar,
     required String? mobile,
     int? tenantIndex,
-  })
-  async {
+  }) async {
     String queryKey;
     String queryValue;
 
@@ -616,94 +674,349 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
 
       final data = decoded['data'];
 
+      // 🔥 Fetched data map
+      final fetched = {
+        'Name': data['name'] ?? '',
+        'Mobile': data['mobile_number'] ?? '',
+        'Aadhaar': data['addhar_number'] ?? '',
+        'Address': data['addresss'] ?? '',
+        'Relation': data['relation'] ?? 'S/O',
+        'RelationPerson': data['relation_person_name'] ?? '',
+      };
+
+      // 🔥 Existing data map
+      final existing = fillOwner
+          ? {
+        'Name': ownerName.text,
+        'Mobile': ownerMobile.text,
+        'Aadhaar': ownerAadhaar.text,
+        'Address': ownerAddress.text,
+        'Relation': ownerRelation,
+        'RelationPerson': ownerRelationPerson.text,
+      }
+          : tenantIndex != null
+          ? {
+        'Name': tenants[tenantIndex].name.text,
+        'Mobile': tenants[tenantIndex].mobile.text,
+        'Aadhaar': tenants[tenantIndex].aadhaar.text,
+        'Address': tenants[tenantIndex].address.text,
+        'Relation': tenants[tenantIndex].relation,
+        'RelationPerson': tenants[tenantIndex].relationPerson.text,
+      }
+          : <String, String>{};
+
+      // 🔥 Conflict keys — Mobile EXCLUDE, dono non-empty aur alag
+      final conflictKeys = fetched.entries
+          .where((e) {
+        if (e.key == 'Mobile') return false; // Mobile pe conflict nahi
+        final newVal = e.value.trim();
+        final oldVal = (existing[e.key] ?? '').trim();
+        return newVal.isNotEmpty &&
+            oldVal.isNotEmpty &&
+            newVal.toLowerCase() != oldVal.toLowerCase();
+      })
+          .map((e) => e.key)
+          .toList();
+
+      // 🔥 Non-conflict fields directly fill karo
       setState(() {
         if (fillOwner) {
-          // ✅ Fill OWNER section
-          ownerName.text = data['name'] ?? '';
-          ownerRelation = data['relation'] ?? 'S/O';
-          ownerRelationPerson.text = data['relation_person_name'] ?? '';
-          ownerAddress.text = data['addresss'] ?? '';
-          ownerMobile.text = data['mobile_number'] ?? '';
-          ownerAadhaar.text = data['addhar_number'] ?? '';
+          fetched.forEach((key, newVal) {
+            if (newVal.isEmpty) return;
+            final oldVal = (existing[key] ?? '').trim();
+            // Mobile freely fill, baaki conflict pe skip
+            if (key != 'Mobile' &&
+                oldVal.isNotEmpty &&
+                oldVal.toLowerCase() != newVal.toLowerCase()) return;
+            if (key == 'Name') ownerName.text = newVal.toUpperCase();
+            if (key == 'Mobile') ownerMobile.text = newVal;
+            if (key == 'Aadhaar') ownerAadhaar.text = newVal;
+            if (key == 'Address') ownerAddress.text = newVal.toUpperCase();
+            if (key == 'Relation') ownerRelation = newVal;
+            if (key == 'RelationPerson')
+              ownerRelationPerson.text = newVal.toUpperCase();
+          });
           ownerAadharFrontUrl = data['addhar_front'] ?? '';
           ownerAadharBackUrl = data['addhar_back'] ?? '';
-
-          // 🔥 Convert auto-fetched URLs into real Files
-          if (ownerAadharFrontUrl != null && ownerAadharFrontUrl!.isNotEmpty) {
-            downloadAndConvertToFile(ownerAadharFrontUrl).then((file) {
-              if (file != null) {
-                setState(() {
-                  ownerAadhaarFront = file;
-                });
-              }
-            });
-          }
-
-          if (ownerAadharBackUrl != null && ownerAadharBackUrl!.isNotEmpty) {
-            downloadAndConvertToFile(ownerAadharBackUrl).then((file) {
-              if (file != null) {
-                setState(() {
-                  ownerAadhaarBack = file;
-                });
-              }
-            });
-          }
-        } /// 🔹 DIRECTOR AUTO-FILL (INDEX BASED)
-        else if (tenantIndex != null &&
+          ownerAadhaarFront = null;
+          ownerAadhaarBack = null;
+        } else if (tenantIndex != null &&
             tenantIndex >= 0 &&
             tenantIndex < tenants.length) {
-
           final d = tenants[tenantIndex];
-
-          d.name.text = data['name'] ?? '';
-          d.mobile.text = data['mobile_number'] ?? '';
-          d.aadhaar.text = data['addhar_number'] ?? '';
-          d.address.text = data['addresss'] ?? '';
-          d.relation = data['relation'] ?? 'S/O';
-          d.relationPerson.text = data['relation_person_name'] ?? '';
-
+          fetched.forEach((key, newVal) {
+            if (newVal.isEmpty) return;
+            final oldVal = (existing[key] ?? '').trim();
+            // Mobile freely fill, baaki conflict pe skip
+            if (key != 'Mobile' &&
+                oldVal.isNotEmpty &&
+                oldVal.toLowerCase() != newVal.toLowerCase()) return;
+            if (key == 'Name') d.name.text = newVal.toUpperCase();
+            if (key == 'Mobile') d.mobile.text = newVal;
+            if (key == 'Aadhaar') d.aadhaar.text = newVal;
+            if (key == 'Address') d.address.text = newVal.toUpperCase();
+            if (key == 'Relation') d.relation = newVal;
+            if (key == 'RelationPerson')
+              d.relationPerson.text = newVal.toUpperCase();
+          });
           d.aadhaarFrontUrl = data['addhar_front'];
-          d.aadhaarBackUrl  = data['addhar_back'];
-          d.photoUrl        = data['selfie'];
-
-          // 🔥 Convert auto-fetched URLs into real Files
-          if (d.aadhaarFrontUrl != null && d.aadhaarFrontUrl!.isNotEmpty) {
-            downloadAndConvertToFile(d.aadhaarFrontUrl).then((file) {
-              if (file != null) {
-                setState(() {
-                  d.aadhaarFront = file;
-                });
-              }
-            });
-          }
-
-          if (d.aadhaarBackUrl != null && d.aadhaarBackUrl!.isNotEmpty) {
-            downloadAndConvertToFile(d.aadhaarBackUrl).then((file) {
-              if (file != null) {
-                setState(() {
-                  d.aadhaarBack = file;
-                });
-              }
-            });
-          }
-
-          if (d.photoUrl != null && d.photoUrl!.isNotEmpty) {
-            downloadAndConvertToFile(d.photoUrl).then((file) {
-              if (file != null) {
-                setState(() {
-                  d.photo = file;
-                });
-              }
-            });
-          }
+          d.aadhaarBackUrl = data['addhar_back'];
+          d.photoUrl = data['selfie'];
+          d.aadhaarFront = null;
+          d.aadhaarBack = null;
+          d.photo = null;
         }
       });
+
+      // 🔥 Conflict fields ke liye POPUP
+      if (conflictKeys.isNotEmpty) {
+        final choice = {
+          for (var key in conflictKeys) key: 'fetched'
+        };
+
+        final selected = await showDialog<Map<String, String>>(
+          context: context,
+          builder: (ctx) {
+            return StatefulBuilder(
+              builder: (ctx, setS) {
+                return AlertDialog(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  title: const Text("Select Data"),
+                  content: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Some fields have different data — select which one to keep:",
+                          style:
+                          TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 12),
+                        ...conflictKeys.map((key) {
+                          final oldVal = existing[key] ?? '';
+                          final newVal = fetched[key] ?? '';
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(key,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13)),
+                              const SizedBox(height: 6),
+                              Row(children: [
+                                // 🔵 Old Data
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () =>
+                                        setS(() => choice[key] = 'old'),
+                                    child: Container(
+                                      constraints: const BoxConstraints(
+                                          minHeight: 60),
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: choice[key] == 'old'
+                                            ? Colors.blue.withOpacity(0.8)
+                                            : Colors.grey.shade200,
+                                        borderRadius:
+                                        BorderRadius.circular(8),
+                                        border: Border.all(
+                                            color: Colors.grey),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Old Data',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: choice[key] == 'old'
+                                                  ? Colors.white70
+                                                  : Colors.grey,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            oldVal.isNotEmpty
+                                                ? oldVal
+                                                : 'No Data',
+                                            style: TextStyle(
+                                              color: choice[key] == 'old'
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                // 🟢 New Data
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => setS(
+                                            () => choice[key] = 'fetched'),
+                                    child: Container(
+                                      constraints: const BoxConstraints(
+                                          minHeight: 60),
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: choice[key] == 'fetched'
+                                            ? Colors.green.withOpacity(0.8)
+                                            : Colors.grey.shade200,
+                                        borderRadius:
+                                        BorderRadius.circular(8),
+                                        border: Border.all(
+                                            color: Colors.grey),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'New Data',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color:
+                                              choice[key] == 'fetched'
+                                                  ? Colors.white70
+                                                  : Colors.grey,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            newVal.isNotEmpty
+                                                ? newVal
+                                                : 'No Data',
+                                            style: TextStyle(
+                                              color:
+                                              choice[key] == 'fetched'
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ]),
+                              const SizedBox(height: 12),
+                            ],
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, null),
+                      child: const Text("Cancel"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        final result = <String, String>{};
+                        for (var key in conflictKeys) {
+                          result[key] = choice[key] == 'old'
+                              ? existing[key] ?? ''
+                              : fetched[key] ?? '';
+                        }
+                        Navigator.pop(ctx, result);
+                      },
+                      child: const Text("Apply"),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+
+        // 🔥 Popup se selected values apply karo
+        if (selected != null && mounted) {
+          setState(() {
+            if (fillOwner) {
+              if (selected['Name']?.isNotEmpty == true)
+                ownerName.text = selected['Name']!.toUpperCase();
+              if (selected['Mobile']?.isNotEmpty == true)
+                ownerMobile.text = selected['Mobile']!;
+              if (selected['Aadhaar']?.isNotEmpty == true)
+                ownerAadhaar.text = selected['Aadhaar']!;
+              if (selected['Address']?.isNotEmpty == true)
+                ownerAddress.text = selected['Address']!.toUpperCase();
+              if (selected['Relation']?.isNotEmpty == true)
+                ownerRelation = selected['Relation']!;
+              if (selected['RelationPerson']?.isNotEmpty == true)
+                ownerRelationPerson.text =
+                    selected['RelationPerson']!.toUpperCase();
+            } else if (tenantIndex != null &&
+                tenantIndex < tenants.length) {
+              final t = tenants[tenantIndex];
+              if (selected['Name']?.isNotEmpty == true)
+                t.name.text = selected['Name']!.toUpperCase();
+              if (selected['Mobile']?.isNotEmpty == true)
+                t.mobile.text = selected['Mobile']!;
+              if (selected['Aadhaar']?.isNotEmpty == true)
+                t.aadhaar.text = selected['Aadhaar']!;
+              if (selected['Address']?.isNotEmpty == true)
+                t.address.text = selected['Address']!.toUpperCase();
+              if (selected['Relation']?.isNotEmpty == true)
+                t.relation = selected['Relation']!;
+              if (selected['RelationPerson']?.isNotEmpty == true)
+                t.relationPerson.text =
+                    selected['RelationPerson']!.toUpperCase();
+            }
+          });
+          _showToast('Fields updated successfully!');
+        }
+      }
+
+      // 🔥 Background mein images download karo
+      if (fillOwner) {
+        if (ownerAadharFrontUrl != null && ownerAadharFrontUrl!.isNotEmpty) {
+          downloadAndConvertToFile(ownerAadharFrontUrl).then((file) {
+            if (file != null && mounted)
+              setState(() => ownerAadhaarFront = file);
+          });
+        }
+        if (ownerAadharBackUrl != null && ownerAadharBackUrl!.isNotEmpty) {
+          downloadAndConvertToFile(ownerAadharBackUrl).then((file) {
+            if (file != null && mounted)
+              setState(() => ownerAadhaarBack = file);
+          });
+        }
+      } else if (tenantIndex != null &&
+          tenantIndex >= 0 &&
+          tenantIndex < tenants.length) {
+        final d = tenants[tenantIndex];
+        if (d.aadhaarFrontUrl != null && d.aadhaarFrontUrl!.isNotEmpty) {
+          downloadAndConvertToFile(d.aadhaarFrontUrl).then((file) {
+            if (file != null && mounted)
+              setState(() => d.aadhaarFront = file);
+          });
+        }
+        if (d.aadhaarBackUrl != null && d.aadhaarBackUrl!.isNotEmpty) {
+          downloadAndConvertToFile(d.aadhaarBackUrl).then((file) {
+            if (file != null && mounted)
+              setState(() => d.aadhaarBack = file);
+          });
+        }
+        if (d.photoUrl != null && d.photoUrl!.isNotEmpty) {
+          downloadAndConvertToFile(d.photoUrl).then((file) {
+            if (file != null && mounted) setState(() => d.photo = file);
+          });
+        }
+      }
+
       if (fillOwner) {
         AppLogger.api("✅ Auto-fetch filled for OWNER");
       } else if (tenantIndex != null) {
-        AppLogger.api("✅ Auto-fetch filled for DIRECTOR #${tenantIndex + 1}");
+        AppLogger.api("✅ Auto-fetch filled for TENANT #${tenantIndex + 1}");
       }
-
     } catch (e) {
       print("🔥 Exception: $e");
       _showToast("Error: $e");
@@ -713,7 +1026,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
 
   Future<void> _pickTenantDoc(int index, bool isFront) async {
     final picked = await _picker.pickImage(
-        source: ImageSource.gallery, imageQuality: 75);
+        source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
 
     setState(() {
@@ -723,6 +1036,37 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         tenants[index].aadhaarBack = File(picked.path);
       }
     });
+
+    // 🔍 OCR scan
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 14),
+              Text('Scanning Aadhaar card...', style: TextStyle(fontSize: 14)),
+            ]),
+          ),
+        ),
+      ),
+    );
+
+    try {
+      final rawText = await _recognizeTextNative(picked.path);
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+      if (rawText != null && rawText.trim().isNotEmpty) {
+        final parsed = _parseAadhaarText(rawText);
+        await _applyOcrResult(ocr: parsed, fillOwner: false, tenantIndex: index);
+        if (mounted) setState(() {});
+      }
+    } catch (e) {
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+      _showScanErrorDialog('Scan Failed', 'Could not process image.\n\nError: $e');
+    }
   }
 
   Future<void> _pickTenantPhoto(int index) async {
@@ -735,7 +1079,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     });
   }
 
-  // ── OCR Channel (same as RentalWizardPage) ────────────────────────────────
+  // ── OCR ──────────────────────────────────────────────────────────────────
   static const _ocrChannel = MethodChannel('com.verify.app/ocr');
 
   Future<String?> _recognizeTextNative(String imagePath) async {
@@ -751,6 +1095,31 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     }
   }
 
+  String _titleCase(String s) => s.toLowerCase().split(' ')
+      .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
+      .join(' ');
+
+  String cleanAddress(String raw) {
+    String text = raw;
+    text = text.replaceAll(RegExp(r'[^\x00-\x7F]'), '');
+    text = text.replaceAll(RegExp(r"[^a-zA-Z0-9,\-\./ ]"), '');
+    text = text.replaceAll(RegExp(r'\s+'), ' ');
+    text = text.replaceAll(RegExp(r'\s*-\s*'), '-');
+    text = text.replaceAll(RegExp(r',+'), ',');
+    text = text.replaceAll(RegExp(r'\s*,\s*'), ', ');
+    final parts = text.split(', ');
+    final seen = <String>{};
+    final unique = <String>[];
+    for (var part in parts) {
+      final key = part.trim().toLowerCase();
+      if (key.isNotEmpty && !seen.contains(key)) {
+        seen.add(key);
+        unique.add(part.trim());
+      }
+    }
+    return unique.join(', ').trim();
+  }
+
   Map<String, String?> _parseAadhaarText(String fullText) {
     final result = <String, String?>{
       'aadhaarNumber': null,
@@ -758,82 +1127,129 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
       'address': null,
       'mobile': null,
     };
-    final lines = fullText.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
 
+    final lines = fullText
+        .split('\n')
+        .map((l) => l.trim())
+        .where((l) => l.isNotEmpty)
+        .toList();
+
+    // 1. Aadhaar Number
     final aadhaarRegex = RegExp(r'\b(\d{4}\s?\d{4}\s?\d{4})\b');
     for (final line in lines) {
       final m = aadhaarRegex.firstMatch(line);
-      if (m != null) { result['aadhaarNumber'] = m.group(1)!.replaceAll(' ', ''); break; }
+      if (m != null) {
+        result['aadhaarNumber'] = m.group(1)!.replaceAll(' ', '');
+        break;
+      }
     }
 
-    final skipKw = RegExp(r'(Government|India|INDIA|Aadhaar|UIDAI|DOB|Date|Male|Female|Address|VID|Enrollment|Download|www|\.in|\.com|\d{4})', caseSensitive: false);
+    // 2. Name
+    final skipKw = RegExp(
+        r'(Government|India|INDIA|Aadhaar|UIDAI|DOB|Date|Male|Female|Address|VID|Enrollment|Download|www|\.in|\.com|\d{4})',
+        caseSensitive: false);
+
     String? foundName;
     for (int i = 0; i < lines.length; i++) {
       if (lines[i].toLowerCase().startsWith('name') && i + 1 < lines.length) {
         final next = lines[i + 1];
-        if (!skipKw.hasMatch(next) && next.length > 2) { foundName = _titleCase(next); break; }
+        if (!skipKw.hasMatch(next) && next.length > 2) {
+          foundName = _titleCase(next);
+          break;
+        }
       }
     }
     if (foundName == null) {
       for (final line in lines) {
         if (skipKw.hasMatch(line)) continue;
-        if (RegExp(r'^[A-Za-z\s\.]+\$').hasMatch(line) && line.split(' ').length >= 2 && line.length >= 5 && line.length <= 60) {
-          foundName = _titleCase(line); break;
+        if (RegExp(r'^[A-Za-z\s\.]+$').hasMatch(line) &&
+            line.split(' ').length >= 2 &&
+            line.length >= 5 &&
+            line.length <= 60) {
+          foundName = _titleCase(line);
+          break;
         }
       }
     }
     result['name'] = foundName;
 
-    final addrTrigger = RegExp(r'\b(Address|S\/O|C\/O|W\/O|D\/O|House|Flat|Village|Ward|Dist|PIN|PO|PS)\b', caseSensitive: false);
-    final addrLines = <String>[];
-    bool capturing = false;
+    // 3. Address
+    List<String> addressLines = [];
+    bool start = false;
     for (final line in lines) {
-      if (addrTrigger.hasMatch(line)) capturing = true;
-      if (capturing) {
-        if (aadhaarRegex.hasMatch(line)) break;
-        if (RegExp(r'^\d[\d\s\-\/]+\$').hasMatch(line) && line.length < 20) continue;
-        addrLines.add(line);
-        if (addrLines.length >= 6) break;
+      final lower = line.toLowerCase();
+      if (lower.contains('s/o') || lower.contains('d/o') ||
+          lower.contains('w/o') || lower.contains('c/o')) {
+        start = true;
+        addressLines.add(line.trim());
+        continue;
       }
+      if (!start) continue;
+      if (lower.contains('uidai') || lower.contains('unique identification') ||
+          lower.contains('government') || lower.contains('india') ||
+          lower.contains('aadhaar') || lower.contains('www')) continue;
+      if (aadhaarRegex.hasMatch(line)) break;
+      if (line.length < 6) continue;
+      addressLines.add(line.trim());
+      if (addressLines.length == 5) break;
     }
-    if (addrLines.isNotEmpty) result['address'] = addrLines.join(', ');
 
+    if (addressLines.isNotEmpty) {
+      String combined = addressLines.join(' ');
+      combined = combined.replaceAll(RegExp(r'[^\x00-\x7F]'), '');
+      combined = combined.replaceAll(RegExp(r"[^a-zA-Z0-9,\-\./ ]"), '');
+      combined = combined.replaceAll(RegExp(r'\s+'), ' ');
+      combined = combined.replaceAll(RegExp(r'\s*-\s*'), '-');
+      combined = combined.replaceAll(RegExp(r',+'), ',');
+      combined = combined.replaceAll(RegExp(r'\s*,\s*'), ', ');
+      final parts = combined.split(', ');
+      final seen = <String>{};
+      final unique = <String>[];
+      for (var part in parts) {
+        final key = part.trim().toLowerCase();
+        if (key.isNotEmpty && !seen.contains(key)) {
+          seen.add(key);
+          unique.add(part.trim());
+        }
+      }
+      result['address'] = unique.join(', ');
+    }
+
+    // 4. Mobile
     final mobileRegex = RegExp(r'\b([6-9]\d{9})\b');
     for (final line in lines) {
       final m = mobileRegex.firstMatch(line);
-      if (m != null) { result['mobile'] = m.group(1); break; }
+      if (m != null) {
+        result['mobile'] = m.group(1);
+        break;
+      }
     }
+
+    print('✅ OCR Parsed: $result');
     return result;
   }
-
-  String _titleCase(String s) => s.toLowerCase().split(' ')
-      .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}').join(' ');
 
   void _showScanErrorDialog(String title, String message) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-        content: Text(message, style: const TextStyle(fontSize: 14, height: 1.5)),
+        title: Text(title,
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+        content: Text(message,
+            style: const TextStyle(fontSize: 14, height: 1.5)),
         actions: [
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade700,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
             onPressed: () => Navigator.pop(context),
             child: const Text('OK', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _ocrRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SizedBox(width: 70, child: Text('$label:', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
-        Expanded(child: Text(value, style: const TextStyle(fontSize: 13))),
-      ]),
     );
   }
 
@@ -847,187 +1263,240 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     final address = ocr['address'];
     final mobile  = ocr['mobile'];
 
-    if (aadhaar == null && name == null && address == null) {
-      _showScanErrorDialog('Scan Unsuccessful', 'Unable to read Aadhaar card clearly.\n\nPlease ensure:\n• Card is held straight\n• Good lighting\n• Full card is captured');
+    if (aadhaar == null && name == null && address == null && mobile == null) {
+      _showScanErrorDialog('Scan Unsuccessful',
+          'Unable to read Aadhaar card clearly.\n\nPlease ensure:\n• Card is straight\n• Good lighting\n• Full card visible');
       return;
     }
 
-    final confirmed = await showDialog<bool>(
+    // 🔥 Existing data map
+    final existing = fillOwner
+        ? {
+      'Name': ownerName.text,
+      'Mobile': ownerMobile.text,
+      'Aadhaar': ownerAadhaar.text,
+      'Address': ownerAddress.text,
+    }
+        : {
+      'Name': tenants[tenantIndex!].name.text,
+      'Mobile': tenants[tenantIndex].mobile.text,
+      'Aadhaar': tenants[tenantIndex].aadhaar.text,
+      'Address': tenants[tenantIndex].address.text,
+    };
+
+    final scanned = {
+      'Name': name ?? '',
+      'Mobile': mobile ?? '',
+      'Aadhaar': aadhaar ?? '',
+      'Address': address ?? '',
+    };
+
+    // 🔥 Step 1: Empty fields directly fill karo
+    setState(() {
+      for (var key in scanned.keys) {
+        final newVal = scanned[key]?.trim() ?? '';
+        final oldVal = (existing[key] ?? '').trim();
+        if (newVal.isEmpty) continue;
+        if (oldVal.isNotEmpty && oldVal.toLowerCase() != newVal.toLowerCase()) continue;
+        if (fillOwner) {
+          if (key == 'Name') ownerName.text = newVal.toUpperCase();
+          if (key == 'Mobile') ownerMobile.text = newVal;
+          if (key == 'Aadhaar') ownerAadhaar.text = newVal;
+          if (key == 'Address') ownerAddress.text = newVal.toUpperCase();
+        } else if (tenantIndex != null && tenantIndex < tenants.length) {
+          final t = tenants[tenantIndex];
+          if (key == 'Name') t.name.text = newVal.toUpperCase();
+          if (key == 'Mobile') t.mobile.text = newVal;
+          if (key == 'Aadhaar') t.aadhaar.text = newVal;
+          if (key == 'Address') t.address.text = newVal.toUpperCase();
+        }
+      }
+    });
+
+    // 🔥 Step 2: Conflict keys dhundho
+    final conflictKeys = scanned.entries
+        .where((e) {
+      final newVal = e.value.trim();
+      final oldVal = (existing[e.key] ?? '').trim();
+      return newVal.isNotEmpty &&
+          oldVal.isNotEmpty &&
+          newVal.toLowerCase() != oldVal.toLowerCase();
+    })
+        .map((e) => e.key)
+        .toList();
+
+    if (conflictKeys.isEmpty) return;
+
+    // 🔥 Step 3: Conflict popup
+    final choice = {for (var key in conflictKeys) key: 'scanned'};
+
+    final selected = await showDialog<Map<String, String>>(
       context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(children: const [
-          Icon(Icons.document_scanner, color: Colors.green),
-          SizedBox(width: 8),
-          Text('Scan Result', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-        ]),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Following data was detected:', style: TextStyle(color: Colors.white, fontSize: 13)),
-            const SizedBox(height: 10),
-            if (aadhaar != null) _ocrRow('Aadhaar', aadhaar),
-            if (name    != null) _ocrRow('Name',    name),
-            if (address != null) _ocrRow('Address', address),
-            if (mobile  != null) _ocrRow('Mobile',  mobile),
-            const SizedBox(height: 12),
-            const Text('Apply this data to the form fields?', style: TextStyle(fontWeight: FontWeight.w600)),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade700, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Apply to Fields', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setS) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              title: const Text("Select Data"),
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Some fields have different data — select which one to keep:",
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 12),
+                    ...conflictKeys.map((key) {
+                      final oldVal = existing[key] ?? '';
+                      final newVal = scanned[key] ?? '';
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(key,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 13)),
+                          const SizedBox(height: 6),
+                          Row(children: [
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () => setS(() => choice[key] = 'old'),
+                                child: Container(
+                                  constraints:
+                                  const BoxConstraints(minHeight: 60),
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: choice[key] == 'old'
+                                        ? Colors.blue.withOpacity(0.8)
+                                        : Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.grey),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Text('Old Data',
+                                          style: TextStyle(
+                                              fontSize: 10,
+                                              color: choice[key] == 'old'
+                                                  ? Colors.white70
+                                                  : Colors.grey)),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        oldVal.isNotEmpty ? oldVal : 'No Data',
+                                        style: TextStyle(
+                                            color: choice[key] == 'old'
+                                                ? Colors.white
+                                                : Colors.black,
+                                            fontSize: 13),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () =>
+                                    setS(() => choice[key] = 'scanned'),
+                                child: Container(
+                                  constraints:
+                                  const BoxConstraints(minHeight: 60),
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: choice[key] == 'scanned'
+                                        ? Colors.green.withOpacity(0.8)
+                                        : Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: Colors.grey),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Text('New Data',
+                                          style: TextStyle(
+                                              fontSize: 10,
+                                              color: choice[key] == 'scanned'
+                                                  ? Colors.white70
+                                                  : Colors.grey)),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        newVal.isNotEmpty ? newVal : 'No Data',
+                                        style: TextStyle(
+                                            color: choice[key] == 'scanned'
+                                                ? Colors.white
+                                                : Colors.black,
+                                            fontSize: 13),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ]),
+                          const SizedBox(height: 12),
+                        ],
+                      );
+                    }).toList(),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, null),
+                  child: const Text("Cancel"),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final result = <String, String>{};
+                    for (var key in conflictKeys) {
+                      result[key] = choice[key] == 'old'
+                          ? existing[key] ?? ''
+                          : scanned[key] ?? '';
+                    }
+                    Navigator.pop(ctx, result);
+                  },
+                  child: const Text("Apply"),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
 
-    if (confirmed != true) return;
+    if (selected == null) return;
 
+    // 🔥 Step 4: Apply selected values
     setState(() {
       if (fillOwner) {
-        if (aadhaar != null) ownerAadhaar.text = aadhaar;
-        if (name    != null) ownerName.text    = name.toUpperCase();
-        if (address != null) ownerAddress.text = address.toUpperCase();
-        if (mobile  != null) ownerMobile.text  = mobile;
+        if (selected['Name']?.isNotEmpty == true)
+          ownerName.text = selected['Name']!.toUpperCase();
+        if (selected['Mobile']?.isNotEmpty == true)
+          ownerMobile.text = selected['Mobile']!;
+        if (selected['Aadhaar']?.isNotEmpty == true)
+          ownerAadhaar.text = selected['Aadhaar']!;
+        if (selected['Address']?.isNotEmpty == true)
+          ownerAddress.text = selected['Address']!.toUpperCase();
       } else if (tenantIndex != null && tenantIndex < tenants.length) {
         final t = tenants[tenantIndex];
-        if (aadhaar != null) t.aadhaar.text  = aadhaar;
-        if (name    != null) t.name.text     = name.toUpperCase();
-        if (address != null) t.address.text  = address.toUpperCase();
-        if (mobile  != null) t.mobile.text   = mobile;
+        if (selected['Name']?.isNotEmpty == true)
+          t.name.text = selected['Name']!.toUpperCase();
+        if (selected['Mobile']?.isNotEmpty == true)
+          t.mobile.text = selected['Mobile']!;
+        if (selected['Aadhaar']?.isNotEmpty == true)
+          t.aadhaar.text = selected['Aadhaar']!;
+        if (selected['Address']?.isNotEmpty == true)
+          t.address.text = selected['Address']!.toUpperCase();
       }
     });
 
     _showToast('Fields updated successfully!');
-
-    final aadhaarFilled = fillOwner ? ownerAadhaar.text.trim() : (tenantIndex != null ? tenants[tenantIndex!].aadhaar.text.trim() : '');
-    if (aadhaarFilled.length == 12) {
-      await _fetchUserData(fillOwner: fillOwner, aadhaar: aadhaarFilled, mobile: null, tenantIndex: tenantIndex);
-      if (mounted) setState(() {});
-    }
   }
-
-  // ── _showImageFullScreen ──────────────────────────────────────────────────
-  void _showImageFullScreen({File? file, String? url}) {
-    if (file == null && (url == null || url.isEmpty)) return;
-    final imageWidget = file != null
-        ? Image.file(file, fit: BoxFit.contain)
-        : Image.network(
-      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$url',
-      fit: BoxFit.contain,
-      loadingBuilder: (_, child, progress) => progress == null ? child : const Center(child: CircularProgressIndicator(color: Colors.white)),
-      errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image, color: Colors.white, size: 60)),
-    );
-    showDialog(
-      context: context,
-      barrierColor: Colors.black.withOpacity(0.92),
-      builder: (_) => GestureDetector(
-        onTap: () => Navigator.of(context).pop(),
-        child: Scaffold(
-          backgroundColor: Colors.transparent,
-          body: Stack(children: [
-            Center(child: InteractiveViewer(minScale: 0.5, maxScale: 5.0, child: imageWidget)),
-            Positioned(top: 48, right: 16,
-              child: GestureDetector(
-                onTap: () => Navigator.of(context).pop(),
-                child: Container(padding: const EdgeInsets.all(8), decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                    child: const Icon(Icons.close, color: Colors.white, size: 24)),
-              ),
-            ),
-            Positioned(bottom: 32, left: 0, right: 0,
-              child: Center(child: Text('Tap anywhere to close • Pinch to zoom', style: TextStyle(color: Colors.white60, fontSize: 12))),
-            ),
-          ]),
-        ),
-      ),
-    );
-  }
-
-  // ── _aadhaarImageCard ─────────────────────────────────────────────────────
-  Widget _aadhaarImageCard({
-    required String label,
-    required File? file,
-    required String? url,
-    required VoidCallback onUpload,
-    IconData placeholderIcon = Icons.add_a_photo_outlined,
-  }) {
-    final hasImage = file != null || (url != null && url.isNotEmpty);
-    const baseUrl = 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/';
-
-    Widget imageContent;
-    if (file != null) {
-      imageContent = Stack(fit: StackFit.expand, children: [
-        Image.file(file, fit: BoxFit.cover),
-        Positioned(top: 8, right: 8, child: _zoomBadge()),
-      ]);
-    } else if (url != null && url.isNotEmpty) {
-      imageContent = Stack(fit: StackFit.expand, children: [
-        Image.network('${baseUrl}$url', fit: BoxFit.cover,
-          loadingBuilder: (_, child, p) => p == null ? child : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-          errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image, color: Colors.grey, size: 40)),
-        ),
-        Positioned(top: 8, right: 8, child: _zoomBadge()),
-      ]);
-    } else {
-      imageContent = Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Icon(placeholderIcon, color: Colors.grey, size: 32),
-        const SizedBox(height: 6),
-        const Text('Tap to upload', style: TextStyle(fontSize: 11, color: Colors.grey)),
-      ]);
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black54)),
-        const SizedBox(height: 6),
-        GestureDetector(
-          onTap: hasImage ? () => _showImageFullScreen(file: file, url: url) : onUpload,
-          child: Container(
-            width: double.infinity,
-            height: 140,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: hasImage ? Colors.grey.shade100 : Colors.grey.shade200,
-              border: Border.all(color: hasImage ? Colors.green.shade400 : Colors.grey.shade400, width: 2),
-            ),
-            child: ClipRRect(borderRadius: BorderRadius.circular(10), child: imageContent),
-          ),
-        ),
-        const SizedBox(height: 6),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: onUpload,
-            icon: Icon(
-              hasImage ? Icons.cached_rounded : Icons.upload_file_rounded,
-              color: Colors.white, size: 16,
-            ),
-            label: Text(
-              hasImage ? 'Change' : 'Upload',
-              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: hasImage ? Colors.green.shade700 : Colors.black87, foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(vertical: 10),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _zoomBadge() => Container(
-    padding: const EdgeInsets.all(5),
-    decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-    child: const Icon(Icons.zoom_in, color: Colors.white, size: 16),
-  );
 
   Future<File?> downloadAndConvertToFile(String? relativePath) async {
     if (relativePath == null || relativePath.isEmpty) return null;
@@ -1527,42 +1996,228 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     );
   }
 
-  Widget _imageTile({File? file, String? url, required String hint}) {
-    return Container(
-      width: 120,
-      height: 72,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        color: Colors.grey.shade200,
+  // 🔥 Full screen image viewer
+  void _showImageFullScreen({File? file, String? url}) {
+    if (file == null && (url == null || url.isEmpty)) return;
+
+    final imageWidget = file != null
+        ? Image.file(file, fit: BoxFit.contain)
+        : Image.network(
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$url',
+      fit: BoxFit.contain,
+      loadingBuilder: (_, child, progress) => progress == null
+          ? child
+          : const Center(
+          child: CircularProgressIndicator(color: Colors.white)),
+      errorBuilder: (_, __, ___) => const Center(
+          child: Icon(Icons.broken_image, color: Colors.white, size: 60)),
+    );
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.92),
+      builder: (_) => GestureDetector(
+        onTap: () => Navigator.of(context).pop(),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Stack(
+            children: [
+              Center(
+                child: InteractiveViewer(
+                  minScale: 0.5,
+                  maxScale: 5.0,
+                  child: imageWidget,
+                ),
+              ),
+              Positioned(
+                top: 48,
+                right: 16,
+                child: GestureDetector(
+                  onTap: () => Navigator.of(context).pop(),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: const BoxDecoration(
+                        color: Colors.black54, shape: BoxShape.circle),
+                    child:
+                    const Icon(Icons.close, color: Colors.white, size: 24),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 32,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Text(
+                    'Tap anywhere to close • Pinch to zoom',
+                    style: TextStyle(color: Colors.white60, fontSize: 12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: file != null
-            ? Image.file(file, fit: BoxFit.cover)
+    );
+  }
 
-            : (url != null && url.isNotEmpty)
-            ? Builder(
-          builder: (context) {
-            print("🔍 FINAL IMAGE URL => $url");
+  Widget _aadhaarImageCard({
+    required String label,
+    required File? file,
+    required String? url,
+    required VoidCallback onUpload,
+    IconData placeholderIcon = Icons.add_a_photo_outlined,
+  }) {
+    final hasImage = file != null || (url != null && url.isNotEmpty);
+    const baseUrl =
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/';
 
-            return Image.network(
+    Widget imageContent;
+    if (file != null) {
+      imageContent = Stack(fit: StackFit.expand, children: [
+        Image.file(file, fit: BoxFit.cover),
+        Positioned(top: 8, right: 8, child: _zoomBadge()),
+      ]);
+    } else if (url != null && url.isNotEmpty) {
+      imageContent = Stack(fit: StackFit.expand, children: [
+        Image.network(
+          '$baseUrl$url',
+          fit: BoxFit.cover,
+          loadingBuilder: (_, child, p) => p == null
+              ? child
+              : const Center(
+              child: CircularProgressIndicator(strokeWidth: 2)),
+          errorBuilder: (_, __, ___) => const Center(
+              child: Icon(Icons.broken_image, color: Colors.grey, size: 40)),
+        ),
+        Positioned(top: 8, right: 8, child: _zoomBadge()),
+      ]);
+    } else {
+      imageContent =
+          Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(placeholderIcon, color: Colors.grey, size: 32),
+            const SizedBox(height: 6),
+            const Text('Tap to upload',
+                style: TextStyle(fontSize: 11, color: Colors.grey)),
+          ]);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label,
+            style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Colors.black54)),
+        const SizedBox(height: 6),
+        GestureDetector(
+          onTap: hasImage
+              ? () => _showImageFullScreen(file: file, url: url)
+              : onUpload,
+          child: Container(
+            width: double.infinity,
+            height: 120,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: Colors.grey.shade200,
+              border: Border.all(
+                color: hasImage ? Colors.green.shade400 : Colors.grey.shade400,
+                width: 2,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: imageContent,
+            ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: onUpload,
+            icon: const Icon(Icons.upload_file, color: Colors.white, size: 16),
+            label: Text(
+              hasImage ? 'Change' : 'Upload',
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black87,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(vertical: 10),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _zoomBadge() => Container(
+    padding: const EdgeInsets.all(5),
+    decoration:
+    const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+    child: const Icon(Icons.zoom_in, color: Colors.white, size: 16),
+  );
+
+  Widget _imageTile({File? file, String? url, required String hint}) {
+    final hasImage = file != null || (url != null && url.isNotEmpty);
+    return GestureDetector(
+      onTap: hasImage ? () => _showImageFullScreen(file: file, url: url) : null,
+      child: Container(
+        width: 120,
+        height: 72,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          color: Colors.grey.shade200,
+          border: hasImage
+              ? Border.all(color: Colors.green.shade400, width: 1.5)
+              : null,
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: file != null
+              ? Stack(fit: StackFit.expand, children: [
+            Image.file(file, fit: BoxFit.cover),
+            Positioned(
+              bottom: 4,
+              right: 4,
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                    color: Colors.black54, shape: BoxShape.circle),
+                child: const Icon(Icons.zoom_in,
+                    color: Colors.white, size: 14),
+              ),
+            ),
+          ])
+              : (url != null && url.isNotEmpty)
+              ? Stack(fit: StackFit.expand, children: [
+            Image.network(
               'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$url',
               fit: BoxFit.cover,
               errorBuilder: (_, __, ___) => const Center(
-                child: Text(
-                  'Error',
-                  style: TextStyle(fontSize: 12, color: Colors.black),
-                ),
+                  child: Text('Error',
+                      style: TextStyle(fontSize: 12))),
+            ),
+            Positioned(
+              bottom: 4,
+              right: 4,
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                    color: Colors.black54, shape: BoxShape.circle),
+                child: const Icon(Icons.zoom_in,
+                    color: Colors.white, size: 14),
               ),
-            );
-          },
-        )
-
-            : Center(
-          child: Text(
-            hint,
-            style: const TextStyle(fontSize: 12, color: Colors.black),
-          ),
+            ),
+          ])
+              : Center(
+              child: Text(hint,
+                  style: const TextStyle(
+                      fontSize: 12, color: Colors.black))),
         ),
       ),
     );
@@ -1577,7 +2232,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        title: Text('External Agreement', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+        title: Text('External Agreement', style: const TextStyle(fontFamily: "Poppins", fontWeight: FontWeight.w600)),
         centerTitle: true,
         leading: Padding(
           padding: const EdgeInsets.all(10),
@@ -1915,227 +2570,231 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
 
   Widget _ownerStep() {
     return _glassContainer(
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Owner Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Colors.cyan, Colors.blue],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      _fetchUserData(
-                        fillOwner: true,
-                        aadhaar: ownerAadhaar.text,
-                        mobile: ownerMobile.text,
-                      );
-                    },
-                    icon: const Icon(Icons.search, color: Colors.white),
-                    label: const Text(
-                      'Auto fetch',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      elevation: 0, // remove default shadow
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                ),
-              ]
+        // ── HEADER ──
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Expanded(
+            child: Text('Owner Details',
+                style: TextStyle(
+                    fontFamily: "Poppins",
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black)),
           ),
-
-          const SizedBox(height: 12),
-          Form(
-            key: _ownerFormKey,
-            child: Column(children: [
-              // ── Owner Aadhaar card-style upload ───────────────────────────
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Row(children: [
-                    const Icon(Icons.badge_outlined, size: 18, color: Colors.black54),
-                    const SizedBox(width: 6),
-                    const Text('Owner Aadhaar Documents',
-                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.black87)),
-                    const Spacer(),
-                    if (ownerAadhaarFront != null || (ownerAadharFrontUrl?.isNotEmpty ?? false))
-                      const Icon(Icons.check_circle, color: Colors.green, size: 18),
+          Container(
+            decoration: BoxDecoration(
+              gradient:  LinearGradient(
+                  colors: [
+                    Colors.blue.shade700,
+                    Colors.blue,
                   ]),
-                  const SizedBox(height: 14),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(child: _aadhaarImageCard(
-                        label: 'Aadhaar Front',
-                        file: ownerAadhaarFront,
-                        url: ownerAadharFrontUrl,
-                        onUpload: () async {
-                          final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
-                          if (picked == null) return;
-                          setState(() => ownerAadhaarFront = File(picked.path));
-                          // OCR scan
-                          showDialog(context: context, barrierDismissible: false,
-                              builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
-                                  child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 14), Text('Scanning Aadhaar card...')])))));
-                          try {
-                            final rawText = await _recognizeTextNative(picked.path);
-                            if (mounted) Navigator.of(context, rootNavigator: true).pop();
-                            if (rawText != null && rawText.trim().isNotEmpty) {
-                              final parsed = _parseAadhaarText(rawText);
-                              await _applyOcrResult(ocr: parsed, fillOwner: true);
-                              if (mounted) setState(() {});
-                            }
-                          } catch (e) {
-                            if (mounted) Navigator.of(context, rootNavigator: true).pop();
-                          }
-                        },
-                      )),
-                      const SizedBox(width: 12),
-                      Expanded(child: _aadhaarImageCard(
-                        label: 'Aadhaar Back',
-                        file: ownerAadhaarBack,
-                        url: ownerAadharBackUrl,
-                        onUpload: () async {
-                          final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
-                          if (picked == null) return;
-                          setState(() => ownerAadhaarBack = File(picked.path));
-                          showDialog(context: context, barrierDismissible: false,
-                              builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
-                                  child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 14), Text('Scanning Aadhaar card...')])))));
-                          try {
-                            final rawText = await _recognizeTextNative(picked.path);
-                            if (mounted) Navigator.of(context, rootNavigator: true).pop();
-                            if (rawText != null && rawText.trim().isNotEmpty) {
-                              final parsed = _parseAadhaarText(rawText);
-                              await _applyOcrResult(ocr: parsed, fillOwner: true);
-                              if (mounted) setState(() {});
-                            }
-                          } catch (e) {
-                            if (mounted) Navigator.of(context, rootNavigator: true).pop();
-                          }
-                        },
-                      )),
-                    ],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ElevatedButton.icon(
+              onPressed: () async {
+                final a = ownerAadhaar.text.trim();
+                final m = ownerMobile.text.trim();
+                if (a.isEmpty && m.isEmpty) {
+                  _showToast('Please enter Aadhaar or Mobile number first');
+                  return;
+                }
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (_) => const Center(
+                    child: Card(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: Column(mainAxisSize: MainAxisSize.min, children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 14),
+                          Text('Fetching owner details...'),
+                        ]),
+                      ),
+                    ),
                   ),
-                ]),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                  children: [
-                    Expanded(child: _glowTextField(controller: ownerMobile, label: 'Mobile No', keyboard: TextInputType.phone,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,       // only numbers
-                        LengthLimitingTextInputFormatter(10),         // max 10 digits
-                      ],
-                      validator: (v) {
-
-                        if (v == null || v.trim().isEmpty) return 'Required';
-                        if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) return 'Enter valid 10-digit mobile';
-
-                        return null;
-                      },
-
-                      // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
-                    )
-                    ),
-                    const SizedBox(width: 12),
-
-                    Expanded(
-                      child: _glowTextField(
-                        controller: ownerAadhaar,
-                        label: 'Aadhaar/VID No',
-                        keyboard: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,  // only numbers
-                          LengthLimitingTextInputFormatter(16),    // max 16 digits
-                        ],
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'Required';
-
-                          final digits = v.trim();
-                          if (!RegExp(r'^\d{12}$').hasMatch(digits) && !RegExp(r'^\d{16}$').hasMatch(digits)) {
-                            return 'Enter valid 12-digit Aadhaar or 16-digit VID';
-                          }
-
-                          return null;
-                        },
-                      ),
-                    ),
-                  ]),
-              const SizedBox(height: 14),
-              _glowTextField(controller: ownerName, label: 'Owner Full Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
-              const SizedBox(height: 12),
-              Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: ownerRelation,
-                        items: const ['S/O', 'D/O', 'W/O', 'C/O']
-                            .map((e) => DropdownMenuItem(
-                          value: e,
-                          child: Text(
-                            e,
-                            style: TextStyle(color: Colors.black), // ✅ dropdown text black
-                          ),
-                        ))
-                            .toList(),
-                        onChanged: (v) => setState(() => ownerRelation = v ?? 'S/O'),
-                        decoration: _fieldDecoration('Relation').copyWith(
-                          labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
-                          hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Colors.black), // ✅ border black
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Colors.black, width: 1.5),
-                          ),
-                        ),
-                        iconEnabledColor: Colors.black, // ✅ dropdown arrow black
-                        dropdownColor: Colors.white, // ✅ menu background white (good contrast)
-                        style: const TextStyle(color: Colors.black), // ✅ selected text black
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(child: _glowTextField(controller: ownerRelationPerson, label: 'Person Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
-                  ]),
-              const SizedBox(height: 12),
-              _glowTextField(controller: ownerAddress, label: 'Permanent Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
-
-            ]
+                );
+                await _fetchUserData(
+                    fillOwner: true,
+                    aadhaar: a.isNotEmpty ? a : null,
+                    mobile: a.isEmpty ? m : null);
+                if (mounted) {
+                  Navigator.of(context, rootNavigator: true).pop();
+                  setState(() {});
+                }
+              },
+              icon: const Icon(Icons.search, color: Colors.white),
+              label: const Text('Auto Fetch',
+                  style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent),
             ),
           ),
-        ]
-        )
+        ]),
+
+        const SizedBox(height: 16),
+
+        // ── AADHAAR IMAGES ──
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.grey.shade300),
+          ),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              const Icon(Icons.badge_outlined, size: 18, color: Colors.black54),
+              const SizedBox(width: 6),
+              const Text('Owner Aadhaar Documents',
+                  style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: Colors.black87)),
+              const Spacer(),
+              if (ownerAadhaarFront != null ||
+                  (ownerAadharFrontUrl?.isNotEmpty ?? false))
+                const Icon(Icons.check_circle, color: Colors.green, size: 18),
+            ]),
+            const SizedBox(height: 14),
+
+            // ── FRONT & BACK side by side ──
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _aadhaarImageCard(
+                    label: 'Aadhaar Front',
+                    file: ownerAadhaarFront,
+                    url: ownerAadharFrontUrl,
+                    onUpload: () => _pickImage('ownerFront'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _aadhaarImageCard(
+                    label: 'Aadhaar Back',
+                    file: ownerAadhaarBack,
+                    url: ownerAadharBackUrl,
+                    onUpload: () => _pickImage('ownerBack'),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 8),
+            Text(
+              'Enter Aadhaar or Mobile number above and tap Auto Fetch to fill details automatically.',
+              style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey.shade600,
+                  fontStyle: FontStyle.italic),
+            ),
+          ]),
+        ),
+
+        const SizedBox(height: 16),
+
+        // ── FORM FIELDS ──
+        Form(
+          key: _ownerFormKey,
+          child: Column(children: [
+            Row(children: [
+              Expanded(
+                child: _glowTextField(
+                  controller: ownerMobile,
+                  label: 'Mobile No',
+                  keyboard: TextInputType.phone,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(10),
+                  ],
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Required';
+                    if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v))
+                      return 'Enter valid 10-digit mobile';
+                    return null;
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _glowTextField(
+                  controller: ownerAadhaar,
+                  label: 'Aadhaar / VID No',
+                  keyboard: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(16),
+                  ],
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Required';
+                    final d = v.trim();
+                    if (!RegExp(r'^\d{12}$').hasMatch(d) &&
+                        !RegExp(r'^\d{16}$').hasMatch(d))
+                      return 'Enter valid 12-digit Aadhaar or 16-digit VID';
+                    return null;
+                  },
+                ),
+              ),
+            ]),
+            const SizedBox(height: 14),
+            _glowTextField(
+                controller: ownerName,
+                label: 'Owner Full Name',
+                validator: (v) =>
+                (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            const SizedBox(height: 12),
+            Row(children: [
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: ownerRelation,
+                  items: const ['S/O', 'D/O', 'W/O', 'C/O']
+                      .map((e) => DropdownMenuItem(
+                      value: e,
+                      child: Text(e,
+                          style:
+                          const TextStyle(color: Colors.black))))
+                      .toList(),
+                  onChanged: (v) =>
+                      setState(() => ownerRelation = v ?? 'S/O'),
+                  decoration: _fieldDecoration('Relation').copyWith(
+                    labelStyle: const TextStyle(color: Colors.black),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                        const BorderSide(color: Colors.black)),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                            color: Colors.black, width: 1.5)),
+                  ),
+                  iconEnabledColor: Colors.black,
+                  dropdownColor: Colors.white,
+                  style: const TextStyle(color: Colors.black),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _glowTextField(
+                    controller: ownerRelationPerson,
+                    label: 'Person Name',
+                    validator: (v) =>
+                    (v?.trim().isEmpty ?? true) ? 'Required' : null),
+              ),
+            ]),
+            const SizedBox(height: 12),
+            _glowTextField(
+                controller: ownerAddress,
+                label: 'Permanent Address',
+                validator: (v) =>
+                (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            const SizedBox(height: 12),
+          ]),
+        ),
+      ]),
     );
   }
 
@@ -2146,347 +2805,376 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: _glassContainer(
-                child: Form(
-                  key: tenants[index].formKey,
-                  autovalidateMode: AutovalidateMode.disabled,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+              child: Form(
+                key: tenants[index].formKey,
+                autovalidateMode: AutovalidateMode.disabled,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
 
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Tenant ${index + 1} Details',
-                              style: GoogleFonts.poppins(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black,
-                              ),
+                    // ── HEADER ──
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Tenant ${index + 1} Details',
+                            style: const TextStyle(
+                              fontFamily: "Poppins",
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black,
                             ),
                           ),
-                          Wrap(
-                            spacing: 8,
-                            children: [
+                        ),
+                        Wrap(
+                          spacing: 8,
+                          children: [
 
-                              /// AUTO FETCH
-                              ElevatedButton.icon(
-                                onPressed: () {
-                                  _fetchUserData(
+                            // AUTO FETCH BUTTON
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.blue.shade700,
+                                    Colors.blue,
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: ElevatedButton.icon(
+                                onPressed: () async {
+                                  final a = tenants[index].aadhaar.text.trim();
+                                  final m = tenants[index].mobile.text.trim();
+                                  if (a.isEmpty && m.isEmpty) {
+                                    _showToast('Enter Aadhaar or Mobile number first');
+                                    return;
+                                  }
+                                  showDialog(
+                                    context: context,
+                                    barrierDismissible: false,
+                                    builder: (_) => const Center(
+                                      child: Card(
+                                        child: Padding(
+                                          padding: EdgeInsets.all(24),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              CircularProgressIndicator(),
+                                              SizedBox(height: 14),
+                                              Text('Fetching tenant details...'),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                  await _fetchUserData(
                                     fillOwner: false,
-                                    aadhaar: tenants[index].aadhaar.text,
-                                    mobile: tenants[index].mobile.text,
+                                    aadhaar: a.isNotEmpty ? a : null,
+                                    mobile: a.isEmpty ? m : null,
                                     tenantIndex: index,
                                   );
+                                  if (mounted) {
+                                    Navigator.of(context, rootNavigator: true).pop();
+                                    setState(() {});
+                                  }
                                 },
                                 icon: const Icon(Icons.search,
                                     color: Colors.white, size: 18),
-                                label: const Text('Auto fetch'),
+                                label: const Text('Auto Fetch',
+                                    style: TextStyle(color: Colors.white)),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.blue.shade700,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
                                 ),
                               ),
+                            ),
 
-                              if (index > 0 &&
-                                  (widget.agreementId == null || tenants[index].id == null))
-                                IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () {
-                                    setState(() => tenants.removeAt(index));
-                                    updateAgreementPrice(); // 🔥
-                                  },
-                                )
+                            // DELETE BUTTON
+                            if (index > 0 &&
+                                (widget.agreementId == null ||
+                                    tenants[index].id == null))
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () {
+                                  setState(() => tenants.removeAt(index));
+                                  updateAgreementPrice();
+                                },
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
 
+                    const SizedBox(height: 16),
+
+                    // ── AADHAAR IMAGES ──
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: [
+                            const Icon(Icons.badge_outlined,
+                                size: 18, color: Colors.black54),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Tenant ${index + 1} Documents',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                  color: Colors.black87),
+                            ),
+                            const Spacer(),
+                            if (tenants[index].aadhaarFront != null ||
+                                (tenants[index].aadhaarFrontUrl?.isNotEmpty ?? false))
+                              const Icon(Icons.check_circle,
+                                  color: Colors.green, size: 18),
+                          ]),
+                          const SizedBox(height: 14),
+
+                          // FRONT + BACK + PHOTO side by side
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: _aadhaarImageCard(
+                                  label: 'Aadhaar Front',
+                                  file: tenants[index].aadhaarFront,
+                                  url: tenants[index].aadhaarFrontUrl,
+                                  onUpload: () => _pickTenantDoc(index, true),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _aadhaarImageCard(
+                                  label: 'Aadhaar Back',
+                                  file: tenants[index].aadhaarBack,
+                                  url: tenants[index].aadhaarBackUrl,
+                                  onUpload: () => _pickTenantDoc(index, false),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _aadhaarImageCard(
+                                  label: 'Photo',
+                                  file: tenants[index].photo,
+                                  url: tenants[index].photoUrl,
+                                  onUpload: () => _pickTenantPhoto(index),
+                                  placeholderIcon: Icons.person_outline,
+                                ),
+                              ),
                             ],
+                          ),
+
+                          const SizedBox(height: 8),
+                          Text(
+                            'Upload Aadhaar images — OCR will auto-fill fields below.',
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey.shade600,
+                                fontStyle: FontStyle.italic),
                           ),
                         ],
                       ),
+                    ),
 
-                      const SizedBox(height: 12),
+                    const SizedBox(height: 16),
 
-                      /// FORM FIELDS
-                      Column(
-                        children: [
-
-                          // ── Tenant Aadhaar card-style upload ─────────────────
-                          Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: Colors.grey.shade300),
+                    // ── FORM FIELDS ──
+                    Column(
+                      children: [
+                        Row(children: [
+                          Expanded(
+                            child: _glowTextField(
+                              controller: tenants[index].mobile,
+                              label: 'Mobile No',
+                              keyboard: TextInputType.phone,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(10),
+                              ],
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) return 'Required';
+                                if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v))
+                                  return 'Enter valid 10-digit mobile';
+                                return null;
+                              },
                             ),
-                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                              Row(children: [
-                                const Icon(Icons.badge_outlined, size: 18, color: Colors.black54),
-                                const SizedBox(width: 6),
-                                Text('Tenant ${index + 1} Aadhaar Documents',
-                                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.black87)),
-                                const Spacer(),
-                                if (tenants[index].aadhaarFront != null || (tenants[index].aadhaarFrontUrl?.isNotEmpty ?? false))
-                                  const Icon(Icons.check_circle, color: Colors.green, size: 18),
-                              ]),
-                              const SizedBox(height: 14),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(child: _aadhaarImageCard(
-                                    label: 'Aadhaar Front',
-                                    file: tenants[index].aadhaarFront,
-                                    url: tenants[index].aadhaarFrontUrl,
-                                    onUpload: () async {
-                                      final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
-                                      if (picked == null) return;
-                                      setState(() => tenants[index].aadhaarFront = File(picked.path));
-                                      showDialog(context: context, barrierDismissible: false,
-                                          builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
-                                              child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 14), Text('Scanning Aadhaar card...')])))));
-                                      try {
-                                        final rawText = await _recognizeTextNative(picked.path);
-                                        if (mounted) Navigator.of(context, rootNavigator: true).pop();
-                                        if (rawText != null && rawText.trim().isNotEmpty) {
-                                          final parsed = _parseAadhaarText(rawText);
-                                          await _applyOcrResult(ocr: parsed, fillOwner: false, tenantIndex: index);
-                                          if (mounted) setState(() {});
-                                        }
-                                      } catch (e) {
-                                        if (mounted) Navigator.of(context, rootNavigator: true).pop();
-                                      }
-                                    },
-                                  )),
-                                  const SizedBox(width: 8),
-                                  Expanded(child: _aadhaarImageCard(
-                                    label: 'Aadhaar Back',
-                                    file: tenants[index].aadhaarBack,
-                                    url: tenants[index].aadhaarBackUrl,
-                                    onUpload: () async {
-                                      final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
-                                      if (picked == null) return;
-                                      setState(() => tenants[index].aadhaarBack = File(picked.path));
-                                      showDialog(context: context, barrierDismissible: false,
-                                          builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
-                                              child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 14), Text('Scanning Aadhaar card...')])))));
-                                      try {
-                                        final rawText = await _recognizeTextNative(picked.path);
-                                        if (mounted) Navigator.of(context, rootNavigator: true).pop();
-                                        if (rawText != null && rawText.trim().isNotEmpty) {
-                                          final parsed = _parseAadhaarText(rawText);
-                                          await _applyOcrResult(ocr: parsed, fillOwner: false, tenantIndex: index);
-                                          if (mounted) setState(() {});
-                                        }
-                                      } catch (e) {
-                                        if (mounted) Navigator.of(context, rootNavigator: true).pop();
-                                      }
-                                    },
-                                  )),
-                                  const SizedBox(width: 8),
-                                  Expanded(child: _aadhaarImageCard(
-                                    label: 'Photo',
-                                    file: tenants[index].photo,
-                                    url: tenants[index].photoUrl,
-                                    onUpload: () async {
-                                      final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 75);
-                                      if (picked == null) return;
-                                      setState(() => tenants[index].photo = File(picked.path));
-                                    },
-                                    placeholderIcon: Icons.person_outline,
-                                  )),
-                                ],
-                              ),
-                            ]),
                           ),
-                          const SizedBox(height: 16),
-
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _glowTextField(
-                                  controller: tenants[index].mobile,
-                                  label: 'Mobile No',
-                                  keyboard: TextInputType.phone,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                    LengthLimitingTextInputFormatter(10),
-                                  ],
-
-                                  validator: (v) {
-                                    if (v == null || v.trim().isEmpty) return 'Required';
-                                    if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) {
-                                      return 'Enter valid 10-digit mobile';
-                                    }
-                                    return null;
-                                  },
-
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _glowTextField(
-                                  controller: tenants[index].aadhaar,
-                                  label: 'Aadhaar / VID No',
-                                  keyboard: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                    LengthLimitingTextInputFormatter(16),
-                                  ],
-                                  validator: (v) {
-                                    if (v == null || v.trim().isEmpty) return 'Required';
-                                    if (!RegExp(r'^\d{12}$').hasMatch(v) &&
-                                        !RegExp(r'^\d{16}$').hasMatch(v)) {
-                                      return 'Enter valid Aadhaar / VID';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                            ],
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _glowTextField(
+                              controller: tenants[index].aadhaar,
+                              label: 'Aadhaar / VID No',
+                              keyboard: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                                LengthLimitingTextInputFormatter(16),
+                              ],
+                              validator: (v) {
+                                if (v == null || v.trim().isEmpty) return 'Required';
+                                if (!RegExp(r'^\d{12}$').hasMatch(v) &&
+                                    !RegExp(r'^\d{16}$').hasMatch(v))
+                                  return 'Enter valid Aadhaar / VID';
+                                return null;
+                              },
+                            ),
                           ),
+                        ]),
 
-                          const SizedBox(height: 12),
+                        const SizedBox(height: 12),
 
-                          _glowTextField(
-                            controller: tenants[index].name,
-                            label: 'Tenant Full Name',
-                            validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Required' : null,
-                          ),
+                        _glowTextField(
+                          controller: tenants[index].name,
+                          label: 'Tenant Full Name',
+                          validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                        ),
 
-                          const SizedBox(height: 12),
+                        const SizedBox(height: 12),
 
-                          Row(
-                            children: [
-                              Expanded(
-                                child: DropdownButtonFormField<String>(
-                                  value: tenants[index].relation,
-                                  items: const ['S/O', 'D/O', 'W/O', 'C/O']
-                                      .map((e) => DropdownMenuItem(
-                                    value: e,
-                                    child: Text(e,
-                                        style: const TextStyle(
-                                            color: Colors.black)),
-                                  ))
-                                      .toList(),
-                                  onChanged: (v) => setState(() {
-                                    tenants[index].relation = v ?? 'S/O';
-                                  }),
-                                  decoration:
-                                  _fieldDecoration('Relation').copyWith(
-                                    labelStyle: const TextStyle(
-                                        color: Colors.black),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius:
-                                      BorderRadius.circular(12),
-                                      borderSide: const BorderSide(
-                                          color: Colors.black),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius:
-                                      BorderRadius.circular(12),
-                                      borderSide: const BorderSide(
-                                          color: Colors.black,
-                                          width: 1.5),
-                                    ),
-                                  ),
-                                  dropdownColor: Colors.white,
-                                  iconEnabledColor: Colors.black,
-                                  style: const TextStyle(
-                                      color: Colors.black),
-                                ),
+                        Row(children: [
+                          Expanded(
+                            child: DropdownButtonFormField<String>(
+                              value: tenants[index].relation,
+                              items: const ['S/O', 'D/O', 'W/O', 'C/O']
+                                  .map((e) => DropdownMenuItem(
+                                  value: e,
+                                  child: Text(e,
+                                      style: const TextStyle(
+                                          color: Colors.black))))
+                                  .toList(),
+                              onChanged: (v) => setState(
+                                      () => tenants[index].relation = v ?? 'S/O'),
+                              decoration: _fieldDecoration('Relation').copyWith(
+                                labelStyle:
+                                const TextStyle(color: Colors.black),
+                                enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide:
+                                    const BorderSide(color: Colors.black)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                        color: Colors.black, width: 1.5)),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _glowTextField(
-                                  controller:
-                                  tenants[index].relationPerson,
-                                  label: 'Person Name',
-                                  validator: (v) =>
-                                  (v == null || v.trim().isEmpty) ? 'Required' : null,
-                                ),
-                              ),
-                            ],
+                              dropdownColor: Colors.white,
+                              iconEnabledColor: Colors.black,
+                              style: const TextStyle(color: Colors.black),
+                            ),
                           ),
-
-                          const SizedBox(height: 12),
-
-                          _glowTextField(
-                            controller: tenants[index].address,
-                            label: 'Permanent Address',
-                            validator: (v) =>
-                            (v == null || v.trim().isEmpty) ? 'Required' : null,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _glowTextField(
+                              controller: tenants[index].relationPerson,
+                              label: 'Person Name',
+                              validator: (v) =>
+                              (v == null || v.trim().isEmpty) ? 'Required' : null,
+                            ),
                           ),
+                        ]),
 
+                        const SizedBox(height: 12),
 
+                        _glowTextField(
+                          controller: tenants[index].address,
+                          label: 'Permanent Address',
+                          validator: (v) =>
+                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                        ),
 
-                          const SizedBox(height: 12),
+                        const SizedBox(height: 16),
 
-                          CheckboxListTile(
+                        // Police Verification
+                        Container(
+                          decoration: BoxDecoration(
+                            color: tenants[index].includePoliceVerification
+                                ? Colors.red.shade50
+                                : Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: tenants[index].includePoliceVerification
+                                  ? Colors.red.shade200
+                                  : Colors.grey.shade300,
+                            ),
+                          ),
+                          child: CheckboxListTile(
                             value: tenants[index].includePoliceVerification,
                             onChanged: (v) {
                               setState(() {
-                                tenants[index].includePoliceVerification = v ?? false;
+                                tenants[index].includePoliceVerification =
+                                    v ?? false;
                               });
-                              updateAgreementPrice(); // 🔥 ADD THIS
-
+                              updateAgreementPrice();
                             },
                             title: const Text(
                               'Include Police Verification',
                               style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
-                              ),
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black),
                             ),
-                            subtitle: const Text(
-                              'Adds ₹50 to agreement price',
-                              style: TextStyle(fontSize: 12, color: Colors.black),
+                            subtitle: Text(
+                              widget.rewardStatus.isDiscounted
+                                  ? 'Adds ₹40 to agreement price (Discounted)'
+                                  : 'Adds ₹50 to agreement price',
+                              style: const TextStyle(
+                                  fontSize: 12, color: Colors.black54),
                             ),
                             activeColor: Colors.redAccent,
+                            checkColor: Colors.white,
+                            side: const BorderSide(
+                                color: Colors.black54, width: 1.5),
                           ),
+                        ),
 
-                          const SizedBox(height: 12),
-                        ],
-                      ),
-                    ],
-                  ),
-                )),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
 
-        /// ADD TENANT BUTTON (BOTTOM)
+        // ── ADD TENANT BUTTON ──
         Align(
           alignment: Alignment.centerRight,
           child: InkWell(
             onTap: () {
               setState(() => tenants.add(ExtraTenant()));
-              updateAgreementPrice(); // 🔥
+              updateAgreementPrice();
             },
             borderRadius: BorderRadius.circular(14),
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 10),
+              padding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                gradient:  LinearGradient(
+                gradient: LinearGradient(
                   colors: [
-                    Colors.blue.shade500,
-                    Colors.blue.shade300,
+                    Colors.red.shade700,
+                    Colors.red.shade600,
                   ],
                 ),
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.blue.withOpacity(0.35),
+                    color: Colors.red.withOpacity(0.35),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              child: Row(
+              child: const Row(
                 mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Icon(Icons.add, color: Colors.white),
+                children: [
+                  Icon(Icons.person_add, color: Colors.white),
                   SizedBox(width: 8),
                   Text(
                     'Add Tenant',
@@ -2518,331 +3206,452 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     }
   }
 
+  Future<void> fetchPropertyDetails() async {
+    final propertyId = propertyID.text.trim();
+    if (propertyId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Enter Property ID first")),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse(
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
+        body: {"P_id": propertyId},
+      );
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+
+        if (json['status'] == "success") {
+          final data = json['data'];
+
+          setState(() {
+            fetchedData = data;
+            isPropertyFetched = true;
+            Bhk.text = data['Bhk'] ?? '';
+            floor.text = data['Floor_'] ?? '';
+            Address.text =
+            "Flat-${data['Flat_number'] ?? ''}  ${data['Apartment_Address'] ?? ''}";
+            rentAmount.text = data['show_Price'] ?? "";
+            meterInfo = data['meter'] == "Govt"
+                ? "As per Govt. Unit"
+                : "Custom Unit (Enter Amount)";
+            parking =
+            (data['parking'].toString().toLowerCase().contains("bike"))
+                ? "Bike"
+                : (data['parking']
+                .toString()
+                .toLowerCase()
+                .contains("car"))
+                ? "Car"
+                : (data['parking']
+                .toString()
+                .toLowerCase()
+                .contains("both"))
+                ? "Both"
+                : "No";
+            maintenance = (data['maintance']
+                .toString()
+                .toLowerCase()
+                .contains("include"))
+                ? "Including"
+                : "Excluding";
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(json['message'] ?? "Property not found")),
+          );
+        }
+      }
+    } catch (e) {
+      print("Error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to fetch property details")),
+      );
+    }
+  }
+
+  void _resetProperty() {
+    setState(() {
+      fetchedData = null;
+      isPropertyFetched = false;
+      Bhk.clear();
+      floor.clear();
+      Address.clear();
+      rentAmount.clear();
+      meterInfo = 'As per Govt. Unit';
+      parking = 'Car';
+      maintenance = 'Including';
+      customUnitAmount.clear();
+      customMaintanceAmount.clear();
+    });
+  }
+
   List<BuildingSuggestion> buildingSuggestions = [];
   bool isSuggestionLoading = false;
 
   Future<void> fetchBuildingSuggestions(String mobile) async {
+    setState(() {
+      buildingSuggestions = [];
+      isSuggestionLoading = true;
+    });
 
-    final uri = Uri.parse(
-      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/building_data_for_agreement.php?mobile_number=$mobile&fieldworker_number=$userNumber",
-    );
+    try {
+      final uri = Uri.parse(
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/building_data_for_agreement.php?mobile_number=$mobile&fieldworker_number=$userNumber",
+      );
 
-    final res = await http.get(uri);
+      final res = await http.get(uri);
+      print("🏢 Building API status: ${res.statusCode}");
 
-    if (res.statusCode == 200) {
+      if (res.statusCode == 200) {
+        final decoded = jsonDecode(res.body);
+        final status = decoded["status"];
+        final isSuccess =
+            status == true || status == "true" || status == 1 || status == "1";
 
-      final decoded = jsonDecode(res.body);
-      print("userNumber $userNumber");
-      print(res.statusCode);
-
-      if (decoded["status"] == true) {
-
-        final List list = decoded["buildings"];
-
-        setState(() {
-          buildingSuggestions =
-              list.map((e) => BuildingSuggestion.fromJson(e)).toList();
-        });
-
+        if (isSuccess && decoded["buildings"] != null) {
+          final List list = decoded["buildings"];
+          setState(() {
+            buildingSuggestions =
+                list.map((e) => BuildingSuggestion.fromJson(e)).toList();
+          });
+        }
       }
-
+    } catch (e) {
+      print("❌ Building fetch error: $e");
+    } finally {
+      setState(() => isSuggestionLoading = false);
     }
-
   }
 
   Future<void> _showBuildingSuggestions(String mobile) async {
-
     if (mobile.length < 10) {
       _showToast("Enter valid mobile number");
       return;
     }
 
+    setState(() {
+      buildingSuggestions = [];
+      isSuggestionLoading = true;
+    });
+
     await fetchBuildingSuggestions(mobile);
+
+    if (!mounted) return;
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) {
-
         final isDark = Theme.of(context).brightness == Brightness.dark;
 
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.7,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF111827) : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-
-          child: Column(
-            children: [
-
-              /// DRAG HANDLE
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.white24 : Colors.grey.shade400,
-                  borderRadius: BorderRadius.circular(10),
-                ),
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) {
+            return Container(
+              height: MediaQuery.of(context).size.height * 0.75,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF111827) : Colors.white,
+                borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(24)),
               ),
-
-              const SizedBox(height: 12),
-
-              Text(
-                "Select Property",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontFamily: "PoppinsMedium",
-                  color: isDark ? Colors.white : Colors.black,
-                ),
-              ),
-
-              const SizedBox(height: 6),
-
-              Text(
-                "Choose building & flat",
-                style: TextStyle(
-                  fontSize: 12,
-                  fontFamily: "PoppinsMedium",
-                  color: isDark ? Colors.white54 : Colors.grey,
-                ),
-              ),
-
-              const SizedBox(height: 10),
-
-              Divider(
-                color: isDark ? Colors.white10 : Colors.grey.shade300,
-              ),
-
-              /// PROPERTY LIST
-              Expanded(
-                child: buildingSuggestions.isEmpty
-                    ? Center(
-                  child: Text(
-                    "No Property Found On this Number",
-                    style: TextStyle(
-                      fontFamily: "PoppinsMedium",
-                      color: isDark ? Colors.white60 : Colors.grey,
+              child: Column(
+                children: [
+                  // DRAG HANDLE
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white24 : Colors.grey.shade400,
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                )
-                    : ListView.builder(
-                  itemCount: buildingSuggestions.length,
-                  itemBuilder: (context, index) {
+                  const SizedBox(height: 12),
+                  Text("Select Property",
+                      style: TextStyle(
+                          fontSize: 20,
+                          fontFamily: "PoppinsMedium",
+                          color: isDark ? Colors.white : Colors.black)),
+                  const SizedBox(height: 4),
+                  Text("Mobile: $mobile",
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? Colors.white54 : Colors.grey)),
+                  const SizedBox(height: 10),
+                  Divider(
+                      color: isDark ? Colors.white10 : Colors.grey.shade300),
 
-                    final building = buildingSuggestions[index];
+                  // LIST
+                  Expanded(
+                    child: buildingSuggestions.isEmpty
+                        ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.search_off,
+                              size: 48,
+                              color: isDark
+                                  ? Colors.white30
+                                  : Colors.grey.shade400),
+                          const SizedBox(height: 12),
+                          Text(
+                              "No property found for this number",
+                              style: TextStyle(
+                                  fontFamily: "PoppinsMedium",
+                                  color: isDark
+                                      ? Colors.white60
+                                      : Colors.grey)),
+                          const SizedBox(height: 8),
+                          TextButton.icon(
+                            onPressed: () async {
+                              setSheetState(() {});
+                              await fetchBuildingSuggestions(mobile);
+                              setSheetState(() {});
+                            },
+                            icon: const Icon(Icons.refresh),
+                            label: const Text("Retry"),
+                          ),
+                        ],
+                      ),
+                    )
+                        : ListView.builder(
+                      itemCount: buildingSuggestions.length,
+                      itemBuilder: (context, idx) {
+                        final building = buildingSuggestions[idx];
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: isDark
+                                ? const Color(0xFF1F2937)
+                                : Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                                color: isDark
+                                    ? Colors.white10
+                                    : Colors.grey.shade200),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // BUILDING HEADER
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) =>
+                                            Future_Property_details(
+                                                idd: building.id
+                                                    .toString()),
+                                      ));
+                                },
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: isDark
+                                        ? const Color(0xFF7F1D1D)
+                                        : Colors.red.shade50,
+                                    borderRadius:
+                                    const BorderRadius.vertical(
+                                        top: Radius.circular(16)),
+                                  ),
+                                  child: Row(children: [
+                                    const Icon(Icons.apartment,
+                                        color: Color(0xFFEF4444)),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                                "Owner: ${building.ownerName}",
+                                                style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: isDark
+                                                        ? Colors.white54
+                                                        : Colors.black54)),
+                                            const SizedBox(height: 2),
+                                            Text(
+                                                building
+                                                    .propertyAddressForFieldworkar,
+                                                style: TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight:
+                                                    FontWeight.w600,
+                                                    color: isDark
+                                                        ? Colors.white
+                                                        : Colors.black87)),
+                                          ],
+                                        )),
+                                    Column(
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.end,
+                                        children: [
+                                          Text("ID: ${building.id}",
+                                              style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight:
+                                                  FontWeight.w700,
+                                                  color: isDark
+                                                      ? Colors.white70
+                                                      : Colors.black87)),
+                                          Text(
+                                              "${building.flats.length} flat(s)",
+                                              style: TextStyle(
+                                                  fontSize: 11,
+                                                  color: isDark
+                                                      ? Colors.white38
+                                                      : Colors.grey)),
+                                        ]),
+                                  ]),
+                                ),
+                              ),
 
-                    return GestureDetector(
-                      onTap: (){
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                Future_Property_details(idd: building.id.toString()),
+                              // FLATS
+                              if (building.flats.isEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Text("No flats listed",
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: isDark
+                                              ? Colors.white38
+                                              : Colors.grey)),
+                                )
+                              else
+                                Column(
+                                  children: building.flats.map((flat) {
+                                    return InkWell(
+                                      onTap: () {
+                                        setState(() {
+                                          Bhk.text = flat.bhk;
+                                          floor.text = flat.floor;
+                                          Address.text = flat.address;
+                                          propertyID.text = flat.id;
+                                        });
+                                        Navigator.pop(context);
+                                        _showToast(
+                                            'Property selected: ${flat.bhk}, Floor ${flat.floor}');
+                                      },
+                                      child: Container(
+                                        padding:
+                                        const EdgeInsets.symmetric(
+                                            horizontal: 14,
+                                            vertical: 12),
+                                        decoration: BoxDecoration(
+                                          border: Border(
+                                              bottom: BorderSide(
+                                                  color: isDark
+                                                      ? Colors.white10
+                                                      : Colors.grey
+                                                      .shade200)),
+                                        ),
+                                        child: Row(children: [
+                                          Container(
+                                            padding: const EdgeInsets
+                                                .symmetric(
+                                                horizontal: 10,
+                                                vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: const Color(
+                                                  0xFFEF4444)
+                                                  .withOpacity(.15),
+                                              borderRadius:
+                                              BorderRadius.circular(
+                                                  8),
+                                            ),
+                                            child: Text(flat.bhk,
+                                                style: const TextStyle(
+                                                    fontSize: 11,
+                                                    color: Color(
+                                                        0xFFEF4444),
+                                                    fontWeight:
+                                                    FontWeight.w600)),
+                                          ),
+                                          const SizedBox(width: 10),
+                                          Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                                children: [
+                                                  Text("₹${flat.price}",
+                                                      style: TextStyle(
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                          FontWeight.w600,
+                                                          color: isDark
+                                                              ? Colors.white
+                                                              : Colors
+                                                              .black)),
+                                                  Text(
+                                                      "Floor ${flat.floor}  •  ${flat.fieldworkarAddress}",
+                                                      style: TextStyle(
+                                                          fontSize: 11,
+                                                          color: isDark
+                                                              ? Colors.white54
+                                                              : Colors.grey)),
+                                                ],
+                                              )),
+                                          Column(
+                                              crossAxisAlignment:
+                                              CrossAxisAlignment.end,
+                                              children: [
+                                                Text(
+                                                    "Flat ID: ${flat.id}",
+                                                    style: TextStyle(
+                                                        fontSize: 11,
+                                                        color: isDark
+                                                            ? Colors
+                                                            .white54
+                                                            : Colors
+                                                            .grey)),
+                                                const SizedBox(height: 2),
+                                                Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                      color: Colors
+                                                          .green.shade100,
+                                                      borderRadius:
+                                                      BorderRadius
+                                                          .circular(
+                                                          6)),
+                                                  child: const Text(
+                                                      "Tap to select",
+                                                      style: TextStyle(
+                                                          fontSize: 10,
+                                                          color: Colors
+                                                              .green,
+                                                          fontWeight:
+                                                          FontWeight
+                                                              .w600)),
+                                                ),
+                                              ]),
+                                        ]),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                            ],
                           ),
                         );
                       },
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: isDark
-                              ? const Color(0xFF1F2937)
-                              : Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: isDark
-                                ? Colors.white10
-                                : Colors.grey.shade200,
-                          ),
-                        ),
-
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-
-                            /// BUILDING HEADER
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: isDark
-                                    ? const Color(0xFF7F1D1D)
-                                    : Colors.red.shade50,
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(16),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-
-                                  const Icon(
-                                    Icons.apartment,
-                                    color: Color(0xFFEF4444),
-                                  ),
-
-                                  const SizedBox(width: 8),
-
-                                  Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-
-
-
-                                          Text(
-                                            "Owner: ${building.ownerName}",
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              fontFamily: "PoppinsMedium",
-                                              color: isDark ? Colors.white54 : Colors.black54,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 2),
-
-                                          Text(
-                                            building.propertyAddressForFieldworkar,
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontFamily: "PoppinsMedium",
-                                              color: isDark ? Colors.white : Colors.black87,
-                                            ),
-                                          ),
-
-
-                                        ],
-                                      )
-                                  ),
-                                  Text(
-                                    "Building ID : "+building.id.toString(),
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontFamily: "PoppinsMedium",
-                                      color: isDark ? Colors.white : Colors.black87,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            /// FLATS
-                            Column(
-                              children: building.flats.map((flat) {
-
-                                return InkWell(
-                                  onTap: () {
-
-
-                                    Address.text = flat.address;
-
-                                    Navigator.pop(context);
-
-                                  },
-
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 12
-                                    ),
-                                    decoration: BoxDecoration(
-                                      border: Border(
-                                        bottom: BorderSide(
-                                          color: isDark
-                                              ? Colors.white10
-                                              : Colors.grey.shade200,
-                                        ),
-                                      ),
-                                    ),
-
-                                    child: Row(
-                                      children: [
-
-                                        /// BHK BADGE
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: const Color(0xFFEF4444)
-                                                .withOpacity(.15),
-                                            borderRadius:
-                                            BorderRadius.circular(8),
-                                          ),
-                                          child: Text(
-                                            flat.bhk,
-                                            style: const TextStyle(
-                                              fontSize: 11,
-                                              fontFamily: "PoppinsMedium",
-                                              color: Color(0xFFEF4444),
-                                            ),
-                                          ),
-                                        ),
-
-                                        const SizedBox(width: 10),
-
-                                        /// DETAILS
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                            children: [
-
-                                              Text(
-                                                "₹${flat.price}",
-                                                style: TextStyle(
-                                                  fontSize: 14,
-                                                  fontFamily: "PoppinsMedium",
-                                                  color: isDark
-                                                      ? Colors.white
-                                                      : Colors.black,
-                                                ),
-                                              ),
-
-                                              Text(
-                                                "${flat.floor} • ${flat.fieldworkarAddress}",
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  fontFamily: "PoppinsMedium",
-                                                  color: isDark
-                                                      ? Colors.white54
-                                                      : Colors.grey,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-
-                                        Text(
-                                          "Flat ID: ${flat.id}",
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            fontFamily: "PoppinsMedium",
-                                            color: isDark
-                                                ? Colors.white54
-                                                : Colors.grey,
-                                          ),
-                                        ),
-
-                                      ],
-                                    ),
-                                  ),
-                                );
-
-                              }).toList(),
-                            )
-
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                    ),
+                  ),
+                ],
               ),
-
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -2852,47 +3661,80 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     return _glassContainer(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
+        if (fetchedData != null) _propertyCard(fetchedData!),
+
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Property Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+            Text('Property Details',
+                style: TextStyle(
+                    fontFamily: "Poppins",
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black)),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // AUTO FETCH BUTTON
             Container(
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFF1D4ED8),
-                    Color(0xFF2563EB),
-                  ],
+                  colors: [Color(0xFFD50000), Color(0xFFB71C1C)],
                 ),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ElevatedButton.icon(
                 onPressed: () {
+                  if (isPropertyFetched) {
+                    _resetProperty();
+                  } else {
+                    fetchPropertyDetails();
+                  }
+                },
+                icon: Icon(
+                  isPropertyFetched ? Icons.refresh : Icons.search,
+                  color: Colors.white,
+                ),
+                label: Text(
+                  isPropertyFetched ? 'Change' : 'Auto Fetch',
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                ),
+              ),
+            ),
 
-                  /// priority owner mobile → tenant mobile
+            // SUGGESTION BUTTON
+            Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1D4ED8), Color(0xFF2563EB)],
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ElevatedButton.icon(
+                onPressed: () {
                   String mobile = ownerMobile.text;
-
-
                   if (mobile.isEmpty && tenants.isNotEmpty) {
                     mobile = tenants[0].mobile.text;
                   }
-
                   if (mobile.isEmpty) {
                     _showToast("Enter mobile number first");
                     return;
                   }
-
                   _showBuildingSuggestions(mobile);
-
                 },
                 icon: const Icon(Icons.apartment, color: Colors.white),
-                label: const Text(
-                  'Suggestion',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                label: const Text('Suggestion',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
@@ -2902,48 +3744,128 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           ],
         ),
 
-        const SizedBox(height: 12),
         Form(
           key: _propertyFormKey,
           child: Column(children: [
-            _glowTextField(controller: propertyID,keyboard: TextInputType.number, label: 'Property ID',),
-            Row(
-                children: [
-                  Expanded(
-                      child: _glowTextField(controller: Bhk, label: 'BHK', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
-                  const SizedBox(width: 12),
-                  Expanded(
-                      child: _glowTextField(controller: floor, label: 'Floor', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
-                ]
-            ),
-            _glowTextField(controller: Address, label: 'Rented Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            _glowTextField(
+                controller: propertyID,
+                keyboard: TextInputType.number,
+                label: 'Property ID',
+                validator: (v) =>
+                (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            Row(children: [
+              Expanded(
+                  child: _glowTextField(
+                      controller: Bhk,
+                      label: 'BHK',
+                      readOnly: isPropertyFetched,
+                      validator: (v) =>
+                      (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: _glowTextField(
+                      controller: floor,
+                      label: 'Floor',
+                      readOnly: isPropertyFetched,
+                      validator: (v) =>
+                      (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+            ]),
+            _glowTextField(
+                controller: Address,
+                label: 'Rented Address',
+                readOnly: isPropertyFetched,
+                validator: (v) =>
+                (v?.trim().isEmpty ?? true) ? 'Required' : null),
             const SizedBox(height: 10),
-            Row(
-                children: [
-                  Expanded(child: _glowTextField(controller: rentAmount, label: 'Monthly Rent (INR)', keyboard: TextInputType.number,  showInWords: true,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
-                      onChanged: (v) {
-                        setState(() {
-                          rentAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
-                        });
-                      },
-                      validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _glowTextField(controller: securityAmount, label: 'Security Amount (INR)',        inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
-                    keyboard: TextInputType.number,  showInWords: true,onChanged: (v) {
+
+            Row(children: [
+              Expanded(
+                  child: _glowTextField(
+                    controller: rentAmount,
+                    label: 'Monthly Rent (INR)',
+                    keyboard: TextInputType.number,
+                    showInWords: true,
+                    readOnly: isPropertyFetched,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(6)
+                    ],
+                    onChanged: (v) {
                       setState(() {
-                        securityAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
+                        rentAmountInWords = convertToWords(
+                            int.tryParse(v.replaceAll(',', '')) ?? 0);
                       });
-                    }, validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,)),
-                ]),
+                    },
+                    validator: (v) =>
+                    (v?.trim().isEmpty ?? true) ? 'Required' : null,
+                  )),
+              const SizedBox(width: 12),
+              Expanded(
+                  child: _glowTextField(
+                    controller: securityAmount,
+                    label: 'Security Amount (INR)',
+                    keyboard: TextInputType.number,
+                    showInWords: true,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(6)
+                    ],
+                    onChanged: (v) {
+                      setState(() {
+                        securityAmountInWords = convertToWords(
+                            int.tryParse(v.replaceAll(',', '')) ?? 0);
+                      });
+                    },
+                    validator: (v) =>
+                    (v?.trim().isEmpty ?? true) ? 'Required' : null,
+                  )),
+            ]),
+
             const SizedBox(height: 8),
+            CheckboxListTile(
+              value: securityInstallment,
+              onChanged: (v) =>
+                  setState(() => securityInstallment = v ?? false),
+              title: const Text('Pay security in installments?',
+                  style: TextStyle(
+                      color: Colors.black, fontWeight: FontWeight.w600)),
+              activeColor: Colors.redAccent,
+              checkColor: Colors.white,
+              side: const BorderSide(color: Colors.black54, width: 1.5),
+            ),
+
+            if (securityInstallment)
+              _glowTextField(
+                controller: installmentAmount,
+                label: 'Installment Amount (INR)',
+                keyboard: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(6)
+                ],
+                showInWords: true,
+                onChanged: (v) {
+                  setState(() {
+                    installmentAmountInWords = convertToWords(
+                        int.tryParse(v.replaceAll(',', '')) ?? 0);
+                  });
+                },
+                validator: (v) {
+                  if (securityInstallment &&
+                      (v == null || v.trim().isEmpty)) return 'Required';
+                  return null;
+                },
+              ),
+
+            const SizedBox(height: 12),
+
             DropdownButtonFormField<String>(
               value: meterInfo,
-              items: const [
-                'As per Govt. Unit',
-                'Custom Unit (Enter Amount)'
-              ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-              onChanged: (v) => setState(() => meterInfo = v ?? 'As per Govt. Unit'),
+              items: const ['As per Govt. Unit', 'Custom Unit (Enter Amount)']
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
+              onChanged: (v) =>
+                  setState(() => meterInfo = v ?? 'As per Govt. Unit'),
               decoration: _fieldDecoration('Meter Info'),
               dropdownColor: Colors.white,
               style: const TextStyle(color: Colors.black),
@@ -2962,18 +3884,18 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
                 showInWords: true,
                 onChanged: (v) {
                   setState(() {
-                    customUnitAmountInWords =
-                        convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
+                    customUnitAmountInWords = convertToWords(
+                        int.tryParse(v.replaceAll(',', '')) ?? 0);
                   });
                 },
                 validator: (v) {
-                  if (meterInfo.startsWith('Custom') && (v == null || v.trim().isEmpty))
-                    return 'Required';
+                  if (meterInfo.startsWith('Custom') &&
+                      (v == null || v.trim().isEmpty)) return 'Required';
                   return null;
                 },
               ),
 
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
 
             ListTile(
               contentPadding: EdgeInsets.zero,
@@ -2982,15 +3904,13 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
                     ? 'Select Shifting Date'
                     : 'Shifting: ${shiftingDate!.toLocal().toString().split(' ')[0]}',
                 style: TextStyle(
-                  color: shiftingDate == null ? Colors.black : Colors.blue,
-                  fontWeight:
-                  shiftingDate == null ? FontWeight.w500 : FontWeight.w700,
+                  color: Colors.red,
+                  fontWeight: shiftingDate == null
+                      ? FontWeight.w500
+                      : FontWeight.w700,
                 ),
               ),
-              trailing: Icon(
-                Icons.calendar_today,
-                color: shiftingDate == null ? Colors.black87 : Colors.blue,
-              ),
+              trailing: const Icon(Icons.calendar_today, color: Colors.red),
               onTap: () async {
                 final picked = await showDatePicker(
                   context: context,
@@ -3001,7 +3921,6 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
                 if (picked != null) setState(() => shiftingDate = picked);
               },
             ),
-
 
             const SizedBox(height: 12),
 
@@ -3041,8 +3960,8 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
                 ],
                 onChanged: (v) {
                   setState(() {
-                    customMaintanceAmountInWords =
-                        convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
+                    customMaintanceAmountInWords = convertToWords(
+                        int.tryParse(v.replaceAll(',', '')) ?? 0);
                   });
                 },
                 validator: (v) {
@@ -3054,62 +3973,52 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
 
             const SizedBox(height: 12),
 
-            Row(
-                children: [
-
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: Notary_price,
-                      items: const [
-                        '10 rupees',
-                        '20 rupees',
-                        '50 rupees',
-                        '100 rupees'
-                      ].map((e) => DropdownMenuItem(
-                        value: e,
-                        child: Text(
-                          e,
-                          style: TextStyle(color: Colors.black), // ✅ dropdown text black
-                        ),
-                      ))
-                          .toList(),
-                      onChanged: (v) {
-                        setState(() {
-                          Notary_price = v ?? '10 rupees';
-                          updateAgreementPrice();
-                        });
-                      },
-                      decoration: _fieldDecoration('Notary price').copyWith(
-                        labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
-                        hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.black), // ✅ border black
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.black, width: 1.5),
-                        ),
-                      ),
-                      iconEnabledColor: Colors.black, // ✅ dropdown arrow black
-                      dropdownColor: Colors.white, // ✅ menu background white (good contrast)
-                      style: const TextStyle(color: Colors.black), // ✅ selected text black
-                    ),
-
+            Row(children: [
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: Notary_price,
+                  items: const [
+                    '10 rupees',
+                    '20 rupees',
+                    '50 rupees',
+                    '100 rupees'
+                  ]
+                      .map((e) => DropdownMenuItem(
+                      value: e,
+                      child: Text(e,
+                          style:
+                          const TextStyle(color: Colors.black))))
+                      .toList(),
+                  onChanged: (v) {
+                    setState(() {
+                      Notary_price = v ?? '10 rupees';
+                      updateAgreementPrice();
+                    });
+                  },
+                  decoration: _fieldDecoration('Notary price').copyWith(
+                    labelStyle: const TextStyle(color: Colors.black),
+                    enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.black)),
+                    focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                            color: Colors.black, width: 1.5)),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child:
-                    _agreementPriceBox(
-                      amount: int.tryParse(Agreement_price.text) ?? 0,
-                      amountInWords: AgreementAmountInWords,
-                    ),
-
-                  ),
-                ]),
-
-          ]
-          ),
+                  iconEnabledColor: Colors.black,
+                  dropdownColor: Colors.white,
+                  style: const TextStyle(color: Colors.black),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _agreementPriceBox(
+                  amount: int.tryParse(Agreement_price.text) ?? 0,
+                  amountInWords: AgreementAmountInWords,
+                ),
+              ),
+            ]),
+          ]),
         ),
       ]),
     );
@@ -3119,7 +4028,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     return _glassContainer(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text('Preview', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+          Text('Preview', style: const TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
           Row(children: [
             IconButton(onPressed: () {
               // _jumpToStep(0); //Currently, not important!!
@@ -3296,6 +4205,105 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         const SizedBox(height: 12),
         Text('* IMPORTANT : When you tap Submit we send data & uploaded Aadhaar images to server for Approval from the Admin.',style: TextStyle(color: Colors.red),),
       ]),
+    );
+  }
+
+  Widget _propertyCard(Map<String, dynamic> data) {
+    final String imageUrl =
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${data['property_photo'] ?? ''}";
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 8,
+      margin: const EdgeInsets.only(bottom: 20),
+      shadowColor: Colors.black.withOpacity(0.15),
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            child: Image.network(
+              imageUrl,
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 200,
+                  width: double.infinity,
+                  color: Colors.grey[200],
+                  alignment: Alignment.center,
+                  child: const Text("No Image",
+                      style: TextStyle(color: Colors.black54)),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("₹${data['show_Price'] ?? "--"}",
+                        style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.redAccent)),
+                    Text(data['Bhk'] ?? "",
+                        style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black)),
+                    Text("Floor: ${data['Floor_'] ?? "--"}",
+                        style: const TextStyle(
+                            fontSize: 14, color: Colors.black54)),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Name: ${data['field_warkar_name'] ?? "--"}",
+                        style: const TextStyle(
+                            fontSize: 14, color: Colors.black87)),
+                    Text("Location: ${data['locations'] ?? "--"}",
+                        style: const TextStyle(
+                            fontSize: 14, color: Colors.black87)),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Meter: ${data['meter'] ?? "--"}",
+                        style: const TextStyle(
+                            fontSize: 14, color: Colors.black87)),
+                    Text("Parking: ${data['parking'] ?? "--"}",
+                        style: const TextStyle(
+                            fontSize: 14, color: Colors.black87)),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text("Maintenance: ${data['maintance'] ?? "--"}",
+                        style: const TextStyle(
+                            fontSize: 14, color: Colors.black87)),
+                    Text("Flat: ${data['Flat_number'] ?? "--"}",
+                        style: const TextStyle(
+                            fontSize: 14, color: Colors.black87)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

@@ -4,7 +4,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,7 +13,63 @@ import '../../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 import '../../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../Dashboard_screen.dart';
-import 'Agreement_Form.dart';
+
+
+
+class BuildingSuggestion {
+  final int id;
+  final String ownerName;
+  final String place;
+  final String propertyAddressForFieldworkar;
+  final List<FlatSuggestion> flats;
+
+  BuildingSuggestion({
+    required this.id,
+    required this.ownerName,
+    required this.place,
+    required this.flats,
+    required this.propertyAddressForFieldworkar,
+  });
+
+  factory BuildingSuggestion.fromJson(Map<String, dynamic> json) {
+    return BuildingSuggestion(
+      id: json["id"],
+      ownerName: json["ownername"] ?? "",
+      propertyAddressForFieldworkar: json["property_address_for_fieldworkar"] ?? "",
+      place: json["place"] ?? "",
+      flats: (json["flats"] as List).map((e) => FlatSuggestion.fromJson(e)).toList(),
+    );
+  }
+}
+
+class FlatSuggestion {
+  final String id;
+  final String bhk;
+  final String price;
+  final String floor;
+  final String address;
+  final String fieldworkarAddress;
+
+  FlatSuggestion({
+    required this.id,
+    required this.bhk,
+    required this.price,
+    required this.floor,
+    required this.address,
+    required this.fieldworkarAddress,
+  });
+
+  factory FlatSuggestion.fromJson(Map<String, dynamic> json) {
+    return FlatSuggestion(
+      id: json["P_id"].toString(),
+      bhk: json["Bhk"] ?? "",
+      price: json["show_Price"] ?? "",
+      floor: json["Floor_"] ?? "",
+      address: json["Apartment_Address"] ?? "",
+      fieldworkarAddress: json["fieldworkar_address"] ?? "",
+    );
+  }
+}
 
 class DirectorBlock {
   String? id; // 🔥 (for update case)
@@ -424,19 +479,27 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
   }
 
   Future<void> _pickDirectorAadhaar(int index, bool isFront) async {
-    final picked = await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 75,
-    );
+    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
-
     setState(() {
-      if (isFront) {
-        directors[index].aadhaarFront = File(picked.path);
-      } else {
-        directors[index].aadhaarBack = File(picked.path);
-      }
+      if (isFront) directors[index].aadhaarFront = File(picked.path);
+      else directors[index].aadhaarBack = File(picked.path);
     });
+    // OCR scan
+    showDialog(context: context, barrierDismissible: false,
+        builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 14), Text('Scanning Aadhaar card...')])))));
+    try {
+      final rawText = await _recognizeTextNative(picked.path);
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+      if (rawText != null && rawText.trim().isNotEmpty) {
+        await _applyOcrResult(ocr: _parseAadhaarText(rawText), fillOwner: false, directorIndex: index);
+        if (mounted) setState(() {});
+      }
+    } catch (e) {
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+      _showScanErrorDialog('Scan Failed', 'Could not process image.\n\nError: $e');
+    }
   }
 
   Future<void> _pickDirectorPhoto(int index) async {
@@ -464,31 +527,388 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
   }
 
   Future<void> _pickDirectorPAN(int index) async {
-    final picked = await _picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 75,
-    );
+    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
+    setState(() => directors[index].panPhoto = File(picked.path));
 
-    setState(() {
-      directors[index].panPhoto = File(picked.path);
-    });
+    // 🔍 OCR scan for PAN number
+    showDialog(context: context, barrierDismissible: false,
+        builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              CircularProgressIndicator(), SizedBox(height: 14),
+              Text('Scanning PAN card...', style: TextStyle(fontSize: 14)),
+            ])))));
+    try {
+      final rawText = await _recognizeTextNative(picked.path);
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+      if (rawText != null && rawText.trim().isNotEmpty) {
+        // PAN format: 5 letters + 4 digits + 1 letter (e.g. ABCDE1234F)
+        final panRegex = RegExp(r'\b([A-Z]{5}[0-9]{4}[A-Z])\b');
+        final match = panRegex.firstMatch(rawText.toUpperCase());
+        if (match != null) {
+          final panNumber = match.group(1)!;
+          final existing = directors[index].panNo.text.trim();
+          if (existing.isEmpty) {
+            setState(() => directors[index].panNo.text = panNumber);
+            _showToast('PAN number detected: $panNumber');
+          } else if (existing.toUpperCase() != panNumber) {
+            // Conflict popup
+            final selected = await showDialog<String>(
+                context: context,
+                builder: (ctx) {
+                  String choice = 'scanned';
+                  return StatefulBuilder(builder: (ctx, setS) => AlertDialog(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    title: const Text("PAN Number"),
+                    content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      const Text("Select which PAN number to keep:", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                      const SizedBox(height: 12),
+                      Row(children: [
+                        Expanded(child: GestureDetector(onTap: () => setS(() => choice = 'old'),
+                            child: Container(constraints: const BoxConstraints(minHeight: 60), padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(color: choice == 'old' ? Colors.blue.withOpacity(0.8) : Colors.grey.shade200, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey)),
+                                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Text('Old Data', style: TextStyle(fontSize: 10, color: choice == 'old' ? Colors.white70 : Colors.grey)),
+                                  const SizedBox(height: 2),
+                                  Text(existing, style: TextStyle(color: choice == 'old' ? Colors.white : Colors.black, fontSize: 13, fontWeight: FontWeight.bold)),
+                                ])))),
+                        const SizedBox(width: 8),
+                        Expanded(child: GestureDetector(onTap: () => setS(() => choice = 'scanned'),
+                            child: Container(constraints: const BoxConstraints(minHeight: 60), padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(color: choice == 'scanned' ? Colors.green.withOpacity(0.8) : Colors.grey.shade200, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey)),
+                                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Text('Scanned', style: TextStyle(fontSize: 10, color: choice == 'scanned' ? Colors.white70 : Colors.grey)),
+                                  const SizedBox(height: 2),
+                                  Text(panNumber, style: TextStyle(color: choice == 'scanned' ? Colors.white : Colors.black, fontSize: 13, fontWeight: FontWeight.bold)),
+                                ])))),
+                      ]),
+                    ]),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.pop(ctx, null), child: const Text("Cancel")),
+                      ElevatedButton(onPressed: () => Navigator.pop(ctx, choice), child: const Text("Apply")),
+                    ],
+                  ));
+                });
+            if (selected != null) {
+              setState(() => directors[index].panNo.text = selected == 'old' ? existing : panNumber);
+              _showToast('PAN number updated!');
+            }
+          } else {
+            _showToast('PAN number already correct: $panNumber');
+          }
+        } else {
+          _showToast('PAN number not detected in image');
+        }
+      }
+    } catch (e) {
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+      _showToast('Scan failed: $e');
+    }
   }
 
 
+  // ── OCR ──────────────────────────────────────────────────────────────────
+  static const _ocrChannel = MethodChannel('com.verify.app/ocr');
+
+  Future<String?> _recognizeTextNative(String imagePath) async {
+    try {
+      final String? result = await _ocrChannel.invokeMethod('recognizeText', {'imagePath': imagePath});
+      return result;
+    } on PlatformException catch (e) {
+      print('OCR error: ${e.message}'); rethrow;
+    }
+  }
+
+  String _titleCase(String s) => s.toLowerCase().split(' ')
+      .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}').join(' ');
+
+  String cleanAddress(String raw) {
+    String text = raw;
+    text = text.replaceAll(RegExp(r'[^\x00-\x7F]'), '');
+    text = text.replaceAll(RegExp(r"[^a-zA-Z0-9,\-\./ ]"), '');
+    text = text.replaceAll(RegExp(r'\s+'), ' ');
+    text = text.replaceAll(RegExp(r'\s*-\s*'), '-');
+    text = text.replaceAll(RegExp(r',+'), ',');
+    text = text.replaceAll(RegExp(r'\s*,\s*'), ', ');
+    final parts = text.split(', ');
+    final seen = <String>{}; final unique = <String>[];
+    for (var part in parts) {
+      final key = part.trim().toLowerCase();
+      if (key.isNotEmpty && !seen.contains(key)) { seen.add(key); unique.add(part.trim()); }
+    }
+    return unique.join(', ').trim();
+  }
+
+  Map<String, String?> _parseAadhaarText(String fullText) {
+    final result = <String, String?>{'aadhaarNumber': null, 'name': null, 'address': null, 'mobile': null};
+    final lines = fullText.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+    final aadhaarRegex = RegExp(r'\b(\d{4}\s?\d{4}\s?\d{4})\b');
+    for (final line in lines) {
+      final m = aadhaarRegex.firstMatch(line);
+      if (m != null) { result['aadhaarNumber'] = m.group(1)!.replaceAll(' ', ''); break; }
+    }
+    final skipKw = RegExp(r'(Government|India|INDIA|Aadhaar|UIDAI|DOB|Date|Male|Female|Address|VID|Enrollment|Download|www|\.in|\.com|\d{4})', caseSensitive: false);
+    String? foundName;
+    for (int i = 0; i < lines.length; i++) {
+      if (lines[i].toLowerCase().startsWith('name') && i + 1 < lines.length) {
+        final next = lines[i + 1];
+        if (!skipKw.hasMatch(next) && next.length > 2) { foundName = _titleCase(next); break; }
+      }
+    }
+    if (foundName == null) {
+      for (final line in lines) {
+        if (skipKw.hasMatch(line)) continue;
+        if (RegExp(r'^[A-Za-z\s\.]+$').hasMatch(line) && line.split(' ').length >= 2 && line.length >= 5 && line.length <= 60) {
+          foundName = _titleCase(line); break;
+        }
+      }
+    }
+    result['name'] = foundName;
+    List<String> addressLines = []; bool start = false;
+    for (final line in lines) {
+      final lower = line.toLowerCase();
+      if (lower.contains('s/o') || lower.contains('d/o') || lower.contains('w/o') || lower.contains('c/o')) {
+        start = true; addressLines.add(line.trim()); continue;
+      }
+      if (!start) continue;
+      if (lower.contains('uidai') || lower.contains('government') || lower.contains('india') || lower.contains('aadhaar') || lower.contains('www')) continue;
+      if (aadhaarRegex.hasMatch(line)) break;
+      if (line.length < 6) continue;
+      addressLines.add(line.trim());
+      if (addressLines.length == 5) break;
+    }
+    if (addressLines.isNotEmpty) {
+      String combined = addressLines.join(' ');
+      combined = combined.replaceAll(RegExp(r'[^\x00-\x7F]'), '');
+      combined = combined.replaceAll(RegExp(r"[^a-zA-Z0-9,\-\./ ]"), '');
+      combined = combined.replaceAll(RegExp(r'\s+'), ' ');
+      combined = combined.replaceAll(RegExp(r'\s*-\s*'), '-');
+      combined = combined.replaceAll(RegExp(r',+'), ',');
+      combined = combined.replaceAll(RegExp(r'\s*,\s*'), ', ');
+      final parts = combined.split(', ');
+      final seen = <String>{}; final unique = <String>[];
+      for (var part in parts) {
+        final key = part.trim().toLowerCase();
+        if (key.isNotEmpty && !seen.contains(key)) { seen.add(key); unique.add(part.trim()); }
+      }
+      result['address'] = unique.join(', ');
+    }
+    final mobileRegex = RegExp(r'\b([6-9]\d{9})\b');
+    for (final line in lines) {
+      final m = mobileRegex.firstMatch(line);
+      if (m != null) { result['mobile'] = m.group(1); break; }
+    }
+    return result;
+  }
+
+  void _showScanErrorDialog(String title, String message) {
+    showDialog(context: context, builder: (_) => AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+      content: Text(message, style: const TextStyle(fontSize: 14, height: 1.5)),
+      actions: [ElevatedButton(
+        style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+        onPressed: () => Navigator.pop(context),
+        child: const Text('OK', style: TextStyle(color: Colors.white)),
+      )],
+    ));
+  }
+
+  Future<void> _applyOcrResult({
+    required Map<String, String?> ocr,
+    required bool fillOwner,
+    int? directorIndex,
+  }) async {
+    final aadhaar = ocr['aadhaarNumber']; final name = ocr['name'];
+    final address = ocr['address']; final mobile = ocr['mobile'];
+    if (aadhaar == null && name == null && address == null && mobile == null) {
+      _showScanErrorDialog('Scan Unsuccessful', 'Unable to read Aadhaar card clearly.\n\nPlease ensure:\n• Card is straight\n• Good lighting\n• Full card visible');
+      return;
+    }
+    final existing = fillOwner
+        ? { 'Name': ownerName.text, 'Mobile': ownerMobile.text, 'Aadhaar': ownerAadhaar.text, 'Address': ownerAddress.text }
+        : { 'Name': directors[directorIndex!].name.text, 'Mobile': directors[directorIndex].mobile.text,
+      'Aadhaar': directors[directorIndex].aadhaar.text, 'Address': directors[directorIndex].address.text };
+    final scanned = { 'Name': name ?? '', 'Mobile': mobile ?? '', 'Aadhaar': aadhaar ?? '', 'Address': address ?? '' };
+    setState(() {
+      for (var key in scanned.keys) {
+        final nv = scanned[key]?.trim() ?? ''; final ov = (existing[key] ?? '').trim();
+        if (nv.isEmpty) continue;
+        if (ov.isNotEmpty && ov.toLowerCase() != nv.toLowerCase()) continue;
+        if (fillOwner) {
+          if (key == 'Name') ownerName.text = nv.toUpperCase();
+          if (key == 'Mobile') ownerMobile.text = nv;
+          if (key == 'Aadhaar') ownerAadhaar.text = nv;
+          if (key == 'Address') ownerAddress.text = nv.toUpperCase();
+        } else if (directorIndex != null && directorIndex < directors.length) {
+          final d = directors[directorIndex];
+          if (key == 'Name') d.name.text = nv.toUpperCase();
+          if (key == 'Mobile') d.mobile.text = nv;
+          if (key == 'Aadhaar') d.aadhaar.text = nv;
+          if (key == 'Address') d.address.text = nv.toUpperCase();
+        }
+      }
+    });
+    final conflictKeys = scanned.entries.where((e) {
+      final nv = e.value.trim(); final ov = (existing[e.key] ?? '').trim();
+      return nv.isNotEmpty && ov.isNotEmpty && nv.toLowerCase() != ov.toLowerCase();
+    }).map((e) => e.key).toList();
+    if (conflictKeys.isEmpty) return;
+    final choice = { for (var k in conflictKeys) k: 'scanned' };
+    final selected = await showDialog<Map<String, String>>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(builder: (ctx, setS) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text("Select Data"),
+        content: SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text("Some fields have different data — select which one to keep:", style: TextStyle(fontSize: 12, color: Colors.grey)),
+          const SizedBox(height: 12),
+          ...conflictKeys.map((key) {
+            final ov = existing[key] ?? ''; final nv = scanned[key] ?? '';
+            return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(key, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 6),
+              Row(children: [
+                Expanded(child: GestureDetector(onTap: () => setS(() => choice[key] = 'old'),
+                    child: Container(constraints: const BoxConstraints(minHeight: 60), padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(color: choice[key] == 'old' ? Colors.blue.withOpacity(0.8) : Colors.grey.shade200, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey)),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text('Old Data', style: TextStyle(fontSize: 10, color: choice[key] == 'old' ? Colors.white70 : Colors.grey)),
+                          const SizedBox(height: 2),
+                          Text(ov.isNotEmpty ? ov : 'No Data', style: TextStyle(color: choice[key] == 'old' ? Colors.white : Colors.black, fontSize: 13)),
+                        ])))),
+                const SizedBox(width: 8),
+                Expanded(child: GestureDetector(onTap: () => setS(() => choice[key] = 'scanned'),
+                    child: Container(constraints: const BoxConstraints(minHeight: 60), padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(color: choice[key] == 'scanned' ? Colors.green.withOpacity(0.8) : Colors.grey.shade200, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.grey)),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text('New Data', style: TextStyle(fontSize: 10, color: choice[key] == 'scanned' ? Colors.white70 : Colors.grey)),
+                          const SizedBox(height: 2),
+                          Text(nv.isNotEmpty ? nv : 'No Data', style: TextStyle(color: choice[key] == 'scanned' ? Colors.white : Colors.black, fontSize: 13)),
+                        ])))),
+              ]),
+              const SizedBox(height: 12),
+            ]);
+          }).toList(),
+        ])),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, null), child: const Text("Cancel")),
+          ElevatedButton(onPressed: () {
+            final result = <String, String>{};
+            for (var k in conflictKeys) result[k] = choice[k] == 'old' ? existing[k] ?? '' : scanned[k] ?? '';
+            Navigator.pop(ctx, result);
+          }, child: const Text("Apply")),
+        ],
+      )),
+    );
+    if (selected == null) return;
+    setState(() {
+      if (fillOwner) {
+        if (selected['Name']?.isNotEmpty == true) ownerName.text = selected['Name']!.toUpperCase();
+        if (selected['Mobile']?.isNotEmpty == true) ownerMobile.text = selected['Mobile']!;
+        if (selected['Aadhaar']?.isNotEmpty == true) ownerAadhaar.text = selected['Aadhaar']!;
+        if (selected['Address']?.isNotEmpty == true) ownerAddress.text = selected['Address']!.toUpperCase();
+      } else if (directorIndex != null && directorIndex < directors.length) {
+        final d = directors[directorIndex];
+        if (selected['Name']?.isNotEmpty == true) d.name.text = selected['Name']!.toUpperCase();
+        if (selected['Mobile']?.isNotEmpty == true) d.mobile.text = selected['Mobile']!;
+        if (selected['Aadhaar']?.isNotEmpty == true) d.aadhaar.text = selected['Aadhaar']!;
+        if (selected['Address']?.isNotEmpty == true) d.address.text = selected['Address']!.toUpperCase();
+      }
+    });
+    _showToast('Fields updated successfully!');
+  }
+
+  // ── Image UI Helpers ──────────────────────────────────────────────────────
+  void _showImageFullScreen({File? file, String? url}) {
+    if (file == null && (url == null || url.isEmpty)) return;
+    final imageWidget = file != null
+        ? Image.file(file, fit: BoxFit.contain)
+        : Image.network('https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$url',
+        fit: BoxFit.contain,
+        loadingBuilder: (_, child, p) => p == null ? child : const Center(child: CircularProgressIndicator(color: Colors.white)),
+        errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image, color: Colors.white, size: 60)));
+    showDialog(context: context, barrierColor: Colors.black.withOpacity(0.92),
+        builder: (_) => GestureDetector(onTap: () => Navigator.of(context).pop(),
+            child: Scaffold(backgroundColor: Colors.transparent, body: Stack(children: [
+              Center(child: InteractiveViewer(minScale: 0.5, maxScale: 5.0, child: imageWidget)),
+              Positioned(top: 48, right: 16, child: GestureDetector(onTap: () => Navigator.of(context).pop(),
+                  child: Container(padding: const EdgeInsets.all(8), decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                      child: const Icon(Icons.close, color: Colors.white, size: 24)))),
+              Positioned(bottom: 32, left: 0, right: 0, child: Center(child: Text('Tap anywhere to close • Pinch to zoom', style: TextStyle(color: Colors.white60, fontSize: 12)))),
+            ]))));
+  }
+
+  Widget _aadhaarImageCard({
+    required String label, required File? file, required String? url,
+    required VoidCallback onUpload, IconData placeholderIcon = Icons.add_a_photo_outlined,
+  }) {
+    final hasImage = file != null || (url != null && url.isNotEmpty);
+    const baseUrl = 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/';
+    Widget imageContent;
+    if (file != null) {
+      imageContent = Stack(fit: StackFit.expand, children: [Image.file(file, fit: BoxFit.cover), Positioned(top: 8, right: 8, child: _zoomBadge())]);
+    } else if (url != null && url.isNotEmpty) {
+      imageContent = Stack(fit: StackFit.expand, children: [
+        Image.network('$baseUrl$url', fit: BoxFit.cover,
+            loadingBuilder: (_, child, p) => p == null ? child : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image, color: Colors.grey, size: 40))),
+        Positioned(top: 8, right: 8, child: _zoomBadge()),
+      ]);
+    } else {
+      imageContent = Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Icon(placeholderIcon, color: Colors.grey, size: 32), const SizedBox(height: 6),
+        const Text('Tap to upload', style: TextStyle(fontSize: 11, color: Colors.grey)),
+      ]);
+    }
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black54)),
+      const SizedBox(height: 6),
+      GestureDetector(
+          onTap: hasImage ? () => _showImageFullScreen(file: file, url: url) : onUpload,
+          child: Container(width: double.infinity, height: 120,
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(12), color: Colors.grey.shade200,
+                  border: Border.all(color: hasImage ? Colors.green.shade400 : Colors.grey.shade400, width: 2)),
+              child: ClipRRect(borderRadius: BorderRadius.circular(10), child: imageContent))),
+      const SizedBox(height: 6),
+      SizedBox(width: double.infinity, child: ElevatedButton.icon(
+          onPressed: onUpload,
+          icon: const Icon(Icons.upload_file, color: Colors.white, size: 16),
+          label: Text(hasImage ? 'Change' : 'Upload', style: const TextStyle(color: Colors.white, fontSize: 12)),
+          style: ElevatedButton.styleFrom(backgroundColor: Colors.black87, foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)), padding: const EdgeInsets.symmetric(vertical: 10)))),
+    ]);
+  }
+
+  Widget _zoomBadge() => Container(
+      padding: const EdgeInsets.all(5),
+      decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+      child: const Icon(Icons.zoom_in, color: Colors.white, size: 16));
+
   Future<void> _pickImage(String which) async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 75);
+    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
     setState(() {
       switch (which) {
-        case 'ownerFront':
-          ownerAadhaarFront = File(picked.path);
-          break;
-        case 'ownerBack':
-          ownerAadhaarBack = File(picked.path);
-          break;
+        case 'ownerFront': ownerAadhaarFront = File(picked.path); break;
+        case 'ownerBack': ownerAadhaarBack = File(picked.path); break;
       }
     });
+    // OCR scan
+    showDialog(context: context, barrierDismissible: false,
+        builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
+            child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 14), Text('Scanning Aadhaar card...')])))));
+    try {
+      final rawText = await _recognizeTextNative(picked.path);
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+      if (rawText != null && rawText.trim().isNotEmpty) {
+        await _applyOcrResult(ocr: _parseAadhaarText(rawText), fillOwner: true);
+        if (mounted) setState(() {});
+      }
+    } catch (e) {
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+      _showScanErrorDialog('Scan Failed', 'Could not process image.\n\nError: $e');
+    }
   }
 
   int getBaseNotaryAmount(String value, bool discounted) {
@@ -741,7 +1161,12 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
     _number = prefs.getString('number') ?? '';
   }
 
-  Future<void> _fetchUserData({required bool fillOwner, required String? aadhaar, required String? mobile, int? directorIndex,}) async {
+  Future<void> _fetchUserData({
+    required bool fillOwner,
+    required String? aadhaar,
+    required String? mobile,
+    int? directorIndex,
+  }) async {
     String queryKey;
     String queryValue;
 
@@ -779,99 +1204,349 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
 
       final data = decoded['data'];
 
+      // 🔥 Fetched data map
+      final fetched = {
+        'Name': data['name'] ?? '',
+        'Mobile': data['mobile_number'] ?? '',
+        'Aadhaar': data['addhar_number'] ?? '',
+        'Address': data['addresss'] ?? '',
+        'Relation': data['relation'] ?? 'S/O',
+        'RelationPerson': data['relation_person_name'] ?? '',
+      };
+
+      // 🔥 Existing data map
+      final existing = fillOwner
+          ? {
+        'Name': ownerName.text,
+        'Mobile': ownerMobile.text,
+        'Aadhaar': ownerAadhaar.text,
+        'Address': ownerAddress.text,
+        'Relation': ownerRelation,
+        'RelationPerson': ownerRelationPerson.text,
+      }
+          : directorIndex != null
+          ? {
+        'Name': directors[directorIndex].name.text,
+        'Mobile': directors[directorIndex].mobile.text,
+        'Aadhaar': directors[directorIndex].aadhaar.text,
+        'Address': directors[directorIndex].address.text,
+        'Relation': directors[directorIndex].relation,
+        'RelationPerson': directors[directorIndex].relationPerson.text,
+      }
+          : <String, String>{};
+
+      // 🔥 Conflict keys — Mobile EXCLUDE, dono non-empty aur alag
+      final conflictKeys = fetched.entries
+          .where((e) {
+        if (e.key == 'Mobile') return false; // Mobile pe conflict nahi
+        final newVal = e.value.trim();
+        final oldVal = (existing[e.key] ?? '').trim();
+        return newVal.isNotEmpty &&
+            oldVal.isNotEmpty &&
+            newVal.toLowerCase() != oldVal.toLowerCase();
+      })
+          .map((e) => e.key)
+          .toList();
+
+      // 🔥 Non-conflict fields directly fill karo
       setState(() {
-        /// 🔹 OWNER AUTO-FILL
         if (fillOwner) {
-          ownerName.text = data['name'] ?? '';
-          ownerRelation = data['relation'] ?? 'S/O';
-          ownerRelationPerson.text = data['relation_person_name'] ?? '';
-          ownerAddress.text = data['addresss'] ?? '';
-          ownerMobile.text = data['mobile_number'] ?? '';
-          ownerAadhaar.text = data['addhar_number'] ?? '';
-
-          ownerAadharFrontUrl = data['addhar_front'];
-          ownerAadharBackUrl  = data['addhar_back'];
-
-          // 🔥 Convert auto-fetched URLs into real Files
-          if (ownerAadharFrontUrl != null && ownerAadharFrontUrl!.isNotEmpty) {
-            downloadAndConvertToFile(ownerAadharFrontUrl).then((file) {
-              if (file != null) {
-                setState(() {
-                  ownerAadhaarFront = file;
-                });
-              }
-            });
-          }
-
-          if (ownerAadharBackUrl != null && ownerAadharBackUrl!.isNotEmpty) {
-            downloadAndConvertToFile(ownerAadharBackUrl).then((file) {
-              if (file != null) {
-                setState(() {
-                  ownerAadhaarBack = file;
-                });
-              }
-            });
-          }
-
-        }
-
-        /// 🔹 DIRECTOR AUTO-FILL (INDEX BASED)
-        else if (directorIndex != null &&
+          fetched.forEach((key, newVal) {
+            if (newVal.isEmpty) return;
+            final oldVal = (existing[key] ?? '').trim();
+            // Mobile freely fill, baaki conflict pe skip
+            if (key != 'Mobile' &&
+                oldVal.isNotEmpty &&
+                oldVal.toLowerCase() != newVal.toLowerCase()) return;
+            if (key == 'Name') ownerName.text = newVal.toUpperCase();
+            if (key == 'Mobile') ownerMobile.text = newVal;
+            if (key == 'Aadhaar') ownerAadhaar.text = newVal;
+            if (key == 'Address') ownerAddress.text = newVal.toUpperCase();
+            if (key == 'Relation') ownerRelation = newVal;
+            if (key == 'RelationPerson')
+              ownerRelationPerson.text = newVal.toUpperCase();
+          });
+          ownerAadharFrontUrl = data['addhar_front'] ?? '';
+          ownerAadharBackUrl = data['addhar_back'] ?? '';
+          ownerAadhaarFront = null;
+          ownerAadhaarBack = null;
+        } else if (directorIndex != null &&
             directorIndex >= 0 &&
             directorIndex < directors.length) {
-
           final d = directors[directorIndex];
-
-          d.name.text = data['name'] ?? '';
-          d.mobile.text = data['mobile_number'] ?? '';
-          d.aadhaar.text = data['addhar_number'] ?? '';
-          d.address.text = data['addresss'] ?? '';
-          d.relation = data['relation'] ?? 'S/O';
-          d.relationPerson.text = data['relation_person_name'] ?? '';
-
+          fetched.forEach((key, newVal) {
+            if (newVal.isEmpty) return;
+            final oldVal = (existing[key] ?? '').trim();
+            // Mobile freely fill, baaki conflict pe skip
+            if (key != 'Mobile' &&
+                oldVal.isNotEmpty &&
+                oldVal.toLowerCase() != newVal.toLowerCase()) return;
+            if (key == 'Name') d.name.text = newVal.toUpperCase();
+            if (key == 'Mobile') d.mobile.text = newVal;
+            if (key == 'Aadhaar') d.aadhaar.text = newVal;
+            if (key == 'Address') d.address.text = newVal.toUpperCase();
+            if (key == 'Relation') d.relation = newVal;
+            if (key == 'RelationPerson')
+              d.relationPerson.text = newVal.toUpperCase();
+          });
           d.aadhaarFrontUrl = data['addhar_front'];
-          d.aadhaarBackUrl  = data['addhar_back'];
-          d.photoUrl        = data['selfie'];
-
-          // 🔥 Convert auto-fetched URLs into real Files
-          if (d.aadhaarFrontUrl != null && d.aadhaarFrontUrl!.isNotEmpty) {
-            downloadAndConvertToFile(d.aadhaarFrontUrl).then((file) {
-              if (file != null) {
-                setState(() {
-                  d.aadhaarFront = file;
-                });
-              }
-            });
-          }
-
-          if (d.aadhaarBackUrl != null && d.aadhaarBackUrl!.isNotEmpty) {
-            downloadAndConvertToFile(d.aadhaarBackUrl).then((file) {
-              if (file != null) {
-                setState(() {
-                  d.aadhaarBack = file;
-                });
-              }
-            });
-          }
-
-          if (d.photoUrl != null && d.photoUrl!.isNotEmpty) {
-            downloadAndConvertToFile(d.photoUrl).then((file) {
-              if (file != null) {
-                setState(() {
-                  d.photo = file;
-                });
-              }
-            });
-          }
-
+          d.aadhaarBackUrl = data['addhar_back'];
+          d.photoUrl = data['selfie'];
+          d.aadhaarFront = null;
+          d.aadhaarBack = null;
+          d.photo = null;
         }
       });
+
+      // 🔥 Conflict fields ke liye POPUP
+      if (conflictKeys.isNotEmpty) {
+        final choice = {
+          for (var key in conflictKeys) key: 'fetched'
+        };
+
+        final selected = await showDialog<Map<String, String>>(
+          context: context,
+          builder: (ctx) {
+            return StatefulBuilder(
+              builder: (ctx, setS) {
+                return AlertDialog(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  title: const Text("Select Data"),
+                  content: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Some fields have different data — select which one to keep:",
+                          style:
+                          TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 12),
+                        ...conflictKeys.map((key) {
+                          final oldVal = existing[key] ?? '';
+                          final newVal = fetched[key] ?? '';
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(key,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13)),
+                              const SizedBox(height: 6),
+                              Row(children: [
+                                // 🔵 Old Data
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () =>
+                                        setS(() => choice[key] = 'old'),
+                                    child: Container(
+                                      constraints: const BoxConstraints(
+                                          minHeight: 60),
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: choice[key] == 'old'
+                                            ? Colors.blue.withOpacity(0.8)
+                                            : Colors.grey.shade200,
+                                        borderRadius:
+                                        BorderRadius.circular(8),
+                                        border: Border.all(
+                                            color: Colors.grey),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Old Data',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: choice[key] == 'old'
+                                                  ? Colors.white70
+                                                  : Colors.grey,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            oldVal.isNotEmpty
+                                                ? oldVal
+                                                : 'No Data',
+                                            style: TextStyle(
+                                              color: choice[key] == 'old'
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                // 🟢 New Data
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => setS(
+                                            () => choice[key] = 'fetched'),
+                                    child: Container(
+                                      constraints: const BoxConstraints(
+                                          minHeight: 60),
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: choice[key] == 'fetched'
+                                            ? Colors.green.withOpacity(0.8)
+                                            : Colors.grey.shade200,
+                                        borderRadius:
+                                        BorderRadius.circular(8),
+                                        border: Border.all(
+                                            color: Colors.grey),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'New Data',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color:
+                                              choice[key] == 'fetched'
+                                                  ? Colors.white70
+                                                  : Colors.grey,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            newVal.isNotEmpty
+                                                ? newVal
+                                                : 'No Data',
+                                            style: TextStyle(
+                                              color:
+                                              choice[key] == 'fetched'
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ]),
+                              const SizedBox(height: 12),
+                            ],
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, null),
+                      child: const Text("Cancel"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        final result = <String, String>{};
+                        for (var key in conflictKeys) {
+                          result[key] = choice[key] == 'old'
+                              ? existing[key] ?? ''
+                              : fetched[key] ?? '';
+                        }
+                        Navigator.pop(ctx, result);
+                      },
+                      child: const Text("Apply"),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+
+        // 🔥 Popup se selected values apply karo
+        if (selected != null && mounted) {
+          setState(() {
+            if (fillOwner) {
+              if (selected['Name']?.isNotEmpty == true)
+                ownerName.text = selected['Name']!.toUpperCase();
+              if (selected['Mobile']?.isNotEmpty == true)
+                ownerMobile.text = selected['Mobile']!;
+              if (selected['Aadhaar']?.isNotEmpty == true)
+                ownerAadhaar.text = selected['Aadhaar']!;
+              if (selected['Address']?.isNotEmpty == true)
+                ownerAddress.text = selected['Address']!.toUpperCase();
+              if (selected['Relation']?.isNotEmpty == true)
+                ownerRelation = selected['Relation']!;
+              if (selected['RelationPerson']?.isNotEmpty == true)
+                ownerRelationPerson.text =
+                    selected['RelationPerson']!.toUpperCase();
+            } else if (directorIndex != null &&
+                directorIndex < directors.length) {
+              final d = directors[directorIndex];
+              if (selected['Name']?.isNotEmpty == true)
+                d.name.text = selected['Name']!.toUpperCase();
+              if (selected['Mobile']?.isNotEmpty == true)
+                d.mobile.text = selected['Mobile']!;
+              if (selected['Aadhaar']?.isNotEmpty == true)
+                d.aadhaar.text = selected['Aadhaar']!;
+              if (selected['Address']?.isNotEmpty == true)
+                d.address.text = selected['Address']!.toUpperCase();
+              if (selected['Relation']?.isNotEmpty == true)
+                d.relation = selected['Relation']!;
+              if (selected['RelationPerson']?.isNotEmpty == true)
+                d.relationPerson.text =
+                    selected['RelationPerson']!.toUpperCase();
+            }
+          });
+          _showToast('Fields updated successfully!');
+        }
+      }
+
+      // 🔥 Background mein images download karo
+      if (fillOwner) {
+        if (ownerAadharFrontUrl != null && ownerAadharFrontUrl!.isNotEmpty) {
+          downloadAndConvertToFile(ownerAadharFrontUrl).then((file) {
+            if (file != null && mounted)
+              setState(() => ownerAadhaarFront = file);
+          });
+        }
+        if (ownerAadharBackUrl != null && ownerAadharBackUrl!.isNotEmpty) {
+          downloadAndConvertToFile(ownerAadharBackUrl).then((file) {
+            if (file != null && mounted)
+              setState(() => ownerAadhaarBack = file);
+          });
+        }
+      } else if (directorIndex != null &&
+          directorIndex >= 0 &&
+          directorIndex < directors.length) {
+        final d = directors[directorIndex];
+        if (d.aadhaarFrontUrl != null && d.aadhaarFrontUrl!.isNotEmpty) {
+          downloadAndConvertToFile(d.aadhaarFrontUrl).then((file) {
+            if (file != null && mounted)
+              setState(() => d.aadhaarFront = file);
+          });
+        }
+        if (d.aadhaarBackUrl != null && d.aadhaarBackUrl!.isNotEmpty) {
+          downloadAndConvertToFile(d.aadhaarBackUrl).then((file) {
+            if (file != null && mounted)
+              setState(() => d.aadhaarBack = file);
+          });
+        }
+        if (d.photoUrl != null && d.photoUrl!.isNotEmpty) {
+          downloadAndConvertToFile(d.photoUrl).then((file) {
+            if (file != null && mounted) setState(() => d.photo = file);
+          });
+        }
+      }
+
       if (fillOwner) {
         AppLogger.api("✅ Auto-fetch filled for OWNER");
       } else if (directorIndex != null) {
         AppLogger.api("✅ Auto-fetch filled for DIRECTOR #${directorIndex + 1}");
       }
-
     } catch (e) {
       AppLogger.api("🔥 Fetch exception: $e");
       _showToast("Fetch failed");
@@ -1496,7 +2171,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        title: Text('Commercial Agreement', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+        title: Text('Commercial Agreement', style: TextStyle(fontFamily: "Poppins", fontWeight: FontWeight.w600)),
         centerTitle: true,
         leading: Padding(
           padding: const EdgeInsets.all(10),
@@ -2051,142 +2726,81 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
   Widget _ownerStep() {
     return _glassContainer(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Owner Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  _fetchUserData(
-                    fillOwner: true,
-                    aadhaar: ownerAadhaar.text,
-                    mobile: ownerMobile.text,
-                  );
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Expanded(child: Text('Owner Details', style: TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black))),
+          Container(
+            decoration: BoxDecoration(
+                gradient: LinearGradient(colors: [Colors.amber.shade800, Colors.amber.shade600]),
+                borderRadius: BorderRadius.circular(12)),
+            child: ElevatedButton.icon(
+                onPressed: () async {
+                  final a = ownerAadhaar.text.trim(); final m = ownerMobile.text.trim();
+                  if (a.isEmpty && m.isEmpty) { _showToast('Please enter Aadhaar or Mobile number first'); return; }
+                  showDialog(context: context, barrierDismissible: false,
+                      builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
+                          child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 14), Text('Fetching owner details...')])))));
+                  await _fetchUserData(fillOwner: true, aadhaar: a.isNotEmpty ? a : null, mobile: a.isEmpty ? m : null);
+                  if (mounted) { Navigator.of(context, rootNavigator: true).pop(); setState(() {}); }
                 },
                 icon: const Icon(Icons.search, color: Colors.white),
-                label: const Text(
-                  'Auto fetch',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 4,
-                  backgroundColor: Colors.amber.shade700, // needed for gradient
-                ),
-              ),
-            ),
-          ],
+                label: const Text('Auto Fetch', style: TextStyle(color: Colors.white)),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent)),
+          ),
+        ]),
+        const SizedBox(height: 16),
+        // ── AADHAAR IMAGES upar ──
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.grey.shade300)),
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Row(children: [
+              const Icon(Icons.badge_outlined, size: 18, color: Colors.black54), const SizedBox(width: 6),
+              const Text('Owner Aadhaar Documents', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.black87)),
+              const Spacer(),
+              if (ownerAadhaarFront != null || (ownerAadharFrontUrl?.isNotEmpty ?? false)) const Icon(Icons.check_circle, color: Colors.green, size: 18),
+            ]),
+            const SizedBox(height: 14),
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Expanded(child: _aadhaarImageCard(label: 'Aadhaar Front', file: ownerAadhaarFront, url: ownerAadharFrontUrl, onUpload: () => _pickImage('ownerFront'))),
+              const SizedBox(width: 12),
+              Expanded(child: _aadhaarImageCard(label: 'Aadhaar Back', file: ownerAadhaarBack, url: ownerAadharBackUrl, onUpload: () => _pickImage('ownerBack'))),
+            ]),
+            const SizedBox(height: 8),
+            Text('Enter Aadhaar or Mobile number above and tap Auto Fetch to fill details automatically.',
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontStyle: FontStyle.italic)),
+          ]),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         Form(
           key: _ownerFormKey,
           child: Column(children: [
-            Row(
-                children: [
-                  Expanded(child: _glowTextField(controller: ownerMobile, label: 'Mobile No', keyboard: TextInputType.phone,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,       // only numbers
-                      LengthLimitingTextInputFormatter(10),         // max 10 digits
-                    ],
-                    validator: (v) {
-
-                      if (v == null || v.trim().isEmpty) return 'Required';
-                      if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) return 'Enter valid 10-digit mobile';
-
-                      return null;
-                    },
-
-                    // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
-                  )
-                  ),
-                  const SizedBox(width: 12),
-
-                  Expanded(
-                    child: _glowTextField(
-                      controller: ownerAadhaar,
-                      label: 'Aadhaar/VID No',
-                      keyboard: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,  // only numbers
-                        LengthLimitingTextInputFormatter(16),    // max 16 digits
-                      ],
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Required';
-
-                        final digits = v.trim();
-                        if (!RegExp(r'^\d{12}$').hasMatch(digits) && !RegExp(r'^\d{16}$').hasMatch(digits)) {
-                          return 'Enter valid 12-digit Aadhaar or 16-digit VID';
-                        }
-
-                        return null;
-                      },
-                    ),
-                  ),
-                ]),
+            Row(children: [
+              Expanded(child: _glowTextField(controller: ownerMobile, label: 'Mobile No', keyboard: TextInputType.phone,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
+                  validator: (v) { if (v == null || v.trim().isEmpty) return 'Required'; if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) return 'Enter valid 10-digit mobile'; return null; })),
+              const SizedBox(width: 12),
+              Expanded(child: _glowTextField(controller: ownerAadhaar, label: 'Aadhaar/VID No', keyboard: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(16)],
+                  validator: (v) { if (v == null || v.trim().isEmpty) return 'Required'; final d = v.trim(); if (!RegExp(r'^\d{12}$').hasMatch(d) && !RegExp(r'^\d{16}$').hasMatch(d)) return 'Enter valid 12-digit Aadhaar or 16-digit VID'; return null; })),
+            ]),
             const SizedBox(height: 14),
             _glowTextField(controller: ownerName, label: 'Owner Full Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
             const SizedBox(height: 12),
-            Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: ownerRelation,
-                      items: const ['S/O', 'D/O', 'W/O', 'C/O']
-                          .map((e) => DropdownMenuItem(
-                        value: e,
-                        child: Text(
-                          e,
-                          style: TextStyle(color: Colors.black,), // ✅ dropdown text black
-                        ),
-                      ))
-                          .toList(),
-                      onChanged: (v) => setState(() => ownerRelation = v ?? 'S/O'),
-                      decoration: _fieldDecoration('Relation').copyWith(
-                        labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
-                        hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.black), // ✅ border black
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.black, width: 1.5),
-                        ),
-                      ),
-                      iconEnabledColor: Colors.black, // ✅ dropdown arrow black
-                      dropdownColor: Colors.white, // ✅ menu background white (good contrast)
-                      style: const TextStyle(color: Colors.black), // ✅ selected text black
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(child: _glowTextField(controller: ownerRelationPerson, label: 'Person Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
-                ]),
+            Row(children: [
+              Expanded(child: DropdownButtonFormField<String>(
+                  value: ownerRelation,
+                  items: const ['S/O', 'D/O', 'W/O', 'C/O'].map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(color: Colors.black)))).toList(),
+                  onChanged: (v) => setState(() => ownerRelation = v ?? 'S/O'),
+                  decoration: _fieldDecoration('Relation').copyWith(
+                      labelStyle: const TextStyle(color: Colors.black),
+                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.black)),
+                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.black, width: 1.5))),
+                  iconEnabledColor: Colors.black, dropdownColor: Colors.white, style: const TextStyle(color: Colors.black))),
+              const SizedBox(width: 12),
+              Expanded(child: _glowTextField(controller: ownerRelationPerson, label: 'Person Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+            ]),
             const SizedBox(height: 12),
             _glowTextField(controller: ownerAddress, label: 'Permanent Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
-            const SizedBox(height: 12),
-            Column(children: [
-              Row(
-                children: [
-                  _imageTile(file: ownerAadhaarFront, url: ownerAadharFrontUrl, hint: 'Front'),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(onPressed: () => _pickImage('ownerFront'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Front')),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  _imageTile(file: ownerAadhaarBack, url: ownerAadharBackUrl, hint: 'Back'),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(onPressed: () => _pickImage('ownerBack'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Back')),
-                ],
-              ),
-            ]),
             const SizedBox(height: 12),
           ]),
         ),
@@ -2213,7 +2827,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                       Expanded(
                         child: Text(
                           'Director ${index + 1} Details',
-                          style: GoogleFonts.poppins(
+                          style: TextStyle(fontFamily: "Poppins",
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
                             color: Colors.black,
@@ -2223,24 +2837,24 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                       Wrap(
                         spacing: 8,
                         children: [
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              _fetchUserData(
-                                fillOwner: false,
-                                aadhaar: directors[index].aadhaar.text,
-                                mobile: directors[index].mobile.text,
-                                directorIndex: index,
-                              );
-                            },
-                            icon: const Icon(Icons.search, color: Colors.white, size: 18),
-                            label: const Text('Auto fetch'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.amber.shade700,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
+                          Container(
+                            decoration: BoxDecoration(
+                                gradient: LinearGradient(colors: [Colors.amber.shade800, Colors.amber.shade600]),
+                                borderRadius: BorderRadius.circular(12)),
+                            child: ElevatedButton.icon(
+                                onPressed: () async {
+                                  final a = directors[index].aadhaar.text.trim();
+                                  final m = directors[index].mobile.text.trim();
+                                  if (a.isEmpty && m.isEmpty) { _showToast('Enter Aadhaar or Mobile number first'); return; }
+                                  showDialog(context: context, barrierDismissible: false,
+                                      builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
+                                          child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 14), Text('Fetching director details...')])))));
+                                  await _fetchUserData(fillOwner: false, aadhaar: a.isNotEmpty ? a : null, mobile: a.isEmpty ? m : null, directorIndex: index);
+                                  if (mounted) { Navigator.of(context, rootNavigator: true).pop(); setState(() {}); }
+                                },
+                                icon: const Icon(Icons.search, color: Colors.white, size: 18),
+                                label: const Text('Auto Fetch', style: TextStyle(color: Colors.white)),
+                                style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent)),
                           ),
                           // 🔥 Show delete only when creating NEW agreement
                           if (index > 0 &&
@@ -2315,21 +2929,21 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                               onChanged: (v) => setState(() {
                                 directors[index].relation = v ?? 'S/O';
                               }),
-                                decoration: _fieldDecoration('Relation').copyWith(
-                                  labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
-                                  hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(color: Colors.black), // ✅ border black
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(color: Colors.black, width: 1.5),
-                                  ),
+                              decoration: _fieldDecoration('Relation').copyWith(
+                                labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
+                                hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(color: Colors.black), // ✅ border black
                                 ),
-                                iconEnabledColor: Colors.black, // ✅ dropdown arrow black
-                                dropdownColor: Colors.white, // ✅ menu background white (good contrast)
-                                style: const TextStyle(color: Colors.black),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                                ),
+                              ),
+                              iconEnabledColor: Colors.black, // ✅ dropdown arrow black
+                              dropdownColor: Colors.white, // ✅ menu background white (good contrast)
+                              style: const TextStyle(color: Colors.black),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -2457,79 +3071,31 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                       ],
 
 
-                      const SizedBox(height: 12),
-                      /// DOCUMENTS
-                      Row(
-                        children: [
-                          _imageTile(
-                            file: directors[index].aadhaarFront,
-                            url: directors[index].aadhaarFrontUrl,
-                            hint: 'Aadhaar Front',
-                          ),
-                          const SizedBox(width: 12),
-                          ElevatedButton.icon(
-                            onPressed: () => _pickDirectorAadhaar(index, true),
-                            icon: const Icon(Icons.upload_file),
-                            label: const Text('Aadhaar Front'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black, // button color
-                              foregroundColor: Colors.white, // ripple color
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12), // optional: rounded corners
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                      const SizedBox(height: 16),
 
-                      const SizedBox(height: 12),
-
-                      Row(
-                        children: [
-                          _imageTile(
-                            file: directors[index].aadhaarBack,
-                            url: directors[index].aadhaarBackUrl,
-                            hint: 'Aadhaar Back',
-                          ),
-                          const SizedBox(width: 12),
-                          ElevatedButton.icon(
-                            onPressed: () => _pickDirectorAadhaar(index, false),
-                            icon: const Icon(Icons.upload_file),
-                            label: const Text('Aadhaar Back'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black, // button color
-                              foregroundColor: Colors.white, // ripple color
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12), // optional: rounded corners
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      Row(
-                        children: [
-                          _imageTile(
-                            file: directors[index].photo,
-                            url: directors[index].photoUrl,
-                            hint: 'Director Photo',
-                          ),
-                          const SizedBox(width: 12),
-                          ElevatedButton.icon(
-                            onPressed: () => _pickDirectorPhoto(index),
-                            icon: const Icon(Icons.upload_file),
-                            label: const Text('Upload Photo'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black, // button color
-                              foregroundColor: Colors.white, // ripple color
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12), // optional: rounded corners
-                              ),
-                            ),
-                          ),
-                        ],
+                      // ── DIRECTOR DOCUMENTS CARD ──
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.grey.shade300)),
+                        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Row(children: [
+                            const Icon(Icons.badge_outlined, size: 18, color: Colors.black54), const SizedBox(width: 6),
+                            Text('Director ${index + 1} Documents', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.black87)),
+                            const Spacer(),
+                            if (directors[index].aadhaarFront != null || (directors[index].aadhaarFrontUrl?.isNotEmpty ?? false))
+                              const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                          ]),
+                          const SizedBox(height: 14),
+                          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Expanded(child: _aadhaarImageCard(label: 'Aadhaar Front', file: directors[index].aadhaarFront, url: directors[index].aadhaarFrontUrl, onUpload: () => _pickDirectorAadhaar(index, true))),
+                            const SizedBox(width: 8),
+                            Expanded(child: _aadhaarImageCard(label: 'Aadhaar Back', file: directors[index].aadhaarBack, url: directors[index].aadhaarBackUrl, onUpload: () => _pickDirectorAadhaar(index, false))),
+                            const SizedBox(width: 8),
+                            Expanded(child: _aadhaarImageCard(label: 'Photo', file: directors[index].photo, url: directors[index].photoUrl, onUpload: () => _pickDirectorPhoto(index), placeholderIcon: Icons.person_outline)),
+                          ]),
+                          const SizedBox(height: 8),
+                          Text('Upload Aadhaar images — OCR will auto-fill fields below.', style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontStyle: FontStyle.italic)),
+                        ]),
                       ),
                       const SizedBox(height: 12),
 
@@ -2618,7 +3184,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Property Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+            Text('Property Details', style: TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
 
           ],
         ),
@@ -3297,217 +3863,217 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
 
   Widget _previewStep() {
     return _glassContainer(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text('Preview', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
-          Row(children: [
-            IconButton(onPressed: () {
-              // _jumpToStep(0); //Currently, not important!!
-            }, icon: const Icon(Icons.edit)),
-          ])
-        ]),
-        const SizedBox(height: 12),
-        _sectionCard(title: '*Owner', children: [
-          _kv('Name', ownerName.text),
-          _kv('Relation', ownerRelation),
-          _kv('Relation Person', ownerRelationPerson.text),
-          _kv('Mobile', ownerMobile.text),
-          _kv('Aadhaar', ownerAadhaar.text),
-          _kv('Address', ownerAddress.text),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text('Aadhaar Images',style: TextStyle(color: Colors.black),),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(children: [
-            _imageTile(file: ownerAadhaarFront, url: ownerAadharFrontUrl, hint: 'Front'),
-            const SizedBox(width: 8),
-            _imageTile(file: ownerAadhaarBack, url: ownerAadharBackUrl, hint: 'Back'),
-            const Spacer(),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Text('Preview', style: TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+            Row(children: [
+              IconButton(onPressed: () {
+                // _jumpToStep(0); //Currently, not important!!
+              }, icon: const Icon(Icons.edit)),
+            ])
           ]),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              TextButton(onPressed: () => _jumpToStep(0),style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFFFFD700), // Pure gold
-              ), child: const Text('Edit')),
-            ],
-          )
-
-        ]),
-        const SizedBox(height: 12),
-        _sectionCard(
-          title: '*Directors',
-          children: List.generate(directors.length, (index) {
-            final d = directors[index];
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 12),
+          _sectionCard(title: '*Owner', children: [
+            _kv('Name', ownerName.text),
+            _kv('Relation', ownerRelation),
+            _kv('Relation Person', ownerRelationPerson.text),
+            _kv('Mobile', ownerMobile.text),
+            _kv('Aadhaar', ownerAadhaar.text),
+            _kv('Address', ownerAddress.text),
+            const SizedBox(height: 8),
+            Row(
               children: [
-                Text(
-                  'Director ${index + 1}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                Text('Aadhaar Images',style: TextStyle(color: Colors.black),),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(children: [
+              _imageTile(file: ownerAadhaarFront, url: ownerAadharFrontUrl, hint: 'Front'),
+              const SizedBox(width: 8),
+              _imageTile(file: ownerAadhaarBack, url: ownerAadharBackUrl, hint: 'Back'),
+              const Spacer(),
+            ]),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(onPressed: () => _jumpToStep(0),style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFFFFD700), // Pure gold
+                ), child: const Text('Edit')),
+              ],
+            )
+
+          ]),
+          const SizedBox(height: 12),
+          _sectionCard(
+            title: '*Directors',
+            children: List.generate(directors.length, (index) {
+              final d = directors[index];
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Director ${index + 1}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
+                  const SizedBox(height: 6),
 
-                _kv('Name', d.name.text),
-                _kv('Relation', d.relation),
-                _kv('Relation Person', d.relationPerson.text),
-                _kv('Mobile', d.mobile.text),
-                _kv('Aadhaar', d.aadhaar.text),
-                _kv('Address', d.address.text),
+                  _kv('Name', d.name.text),
+                  _kv('Relation', d.relation),
+                  _kv('Relation Person', d.relationPerson.text),
+                  _kv('Mobile', d.mobile.text),
+                  _kv('Aadhaar', d.aadhaar.text),
+                  _kv('Address', d.address.text),
 
-                if (index == 0) ...[
-                  _kv('Company Name', CompanyName.text),
-                  _kv('GST Type', gstType),
-                  _kv('GST No.', d.gstNo.text),
-                  _kv('PAN No.', d.panNo.text),
+                  if (index == 0) ...[
+                    _kv('Company Name', CompanyName.text),
+                    _kv('GST Type', gstType),
+                    _kv('GST No.', d.gstNo.text),
+                    _kv('PAN No.', d.panNo.text),
 
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        _imageTile(
+                          file: d.gstPhoto,
+                          url: d.gstPhotoUrl,
+                          hint: 'GST',
+                        ),
+                        const SizedBox(width: 8),
+                        _imageTile(
+                          file: d.panPhoto,
+                          url: d.panPhotoUrl,
+                          hint: 'PAN',
+                        ),
+                      ],
+                    ),
+                  ],
+
+                  const SizedBox(height: 12),
+                  const Divider(),
+                ],
+              );
+            }),
+          ),
+
+
+
+          const SizedBox(height: 8),
+
+          _sectionCard(
+            title: '*Directors Documents',
+            children: List.generate(directors.length, (index) {
+              final d = directors[index];
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Director ${index + 1}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
                   const SizedBox(height: 8),
+
+                  /// Aadhaar
+                  const Text('Director Aadhaar',style: TextStyle(color: Colors.black),),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
                       _imageTile(
-                        file: d.gstPhoto,
-                        url: d.gstPhotoUrl,
-                        hint: 'GST',
+                        file: d.aadhaarFront,
+                        url: d.aadhaarFrontUrl,
+                        hint: 'Front',
                       ),
                       const SizedBox(width: 8),
                       _imageTile(
-                        file: d.panPhoto,
-                        url: d.panPhotoUrl,
-                        hint: 'PAN',
+                        file: d.aadhaarBack,
+                        url: d.aadhaarBackUrl,
+                        hint: 'Back',
                       ),
                     ],
                   ),
-                ],
 
-                const SizedBox(height: 12),
-                const Divider(),
-              ],
-            );
-          }),
-        ),
+                  const SizedBox(height: 10),
 
-
-
-        const SizedBox(height: 8),
-
-        _sectionCard(
-          title: '*Directors Documents',
-          children: List.generate(directors.length, (index) {
-            final d = directors[index];
-
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Director ${index + 1}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                  /// Photo
+                  const Text('Director Photo',style: TextStyle(color: Colors.black),),
+                  const SizedBox(height: 6),
+                  _imageTile(
+                    file: d.photo,
+                    url: d.photoUrl,
+                    hint: 'Photo',
                   ),
+
+                  const SizedBox(height: 16),
+                  const Divider(),
+                ],
+              );
+            }),
+          ),
+
+          const SizedBox(height: 12),
+          _sectionCard(title: '*Property', children: [
+            _kv('Property ID', propertyID.text),
+            _kv('Sqft', Sqft.text),
+            _kv('Floor', selectedFloor ?? ''),
+            _kv('Address', Address.text),
+            _kv('Notary Price', Notary_price),
+            _kv('Agreement price', '${Agreement_price.text} (${AgreementAmountInWords})'),
+            _kv('Rent', '${rentAmount.text} (${rentAmountInWords})'),
+            _kv('Security', '${securityAmount.text} (${securityAmountInWords})'),
+            if (securityInstallment) _kv('Installment', '${installmentAmount.text} (${installmentAmountInWords})'),
+            _kv('Meter Info', meterInfo),
+            if (meterInfo.startsWith('Custom')) _kv('Custom Unit', '${customUnitAmount.text} (${customUnitAmountInWords})'),
+            _kv('Shifting', shiftingDate == null ? '' : shiftingDate!.toLocal().toString().split(' ')[0]),
+            _kv('Parking', parking),
+            _kv('Maintenance', maintenance),
+            if (maintenance.startsWith('Excluding')) _kv('Maintenance', '${customMaintanceAmount.text} (${customMaintanceAmountInWords})'),
+
+            const SizedBox(height: 8),
+            Row(children: [const Spacer(),
+              TextButton(
+                onPressed: () => _jumpToStep(2),
+                style: TextButton.styleFrom(
+                  foregroundColor: const Color(0xFFFFD700), // Pure gold
                 ),
-                const SizedBox(height: 8),
+                child: const Text('Edit'),
+              )
+            ])
+          ]),
+          const SizedBox(height: 12),
 
-                /// Aadhaar
-                const Text('Director Aadhaar',style: TextStyle(color: Colors.black),),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    _imageTile(
-                      file: d.aadhaarFront,
-                      url: d.aadhaarFrontUrl,
-                      hint: 'Front',
-                    ),
-                    const SizedBox(width: 8),
-                    _imageTile(
-                      file: d.aadhaarBack,
-                      url: d.aadhaarBackUrl,
-                      hint: 'Back',
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 10),
-
-                /// Photo
-                const Text('Director Photo',style: TextStyle(color: Colors.black),),
-                const SizedBox(height: 6),
-                _imageTile(
-                  file: d.photo,
-                  url: d.photoUrl,
-                  hint: 'Photo',
-                ),
-
-                const SizedBox(height: 16),
-                const Divider(),
-              ],
-            );
-          }),
-        ),
-
-        const SizedBox(height: 12),
-        _sectionCard(title: '*Property', children: [
-          _kv('Property ID', propertyID.text),
-          _kv('Sqft', Sqft.text),
-          _kv('Floor', selectedFloor ?? ''),
-          _kv('Address', Address.text),
-          _kv('Notary Price', Notary_price),
-          _kv('Agreement price', '${Agreement_price.text} (${AgreementAmountInWords})'),
-          _kv('Rent', '${rentAmount.text} (${rentAmountInWords})'),
-          _kv('Security', '${securityAmount.text} (${securityAmountInWords})'),
-          if (securityInstallment) _kv('Installment', '${installmentAmount.text} (${installmentAmountInWords})'),
-          _kv('Meter Info', meterInfo),
-          if (meterInfo.startsWith('Custom')) _kv('Custom Unit', '${customUnitAmount.text} (${customUnitAmountInWords})'),
-          _kv('Shifting', shiftingDate == null ? '' : shiftingDate!.toLocal().toString().split(' ')[0]),
-          _kv('Parking', parking),
-          _kv('Maintenance', maintenance),
-          if (maintenance.startsWith('Excluding')) _kv('Maintenance', '${customMaintanceAmount.text} (${customMaintanceAmountInWords})'),
-
-          const SizedBox(height: 8),
-          Row(children: [const Spacer(),
-            TextButton(
-              onPressed: () => _jumpToStep(2),
-              style: TextButton.styleFrom(
-                foregroundColor: const Color(0xFFFFD700), // Pure gold
+          CheckboxListTile(
+            value: isAgreementHide,
+            onChanged: (v) {
+              setState(() {
+                isAgreementHide = v ?? false;
+              });
+            },
+            title: const Text(
+              'Hide Aadhaar',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
               ),
-              child: const Text('Edit'),
-            )
-          ])
-        ]),
-        const SizedBox(height: 12),
-
-        CheckboxListTile(
-          value: isAgreementHide,
-          onChanged: (v) {
-            setState(() {
-              isAgreementHide = v ?? false;
-            });
-          },
-          title: const Text(
-            'Hide Aadhaar',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Colors.black,
             ),
+            subtitle: const Text(
+              'Aadhaar images & number will be hidden in agreement PDF',
+              style: TextStyle(fontSize: 12,color: Colors.black),
+            ),
+            activeColor: Colors.redAccent,
+            checkColor: Colors.white,
           ),
-          subtitle: const Text(
-            'Aadhaar images & number will be hidden in agreement PDF',
-            style: TextStyle(fontSize: 12,color: Colors.black),
-          ),
-          activeColor: Colors.redAccent,
-          checkColor: Colors.white,
-        ),
 
-        const SizedBox(height: 12),
-        Text('* IMPORTANT : When you tap Submit we send data & uploaded Aadhaar images to server for Approval from the Admin.',style: TextStyle(color: Colors.red),),
-      ]
-    )
+          const SizedBox(height: 12),
+          Text('* IMPORTANT : When you tap Submit we send data & uploaded Aadhaar images to server for Approval from the Admin.',style: TextStyle(color: Colors.red),),
+        ]
+        )
     );
   }
 

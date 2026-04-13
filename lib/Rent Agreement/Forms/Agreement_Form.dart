@@ -112,9 +112,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
 
   bool isPropertyFetched = false;
 
-  bool isAgreementHide = false; // 🔐 privacy toggle
+  bool isAgreementHide = false;
 
-  // Form keys & controllers
   final _ownerFormKey = GlobalKey<FormState>();
   final ownerName = TextEditingController();
   String ownerRelation = 'S/O';
@@ -652,9 +651,41 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     }
 
     if (addressLines.isNotEmpty) {
-      result['address'] = addressLines.join(', ');
-    }
+      // 🔥 Pehle sab lines ko ek string mein join karo
+      String combined = addressLines.join(' ');
 
+      // 🔥 Non-ASCII / accented chars hataao
+      combined = combined.replaceAll(RegExp(r'[^\x00-\x7F]'), '');
+
+      // 🔥 Junk chars hataao
+      combined = combined.replaceAll(RegExp(r"[^a-zA-Z0-9,\-\./ ]"), '');
+
+      // 🔥 Multiple spaces → single space
+      combined = combined.replaceAll(RegExp(r'\s+'), ' ');
+
+      // 🔥 Hyphen ke aage-peeche space hata (MS- BLOCK → MS-BLOCK)
+      combined = combined.replaceAll(RegExp(r'\s*-\s*'), '-');
+
+      // 🔥 Multiple commas → single comma
+      combined = combined.replaceAll(RegExp(r',+'), ',');
+
+      // 🔥 Comma spacing fix
+      combined = combined.replaceAll(RegExp(r'\s*,\s*'), ', ');
+
+      // 🔥 Duplicate segments remove
+      final parts = combined.split(', ');
+      final seen = <String>{};
+      final unique = <String>[];
+      for (var part in parts) {
+        final key = part.trim().toLowerCase();
+        if (key.isNotEmpty && !seen.contains(key)) {
+          seen.add(key);
+          unique.add(part.trim());
+        }
+      }
+
+      result['address'] = unique.join(', ');
+    }
     // ============================
 
     // 4. Mobile — SAME
@@ -674,153 +705,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   String _titleCase(String s) => s.toLowerCase().split(' ')
       .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
       .join(' ');
-  Future<Map<String, String>?> _showCompareDialog({
-    required Map<String, String?> ocr,
-    required bool fillOwner,
-    int? tenantIndex,
-  }) async {
 
-    final existing = fillOwner
-        ? {
-      'Name': ownerName.text,
-      'Mobile': ownerMobile.text,
-      'Aadhaar': ownerAadhaar.text,
-      'Address': ownerAddress.text,
-    }
-        : {
-      'Name': tenants[tenantIndex!].name.text,
-      'Mobile': tenants[tenantIndex].mobile.text,
-      'Aadhaar': tenants[tenantIndex].aadhaar.text,
-      'Address': tenants[tenantIndex].address.text,
-    };
 
-    final scanned = {
-      'Name': ocr['name'] ?? '',
-      'Mobile': ocr['mobile'] ?? '',
-      'Aadhaar': ocr['aadhaarNumber'] ?? '',
-      'Address': ocr['address'] ?? '',
-    };
-
-    final choice = {
-      'Name': 'scanned',
-      'Mobile': 'scanned',
-      'Aadhaar': 'scanned',
-      'Address': 'scanned',
-    };
-
-    return await showDialog<Map<String, String>>(
-      context: context,
-      builder: (ctx) {
-        return StatefulBuilder(
-          builder: (ctx, setState) {
-            return AlertDialog(
-              title: const Text("Select Data"),
-              content: SingleChildScrollView(
-                child: Column(
-                  children: scanned.entries
-                      .where((e) => e.value != null && e.value!.trim().isNotEmpty)
-                      .map((entry) {
-                    final key = entry.key;
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(key, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () => setState(() => choice[key] = 'old'),
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  color: choice[key] == 'old'
-                                      ? Colors.blue
-                                      : Colors.grey.shade300,
-                                  child: Text(existing[key]?.isNotEmpty == true
-                                      ? existing[key]!
-                                      : '-'),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () => setState(() => choice[key] = 'scanned'),
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  color: choice[key] == 'scanned'
-                                      ? Colors.green
-                                      : Colors.grey.shade300,
-                                  child: Text(entry.value!.isNotEmpty ? entry.value! : '-'),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                      ],
-                    );
-                  }).toList(),
-
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx, null),
-                  child: const Text("Cancel"),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    final result = <String, String>{};
-                    choice.forEach((key, val) {
-                      result[key] = val == 'old'
-                          ? existing[key] ?? ''
-                          : scanned[key] ?? '';
-                    });
-                    Navigator.pop(ctx, result);
-                  },
-                  child: const Text("Apply"),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-  String cleanAddress(String raw) {
-    String text = raw;
-
-    // 1. remove weird characters
-    text = text.replaceAll(RegExp(r'[^\x00-\x7F]'), '');
-
-    // 2. fix double commas
-    text = text.replaceAll(RegExp(r',\s*,'), ',');
-
-    // 3. remove extra spaces
-    text = text.replaceAll(RegExp(r'\s+'), ' ');
-
-    // 4. fix spacing around comma
-    text = text.replaceAll(RegExp(r'\s*,\s*'), ', ');
-
-    // 5. remove duplicate words (like NAJAFGARH, NAJAFGARH)
-    final words = text.split(',');
-    final seen = <String>{};
-    final unique = <String>[];
-
-    for (var w in words) {
-      final clean = w.trim().toLowerCase();
-      if (!seen.contains(clean)) {
-        seen.add(clean);
-        unique.add(w.trim());
-      }
-    }
-
-    text = unique.join(', ');
-
-    return text.trim();
-  }
-  /// Show parsed data for user confirmation before filling fields
   Future<void> _applyOcrResult({
     required Map<String, String?> ocr,
     required bool fillOwner,
@@ -839,10 +725,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       );
       return;
     }
-
-    // ============================
-    // 🔥 GET EXISTING DATA
-    // ============================
 
     final existing = fillOwner
         ? {
@@ -864,48 +746,14 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       'Aadhaar': aadhaar ?? '',
       'Address': address ?? '',
     };
-    /// 🔥 AUTO APPLY (EMPTY FIELDS FILL KARO - NO OVERWRITE)
-    setState(() {
-      for (var key in scanned.keys) {
-        final newVal = scanned[key]?.trim() ?? '';
-        final oldVal = existing[key]?.trim() ?? '';
 
-        if (newVal.isEmpty) continue;
-
-        // ✅ agar field already filled hai → skip (overwrite nahi)
-        if (oldVal.isNotEmpty) continue;
-
-        // ✅ empty field → direct fill
-        if (fillOwner) {
-          if (key == 'Name') ownerName.text = newVal.toUpperCase();
-          if (key == 'Mobile') ownerMobile.text = newVal;
-          if (key == 'Aadhaar') ownerAadhaar.text = newVal;
-          if (key == 'Address') ownerAddress.text = cleanAddress(newVal).toUpperCase();
-        } else if (tenantIndex != null && tenantIndex < tenants.length) {
-          final t = tenants[tenantIndex];
-
-          if (key == 'Name') t.name.text = newVal.toUpperCase();
-          if (key == 'Mobile') t.mobile.text = newVal;
-          if (key == 'Aadhaar') t.aadhaar.text = newVal;
-          if (key == 'Address') t.address.text = newVal;
-        }
-      }
-    });
-    // ============================
-    // 🔥 FILTER ONLY OCR DATA
-    // ============================
-
+    // 🔥 FILTER — sirf wahi keys jo different hain
     final filteredKeys = scanned.entries
         .where((e) {
       final newVal = e.value.trim();
       final oldVal = (existing[e.key] ?? '').trim();
-
-      // ✅ skip empty
       if (newVal.isEmpty) return false;
-
-      // ✅ skip same value
       if (newVal.toLowerCase() == oldVal.toLowerCase()) return false;
-
       return true;
     })
         .map((e) => e.key)
@@ -916,19 +764,13 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       return;
     }
 
-    // ============================
-    // 🔥 DEFAULT SELECTION
-    // ============================
-
+    // 🔥 DEFAULT — scanned selected by default
     final choice = {
       for (var key in filteredKeys)
         key: scanned[key]!.isNotEmpty ? 'scanned' : 'old'
     };
 
-    // ============================
-    // 🔥 COMPARE DIALOG
-    // ============================
-
+    // 🔥 POPUP
     final selected = await showDialog<Map<String, String>>(
       context: context,
       builder: (ctx) {
@@ -948,11 +790,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold)),
                         const SizedBox(height: 6),
-
                         Row(
                           children: [
-
-                            /// EXISTING
                             Expanded(
                               child: GestureDetector(
                                 onTap: () => setState(() => choice[key] = 'old'),
@@ -968,19 +807,20 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                                     border: Border.all(color: Colors.grey),
                                   ),
                                   child: Text(
-                                    existing[key]?.isNotEmpty == true ? existing[key]! : 'No Data',
+                                    existing[key]?.isNotEmpty == true
+                                        ? existing[key]!
+                                        : 'No Data',
                                     style: TextStyle(
-                                      color: choice[key] == 'old' ? Colors.white : Colors.black,
+                                      color: choice[key] == 'old'
+                                          ? Colors.white
+                                          : Colors.black,
                                       fontSize: 13,
                                     ),
                                   ),
                                 ),
                               ),
                             ),
-
                             const SizedBox(width: 8),
-
-                            /// SCANNED
                             Expanded(
                               child: GestureDetector(
                                 onTap: () =>
@@ -999,7 +839,9 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                                   child: Text(
                                     scanned[key]!,
                                     style: TextStyle(
-                                      color: choice[key] == 'scanned' ? Colors.white : Colors.black,
+                                      color: choice[key] == 'scanned'
+                                          ? Colors.white
+                                          : Colors.black,
                                       fontSize: 13,
                                     ),
                                   ),
@@ -1008,7 +850,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                             ),
                           ],
                         ),
-
                         const SizedBox(height: 12),
                       ],
                     );
@@ -1023,13 +864,11 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                 ElevatedButton(
                   onPressed: () {
                     final result = <String, String>{};
-
                     for (var key in filteredKeys) {
                       result[key] = choice[key] == 'old'
                           ? existing[key] ?? ''
                           : scanned[key] ?? '';
                     }
-
                     Navigator.pop(ctx, result);
                   },
                   child: const Text("Apply"),
@@ -1043,62 +882,34 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
 
     if (selected == null) return;
 
-    // ============================
-    // 🔥 APPLY (SMART MERGE FIX)
-    // ============================
-
+    // 🔥 APPLY
     setState(() {
       if (fillOwner) {
-        ownerName.text = (selected['Name']?.isNotEmpty == true)
-            ? selected['Name']!.toUpperCase()
-            : ownerName.text;
-
-        ownerMobile.text = (selected['Mobile']?.isNotEmpty == true)
-            ? selected['Mobile']!
-            : ownerMobile.text;
-
-        ownerAadhaar.text = (selected['Aadhaar']?.isNotEmpty == true)
-            ? selected['Aadhaar']!
-            : ownerAadhaar.text;
-
-        ownerAddress.text = (selected['Address']?.isNotEmpty == true)
-            ? selected['Address']!.toUpperCase()
-            : ownerAddress.text;
-
+        if (selected['Name']?.isNotEmpty == true)
+          ownerName.text = selected['Name']!.toUpperCase();
+        if (selected['Mobile']?.isNotEmpty == true)
+          ownerMobile.text = selected['Mobile']!;
+        if (selected['Aadhaar']?.isNotEmpty == true)
+          ownerAadhaar.text = selected['Aadhaar']!;
+        if (selected['Address']?.isNotEmpty == true)
+          ownerAddress.text = selected['Address']!.toUpperCase();
       } else if (tenantIndex != null && tenantIndex < tenants.length) {
         final t = tenants[tenantIndex];
-
-        t.name.text = (selected['Name']?.isNotEmpty == true)
-            ? selected['Name']!.toUpperCase()
-            : t.name.text;
-
-        t.mobile.text = (selected['Mobile']?.isNotEmpty == true)
-            ? selected['Mobile']!
-            : t.mobile.text;
-
-        t.aadhaar.text = (selected['Aadhaar']?.isNotEmpty == true)
-            ? selected['Aadhaar']!
-            : t.aadhaar.text;
-
-        t.address.text = (selected['Address']?.isNotEmpty == true)
-            ? selected['Address']!.toUpperCase()
-            : t.address.text;
+        if (selected['Name']?.isNotEmpty == true)
+          t.name.text = selected['Name']!.toUpperCase();
+        if (selected['Mobile']?.isNotEmpty == true)
+          t.mobile.text = selected['Mobile']!;
+        if (selected['Aadhaar']?.isNotEmpty == true)
+          t.aadhaar.text = selected['Aadhaar']!;
+        if (selected['Address']?.isNotEmpty == true)
+          t.address.text = selected['Address']!.toUpperCase();
       }
     });
 
     _showToast('Fields updated successfully!');
   }
 
-  Widget _ocrRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SizedBox(width: 70,
-            child: Text('$label:', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
-        Expanded(child: Text(value, style: const TextStyle(fontSize: 13))),
-      ]),
-    );
-  }
+
 
   void _showScanErrorDialog(String title, String message) {
     showDialog(
@@ -1404,8 +1215,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     required String? aadhaar,
     required String? mobile,
     int? tenantIndex,
-  })
-  async {
+  }) async {
     String queryKey;
     String queryValue;
 
@@ -1443,98 +1253,346 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
 
       final data = decoded['data'];
 
+      // 🔥 Fetched data map
+      final fetched = {
+        'Name': data['name'] ?? '',
+        'Mobile': data['mobile_number'] ?? '',
+        'Aadhaar': data['addhar_number'] ?? '',
+        'Address': data['addresss'] ?? '',
+        'Relation': data['relation'] ?? 'S/O',
+        'RelationPerson': data['relation_person_name'] ?? '',
+      };
+
+      // 🔥 Existing data map
+      final existing = fillOwner
+          ? {
+        'Name': ownerName.text,
+        'Mobile': ownerMobile.text,
+        'Aadhaar': ownerAadhaar.text,
+        'Address': ownerAddress.text,
+        'Relation': ownerRelation,
+        'RelationPerson': ownerRelationPerson.text,
+      }
+          : tenantIndex != null
+          ? {
+        'Name': tenants[tenantIndex].name.text,
+        'Mobile': tenants[tenantIndex].mobile.text,
+        'Aadhaar': tenants[tenantIndex].aadhaar.text,
+        'Address': tenants[tenantIndex].address.text,
+        'Relation': tenants[tenantIndex].relation,
+        'RelationPerson': tenants[tenantIndex].relationPerson.text,
+      }
+          : <String, String>{};
+
+
+      final conflictKeys = fetched.entries
+          .where((e) {
+        if (e.key == 'Mobile') return false;
+        final newVal = e.value.trim();
+        final oldVal = (existing[e.key] ?? '').trim();
+        return newVal.isNotEmpty &&
+            oldVal.isNotEmpty &&
+            newVal.toLowerCase() != oldVal.toLowerCase();
+      })
+          .map((e) => e.key)
+          .toList();
+
       setState(() {
         if (fillOwner) {
-          // ✅ Fill OWNER section
-          ownerName.text = data['name'] ?? '';
-          ownerRelation = data['relation'] ?? 'S/O';
-          ownerRelationPerson.text = data['relation_person_name'] ?? '';
-          ownerAddress.text = data['addresss'] ?? '';
-          ownerMobile.text = data['mobile_number'] ?? '';
-          ownerAadhaar.text = data['addhar_number'] ?? '';
-
-          // 🔥 Set URL immediately → network image shows right away in preview
+          fetched.forEach((key, newVal) {
+            if (newVal.isEmpty) return;
+            final oldVal = (existing[key] ?? '').trim();
+            // Mobile pe conflict check skip — directly fill
+            if (key != 'Mobile' &&
+                oldVal.isNotEmpty &&
+                oldVal.toLowerCase() != newVal.toLowerCase()) return;
+            if (key == 'Name') ownerName.text = newVal.toUpperCase();
+            if (key == 'Mobile') ownerMobile.text = newVal;
+            if (key == 'Aadhaar') ownerAadhaar.text = newVal;
+            if (key == 'Address') ownerAddress.text = newVal.toUpperCase();
+            if (key == 'Relation') ownerRelation = newVal;
+            if (key == 'RelationPerson')
+              ownerRelationPerson.text = newVal.toUpperCase();
+          });
           ownerAadharFrontUrl = data['addhar_front'] ?? '';
-          ownerAadharBackUrl  = data['addhar_back'] ?? '';
-
-          // 🔥 Clear old local files so URL-based preview kicks in instantly
+          ownerAadharBackUrl = data['addhar_back'] ?? '';
           ownerAadhaarFront = null;
-          ownerAadhaarBack  = null;
+          ownerAadhaarBack = null;
         } else if (tenantIndex != null &&
             tenantIndex >= 0 &&
             tenantIndex < tenants.length) {
-
           final d = tenants[tenantIndex];
-
-          d.name.text = data['name'] ?? '';
-          d.mobile.text = data['mobile_number'] ?? '';
-          d.aadhaar.text = data['addhar_number'] ?? '';
-          d.address.text = data['addresss'] ?? '';
-          d.relation = data['relation'] ?? 'S/O';
-          d.relationPerson.text = data['relation_person_name'] ?? '';
-
-          // 🔥 Set URL immediately → preview shows at once
+          fetched.forEach((key, newVal) {
+            if (newVal.isEmpty) return;
+            final oldVal = (existing[key] ?? '').trim();
+            // Mobile pe conflict check skip — directly fill
+            if (key != 'Mobile' &&
+                oldVal.isNotEmpty &&
+                oldVal.toLowerCase() != newVal.toLowerCase()) return;
+            if (key == 'Name') d.name.text = newVal.toUpperCase();
+            if (key == 'Mobile') d.mobile.text = newVal;
+            if (key == 'Aadhaar') d.aadhaar.text = newVal;
+            if (key == 'Address') d.address.text = newVal.toUpperCase();
+            if (key == 'Relation') d.relation = newVal;
+            if (key == 'RelationPerson')
+              d.relationPerson.text = newVal.toUpperCase();
+          });
           d.aadhaarFrontUrl = data['addhar_front'];
-          d.aadhaarBackUrl  = data['addhar_back'];
-          d.photoUrl        = data['selfie'];
-
-          // 🔥 Clear old local files so URL-based preview kicks in instantly
+          d.aadhaarBackUrl = data['addhar_back'];
+          d.photoUrl = data['selfie'];
           d.aadhaarFront = null;
-          d.aadhaarBack  = null;
-          d.photo        = null;
+          d.aadhaarBack = null;
+          d.photo = null;
         }
       });
 
-      // 🔥 Now download files in background — update when ready
+      // 🔥 Conflict fields ke liye POPUP
+      if (conflictKeys.isNotEmpty) {
+        final choice = {
+          for (var key in conflictKeys) key: 'fetched'
+        };
+
+        final selected = await showDialog<Map<String, String>>(
+          context: context,
+          builder: (ctx) {
+            return StatefulBuilder(
+              builder: (ctx, setS) {
+                return AlertDialog(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  title: const Text("Select Data"),
+                  content: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Some fields have different data — select which one to keep:",
+                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        ),
+                        const SizedBox(height: 12),
+                        ...conflictKeys.map((key) {
+                          final oldVal = existing[key] ?? '';
+                          final newVal = fetched[key] ?? '';
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(key,
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13)),
+                              const SizedBox(height: 6),
+                              Row(children: [
+                                // 🔵 Old Data
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () =>
+                                        setS(() => choice[key] = 'old'),
+                                    child: Container(
+                                      constraints: const BoxConstraints(
+                                          minHeight: 60),
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: choice[key] == 'old'
+                                            ? Colors.blue.withOpacity(0.8)
+                                            : Colors.grey.shade200,
+                                        borderRadius:
+                                        BorderRadius.circular(8),
+                                        border:
+                                        Border.all(color: Colors.grey),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Old Data',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: choice[key] == 'old'
+                                                  ? Colors.white70
+                                                  : Colors.grey,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            oldVal.isNotEmpty
+                                                ? oldVal
+                                                : 'No Data',
+                                            style: TextStyle(
+                                              color: choice[key] == 'old'
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                // 🟢 New Data
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () =>
+                                        setS(() => choice[key] = 'fetched'),
+                                    child: Container(
+                                      constraints: const BoxConstraints(
+                                          minHeight: 60),
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: choice[key] == 'fetched'
+                                            ? Colors.green.withOpacity(0.8)
+                                            : Colors.grey.shade200,
+                                        borderRadius:
+                                        BorderRadius.circular(8),
+                                        border:
+                                        Border.all(color: Colors.grey),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'New Data',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: choice[key] == 'fetched'
+                                                  ? Colors.white70
+                                                  : Colors.grey,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            newVal.isNotEmpty
+                                                ? newVal
+                                                : 'No Data',
+                                            style: TextStyle(
+                                              color: choice[key] == 'fetched'
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ]),
+                              const SizedBox(height: 12),
+                            ],
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(ctx, null),
+                      child: const Text("Cancel"),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        final result = <String, String>{};
+                        for (var key in conflictKeys) {
+                          result[key] = choice[key] == 'old'
+                              ? existing[key] ?? ''
+                              : fetched[key] ?? '';
+                        }
+                        Navigator.pop(ctx, result);
+                      },
+                      child: const Text("Apply"),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+
+        // 🔥 Popup se selected values apply karo
+        if (selected != null && mounted) {
+          setState(() {
+            if (fillOwner) {
+              if (selected['Name']?.isNotEmpty == true)
+                ownerName.text = selected['Name']!.toUpperCase();
+              if (selected['Mobile']?.isNotEmpty == true)
+                ownerMobile.text = selected['Mobile']!;
+              if (selected['Aadhaar']?.isNotEmpty == true)
+                ownerAadhaar.text = selected['Aadhaar']!;
+              if (selected['Address']?.isNotEmpty == true)
+                ownerAddress.text = selected['Address']!.toUpperCase();
+              if (selected['Relation']?.isNotEmpty == true)
+                ownerRelation = selected['Relation']!;
+              if (selected['RelationPerson']?.isNotEmpty == true)
+                ownerRelationPerson.text =
+                    selected['RelationPerson']!.toUpperCase();
+            } else if (tenantIndex != null &&
+                tenantIndex < tenants.length) {
+              final t = tenants[tenantIndex];
+              if (selected['Name']?.isNotEmpty == true)
+                t.name.text = selected['Name']!.toUpperCase();
+              if (selected['Mobile']?.isNotEmpty == true)
+                t.mobile.text = selected['Mobile']!;
+              if (selected['Aadhaar']?.isNotEmpty == true)
+                t.aadhaar.text = selected['Aadhaar']!;
+              if (selected['Address']?.isNotEmpty == true)
+                t.address.text = selected['Address']!.toUpperCase();
+              if (selected['Relation']?.isNotEmpty == true)
+                t.relation = selected['Relation']!;
+              if (selected['RelationPerson']?.isNotEmpty == true)
+                t.relationPerson.text =
+                    selected['RelationPerson']!.toUpperCase();
+            }
+          });
+          _showToast('Fields updated successfully!');
+        }
+      }
+
+      // 🔥 Background mein images download karo
       if (fillOwner) {
         if (ownerAadharFrontUrl != null && ownerAadharFrontUrl!.isNotEmpty) {
           downloadAndConvertToFile(ownerAadharFrontUrl).then((file) {
-            if (file != null && mounted) {
-              setState(() { ownerAadhaarFront = file; });
-            }
+            if (file != null && mounted)
+              setState(() => ownerAadhaarFront = file);
           });
         }
         if (ownerAadharBackUrl != null && ownerAadharBackUrl!.isNotEmpty) {
           downloadAndConvertToFile(ownerAadharBackUrl).then((file) {
-            if (file != null && mounted) {
-              setState(() { ownerAadhaarBack = file; });
-            }
+            if (file != null && mounted)
+              setState(() => ownerAadhaarBack = file);
           });
         }
       } else if (tenantIndex != null &&
           tenantIndex >= 0 &&
           tenantIndex < tenants.length) {
         final d = tenants[tenantIndex];
-
         if (d.aadhaarFrontUrl != null && d.aadhaarFrontUrl!.isNotEmpty) {
           downloadAndConvertToFile(d.aadhaarFrontUrl).then((file) {
-            if (file != null && mounted) {
-              setState(() { d.aadhaarFront = file; });
-            }
+            if (file != null && mounted)
+              setState(() => d.aadhaarFront = file);
           });
         }
         if (d.aadhaarBackUrl != null && d.aadhaarBackUrl!.isNotEmpty) {
           downloadAndConvertToFile(d.aadhaarBackUrl).then((file) {
-            if (file != null && mounted) {
-              setState(() { d.aadhaarBack = file; });
-            }
+            if (file != null && mounted)
+              setState(() => d.aadhaarBack = file);
           });
         }
         if (d.photoUrl != null && d.photoUrl!.isNotEmpty) {
           downloadAndConvertToFile(d.photoUrl).then((file) {
-            if (file != null && mounted) {
-              setState(() { d.photo = file; });
-            }
+            if (file != null && mounted)
+              setState(() => d.photo = file);
           });
         }
       }
+
       if (fillOwner) {
         AppLogger.api("✅ Auto-fetch filled for OWNER");
       } else if (tenantIndex != null) {
-        AppLogger.api("✅ Auto-fetch filled for DIRECTOR #${tenantIndex + 1}");
+        AppLogger.api("✅ Auto-fetch filled for TENANT #${tenantIndex + 1}");
       }
-
-
     } catch (e) {
       print("🔥 Exception: $e");
       _showToast("Error: $e");
@@ -3341,42 +3399,55 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   Widget _tenantStep() {
     return Column(
       children: [
-
         for (int index = 0; index < tenants.length; index++)
           Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: _glassContainer(
               child: Form(
-                  key: tenants[index].formKey,
-                  autovalidateMode: AutovalidateMode.disabled,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                key: tenants[index].formKey,
+                autovalidateMode: AutovalidateMode.disabled,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
 
-                      /// HEADER
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Tenant ${index + 1} Details',
-                              style: TextStyle(fontFamily: "Poppins",
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black,
-                              ),
+                    // ── HEADER ──
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Tenant ${index + 1} Details',
+                            style: const TextStyle(
+                              fontFamily: "Poppins",
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black,
                             ),
                           ),
-                          Wrap(
-                            spacing: 8,
-                            children: [
-                              /// AUTO FETCH with loading
-                              ElevatedButton.icon(
+                        ),
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            // AUTO FETCH BUTTON
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.red.shade800,
+                                    Colors.red.shade600,
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: ElevatedButton.icon(
                                 onPressed: () async {
-                                  final a = tenants[index].aadhaar.text.trim();
-                                  final m = tenants[index].mobile.text.trim();
+                                  final a =
+                                  tenants[index].aadhaar.text.trim();
+                                  final m =
+                                  tenants[index].mobile.text.trim();
                                   if (a.isEmpty && m.isEmpty) {
-                                    _showToast('Please enter Aadhaar or Mobile number first');
+                                    _showToast(
+                                        'Enter Aadhaar or Mobile number first');
                                     return;
                                   }
                                   showDialog(
@@ -3386,11 +3457,15 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                                       child: Card(
                                         child: Padding(
                                           padding: EdgeInsets.all(24),
-                                          child: Column(mainAxisSize: MainAxisSize.min, children: [
-                                            CircularProgressIndicator(),
-                                            SizedBox(height: 14),
-                                            Text('Fetching tenant details...'),
-                                          ]),
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              CircularProgressIndicator(),
+                                              SizedBox(height: 14),
+                                              Text(
+                                                  'Fetching tenant details...'),
+                                            ],
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -3402,39 +3477,129 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                                     tenantIndex: index,
                                   );
                                   if (mounted) {
-                                    Navigator.of(context, rootNavigator: true).pop();
+                                    Navigator.of(context,
+                                        rootNavigator: true)
+                                        .pop();
                                     setState(() {});
                                   }
                                 },
-                                icon: const Icon(Icons.search, color: Colors.white, size: 18),
-                                label: const Text('Auto Fetch'),
+                                icon: const Icon(Icons.search,
+                                    color: Colors.white, size: 18),
+                                label: const Text('Auto Fetch',
+                                    style: TextStyle(color: Colors.white)),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red.shade700,
-                                  foregroundColor: Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12)),
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
                                 ),
                               ),
+                            ),
 
-                              if (index > 0 &&
-                                  (widget.agreementId == null ||
-                                      tenants[index].id == null))
-                                IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red),
-                                  onPressed: () {
-                                    setState(() => tenants.removeAt(index));
-                                    updateAgreementPrice();
-                                  },
+                            // DELETE BUTTON (index > 0 only)
+                            if (index > 0 &&
+                                (widget.agreementId == null ||
+                                    tenants[index].id == null))
+                              IconButton(
+                                icon: const Icon(Icons.delete,
+                                    color: Colors.red),
+                                onPressed: () {
+                                  setState(() => tenants.removeAt(index));
+                                  updateAgreementPrice();
+                                },
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // ── AADHAAR IMAGES ──
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: [
+                            const Icon(Icons.badge_outlined,
+                                size: 18, color: Colors.black54),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Tenant ${index + 1} Documents',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                  color: Colors.black87),
+                            ),
+                            const Spacer(),
+                            if (tenants[index].aadhaarFront != null ||
+                                (tenants[index]
+                                    .aadhaarFrontUrl
+                                    ?.isNotEmpty ??
+                                    false))
+                              const Icon(Icons.check_circle,
+                                  color: Colors.green, size: 18),
+                          ]),
+                          const SizedBox(height: 14),
+
+                          // FRONT + BACK + PHOTO side by side
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: _aadhaarImageCard(
+                                  label: 'Aadhaar Front',
+                                  file: tenants[index].aadhaarFront,
+                                  url: tenants[index].aadhaarFrontUrl,
+                                  onUpload: () =>
+                                      _pickTenantDoc(index, true),
                                 ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _aadhaarImageCard(
+                                  label: 'Aadhaar Back',
+                                  file: tenants[index].aadhaarBack,
+                                  url: tenants[index].aadhaarBackUrl,
+                                  onUpload: () =>
+                                      _pickTenantDoc(index, false),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _aadhaarImageCard(
+                                  label: 'Photo',
+                                  file: tenants[index].photo,
+                                  url: tenants[index].photoUrl,
+                                  onUpload: () => _pickTenantPhoto(index),
+                                  placeholderIcon: Icons.person_outline,
+                                ),
+                              ),
                             ],
+                          ),
+
+                          const SizedBox(height: 8),
+                          Text(
+                            'Upload Aadhaar images — OCR will auto-fill fields below.',
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey.shade600,
+                                fontStyle: FontStyle.italic),
                           ),
                         ],
                       ),
+                    ),
 
-                      const SizedBox(height: 12),
+                    const SizedBox(height: 16),
 
-                      /// FORM FIELDS
-                      Column(children: [
+                    // ── FORM FIELDS ──
+                    Column(
+                      children: [
+                        // Mobile + Aadhaar row
                         Row(children: [
                           Expanded(
                             child: _glowTextField(
@@ -3446,7 +3611,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                                 LengthLimitingTextInputFormatter(10),
                               ],
                               validator: (v) {
-                                if (v == null || v.trim().isEmpty) return 'Required';
+                                if (v == null || v.trim().isEmpty)
+                                  return 'Required';
                                 if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v))
                                   return 'Enter valid 10-digit mobile';
                                 return null;
@@ -3464,7 +3630,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                                 LengthLimitingTextInputFormatter(16),
                               ],
                               validator: (v) {
-                                if (v == null || v.trim().isEmpty) return 'Required';
+                                if (v == null || v.trim().isEmpty)
+                                  return 'Required';
                                 if (!RegExp(r'^\d{12}$').hasMatch(v) &&
                                     !RegExp(r'^\d{16}$').hasMatch(v))
                                   return 'Enter valid Aadhaar / VID';
@@ -3476,15 +3643,19 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
 
                         const SizedBox(height: 12),
 
+                        // Full Name
                         _glowTextField(
                           controller: tenants[index].name,
                           label: 'Tenant Full Name',
                           validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                          (v == null || v.trim().isEmpty)
+                              ? 'Required'
+                              : null,
                         ),
 
                         const SizedBox(height: 12),
 
+                        // Relation + Person Name row
                         Row(children: [
                           Expanded(
                             child: DropdownButtonFormField<String>(
@@ -3496,22 +3667,28 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                                       style: const TextStyle(
                                           color: Colors.black))))
                                   .toList(),
-                              onChanged: (v) =>
-                                  setState(() => tenants[index].relation = v ?? 'S/O'),
-                              decoration: _fieldDecoration('Relation').copyWith(
-                                labelStyle: const TextStyle(color: Colors.black),
+                              onChanged: (v) => setState(
+                                      () => tenants[index].relation =
+                                      v ?? 'S/O'),
+                              decoration:
+                              _fieldDecoration('Relation').copyWith(
+                                labelStyle: const TextStyle(
+                                    color: Colors.black),
                                 enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide:
-                                    const BorderSide(color: Colors.black)),
+                                    borderRadius:
+                                    BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                        color: Colors.black)),
                                 focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius:
+                                    BorderRadius.circular(12),
                                     borderSide: const BorderSide(
                                         color: Colors.black, width: 1.5)),
                               ),
                               dropdownColor: Colors.white,
                               iconEnabledColor: Colors.black,
-                              style: const TextStyle(color: Colors.black),
+                              style:
+                              const TextStyle(color: Colors.black),
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -3520,145 +3697,99 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                               controller: tenants[index].relationPerson,
                               label: 'Person Name',
                               validator: (v) =>
-                              (v == null || v.trim().isEmpty) ? 'Required' : null,
+                              (v == null || v.trim().isEmpty)
+                                  ? 'Required'
+                                  : null,
                             ),
                           ),
                         ]),
 
                         const SizedBox(height: 12),
 
+                        // Permanent Address
                         _glowTextField(
                           controller: tenants[index].address,
                           label: 'Permanent Address',
                           validator: (v) =>
-                          (v == null || v.trim().isEmpty) ? 'Required' : null,
+                          (v == null || v.trim().isEmpty)
+                              ? 'Required'
+                              : null,
                         ),
 
                         const SizedBox(height: 16),
 
-                        // ── AADHAAR DOCUMENTS ──
+                        // Police Verification Checkbox
                         Container(
-                          padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: Colors.grey.shade300),
+                            color: tenants[index]
+                                .includePoliceVerification
+                                ? Colors.red.shade50
+                                : Colors.grey.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: tenants[index]
+                                  .includePoliceVerification
+                                  ? Colors.red.shade200
+                                  : Colors.grey.shade300,
+                            ),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(children: [
-                                const Icon(Icons.badge_outlined,
-                                    size: 18, color: Colors.black54),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'Tenant ${index + 1} Aadhaar Documents',
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 14,
-                                      color: Colors.black87),
-                                ),
-                                const Spacer(),
-                                if (tenants[index].aadhaarFront != null ||
-                                    (tenants[index].aadhaarFrontUrl?.isNotEmpty ?? false))
-                                  const Icon(Icons.check_circle,
-                                      color: Colors.green, size: 18),
-                              ]),
-                              const SizedBox(height: 14),
-
-                              // ── FRONT & BACK side by side ──
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: _aadhaarImageCard(
-                                      label: 'Aadhaar Front',
-                                      file: tenants[index].aadhaarFront,
-                                      url: tenants[index].aadhaarFrontUrl,
-                                      onUpload: () => _pickTenantDoc(index, true),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: _aadhaarImageCard(
-                                      label: 'Aadhaar Back',
-                                      file: tenants[index].aadhaarBack,
-                                      url: tenants[index].aadhaarBackUrl,
-                                      onUpload: () => _pickTenantDoc(index, false),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: _aadhaarImageCard(
-                                      label: 'Photo',
-                                      file: tenants[index].photo,
-                                      url: tenants[index].photoUrl,
-                                      onUpload: () => _pickTenantPhoto(index),
-                                      placeholderIcon: Icons.person_outline,
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(height: 8),
-                              Text(
-                                'Enter Aadhaar or Mobile number above and tap Auto Fetch to fill details automatically.',
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.grey.shade600,
-                                    fontStyle: FontStyle.italic),
-                              ),
-                            ],
+                          child: CheckboxListTile(
+                            value:
+                            tenants[index].includePoliceVerification,
+                            onChanged: (v) {
+                              setState(() {
+                                tenants[index]
+                                    .includePoliceVerification =
+                                    v ?? false;
+                              });
+                              updateAgreementPrice();
+                            },
+                            title: const Text(
+                              'Include Police Verification',
+                              style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black),
+                            ),
+                            subtitle: Text(
+                              widget.rewardStatus.isDiscounted
+                                  ? 'Adds ₹40 to agreement price (Discounted)'
+                                  : 'Adds ₹50 to agreement price',
+                              style: const TextStyle(
+                                  fontSize: 12, color: Colors.black54),
+                            ),
+                            activeColor: Colors.redAccent,
+                            checkColor: Colors.white,
+                            side: const BorderSide(
+                                color: Colors.black54, width: 1.5),
                           ),
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        CheckboxListTile(
-                          value: tenants[index].includePoliceVerification,
-                          onChanged: (v) {
-                            setState(() {
-                              tenants[index].includePoliceVerification = v ?? false;
-                            });
-                            updateAgreementPrice();
-                          },
-                          title: const Text(
-                            'Include Police Verification',
-                            style: TextStyle(
-                                fontWeight: FontWeight.w600, color: Colors.black),
-                          ),
-                          subtitle: const Text(
-                            'Adds ₹50 to agreement price',
-                            style: TextStyle(fontSize: 12, color: Colors.black54),
-                          ),
-                          activeColor: Colors.redAccent,
                         ),
 
                         const SizedBox(height: 12),
                       ],
-                      ),
-                    ],
-                  )),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
 
-        /// ADD TENANT BUTTON (BOTTOM)
+        // ── ADD TENANT BUTTON ──
         Align(
           alignment: Alignment.centerRight,
           child: InkWell(
             onTap: () {
               setState(() => tenants.add(TenantBlock()));
-              updateAgreementPrice(); // 🔥
+              updateAgreementPrice();
             },
             borderRadius: BorderRadius.circular(14),
             child: Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 10),
+              padding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                gradient:  LinearGradient(
+                gradient: LinearGradient(
                   colors: [
                     Colors.red.shade700,
-                    Colors.red.shade700,
+                    Colors.red.shade600,
                   ],
                 ),
                 borderRadius: BorderRadius.circular(14),
@@ -3670,10 +3801,10 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                   ),
                 ],
               ),
-              child: Row(
+              child: const Row(
                 mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Icon(Icons.add, color: Colors.white),
+                children: [
+                  Icon(Icons.person_add, color: Colors.white),
                   SizedBox(width: 8),
                   Text(
                     'Add Tenant',

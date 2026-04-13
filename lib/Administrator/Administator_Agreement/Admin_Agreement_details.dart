@@ -1306,14 +1306,6 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
 
             const SizedBox(height: 16),
 
-            if (policeTenants.isNotEmpty)
-              _buildPoliceNotice(policeTenants),
-
-            const SizedBox(height: 20),
-
-            // if (policeTenants.isNotEmpty)
-            //   _buildPoliceNotice(policeTenants),
-            // ── Police notice ──
             if (withPolice) _buildPoliceNotice(policeTenants),
 
             const SizedBox(height: 12),

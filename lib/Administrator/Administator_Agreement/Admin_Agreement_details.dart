@@ -4,6 +4,13 @@ import '../../AppLogger.dart';
 import '../../AppLogger.dart';
 import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
 import '../../Custom_Widget/Custom_backbutton.dart';
+import '../../Rent Agreement/Dashboard_screen.dart';
+import '../../Rent Agreement/Forms/Agreement_Form.dart';
+import '../../Rent Agreement/Forms/Commercial_Form.dart';
+import '../../Rent Agreement/Forms/External_Form.dart';
+import '../../Rent Agreement/Forms/Furnished_form.dart';
+import '../../Rent Agreement/Forms/Renewal_form.dart';
+import '../../Rent Agreement/Forms/Verification_form.dart';
 import '../../model/Additional_agreement_tenants.dart';
 import '../imagepreviewscreen.dart';
 import 'Admin_dashboard.dart';
@@ -66,6 +73,68 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     }
   }
 
+
+  Future<RewardStatus> fetchRewardStatus(String number) async {
+
+    if (number == null || number.isEmpty) {
+      return RewardStatus(totalAgreements: 0, isDiscounted: false);
+    }
+
+    final res = await http.get(
+      Uri.parse(
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/count_api_for_all_agreement_with_reword.php"
+            "?Fieldwarkarnumber=$number",
+      ),
+    );
+
+    final data = jsonDecode(res.body);
+
+    if (data["status"] == true) {
+      final total = int.tryParse(data["total_agreement"].toString()) ?? 0;
+
+      return RewardStatus(
+        totalAgreements: total,
+        isDiscounted: total > 20,
+      );
+    }
+
+    return RewardStatus(totalAgreements: 0, isDiscounted: false);
+  }
+
+
+  void _navigateToEditForm(BuildContext context, Map<String, dynamic> agreement) async {
+    final String type = (agreement['agreement_type'] ?? '').toString().toLowerCase();
+    final String id = (agreement['id'] ?? agreement['agreement_id'] ?? '').toString();
+    final reward = await fetchRewardStatus(agreement['Fieldwarkarnumber']);
+
+    Widget? page;
+
+    if (type.contains("rental agreement")) {
+      page = RentalWizardPage(agreementId: id,rewardStatus: reward);
+    } else if (type.contains("external rental agreement")) {
+      page = ExternalWizardPage(agreementId: id,rewardStatus: reward);
+    } else if (type.contains("commercial agreement")) {
+      page = CommercialWizardPage(agreementId: id,rewardStatus: reward);
+    } else if (type.contains("furnished agreement")) {
+      page = FurnishedForm(agreementId: id,rewardStatus: reward);
+    } else if (type.contains("renewal agreement")) {
+      page = RenewalForm(agreementId: id,rewardStatus: reward);
+    } else if (type.contains("Police Verification")) {
+      page = VerificationWizardPage(agreementId: id,rewardStatus: reward);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Unknown agreement type: ${agreement['agreement_type']}")),
+      );
+      return;
+    }
+
+    if (page != null) {
+      await Navigator.push(context, MaterialPageRoute(builder: (_) => page!));
+      _fetchAgreementDetail(); // ✅ refresh once after return
+    }
+  }
+
+
   Future<void> fetchAdditionalTenants(String agreementId) async {
     final url = Uri.parse(
       "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_api_for_addtional_tenant.php?agreement_id=$agreementId",
@@ -86,7 +155,6 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
       }
     }
   }
-
 
   Widget _furnitureList(dynamic furnitureData) {
     if (furnitureData == null || furnitureData.toString().trim().isEmpty) {
@@ -524,6 +592,25 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
             _buildFieldWorkerSection(),
 
             _buildDocumentsSection(),
+
+            const SizedBox(height: 30),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                   Colors.red.shade700,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: () => _navigateToEditForm(context, agreement!),
+                icon: const Icon(Icons.edit, size: 18),
+                label: const Text("Update Agreement"),
+              ),
+            ),
 
             const SizedBox(height: 30),
 

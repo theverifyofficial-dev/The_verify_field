@@ -649,8 +649,6 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
         "custom_maintenance_charge": customMaintanceAmount.text,
         "parking": parking ?? '',
         "current_dates": DateTime.now().toIso8601String(),
-        "Fieldwarkarname": _name.isNotEmpty ? _name : '',
-        "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "agreement_price": Agreement_price.text,
         "notary_price": Notary_price ?? '10 rupees',
         "is_Police": isPolice,

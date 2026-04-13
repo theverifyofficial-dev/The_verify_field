@@ -713,8 +713,6 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
         "tenant_addhar_no": firstTenant.aadhaar.text,
         "current_dates": DateTime.now().toIso8601String(),
         "rented_address": propertyAddress.text,
-        "Fieldwarkarname": _name.isNotEmpty ? _name : '',
-        "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "agreement_price": totalPrice.toString(),
         "is_agreement_hide": isAgreementHide ? "1" : "0",
       };

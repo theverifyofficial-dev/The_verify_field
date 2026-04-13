@@ -1011,8 +1011,6 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         "custom_maintenance_charge": customMaintanceAmount.text,
         "parking": parking ?? '',
         "current_dates": DateTime.now().toIso8601String(),
-        "Fieldwarkarname": _name.isNotEmpty ? _name : '',
-        "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "agreement_price": Agreement_price.text,
         "notary_price": Notary_price ?? '10 rupees',
         "is_agreement_hide": isAgreementHide ? "1" : "0",

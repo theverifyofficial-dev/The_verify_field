@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
@@ -735,6 +734,300 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
       tenants[index].photo = File(picked.path);
     });
   }
+
+  // ── OCR Channel (same as RentalWizardPage) ────────────────────────────────
+  static const _ocrChannel = MethodChannel('com.verify.app/ocr');
+
+  Future<String?> _recognizeTextNative(String imagePath) async {
+    try {
+      final String? result = await _ocrChannel.invokeMethod(
+        'recognizeText',
+        {'imagePath': imagePath},
+      );
+      return result;
+    } on PlatformException catch (e) {
+      print('OCR PlatformException: ${e.message}');
+      rethrow;
+    }
+  }
+
+  Map<String, String?> _parseAadhaarText(String fullText) {
+    final result = <String, String?>{
+      'aadhaarNumber': null,
+      'name': null,
+      'address': null,
+      'mobile': null,
+    };
+    final lines = fullText.split('\n').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+
+    final aadhaarRegex = RegExp(r'\b(\d{4}\s?\d{4}\s?\d{4})\b');
+    for (final line in lines) {
+      final m = aadhaarRegex.firstMatch(line);
+      if (m != null) { result['aadhaarNumber'] = m.group(1)!.replaceAll(' ', ''); break; }
+    }
+
+    final skipKw = RegExp(r'(Government|India|INDIA|Aadhaar|UIDAI|DOB|Date|Male|Female|Address|VID|Enrollment|Download|www|\.in|\.com|\d{4})', caseSensitive: false);
+    String? foundName;
+    for (int i = 0; i < lines.length; i++) {
+      if (lines[i].toLowerCase().startsWith('name') && i + 1 < lines.length) {
+        final next = lines[i + 1];
+        if (!skipKw.hasMatch(next) && next.length > 2) { foundName = _titleCase(next); break; }
+      }
+    }
+    if (foundName == null) {
+      for (final line in lines) {
+        if (skipKw.hasMatch(line)) continue;
+        if (RegExp(r'^[A-Za-z\s\.]+\$').hasMatch(line) && line.split(' ').length >= 2 && line.length >= 5 && line.length <= 60) {
+          foundName = _titleCase(line); break;
+        }
+      }
+    }
+    result['name'] = foundName;
+
+    final addrTrigger = RegExp(r'\b(Address|S\/O|C\/O|W\/O|D\/O|House|Flat|Village|Ward|Dist|PIN|PO|PS)\b', caseSensitive: false);
+    final addrLines = <String>[];
+    bool capturing = false;
+    for (final line in lines) {
+      if (addrTrigger.hasMatch(line)) capturing = true;
+      if (capturing) {
+        if (aadhaarRegex.hasMatch(line)) break;
+        if (RegExp(r'^\d[\d\s\-\/]+\$').hasMatch(line) && line.length < 20) continue;
+        addrLines.add(line);
+        if (addrLines.length >= 6) break;
+      }
+    }
+    if (addrLines.isNotEmpty) result['address'] = addrLines.join(', ');
+
+    final mobileRegex = RegExp(r'\b([6-9]\d{9})\b');
+    for (final line in lines) {
+      final m = mobileRegex.firstMatch(line);
+      if (m != null) { result['mobile'] = m.group(1); break; }
+    }
+    return result;
+  }
+
+  String _titleCase(String s) => s.toLowerCase().split(' ')
+      .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}').join(' ');
+
+  void _showScanErrorDialog(String title, String message) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+        content: Text(message, style: const TextStyle(fontSize: 14, height: 1.5)),
+        actions: [
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _ocrRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        SizedBox(width: 70, child: Text('$label:', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13))),
+        Expanded(child: Text(value, style: const TextStyle(fontSize: 13))),
+      ]),
+    );
+  }
+
+  Future<void> _applyOcrResult({
+    required Map<String, String?> ocr,
+    required bool fillOwner,
+    int? tenantIndex,
+  }) async {
+    final aadhaar = ocr['aadhaarNumber'];
+    final name    = ocr['name'];
+    final address = ocr['address'];
+    final mobile  = ocr['mobile'];
+
+    if (aadhaar == null && name == null && address == null) {
+      _showScanErrorDialog('Scan Unsuccessful', 'Unable to read Aadhaar card clearly.\n\nPlease ensure:\n• Card is held straight\n• Good lighting\n• Full card is captured');
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(children: const [
+          Icon(Icons.document_scanner, color: Colors.green),
+          SizedBox(width: 8),
+          Text('Scan Result', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        ]),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Following data was detected:', style: TextStyle(color: Colors.white, fontSize: 13)),
+            const SizedBox(height: 10),
+            if (aadhaar != null) _ocrRow('Aadhaar', aadhaar),
+            if (name    != null) _ocrRow('Name',    name),
+            if (address != null) _ocrRow('Address', address),
+            if (mobile  != null) _ocrRow('Mobile',  mobile),
+            const SizedBox(height: 12),
+            const Text('Apply this data to the form fields?', style: TextStyle(fontWeight: FontWeight.w600)),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade700, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Apply to Fields', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() {
+      if (fillOwner) {
+        if (aadhaar != null) ownerAadhaar.text = aadhaar;
+        if (name    != null) ownerName.text    = name.toUpperCase();
+        if (address != null) ownerAddress.text = address.toUpperCase();
+        if (mobile  != null) ownerMobile.text  = mobile;
+      } else if (tenantIndex != null && tenantIndex < tenants.length) {
+        final t = tenants[tenantIndex];
+        if (aadhaar != null) t.aadhaar.text  = aadhaar;
+        if (name    != null) t.name.text     = name.toUpperCase();
+        if (address != null) t.address.text  = address.toUpperCase();
+        if (mobile  != null) t.mobile.text   = mobile;
+      }
+    });
+
+    _showToast('Fields updated successfully!');
+
+    final aadhaarFilled = fillOwner ? ownerAadhaar.text.trim() : (tenantIndex != null ? tenants[tenantIndex!].aadhaar.text.trim() : '');
+    if (aadhaarFilled.length == 12) {
+      await _fetchUserData(fillOwner: fillOwner, aadhaar: aadhaarFilled, mobile: null, tenantIndex: tenantIndex);
+      if (mounted) setState(() {});
+    }
+  }
+
+  // ── _showImageFullScreen ──────────────────────────────────────────────────
+  void _showImageFullScreen({File? file, String? url}) {
+    if (file == null && (url == null || url.isEmpty)) return;
+    final imageWidget = file != null
+        ? Image.file(file, fit: BoxFit.contain)
+        : Image.network(
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$url',
+      fit: BoxFit.contain,
+      loadingBuilder: (_, child, progress) => progress == null ? child : const Center(child: CircularProgressIndicator(color: Colors.white)),
+      errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image, color: Colors.white, size: 60)),
+    );
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.92),
+      builder: (_) => GestureDetector(
+        onTap: () => Navigator.of(context).pop(),
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Stack(children: [
+            Center(child: InteractiveViewer(minScale: 0.5, maxScale: 5.0, child: imageWidget)),
+            Positioned(top: 48, right: 16,
+              child: GestureDetector(
+                onTap: () => Navigator.of(context).pop(),
+                child: Container(padding: const EdgeInsets.all(8), decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                    child: const Icon(Icons.close, color: Colors.white, size: 24)),
+              ),
+            ),
+            Positioned(bottom: 32, left: 0, right: 0,
+              child: Center(child: Text('Tap anywhere to close • Pinch to zoom', style: TextStyle(color: Colors.white60, fontSize: 12))),
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  // ── _aadhaarImageCard ─────────────────────────────────────────────────────
+  Widget _aadhaarImageCard({
+    required String label,
+    required File? file,
+    required String? url,
+    required VoidCallback onUpload,
+    IconData placeholderIcon = Icons.add_a_photo_outlined,
+  }) {
+    final hasImage = file != null || (url != null && url.isNotEmpty);
+    const baseUrl = 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/';
+
+    Widget imageContent;
+    if (file != null) {
+      imageContent = Stack(fit: StackFit.expand, children: [
+        Image.file(file, fit: BoxFit.cover),
+        Positioned(top: 8, right: 8, child: _zoomBadge()),
+      ]);
+    } else if (url != null && url.isNotEmpty) {
+      imageContent = Stack(fit: StackFit.expand, children: [
+        Image.network('${baseUrl}$url', fit: BoxFit.cover,
+          loadingBuilder: (_, child, p) => p == null ? child : const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image, color: Colors.grey, size: 40)),
+        ),
+        Positioned(top: 8, right: 8, child: _zoomBadge()),
+      ]);
+    } else {
+      imageContent = Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+        Icon(placeholderIcon, color: Colors.grey, size: 32),
+        const SizedBox(height: 6),
+        const Text('Tap to upload', style: TextStyle(fontSize: 11, color: Colors.grey)),
+      ]);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black54)),
+        const SizedBox(height: 6),
+        GestureDetector(
+          onTap: hasImage ? () => _showImageFullScreen(file: file, url: url) : onUpload,
+          child: Container(
+            width: double.infinity,
+            height: 140,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: hasImage ? Colors.grey.shade100 : Colors.grey.shade200,
+              border: Border.all(color: hasImage ? Colors.green.shade400 : Colors.grey.shade400, width: 2),
+            ),
+            child: ClipRRect(borderRadius: BorderRadius.circular(10), child: imageContent),
+          ),
+        ),
+        const SizedBox(height: 6),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: onUpload,
+            icon: Icon(
+              hasImage ? Icons.cached_rounded : Icons.upload_file_rounded,
+              color: Colors.white, size: 16,
+            ),
+            label: Text(
+              hasImage ? 'Change' : 'Upload',
+              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: hasImage ? Colors.green.shade700 : Colors.black87, foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              padding: const EdgeInsets.symmetric(vertical: 10),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _zoomBadge() => Container(
+    padding: const EdgeInsets.all(5),
+    decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+    child: const Icon(Icons.zoom_in, color: Colors.white, size: 16),
+  );
 
   Future<File?> downloadAndConvertToFile(String? relativePath) async {
     if (relativePath == null || relativePath.isEmpty) return null;
@@ -1514,105 +1807,105 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
 
               return Stack(
                   children: [
-                Positioned(
-                  top: 50,
-                  left: 32,
-                  right: 5,
-                  child: Container(
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade600,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                  ),
-                ),
-
-                // ✅ Progress overlay with Blue → Cyan
-                Positioned(
-                  top: 50,
-                  left: 32,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 450),
-                    height: 6,
-                    width: gap * _currentStep,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(6),
-                      gradient: kAppGradient,
-                    ),
-                  ),
-                ),
-
-                ...List.generate(stepLabels.length, (i) {
-                  final left = 0 + gap * i;
-                  final isActive = i == _currentStep;
-                  final isDone = i < _currentStep;
-
-                  return Positioned(
-                    left: left,
-                    top: 0,
-                    child: GestureDetector(
-                      onTap: () => _jumpToStep(i),
-                      child: Column(children: [
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 350),
-                          width: isActive ? 56 : 48,
-                          height: isActive ? 56 : 48,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: isDone || isActive ? kAppGradient : null,
-                            color: isDone || isActive ? null : Colors.transparent,
-                            border: Border.all(
-                              color: isActive
-                                  ? const Color(0xFF00D4FF)
-                                  : Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.white
-                                  : Colors.grey,
-                              width: 1.4,
-                            ),
-                            boxShadow: isActive
-                                ? [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.18),
-                                blurRadius: 18,
-                                offset: const Offset(0, 6),
-                              )
-                            ]
-                                : null,
-                          ),
-                          child: Center(
-                            child: isDone
-                                ? const Icon(Icons.check, color: Colors.white)
-                                : Icon(
-                              stepIcons[i],
-                              color: isActive
-                                  ? Colors.white
-                                  : Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.white
-                                  : Colors.grey,
-                            ),
-                          ),
+                    Positioned(
+                      top: 50,
+                      left: 32,
+                      right: 5,
+                      child: Container(
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade600,
+                          borderRadius: BorderRadius.circular(6),
                         ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          width: 84,
-                          child: Text(
-                            stepLabels[i],
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: i == _currentStep
-                                  ? Colors.cyan
-                                  : Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.white
-                                  : Colors.black,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                      ]),
+                      ),
                     ),
-                  );
-                }),
-              ]);
+
+                    // ✅ Progress overlay with Blue → Cyan
+                    Positioned(
+                      top: 50,
+                      left: 32,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 450),
+                        height: 6,
+                        width: gap * _currentStep,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          gradient: kAppGradient,
+                        ),
+                      ),
+                    ),
+
+                    ...List.generate(stepLabels.length, (i) {
+                      final left = 0 + gap * i;
+                      final isActive = i == _currentStep;
+                      final isDone = i < _currentStep;
+
+                      return Positioned(
+                        left: left,
+                        top: 0,
+                        child: GestureDetector(
+                          onTap: () => _jumpToStep(i),
+                          child: Column(children: [
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 350),
+                              width: isActive ? 56 : 48,
+                              height: isActive ? 56 : 48,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: isDone || isActive ? kAppGradient : null,
+                                color: isDone || isActive ? null : Colors.transparent,
+                                border: Border.all(
+                                  color: isActive
+                                      ? const Color(0xFF00D4FF)
+                                      : Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.white
+                                      : Colors.grey,
+                                  width: 1.4,
+                                ),
+                                boxShadow: isActive
+                                    ? [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.18),
+                                    blurRadius: 18,
+                                    offset: const Offset(0, 6),
+                                  )
+                                ]
+                                    : null,
+                              ),
+                              child: Center(
+                                child: isDone
+                                    ? const Icon(Icons.check, color: Colors.white)
+                                    : Icon(
+                                  stepIcons[i],
+                                  color: isActive
+                                      ? Colors.white
+                                      : Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.white
+                                      : Colors.grey,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: 84,
+                              child: Text(
+                                stepLabels[i],
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: i == _currentStep
+                                      ? Colors.cyan
+                                      : Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.white
+                                      : Colors.black,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ]),
+                        ),
+                      );
+                    }),
+                  ]);
             }),
           ),
         ),
@@ -1622,169 +1915,227 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
 
   Widget _ownerStep() {
     return _glassContainer(
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Owner Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Owner Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
 
-            Container(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Colors.cyan, Colors.blue],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  _fetchUserData(
-                    fillOwner: true,
-                    aadhaar: ownerAadhaar.text,
-                    mobile: ownerMobile.text,
-                  );
-                },
-                icon: const Icon(Icons.search, color: Colors.white),
-                label: const Text(
-                  'Auto fetch',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  elevation: 0, // remove default shadow
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  shape: RoundedRectangleBorder(
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Colors.cyan, Colors.blue],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
                     borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      _fetchUserData(
+                        fillOwner: true,
+                        aadhaar: ownerAadhaar.text,
+                        mobile: ownerMobile.text,
+                      );
+                    },
+                    icon: const Icon(Icons.search, color: Colors.white),
+                    label: const Text(
+                      'Auto fetch',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      elevation: 0, // remove default shadow
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-    ]
-    ),
+              ]
+          ),
 
-        const SizedBox(height: 12),
-        Form(
-          key: _ownerFormKey,
-          child: Column(children: [
-            Row(
-                children: [
-                  Expanded(child: _glowTextField(controller: ownerMobile, label: 'Mobile No', keyboard: TextInputType.phone,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,       // only numbers
-                      LengthLimitingTextInputFormatter(10),         // max 10 digits
+          const SizedBox(height: 12),
+          Form(
+            key: _ownerFormKey,
+            child: Column(children: [
+              // ── Owner Aadhaar card-style upload ───────────────────────────
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Row(children: [
+                    const Icon(Icons.badge_outlined, size: 18, color: Colors.black54),
+                    const SizedBox(width: 6),
+                    const Text('Owner Aadhaar Documents',
+                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.black87)),
+                    const Spacer(),
+                    if (ownerAadhaarFront != null || (ownerAadharFrontUrl?.isNotEmpty ?? false))
+                      const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                  ]),
+                  const SizedBox(height: 14),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: _aadhaarImageCard(
+                        label: 'Aadhaar Front',
+                        file: ownerAadhaarFront,
+                        url: ownerAadharFrontUrl,
+                        onUpload: () async {
+                          final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+                          if (picked == null) return;
+                          setState(() => ownerAadhaarFront = File(picked.path));
+                          // OCR scan
+                          showDialog(context: context, barrierDismissible: false,
+                              builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
+                                  child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 14), Text('Scanning Aadhaar card...')])))));
+                          try {
+                            final rawText = await _recognizeTextNative(picked.path);
+                            if (mounted) Navigator.of(context, rootNavigator: true).pop();
+                            if (rawText != null && rawText.trim().isNotEmpty) {
+                              final parsed = _parseAadhaarText(rawText);
+                              await _applyOcrResult(ocr: parsed, fillOwner: true);
+                              if (mounted) setState(() {});
+                            }
+                          } catch (e) {
+                            if (mounted) Navigator.of(context, rootNavigator: true).pop();
+                          }
+                        },
+                      )),
+                      const SizedBox(width: 12),
+                      Expanded(child: _aadhaarImageCard(
+                        label: 'Aadhaar Back',
+                        file: ownerAadhaarBack,
+                        url: ownerAadharBackUrl,
+                        onUpload: () async {
+                          final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+                          if (picked == null) return;
+                          setState(() => ownerAadhaarBack = File(picked.path));
+                          showDialog(context: context, barrierDismissible: false,
+                              builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
+                                  child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 14), Text('Scanning Aadhaar card...')])))));
+                          try {
+                            final rawText = await _recognizeTextNative(picked.path);
+                            if (mounted) Navigator.of(context, rootNavigator: true).pop();
+                            if (rawText != null && rawText.trim().isNotEmpty) {
+                              final parsed = _parseAadhaarText(rawText);
+                              await _applyOcrResult(ocr: parsed, fillOwner: true);
+                              if (mounted) setState(() {});
+                            }
+                          } catch (e) {
+                            if (mounted) Navigator.of(context, rootNavigator: true).pop();
+                          }
+                        },
+                      )),
                     ],
-                    validator: (v) {
-
-                      if (v == null || v.trim().isEmpty) return 'Required';
-                      if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) return 'Enter valid 10-digit mobile';
-
-                      return null;
-                    },
-
-                    // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
-                  )
                   ),
-                  const SizedBox(width: 12),
-
-                  Expanded(
-                    child: _glowTextField(
-                      controller: ownerAadhaar,
-                      label: 'Aadhaar/VID No',
-                      keyboard: TextInputType.number,
+                ]),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                  children: [
+                    Expanded(child: _glowTextField(controller: ownerMobile, label: 'Mobile No', keyboard: TextInputType.phone,
                       inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,  // only numbers
-                        LengthLimitingTextInputFormatter(16),    // max 16 digits
+                        FilteringTextInputFormatter.digitsOnly,       // only numbers
+                        LengthLimitingTextInputFormatter(10),         // max 10 digits
                       ],
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Required';
 
-                        final digits = v.trim();
-                        if (!RegExp(r'^\d{12}$').hasMatch(digits) && !RegExp(r'^\d{16}$').hasMatch(digits)) {
-                          return 'Enter valid 12-digit Aadhaar or 16-digit VID';
-                        }
+                        if (v == null || v.trim().isEmpty) return 'Required';
+                        if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) return 'Enter valid 10-digit mobile';
 
                         return null;
                       },
-                    ),
-                  ),
-                ]),
-            const SizedBox(height: 14),
-            _glowTextField(controller: ownerName, label: 'Owner Full Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
-            const SizedBox(height: 12),
-            Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: ownerRelation,
-                      items: const ['S/O', 'D/O', 'W/O', 'C/O']
-                          .map((e) => DropdownMenuItem(
-                        value: e,
-                        child: Text(
-                          e,
-                          style: TextStyle(color: Colors.black), // ✅ dropdown text black
-                        ),
-                      ))
-                          .toList(),
-                      onChanged: (v) => setState(() => ownerRelation = v ?? 'S/O'),
-                      decoration: _fieldDecoration('Relation').copyWith(
-                        labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
-                        hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.black), // ✅ border black
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.black, width: 1.5),
-                        ),
-                      ),
-                      iconEnabledColor: Colors.black, // ✅ dropdown arrow black
-                      dropdownColor: Colors.white, // ✅ menu background white (good contrast)
-                      style: const TextStyle(color: Colors.black), // ✅ selected text black
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(child: _glowTextField(controller: ownerRelationPerson, label: 'Person Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
-                ]),
-            const SizedBox(height: 12),
-            _glowTextField(controller: ownerAddress, label: 'Permanent Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
-            const SizedBox(height: 12),
-            Column(children: [
-              Row(
-                children: [
-                  _imageTile(file: ownerAadhaarFront, url: ownerAadharFrontUrl, hint: 'Front'),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(onPressed: () => _pickImage('ownerFront'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Front')),
-                ],
-              ),
 
-              const SizedBox(height: 16),
+                      // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
+                    )
+                    ),
+                    const SizedBox(width: 12),
+
+                    Expanded(
+                      child: _glowTextField(
+                        controller: ownerAadhaar,
+                        label: 'Aadhaar/VID No',
+                        keyboard: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,  // only numbers
+                          LengthLimitingTextInputFormatter(16),    // max 16 digits
+                        ],
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return 'Required';
+
+                          final digits = v.trim();
+                          if (!RegExp(r'^\d{12}$').hasMatch(digits) && !RegExp(r'^\d{16}$').hasMatch(digits)) {
+                            return 'Enter valid 12-digit Aadhaar or 16-digit VID';
+                          }
+
+                          return null;
+                        },
+                      ),
+                    ),
+                  ]),
+              const SizedBox(height: 14),
+              _glowTextField(controller: ownerName, label: 'Owner Full Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+              const SizedBox(height: 12),
               Row(
-                children: [
-                  _imageTile(file: ownerAadhaarBack, url: ownerAadharBackUrl, hint: 'Back'),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(onPressed: () => _pickImage('ownerBack'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Back')),
-                ],
-              ),
-            ]),
-            const SizedBox(height: 12),
-          ]
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: ownerRelation,
+                        items: const ['S/O', 'D/O', 'W/O', 'C/O']
+                            .map((e) => DropdownMenuItem(
+                          value: e,
+                          child: Text(
+                            e,
+                            style: TextStyle(color: Colors.black), // ✅ dropdown text black
+                          ),
+                        ))
+                            .toList(),
+                        onChanged: (v) => setState(() => ownerRelation = v ?? 'S/O'),
+                        decoration: _fieldDecoration('Relation').copyWith(
+                          labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
+                          hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.black), // ✅ border black
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                          ),
+                        ),
+                        iconEnabledColor: Colors.black, // ✅ dropdown arrow black
+                        dropdownColor: Colors.white, // ✅ menu background white (good contrast)
+                        style: const TextStyle(color: Colors.black), // ✅ selected text black
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(child: _glowTextField(controller: ownerRelationPerson, label: 'Person Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+                  ]),
+              const SizedBox(height: 12),
+              _glowTextField(controller: ownerAddress, label: 'Permanent Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+
+            ]
+            ),
           ),
-        ),
-      ]
-    )
+        ]
+        )
     );
   }
 
@@ -1795,304 +2146,313 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: _glassContainer(
-              child: Form(
-                key: tenants[index].formKey,
-                autovalidateMode: AutovalidateMode.disabled,
-                child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-
-                  Row(
+                child: Form(
+                  key: tenants[index].formKey,
+                  autovalidateMode: AutovalidateMode.disabled,
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          'Tenant ${index + 1} Details',
-                          style: GoogleFonts.poppins(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black,
-                          ),
-                        ),
-                      ),
-                      Wrap(
-                        spacing: 8,
-                        children: [
 
-                          /// AUTO FETCH
-                          ElevatedButton.icon(
-                            onPressed: () {
-                              _fetchUserData(
-                                fillOwner: false,
-                                aadhaar: tenants[index].aadhaar.text,
-                                mobile: tenants[index].mobile.text,
-                                tenantIndex: index,
-                              );
-                            },
-                            icon: const Icon(Icons.search,
-                                color: Colors.white, size: 18),
-                            label: const Text('Auto fetch'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue.shade700,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Tenant ${index + 1} Details',
+                              style: GoogleFonts.poppins(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black,
                               ),
                             ),
                           ),
+                          Wrap(
+                            spacing: 8,
+                            children: [
 
-                          if (index > 0 &&
-                              (widget.agreementId == null || tenants[index].id == null))
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () {
-                                setState(() => tenants.removeAt(index));
-                                updateAgreementPrice(); // 🔥
-                              },
-                            )
+                              /// AUTO FETCH
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  _fetchUserData(
+                                    fillOwner: false,
+                                    aadhaar: tenants[index].aadhaar.text,
+                                    mobile: tenants[index].mobile.text,
+                                    tenantIndex: index,
+                                  );
+                                },
+                                icon: const Icon(Icons.search,
+                                    color: Colors.white, size: 18),
+                                label: const Text('Auto fetch'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.blue.shade700,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
 
-                        ],
-                      ),
-                    ],
-                  ),
+                              if (index > 0 &&
+                                  (widget.agreementId == null || tenants[index].id == null))
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red),
+                                  onPressed: () {
+                                    setState(() => tenants.removeAt(index));
+                                    updateAgreementPrice(); // 🔥
+                                  },
+                                )
 
-                  const SizedBox(height: 12),
-
-                  /// FORM FIELDS
-                  Column(
-                    children: [
-
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _glowTextField(
-                              controller: tenants[index].mobile,
-                              label: 'Mobile No',
-                              keyboard: TextInputType.phone,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(10),
-                              ],
-
-                              validator: (v) {
-                                if (v == null || v.trim().isEmpty) return 'Required';
-                                if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) {
-                                  return 'Enter valid 10-digit mobile';
-                                }
-                                return null;
-                              },
-
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _glowTextField(
-                              controller: tenants[index].aadhaar,
-                              label: 'Aadhaar / VID No',
-                              keyboard: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(16),
-                              ],
-                              validator: (v) {
-                                if (v == null || v.trim().isEmpty) return 'Required';
-                                if (!RegExp(r'^\d{12}$').hasMatch(v) &&
-                                    !RegExp(r'^\d{16}$').hasMatch(v)) {
-                                  return 'Enter valid Aadhaar / VID';
-                                }
-                                return null;
-                              },
-                            ),
+                            ],
                           ),
                         ],
                       ),
 
                       const SizedBox(height: 12),
 
-                      _glowTextField(
-                        controller: tenants[index].name,
-                        label: 'Tenant Full Name',
-                        validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Required' : null,
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      Row(
+                      /// FORM FIELDS
+                      Column(
                         children: [
-                          Expanded(
-                            child: DropdownButtonFormField<String>(
-                              value: tenants[index].relation,
-                              items: const ['S/O', 'D/O', 'W/O', 'C/O']
-                                  .map((e) => DropdownMenuItem(
-                                value: e,
-                                child: Text(e,
-                                    style: const TextStyle(
-                                        color: Colors.black)),
-                              ))
-                                  .toList(),
-                              onChanged: (v) => setState(() {
-                                tenants[index].relation = v ?? 'S/O';
-                              }),
-                              decoration:
-                              _fieldDecoration('Relation').copyWith(
-                                labelStyle: const TextStyle(
-                                    color: Colors.black),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius:
-                                  BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
+
+                          // ── Tenant Aadhaar card-style upload ─────────────────
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              Row(children: [
+                                const Icon(Icons.badge_outlined, size: 18, color: Colors.black54),
+                                const SizedBox(width: 6),
+                                Text('Tenant ${index + 1} Aadhaar Documents',
+                                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.black87)),
+                                const Spacer(),
+                                if (tenants[index].aadhaarFront != null || (tenants[index].aadhaarFrontUrl?.isNotEmpty ?? false))
+                                  const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                              ]),
+                              const SizedBox(height: 14),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(child: _aadhaarImageCard(
+                                    label: 'Aadhaar Front',
+                                    file: tenants[index].aadhaarFront,
+                                    url: tenants[index].aadhaarFrontUrl,
+                                    onUpload: () async {
+                                      final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+                                      if (picked == null) return;
+                                      setState(() => tenants[index].aadhaarFront = File(picked.path));
+                                      showDialog(context: context, barrierDismissible: false,
+                                          builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
+                                              child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 14), Text('Scanning Aadhaar card...')])))));
+                                      try {
+                                        final rawText = await _recognizeTextNative(picked.path);
+                                        if (mounted) Navigator.of(context, rootNavigator: true).pop();
+                                        if (rawText != null && rawText.trim().isNotEmpty) {
+                                          final parsed = _parseAadhaarText(rawText);
+                                          await _applyOcrResult(ocr: parsed, fillOwner: false, tenantIndex: index);
+                                          if (mounted) setState(() {});
+                                        }
+                                      } catch (e) {
+                                        if (mounted) Navigator.of(context, rootNavigator: true).pop();
+                                      }
+                                    },
+                                  )),
+                                  const SizedBox(width: 8),
+                                  Expanded(child: _aadhaarImageCard(
+                                    label: 'Aadhaar Back',
+                                    file: tenants[index].aadhaarBack,
+                                    url: tenants[index].aadhaarBackUrl,
+                                    onUpload: () async {
+                                      final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+                                      if (picked == null) return;
+                                      setState(() => tenants[index].aadhaarBack = File(picked.path));
+                                      showDialog(context: context, barrierDismissible: false,
+                                          builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
+                                              child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 14), Text('Scanning Aadhaar card...')])))));
+                                      try {
+                                        final rawText = await _recognizeTextNative(picked.path);
+                                        if (mounted) Navigator.of(context, rootNavigator: true).pop();
+                                        if (rawText != null && rawText.trim().isNotEmpty) {
+                                          final parsed = _parseAadhaarText(rawText);
+                                          await _applyOcrResult(ocr: parsed, fillOwner: false, tenantIndex: index);
+                                          if (mounted) setState(() {});
+                                        }
+                                      } catch (e) {
+                                        if (mounted) Navigator.of(context, rootNavigator: true).pop();
+                                      }
+                                    },
+                                  )),
+                                  const SizedBox(width: 8),
+                                  Expanded(child: _aadhaarImageCard(
+                                    label: 'Photo',
+                                    file: tenants[index].photo,
+                                    url: tenants[index].photoUrl,
+                                    onUpload: () async {
+                                      final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 75);
+                                      if (picked == null) return;
+                                      setState(() => tenants[index].photo = File(picked.path));
+                                    },
+                                    placeholderIcon: Icons.person_outline,
+                                  )),
+                                ],
+                              ),
+                            ]),
+                          ),
+                          const SizedBox(height: 16),
+
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _glowTextField(
+                                  controller: tenants[index].mobile,
+                                  label: 'Mobile No',
+                                  keyboard: TextInputType.phone,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(10),
+                                  ],
+
+                                  validator: (v) {
+                                    if (v == null || v.trim().isEmpty) return 'Required';
+                                    if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) {
+                                      return 'Enter valid 10-digit mobile';
+                                    }
+                                    return null;
+                                  },
+
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _glowTextField(
+                                  controller: tenants[index].aadhaar,
+                                  label: 'Aadhaar / VID No',
+                                  keyboard: TextInputType.number,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(16),
+                                  ],
+                                  validator: (v) {
+                                    if (v == null || v.trim().isEmpty) return 'Required';
+                                    if (!RegExp(r'^\d{12}$').hasMatch(v) &&
+                                        !RegExp(r'^\d{16}$').hasMatch(v)) {
+                                      return 'Enter valid Aadhaar / VID';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          _glowTextField(
+                            controller: tenants[index].name,
+                            label: 'Tenant Full Name',
+                            validator: (v) =>
+                            (v == null || v.trim().isEmpty) ? 'Required' : null,
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          Row(
+                            children: [
+                              Expanded(
+                                child: DropdownButtonFormField<String>(
+                                  value: tenants[index].relation,
+                                  items: const ['S/O', 'D/O', 'W/O', 'C/O']
+                                      .map((e) => DropdownMenuItem(
+                                    value: e,
+                                    child: Text(e,
+                                        style: const TextStyle(
+                                            color: Colors.black)),
+                                  ))
+                                      .toList(),
+                                  onChanged: (v) => setState(() {
+                                    tenants[index].relation = v ?? 'S/O';
+                                  }),
+                                  decoration:
+                                  _fieldDecoration('Relation').copyWith(
+                                    labelStyle: const TextStyle(
+                                        color: Colors.black),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius:
+                                      BorderRadius.circular(12),
+                                      borderSide: const BorderSide(
+                                          color: Colors.black),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius:
+                                      BorderRadius.circular(12),
+                                      borderSide: const BorderSide(
+                                          color: Colors.black,
+                                          width: 1.5),
+                                    ),
+                                  ),
+                                  dropdownColor: Colors.white,
+                                  iconEnabledColor: Colors.black,
+                                  style: const TextStyle(
                                       color: Colors.black),
                                 ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius:
-                                  BorderRadius.circular(12),
-                                  borderSide: const BorderSide(
-                                      color: Colors.black,
-                                      width: 1.5),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _glowTextField(
+                                  controller:
+                                  tenants[index].relationPerson,
+                                  label: 'Person Name',
+                                  validator: (v) =>
+                                  (v == null || v.trim().isEmpty) ? 'Required' : null,
                                 ),
                               ),
-                              dropdownColor: Colors.white,
-                              iconEnabledColor: Colors.black,
-                              style: const TextStyle(
-                                  color: Colors.black),
-                            ),
+                            ],
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _glowTextField(
-                              controller:
-                              tenants[index].relationPerson,
-                              label: 'Person Name',
-                              validator: (v) =>
-                              (v == null || v.trim().isEmpty) ? 'Required' : null,
-                            ),
+
+                          const SizedBox(height: 12),
+
+                          _glowTextField(
+                            controller: tenants[index].address,
+                            label: 'Permanent Address',
+                            validator: (v) =>
+                            (v == null || v.trim().isEmpty) ? 'Required' : null,
                           ),
-                        ],
-                      ),
 
-                      const SizedBox(height: 12),
 
-                      _glowTextField(
-                        controller: tenants[index].address,
-                        label: 'Permanent Address',
-                        validator: (v) =>
-                        (v == null || v.trim().isEmpty) ? 'Required' : null,
-                      ),
 
-                      const SizedBox(height: 16),
+                          const SizedBox(height: 12),
 
-                      /// Aadhaar Front
-                      Row(
-                        children: [
-                          _imageTile(
-                            file: tenants[index].aadhaarFront,
-                            url: tenants[index].aadhaarFrontUrl,
-                            hint: 'Aadhaar Front',
-                          ),
-                          const SizedBox(width: 12),
-                          ElevatedButton.icon(
-                            onPressed: () =>
-                                _pickTenantDoc(index, true),
+                          CheckboxListTile(
+                            value: tenants[index].includePoliceVerification,
+                            onChanged: (v) {
+                              setState(() {
+                                tenants[index].includePoliceVerification = v ?? false;
+                              });
+                              updateAgreementPrice(); // 🔥 ADD THIS
 
-                            icon: const Icon(Icons.upload_file),
-                            label: const Text('Aadhaar Front'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black, // button color
-                              foregroundColor: Colors.white, // ripple color
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12), // optional: rounded corners
+                            },
+                            title: const Text(
+                              'Include Police Verification',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      /// Aadhaar Back
-                      Row(
-                        children: [
-                          _imageTile(
-                            file: tenants[index].aadhaarBack,
-                            url: tenants[index].aadhaarBackUrl,
-                            hint: 'Aadhaar Back',
-                          ),
-                          const SizedBox(width: 12),
-                          ElevatedButton.icon(
-                            onPressed: () =>
-                                _pickTenantDoc(index, false),
-                            icon: const Icon(Icons.upload_file),
-                            label: const Text('Aadhaar Back'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black, // button color
-                              foregroundColor: Colors.white, // ripple color
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12), // optional: rounded corners
-                              ),
+                            subtitle: const Text(
+                              'Adds ₹50 to agreement price',
+                              style: TextStyle(fontSize: 12, color: Colors.black),
                             ),
+                            activeColor: Colors.redAccent,
                           ),
+
+                          const SizedBox(height: 12),
                         ],
                       ),
-
-                      const SizedBox(height: 12),
-
-                      /// Tenant Photo
-                      Row(
-                        children: [
-                          _imageTile(
-                            file: tenants[index].photo,
-                            url: tenants[index].photoUrl,
-                            hint: 'Tenant Photo',
-                          ),
-                          const SizedBox(width: 12),
-                          ElevatedButton.icon(
-                            onPressed: () =>
-                                _pickTenantPhoto(index),
-                            icon: const Icon(Icons.upload_file),
-                            label: const Text('Upload Photo'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black, // button color
-                              foregroundColor: Colors.white, // ripple color
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12), // optional: rounded corners
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      CheckboxListTile(
-                        value: tenants[index].includePoliceVerification,
-                        onChanged: (v) {
-                          setState(() {
-                            tenants[index].includePoliceVerification = v ?? false;
-                          });
-                          updateAgreementPrice(); // 🔥 ADD THIS
-
-                        },
-                        title: const Text(
-                          'Include Police Verification',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black,
-                          ),
-                        ),
-                        subtitle: const Text(
-                          'Adds ₹50 to agreement price',
-                          style: TextStyle(fontSize: 12, color: Colors.black),
-                        ),
-                        activeColor: Colors.redAccent,
-                      ),
-
-                      const SizedBox(height: 12),
                     ],
                   ),
-                ],
-              ),
-            )),
+                )),
           ),
 
         /// ADD TENANT BUTTON (BOTTOM)

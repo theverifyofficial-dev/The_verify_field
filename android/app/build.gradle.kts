@@ -56,6 +56,7 @@ dependencies {
     // Firebase BOM for unified SDK versions
     implementation(platform("com.google.firebase:firebase-bom:33.16.0"))
 
+    implementation("com.google.mlkit:text-recognition:16.0.0")
     // Firebase Messaging SDK
     implementation("com.google.firebase:firebase-messaging")
 }

@@ -211,7 +211,7 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
             Expanded(
               child: TabBarView(
                 controller: _tabController,
-                children: [
+                children: const [
                   AllAgreement(),
                   AcceptAgreement(),
                   RequestAgreementsPage(),
@@ -227,7 +227,7 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
           padding: const EdgeInsets.all(14.0),
           child: DecoratedBox(
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 colors: [Colors.purple, Colors.pink],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,

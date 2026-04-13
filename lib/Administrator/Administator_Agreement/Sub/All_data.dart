@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import '../../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../../../model/Agreement_model.dart';
 import 'All_data_details_page.dart';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// MODEL
+// ─────────────────────────────────────────────────────────────────────────────
 class FieldWorkerPayment {
   final String number;
   final String name;
@@ -34,6 +38,9 @@ class FieldWorkerPayment {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN WIDGET
+// ─────────────────────────────────────────────────────────────────────────────
 class AllData extends StatefulWidget {
   const AllData({super.key});
 
@@ -42,39 +49,49 @@ class AllData extends StatefulWidget {
 }
 
 class _AgreementDetailsState extends State<AllData> {
-
-  // Add these alongside your other state variables
-  String? _activeFilterMonth;    // e.g. "2025-03", null = no filter
-  String? _activeFilterWorker;   // e.g. "9711775300", null = all
-  String _searchQuery = "";
-  Timer? _debounce;
-  int totalRecords = 0;
-  int? _lastOpenedId;
-  final Map<int, GlobalKey> _itemKeys = {};
-
+  // ── Filter / Search State ──────────────────────────────────────────────────
   String? _activeFilterMonth;
   String? _activeFilterWorker;
+  String _searchQuery = '';
+  Timer? _debounce;
 
+  // ── Data State ─────────────────────────────────────────────────────────────
   List<AgreementModel> agreements = [];
   List<AgreementModel> filteredAgreements = [];
   bool isLoading = true;
-  TextEditingController searchController = TextEditingController();
-  late Future<List<FieldWorkerPayment>> _paymentsFuture;
-  FieldWorkerPayment? monthlyPaymentSummary;
+  int totalRecords = 0;
+  int? _lastOpenedId;
+  double _savedScrollOffset = 0;
+  final Map<int, GlobalKey> _itemKeys = {};
+
+  // ── Pagination ─────────────────────────────────────────────────────────────
   final int _limit = 20;
-
-  ScrollController _scrollController = ScrollController();
-
   int page = 1;
   bool hasMore = true;
   bool isFetchingMore = false;
 
+  // ── Controllers ────────────────────────────────────────────────────────────
+  final TextEditingController searchController = TextEditingController();
+  late ScrollController _scrollController;
+  late Future<List<FieldWorkerPayment>> _paymentsFuture;
+  FieldWorkerPayment? monthlyPaymentSummary;
+
+  // ── Field Workers List ─────────────────────────────────────────────────────
+  final List<Map<String, String>> fieldWorkers = [
+    {"number": "9711775300", "name": "Sumit"},
+    {"number": "9711275300", "name": "Ravi Kumar"},
+    {"number": "9971172204", "name": "Faizan Khan"},
+  ];
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // LIFECYCLE
+  // ─────────────────────────────────────────────────────────────────────────
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
-    fetchAgreements();
     _paymentsFuture = fetchAllFieldWorkersPayments();
+    fetchAgreements();
     _scrollController.addListener(() {
       if (_scrollController.position.pixels >=
           _scrollController.position.maxScrollExtent - 200 &&
@@ -93,12 +110,9 @@ class _AgreementDetailsState extends State<AllData> {
     super.dispose();
   }
 
-  List<Map<String, String>> fieldWorkers = [
-    {"number": "9711775300", "name": "Sumit"},
-    {"number": "9711275300", "name": "Ravi Kumar"},
-    {"number": "9971172204", "name": "Faizan Khan"},
-  ];
-
+  // ─────────────────────────────────────────────────────────────────────────
+  // API — FIELD WORKER PAYMENTS
+  // ─────────────────────────────────────────────────────────────────────────
   Future<FieldWorkerPayment> fetchPaymentForWorker({
     required String number,
     required String name,
@@ -124,9 +138,11 @@ class _AgreementDetailsState extends State<AllData> {
     );
   }
 
-  /// Silent background refresh — preserves filter state and scroll position
+  // ─────────────────────────────────────────────────────────────────────────
+  // SEARCH — local filter
+  // ─────────────────────────────────────────────────────────────────────────
   void _onSearchChanged() {
-    String query = searchController.text.toLowerCase();
+    final query = searchController.text.toLowerCase();
     setState(() {
       filteredAgreements = agreements.where((a) {
         return a.ownerName.toLowerCase().contains(query) ||
@@ -136,6 +152,9 @@ class _AgreementDetailsState extends State<AllData> {
     });
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // SILENT REFRESH — preserves scroll & filter
+  // ─────────────────────────────────────────────────────────────────────────
   Future<void> _silentRefresh() async {
     try {
       if (_activeFilterMonth != null) {
@@ -149,13 +168,7 @@ class _AgreementDetailsState extends State<AllData> {
       final url =
           'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php?page=1&limit=${agreements.length}';
 
-      // Otherwise fetch full list silently
-      final response = await http.get(
-        Uri.parse(
-            'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php'),
-        Uri.parse(url),
-      );
-
+      final response = await http.get(Uri.parse(url));
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -169,9 +182,7 @@ class _AgreementDetailsState extends State<AllData> {
           if (!mounted) return;
 
           setState(() {
-            final freshMap = {
-              for (var item in freshList) item.id: item
-            };
+            final freshMap = {for (var item in freshList) item.id: item};
 
             agreements = agreements.map((oldItem) {
               return freshMap[oldItem.id] ?? oldItem;
@@ -187,696 +198,139 @@ class _AgreementDetailsState extends State<AllData> {
             }).toList();
           });
         }
-
-        _itemKeys.removeWhere((key, _) =>
-        !agreements.any((a) => a.id == key));
+        _itemKeys.removeWhere(
+                (key, _) => !agreements.any((a) => a.id == key));
       }
     } catch (e) {
       AppLogger.api("❌ Silent refresh error: $e");
     }
   }
 
-// Keep _refreshAgreements for the pull-to-refresh use case (resets everything)
-
-
+  // ─────────────────────────────────────────────────────────────────────────
+  // PULL-TO-REFRESH — resets everything
+  // ─────────────────────────────────────────────────────────────────────────
   Future<void> _refreshAgreements() async {
     try {
       _activeFilterMonth = null;
       _activeFilterWorker = null;
-      setState(() => isLoading = true);
-      await fetchAgreements();
       monthlyPaymentSummary = null;
+      await fetchAgreements(isInitial: true);
     } catch (e) {
       debugPrint("❌ Error refreshing agreements: $e");
-    } finally {
-      if (mounted) setState(() => isLoading = false);
     }
   }
-    _activeFilterMonth = null;
-    _activeFilterWorker = null;
-    monthlyPaymentSummary = null;
 
-    await fetchAgreements(isInitial: true);
-  }
-
+  // ─────────────────────────────────────────────────────────────────────────
+  // FETCH AGREEMENTS — paginated
+  // ─────────────────────────────────────────────────────────────────────────
   Future<void> fetchAgreements({bool isInitial = true}) async {
     if (isFetchingMore) return;
-
     isFetchingMore = true;
 
     if (isInitial) {
       page = 1;
       hasMore = true;
       agreements.clear();
-      if (_scrollController.hasClients) {
-        _scrollController.jumpTo(0);
-      }      filteredAgreements.clear();
+      filteredAgreements.clear();
+      if (_scrollController.hasClients) _scrollController.jumpTo(0);
       setState(() => isLoading = true);
     }
 
     try {
-      final response = await http.get(
-        Uri.parse(
-            'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php'),
-      );
       final url = _searchQuery.isEmpty
           ? 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php?page=$page&limit=$_limit'
           : 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/search_api_for_final_table_for_admin.php?search=$_searchQuery&page=$page&limit=$_limit';
 
+      AppLogger.api("📡 Fetching: $url");
       final response = await http.get(Uri.parse(url));
-
-      if (response.statusCode == 200) {
-        final decoded = jsonDecode(response.body);
-        if (decoded is Map && decoded.containsKey('data')) {
-          final List dataList = decoded['data'];
-          setState(() {
-            agreements = dataList
-                .map((e) => AgreementModel.fromJson(e))
-                .toList()
-                .reversed
-                .toList();
-            filteredAgreements = agreements;
-            isLoading = false;
-          });
-        } else {
-          throw Exception('Invalid data format');
-        }
-      } else {
-        throw Exception('Failed to load data');
       AppLogger.api("RESPONSE: ${response.body}");
 
       final decoded = jsonDecode(response.body);
 
       if (decoded['data'] is List) {
         final List newData = decoded['data'];
-
-        final newList = newData
-            .map((e) => AgreementModel.fromJson(e))
-            .toList();
-
+        final newList = newData.map((e) => AgreementModel.fromJson(e)).toList();
         final totalPages = decoded['total_pages'] ?? 1;
         totalRecords = decoded['total_records'] ?? 0;
 
         setState(() {
           agreements.addAll(newList);
           filteredAgreements = agreements;
-
           page++;
-          hasMore = page < totalPages;
+          hasMore = page <= totalPages;
           isLoading = false;
         });
+      } else {
+        setState(() => isLoading = false);
       }
     } catch (e) {
-      AppLogger.api("❌ Search Pagination error: $e");
+      AppLogger.api("❌ Fetch/Pagination error: $e");
+      setState(() => isLoading = false);
     }
 
     isFetchingMore = false;
   }
-  List<Color> _getCardColors(String? type, bool isDark) {
-    if (type == "Police Verification") {
-      return isDark
-          ? [Colors.blue.shade900, Colors.black]
-          : [Colors.black, Colors.blue.shade400];
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // FETCH BY MONTH FILTER
+  // ─────────────────────────────────────────────────────────────────────────
+  Future<void> fetchAgreementsByMonth({
+    required String month,
+    String? fieldWorker,
+  }) async {
+    _activeFilterMonth = month;
+    _activeFilterWorker = fieldWorker;
+
+    final Map<String, String> queryParams = {"month": month};
+    if (fieldWorker != null && fieldWorker.isNotEmpty) {
+      queryParams["fw"] = fieldWorker;
     }
 
-    // Default colors
-    return isDark
-        ? [Colors.green.shade700, Colors.black]
-        : [Colors.black, Colors.green.shade400];
-  }
+    final uri = Uri.parse(
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/month_wise_agreement.php',
+    ).replace(queryParameters: queryParams);
 
-  void _scrollToLastOpened() {
-    if (_lastOpenedId == null) return;
+    AppLogger.api("📡 Month Filter API: $uri");
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final key = _itemKeys[_lastOpenedId];
+    final response = await http.get(uri);
 
-      if (key?.currentContext != null) {
-        Scrollable.ensureVisible(
-          key!.currentContext!,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          alignment: 0.3, // keeps it slightly below top (nice UX)
-        );
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+
+      if (decoded['success'] == true && decoded['data'] is List) {
+        final summary = decoded['month_payment_summary'];
+        setState(() {
+          agreements = (decoded['data'] as List)
+              .map<AgreementModel>((e) => AgreementModel.fromJson(e))
+              .toList();
+          filteredAgreements = agreements;
+          monthlyPaymentSummary = FieldWorkerPayment(
+            number: '',
+            name: 'Monthly Summary',
+            totalAmount:
+            int.tryParse(summary['total_amount'].toString()) ?? 0,
+            paidAmount:
+            int.tryParse(summary['paid_amount'].toString()) ?? 0,
+            remainingAmount:
+            int.tryParse(summary['remaining_amount'].toString()) ?? 0,
+          );
+        });
+      } else {
+        AppLogger.api("⚠️ No data for selected filter");
+        setState(() {
+          agreements = [];
+          filteredAgreements = [];
+          monthlyPaymentSummary = null;
+        });
       }
-    });
-  }
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF12121A) : const Color(0xFFF4F4F8);
-    // ✅ Responsive screen size
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: bg,
-        body: isLoading
-            ? const Center(
-          child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
-        )
-            : RefreshIndicator(
-          onRefresh: _refreshAgreements,
-          color: const Color(0xFF7C3AED),
-          child: CustomScrollView(
-            controller: _scrollController,
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-
-              // ── SEARCH BAR ─────────────────────────────────────────
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: screenWidth * 0.04,
-                    vertical: 10,
-                  ),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? const Color(0xFF1E1E2C)
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.06),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                     SizedBox(height: 10),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.grey[850] : Colors.white,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: TextField(
-                        controller: searchController,
-                        decoration: InputDecoration(
-                          suffixIcon: IconButton(
-                            icon: Icon(Icons.search, color: Colors.green),
-                            onPressed: () {
-                              final query = searchController.text.trim();
-
-                              if (_searchQuery == query) return;
-
-                              _searchQuery = query;
-                              fetchAgreements(isInitial: true);
-                            },
-                          ),
-                          hintText: "Search by Owner, Tenant, or ID...",
-                          border: InputBorder.none,
-                          contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 14),
-                        ),
-                      ),
-                    ),
-                  ],
-                    child: TextField(
-                      controller: searchController,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                      decoration: InputDecoration(
-                        prefixIcon: Icon(
-                          Icons.search_rounded,
-                          color: Colors.grey.shade400,
-                          size: 20,
-                        ),
-                        hintText: "Search",
-                        hintStyle: TextStyle(
-                          color: Colors.grey.shade400,
-                          fontSize: 13,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 14),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // ── FIELD WORKER PENDING PAYMENTS ──────────────────────
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: screenWidth * 0.04,
-                    vertical: 4,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "FIELD WORKER PENDING PAYMENTS",
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.8,
-                          color: isDark
-                              ? Colors.grey.shade400
-                              : Colors.grey.shade600,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      // ✅ No fixed height — LayoutBuilder se card height auto
-                      monthlyPaymentSummary != null
-                          ? _buildMonthlySummaryCard(monthlyPaymentSummary!)
-                          : FutureBuilder<List<FieldWorkerPayment>>(
-                        future: _paymentsFuture,
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const SizedBox(
-                              height: 100,
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Color(0xFF7C3AED),
-                                ),
-                              ),
-                            );
-                          }
-                          if (snapshot.hasError) {
-                            return SizedBox(
-                              height: 60,
-                              child: Center(
-                                child: Text(
-                                  "Failed to load payments",
-                                  style: TextStyle(
-                                    color: Colors.red.shade400,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }
-                          final data = snapshot.data!;
-                          // ✅ Wrap mein cards — height fixed nahi
-                          return SizedBox(
-                            height: 140, // 👈 card height control karo
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: data.map((fw) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(right: 10),
-                                    child: _FieldWorkerCard(
-                                      fw: fw,
-                                      isDark: isDark,
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // ── TOTAL COUNT + FILTER ────────────────────────────────
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: screenWidth * 0.04,
-                    vertical: 10,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: 'TOTAL AGREEMENTS:  ',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.6,
-                                color: isDark
-                                    ? Colors.white
-                                    : Colors.black87,
-                              ),
-                            ),
-                            TextSpan(
-                              text: '${filteredAgreements.length}  ',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                color: isDark
-                                    ? Colors.purple
-                                    : Colors.black87,
-                              ),
-                            ),
-                          ],
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                'Total Agreements: ${_searchQuery.isNotEmpty ? filteredAgreements.length : totalRecords}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: isDark
-                            ? Colors.green.shade200
-                            : Colors.green.shade800,
-                      ),
-                    ),
-
-                    ElevatedButton(
-                      onPressed: () => _openMonthFilterSheet(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green.shade700,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => _openMonthFilterSheet(context),
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF7C3AED),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: const Icon(
-                            Icons.tune_rounded,
-                            color: Colors.white,
-                            size: 20,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // ── AGREEMENT CARDS ────────────────────────────────────
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    final item = filteredAgreements[index];
-                    final renewalDate = _getRenewalDate(item.shiftingDate);
-                    final bool isPolice =
-                        item.agreementType == "Police Verification";
-                    final bool paymentDone =
-                        item.payment.toString() == "1";
-                    final bool officeReceived =
-                        item.recieved.toString() == "1";
-
-            if (!isLoading && filteredAgreements.isEmpty)
-              SliverFillRemaining(
-                child: Center(
-                  child: Text(
-                    "No results found",
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                ),
-              ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index < filteredAgreements.length) {
-
-                        final item = filteredAgreements[index];
-                  final renewalDate = _getRenewalDate(item.shiftingDate);
-                  final bool isPolice =
-                      item.agreementType == "Police Verification";
-
-                  final bool paymentDone = item.payment.toString() == "1";
-                  final bool officeReceived =
-                      item.recieved.toString() == "1";
-
-                    return GestureDetector(
-                  return Container(
-                    key: _itemKeys.putIfAbsent(item.id, () => GlobalKey()),
-                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(18),
-                      gradient: LinearGradient(
-                        colors: _getCardColors(item.agreementType, isDark),
-
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.greenAccent.withOpacity(0.2),
-                          blurRadius: 10,
-                          spreadRadius: 0.6,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(18),
-                      onTap: () async {
-                        _savedScrollOffset = _scrollController.offset;
-                        _lastOpenedId = item.id;
-
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => AllDataDetailsPage(
-                              agreementId: item.id.toString(),
-                            ),
-                          ),
-                        );
-                        await _silentRefresh();
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (_scrollController.hasClients) {
-                            _scrollController.jumpTo(_savedScrollOffset);
-                          }
-                        });
-
-                        await _silentRefresh();
-
-                        _scrollToLastOpened();
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(14.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 🧾 Header Row
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 15,
-                                      backgroundColor: _getRenewalDateColor(renewalDate),
-                                      child: FittedBox(
-                                        child: Text(
-                                          '${index + 1}',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Text(
-                                      item.agreementType?.isNotEmpty == true
-                                          ? item.agreementType!
-                                          : "General Agreement",
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15,
-                                        color: Colors.amber,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                  "ID: ${item.id}",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.white.withOpacity(0.8),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 10),
-
-                            // 👥 Owner & Tenant Info
-                            _InfoRow(title: "Owner", value: item.ownerName),
-                            _InfoRow(title: "Tenant", value: item.tenantName),
-                            if (!isPolice) ...[
-                              _InfoRow(title: "Rent", value: "₹${item.monthlyRent}"),
-                            _InfoRow(title: "Shifting Date", value: _formatDate(item.shiftingDate)),
-                            _InfoRow(
-                              title: "Renewal Date",
-                              value: renewalDate != null ? _formatDateTime(renewalDate) : '--',
-                              valueColor: _getRenewalDateColor(renewalDate),
-                            ),
-                            ],
-
-                            const Divider(height: 20, color: Colors.white30),
-
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _statusTick(
-                                  label: "Payment",
-                                  sublabel: paymentDone ? "Paid" : "Pending",
-                                  done: paymentDone,
-                                  activeColor: Colors.lightBlueAccent,
-                                ),
-                                _statusTick(
-                                  label: "Office",
-                                  sublabel: officeReceived ? "Delivered" : "Not Delivered",
-                                  done: officeReceived,
-                                  activeColor: Colors.greenAccent,
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 10),
-
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "By ${item.fieldWorkerName}",
-                                  style: const TextStyle(
-                                    fontStyle: FontStyle.italic,
-                                    fontSize: 12,
-                                    color: Colors.white70,
-                                  ),
-                                ),
-                                if (!isPolice)
-                                Text(
-                                  "Floor: ${item.floor}",
-                                  style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.white),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                if (!officeReceived)
-                                  ElevatedButton(
-                                      onPressed: () => _confirmAndUpdateOfficeReceived(
-                                        context: context,
-                                        agreementId: item.id.toString(),
-                                      ),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blue,
-                                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                      ),
-                                      child: const Text(
-                                        "Mark Office Received",
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-
-                                Text(
-                                  "cost: ₹${item.agreement_price}",
-                                  style: const TextStyle(
-                                    fontStyle: FontStyle.italic,
-                                    fontSize: 12,
-                                    color: Colors.white70,
-                                  ),
-                                ),
-                                Text(
-                                  "On ${_formatDate(item.currentDate)}",
-                                  style: const TextStyle(
-                                    fontStyle: FontStyle.italic,
-                                    fontSize: 12,
-                                    color: Colors.white70,
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 4),
-
-                            // ⚠ Missing field indicators
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 6,
-                              children: [
-                                if (item.withPolice == "true" && item.policeVerificationPdf.isEmpty ||
-                                    item.policeVerificationPdf == 'null')
-                                  _MissingBadge(label: "Police Verification Missing"),
-                                if (!isPolice)
-                                  if (item.notaryImg.isEmpty || item.notaryImg == 'null')
-                                  _MissingBadge(label: "Notary Image Missing"),
-                              ],
-                            ),
-
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-
-                      } else {
-                        return const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          child: Center(
-                            child: CircularProgressIndicator(),
-                          ),
-                        );
-                      }
-                    },
-
-                childCount: filteredAgreements.length + (hasMore ? 1 : 0),
-              ),
-            ),
-          ],
-                      child: _AgreementCard(
-                        item: item,
-                        index: index,
-                        total: filteredAgreements.length,
-                        isDark: isDark,
-                        renewalDate: renewalDate,
-                        isPolice: isPolice,
-                        paymentDone: paymentDone,
-                        officeReceived: officeReceived,
-                        onMarkOfficeReceived: () =>
-                            _confirmAndUpdateOfficeReceived(
-                              context: context,
-                              agreementId: item.id.toString(),
-                            ),
-                      ),
-                    );
-                  },
-                  childCount: filteredAgreements.length,
-                ),
-              ),
-
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
-            ],
-          ),
-        ),
-      ),
-    );
+    } else {
+      AppLogger.api("❌ API failed: ${response.body}");
+    }
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // MARK OFFICE RECEIVED
+  // ─────────────────────────────────────────────────────────────────────────
   Future<void> _confirmAndUpdateOfficeReceived({
     required BuildContext context,
     required String agreementId,
@@ -893,8 +347,8 @@ class _AgreementDetailsState extends State<AllData> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
-              title: Row(
-                children: const [
+              title: const Row(
+                children: [
                   Icon(Icons.apartment_rounded, color: Color(0xFF7C3AED)),
                   SizedBox(width: 8),
                   Text("Confirm Office Received",
@@ -968,6 +422,7 @@ class _AgreementDetailsState extends State<AllData> {
       final decoded = jsonDecode(response.body);
 
       if (decoded["status"] == true) {
+        if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Row(
@@ -986,6 +441,7 @@ class _AgreementDetailsState extends State<AllData> {
         throw decoded["message"];
       }
     } catch (e) {
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text("Update failed: $e"),
@@ -996,116 +452,27 @@ class _AgreementDetailsState extends State<AllData> {
     }
   }
 
-  Widget _buildMonthlySummaryCard(FieldWorkerPayment summary) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(screenWidth * 0.04),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E2C) : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.07),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            "Monthly Payment Summary",
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 13,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 8),
-          _PaymentRow(
-            label: "Total",
-            amount: "₹${summary.totalAmount}",
-            labelColor: isDark ? Colors.white60 : Colors.black45,
-            valueColor: isDark ? Colors.white : Colors.black87,
-          ),
-          const SizedBox(height: 4),
-          _PaymentRow(
-            label: "Paid",
-            amount: "₹${summary.paidAmount}",
-            labelColor: isDark ? Colors.white60 : Colors.black45,
-            valueColor: const Color(0xFF22C55E),
-          ),
-          const SizedBox(height: 4),
-          _PaymentRow(
-            label: "Remaining",
-            amount: "₹${summary.remainingAmount}",
-            labelColor: isDark ? Colors.white60 : Colors.black45,
-            valueColor: const Color(0xFFEF4444),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> fetchAgreementsByMonth({
-    required String month,
-    String? fieldWorker,
-  }) async {
-    _activeFilterMonth = month;
-    _activeFilterWorker = fieldWorker;
-
-    final Map<String, String> queryParams = {"month": month};
-    if (fieldWorker != null && fieldWorker.isNotEmpty) {
-      queryParams["fw"] = fieldWorker;
-    }
-
-    final uri = Uri.parse(
-      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/month_wise_agreement.php',
-    ).replace(queryParameters: queryParams);
-
-    AppLogger.api("📡 Month Filter API: $uri");
-
-    final response = await http.get(uri);
-
-    if (response.statusCode == 200) {
-      final decoded = jsonDecode(response.body);
-
-      if (decoded['success'] == true && decoded['data'] is List) {
-        final summary = decoded['month_payment_summary'];
-        setState(() {
-          agreements = decoded['data']
-              .map<AgreementModel>((e) => AgreementModel.fromJson(e))
-              .toList();
-          filteredAgreements = agreements;
-          monthlyPaymentSummary = FieldWorkerPayment(
-            number: "",
-            name: "Monthly Summary",
-            totalAmount:
-            int.tryParse(summary['total_amount'].toString()) ?? 0,
-            paidAmount:
-            int.tryParse(summary['paid_amount'].toString()) ?? 0,
-            remainingAmount:
-            int.tryParse(summary['remaining_amount'].toString()) ?? 0,
-          );
-        });
-      } else {
-        AppLogger.api("⚠️ No data for selected filter");
-        setState(() {
-          agreements = [];
-          filteredAgreements = [];
-          monthlyPaymentSummary = null;
-        });
+  // ─────────────────────────────────────────────────────────────────────────
+  // SCROLL TO LAST OPENED
+  // ─────────────────────────────────────────────────────────────────────────
+  void _scrollToLastOpened() {
+    if (_lastOpenedId == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final key = _itemKeys[_lastOpenedId];
+      if (key?.currentContext != null) {
+        Scrollable.ensureVisible(
+          key!.currentContext!,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          alignment: 0.3,
+        );
       }
-    } else {
-      AppLogger.api("❌ API failed: ${response.body}");
-    }
+    });
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // MONTH FILTER BOTTOM SHEET
+  // ─────────────────────────────────────────────────────────────────────────
   void _openMonthFilterSheet(BuildContext context) {
     int selectedYear = DateTime.now().year;
     int selectedMonth = DateTime.now().month;
@@ -1177,7 +544,8 @@ class _AgreementDetailsState extends State<AllData> {
                     ),
                     items: [
                       const DropdownMenuItem(
-                          value: "all", child: Text("All Field Workers")),
+                          value: "all",
+                          child: Text("All Field Workers")),
                       ...fieldWorkers.map(
                             (fw) => DropdownMenuItem(
                           value: fw["number"],
@@ -1204,7 +572,8 @@ class _AgreementDetailsState extends State<AllData> {
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF7C3AED),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        padding:
+                        const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -1212,7 +581,9 @@ class _AgreementDetailsState extends State<AllData> {
                       child: const Text(
                         "Apply Filter",
                         style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 15,color: Colors.white),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: Colors.white),
                       ),
                     ),
                   ),
@@ -1225,6 +596,9 @@ class _AgreementDetailsState extends State<AllData> {
     );
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // HELPERS
+  // ─────────────────────────────────────────────────────────────────────────
   DateTime? _getRenewalDate(DateTime? shiftingDate) {
     if (shiftingDate == null) return null;
     try {
@@ -1240,17 +614,391 @@ class _AgreementDetailsState extends State<AllData> {
 
   String _monthName(int month) {
     const months = [
-      "Jan","Feb","Mar","Apr","May","Jun",
-      "Jul","Aug","Sep","Oct","Nov","Dec"
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     ];
     return months[month - 1];
   }
 
-  String _twoDigits(int n) => n.toString().padLeft(2, '0');
+  // ─────────────────────────────────────────────────────────────────────────
+  // BUILD
+  // ─────────────────────────────────────────────────────────────────────────
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? const Color(0xFF12121A) : const Color(0xFFF4F4F8);
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: bg,
+        body: isLoading
+            ? const Center(
+          child: CircularProgressIndicator(color: Color(0xFF7C3AED)),
+        )
+            : RefreshIndicator(
+          onRefresh: _refreshAgreements,
+          color: const Color(0xFF7C3AED),
+          child: CustomScrollView(
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              // ── SEARCH BAR ───────────────────────────────────────
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.04,
+                    vertical: 10,
+                  ),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? const Color(0xFF1E1E2C)
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.06),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: searchController,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(
+                          Icons.search_rounded,
+                          color: Colors.grey.shade400,
+                          size: 20,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: const Icon(Icons.search,
+                              color: Colors.green),
+                          onPressed: () {
+                            final query =
+                            searchController.text.trim();
+                            if (_searchQuery == query) return;
+                            _searchQuery = query;
+                            fetchAgreements(isInitial: true);
+                          },
+                        ),
+                        hintText: "Search by Owner, Tenant, or ID...",
+                        hintStyle: TextStyle(
+                          color: Colors.grey.shade400,
+                          fontSize: 13,
+                        ),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // ── FIELD WORKER PENDING PAYMENTS ────────────────────
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.04,
+                    vertical: 4,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "FIELD WORKER PENDING PAYMENTS",
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.8,
+                          color: isDark
+                              ? Colors.grey.shade400
+                              : Colors.grey.shade600,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      monthlyPaymentSummary != null
+                          ? _buildMonthlySummaryCard(
+                          monthlyPaymentSummary!)
+                          : FutureBuilder<List<FieldWorkerPayment>>(
+                        future: _paymentsFuture,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const SizedBox(
+                              height: 100,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Color(0xFF7C3AED),
+                                ),
+                              ),
+                            );
+                          }
+                          if (snapshot.hasError) {
+                            return SizedBox(
+                              height: 60,
+                              child: Center(
+                                child: Text(
+                                  "Failed to load payments",
+                                  style: TextStyle(
+                                    color: Colors.red.shade400,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                          final data = snapshot.data!;
+                          return SizedBox(
+                            height: 140,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: data.map((fw) {
+                                  return Padding(
+                                    padding:
+                                    const EdgeInsets.only(
+                                        right: 10),
+                                    child: _FieldWorkerCard(
+                                      fw: fw,
+                                      isDark: isDark,
+                                    ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // ── TOTAL COUNT + FILTER ─────────────────────────────
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: screenWidth * 0.04,
+                    vertical: 10,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: 'TOTAL AGREEMENTS:  ',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.6,
+                                color: isDark
+                                    ? Colors.white
+                                    : Colors.black87,
+                              ),
+                            ),
+                            TextSpan(
+                              text:
+                              '${_searchQuery.isNotEmpty ? filteredAgreements.length : totalRecords}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: isDark
+                                    ? Colors.purple
+                                    : Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () =>
+                            _openMonthFilterSheet(context),
+                        child: Container(
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF7C3AED),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: const Icon(
+                            Icons.tune_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // ── EMPTY STATE ──────────────────────────────────────
+              if (!isLoading && filteredAgreements.isEmpty)
+                const SliverFillRemaining(
+                  child: Center(
+                    child: Text(
+                      "No results found",
+                      style: TextStyle(
+                          fontSize: 16, color: Colors.grey),
+                    ),
+                  ),
+                ),
+
+              // ── AGREEMENT CARDS ──────────────────────────────────
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                    // Loading indicator at the end
+                    if (index >= filteredAgreements.length) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Center(
+                            child: CircularProgressIndicator()),
+                      );
+                    }
+
+                    final item = filteredAgreements[index];
+                    final renewalDate =
+                    _getRenewalDate(item.shiftingDate);
+                    final bool isPolice =
+                        item.agreementType == "Police Verification";
+                    final bool paymentDone =
+                        item.payment.toString() == "1";
+                    final bool officeReceived =
+                        item.recieved.toString() == "1";
+
+                    return GestureDetector(
+                      key: _itemKeys.putIfAbsent(
+                          item.id, () => GlobalKey()),
+                      onTap: () async {
+                        _savedScrollOffset =
+                            _scrollController.offset;
+                        _lastOpenedId = item.id;
+
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AllDataDetailsPage(
+                              agreementId: item.id.toString(),
+                            ),
+                          ),
+                        );
+
+                        await _silentRefresh();
+
+                        WidgetsBinding.instance
+                            .addPostFrameCallback((_) {
+                          if (_scrollController.hasClients) {
+                            _scrollController
+                                .jumpTo(_savedScrollOffset);
+                          }
+                        });
+
+                        _scrollToLastOpened();
+                      },
+                      child: _AgreementCard(
+                        item: item,
+                        index: index,
+                        total: filteredAgreements.length,
+                        isDark: isDark,
+                        renewalDate: renewalDate,
+                        isPolice: isPolice,
+                        paymentDone: paymentDone,
+                        officeReceived: officeReceived,
+                        onMarkOfficeReceived: () =>
+                            _confirmAndUpdateOfficeReceived(
+                              context: context,
+                              agreementId: item.id.toString(),
+                            ),
+                      ),
+                    );
+                  },
+                  childCount: filteredAgreements.length +
+                      (hasMore ? 1 : 0),
+                ),
+              ),
+
+              const SliverToBoxAdapter(
+                  child: SizedBox(height: 24)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // MONTHLY SUMMARY CARD
+  // ─────────────────────────────────────────────────────────────────────────
+  Widget _buildMonthlySummaryCard(FieldWorkerPayment summary) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(screenWidth * 0.04),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1E2C) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.07),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            "Monthly Payment Summary",
+            style: TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 8),
+          _PaymentRow(
+            label: "Total",
+            amount: "₹${summary.totalAmount}",
+            labelColor: isDark ? Colors.white60 : Colors.black45,
+            valueColor: isDark ? Colors.white : Colors.black87,
+          ),
+          const SizedBox(height: 4),
+          _PaymentRow(
+            label: "Paid",
+            amount: "₹${summary.paidAmount}",
+            labelColor: isDark ? Colors.white60 : Colors.black45,
+            valueColor: const Color(0xFF22C55E),
+          ),
+          const SizedBox(height: 4),
+          _PaymentRow(
+            label: "Remaining",
+            amount: "₹${summary.remainingAmount}",
+            labelColor: isDark ? Colors.white60 : Colors.black45,
+            valueColor: const Color(0xFFEF4444),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FIELD WORKER CARD — fully responsive
+// FIELD WORKER CARD
 // ─────────────────────────────────────────────────────────────────────────────
 class _FieldWorkerCard extends StatelessWidget {
   final FieldWorkerPayment fw;
@@ -1259,10 +1007,8 @@ class _FieldWorkerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
     return Container(
-     width: 160,
+      width: 160,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E1E2C) : Colors.white,
@@ -1279,13 +1025,13 @@ class _FieldWorkerCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ── Avatar + Name ────────────────────────────────────────────────
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               CircleAvatar(
                 radius: 16,
-                backgroundColor: const Color(0xFF7C3AED).withOpacity(0.12),
+                backgroundColor:
+                const Color(0xFF7C3AED).withOpacity(0.12),
                 child: Text(
                   fw.name.isNotEmpty ? fw.name[0].toUpperCase() : "?",
                   style: const TextStyle(
@@ -1310,14 +1056,12 @@ class _FieldWorkerCard extends StatelessWidget {
               ),
             ],
           ),
-
           const SizedBox(height: 8),
           Divider(
             height: 1,
             color: isDark ? Colors.white12 : Colors.grey.shade200,
           ),
           const SizedBox(height: 8),
-
           _PaymentRow(
             label: "Total",
             amount: "₹${fw.totalAmount}",
@@ -1344,7 +1088,9 @@ class _FieldWorkerCard extends StatelessWidget {
   }
 }
 
-// ── Payment Row Helper ────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// PAYMENT ROW
+// ─────────────────────────────────────────────────────────────────────────────
 class _PaymentRow extends StatelessWidget {
   final String label;
   final String amount;
@@ -1391,7 +1137,7 @@ class _PaymentRow extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// AGREEMENT CARD — fully responsive
+// AGREEMENT CARD
 // ─────────────────────────────────────────────────────────────────────────────
 class _AgreementCard extends StatelessWidget {
   final AgreementModel item;
@@ -1421,14 +1167,14 @@ class _AgreementCard extends StatelessWidget {
     final diff = renewalDate!.difference(DateTime.now()).inDays;
     if (diff < 0) return const Color(0xFFEF4444);
     if (diff <= 30) return const Color(0xFFF97316);
-    return  Colors.red;
+    return Colors.green;
   }
 
   String _formatDate(DateTime? date) {
     if (date == null) return "--";
     const months = [
-      "Jan","Feb","Mar","Apr","May","Jun",
-      "Jul","Aug","Sep","Oct","Nov","Dec"
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
     ];
     return "${date.day.toString().padLeft(2, '0')} ${months[date.month - 1]} ${date.year}";
   }
@@ -1436,26 +1182,24 @@ class _AgreementCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final cardBg = isDark ? const Color(0xFFFFFFFF) : const Color(0xFF1E1E2C);
-    final typeColor = const Color(0xFF7C3AED);
-    final typeBg = typeColor.withOpacity(0.10);
-    // 👇 color decide karo pehle
-// 👇 type check
-    String type = item.agreementType?.toLowerCase() ?? "";
+    final cardBg =
+    isDark ? const Color(0xFFFFFFFF) : const Color(0xFF1E1E2C);
 
+    final String type = item.agreementType?.toLowerCase() ?? "";
     Color bgColor;
     IconData iconData;
 
     if (type.contains("police")) {
       bgColor = isDark ? Colors.blue : Colors.red;
-      iconData = Icons.local_police_rounded; // 👮 police icon
+      iconData = Icons.local_police_rounded;
     } else if (type.contains("external")) {
       bgColor = Colors.purple;
-      iconData = Icons.description_rounded; // 📄 external agreement
+      iconData = Icons.description_rounded;
     } else {
       bgColor = const Color(0xFF7C3AED);
-      iconData = Icons.article_rounded; // default
+      iconData = Icons.article_rounded;
     }
+
     return Container(
       margin: EdgeInsets.symmetric(
         vertical: 6,
@@ -1477,57 +1221,45 @@ class _AgreementCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            // ── Header ───────────────────────────────────────────────────────
+            // ── Header ────────────────────────────────────────────────
             Row(
               children: [
-                // Serial + Type — Flexible taake ID badge push na ho
                 Expanded(
-                  child: Row(
-                    children: [
-                      Flexible(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: isDark ? bgColor : bgColor,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                iconData,
-                                size: 14,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(width: 5),
-                              Flexible(
-                                child: Text(
-                                  (item.agreementType?.isNotEmpty == true
-                                      ? item.agreementType!
-                                      : "GENERAL AGREEMENT")
-                                      .toUpperCase(),
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ),
-                            ],
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: bgColor,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(iconData, size: 14, color: Colors.white),
+                        const SizedBox(width: 5),
+                        Flexible(
+                          child: Text(
+                            (item.agreementType?.isNotEmpty == true
+                                ? item.agreementType!
+                                : "GENERAL AGREEMENT")
+                                .toUpperCase(),
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                              letterSpacing: 0.5,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                // ID badge
                 Container(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: isDark ? Colors.yellow : Colors.green,
                     borderRadius: BorderRadius.circular(8),
@@ -1536,7 +1268,8 @@ class _AgreementCard extends StatelessWidget {
                     "ID: ${item.id}",
                     style: TextStyle(
                       fontSize: 12,
-                      color: isDark ? Colors.black : Colors.white70,
+                      color:
+                      isDark ? Colors.black : Colors.white70,
                     ),
                   ),
                 ),
@@ -1545,11 +1278,16 @@ class _AgreementCard extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            // ── Owner & Tenant ───────────────────────────────────────────────
-            _CardDetailRow(label: "Owner:", value: item.ownerName, isDark: isDark),
-            _CardDetailRow(label: "Tenant:", value: item.tenantName, isDark: isDark),
+            // ── Owner & Tenant ────────────────────────────────────────
+            _CardDetailRow(
+                label: "Owner:",
+                value: item.ownerName,
+                isDark: isDark),
+            _CardDetailRow(
+                label: "Tenant:",
+                value: item.tenantName,
+                isDark: isDark),
 
-            // ── Rent / Shifting / Renewal ────────────────────────────────────
             if (!isPolice) ...[
               _CardDetailRow(
                 label: "Rent:",
@@ -1564,7 +1302,9 @@ class _AgreementCard extends StatelessWidget {
               ),
               _CardDetailRow(
                 label: "Renewal Date:",
-                value: renewalDate != null ? _formatDate(renewalDate) : '--',
+                value: renewalDate != null
+                    ? _formatDate(renewalDate)
+                    : '--',
                 isDark: isDark,
                 valueColor: _renewalColor(),
               ),
@@ -1573,11 +1313,13 @@ class _AgreementCard extends StatelessWidget {
             const SizedBox(height: 12),
             Divider(
               height: 1,
-              color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+              color: isDark
+                  ? Colors.grey.shade300
+                  : Colors.grey.shade700,
             ),
             const SizedBox(height: 12),
 
-            // ── Payment & Office Status ──────────────────────────────────────
+            // ── Status Row ────────────────────────────────────────────
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1593,7 +1335,9 @@ class _AgreementCard extends StatelessWidget {
                 Flexible(
                   child: _StatusTick(
                     label: "Office",
-                    sublabel: officeReceived ? "Delivered" : "Not Delivered",
+                    sublabel: officeReceived
+                        ? "Delivered"
+                        : "Not Delivered",
                     done: officeReceived,
                     activeColor: Colors.lightBlueAccent,
                     isDark: isDark,
@@ -1605,11 +1349,13 @@ class _AgreementCard extends StatelessWidget {
             const SizedBox(height: 12),
             Divider(
               height: 1,
-              color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
+              color: isDark
+                  ? Colors.grey.shade300
+                  : Colors.grey.shade700,
             ),
             const SizedBox(height: 12),
 
-            // ── Field Worker + Cost ──────────────────────────────────────────
+            // ── Field Worker + Cost ───────────────────────────────────
             Row(
               children: [
                 Expanded(
@@ -1627,7 +1373,9 @@ class _AgreementCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 12,
-                            color: isDark ? Colors.black : Colors.white70,
+                            color: isDark
+                                ? Colors.black
+                                : Colors.white70,
                           ),
                         ),
                       ),
@@ -1647,7 +1395,7 @@ class _AgreementCard extends StatelessWidget {
 
             const SizedBox(height: 8),
 
-            // ── Date + Floor ─────────────────────────────────────────────────
+            // ── Date + Floor ──────────────────────────────────────────
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1658,8 +1406,8 @@ class _AgreementCard extends StatelessWidget {
                     style: TextStyle(
                       fontStyle: FontStyle.italic,
                       fontSize: 12,
-                      color: isDark ? Colors.black: Colors.white60,
-
+                      color:
+                      isDark ? Colors.black : Colors.white60,
                     ),
                   ),
                 ),
@@ -1677,7 +1425,7 @@ class _AgreementCard extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            // ── Mark Office Received / View Details ──────────────────────────
+            // ── Mark Office / View Details ────────────────────────────
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -1689,7 +1437,10 @@ class _AgreementCard extends StatelessWidget {
                           horizontal: 14, vertical: 7),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFF7C3AED), Color(0xFFEC4899)],
+                          colors: [
+                            Color(0xFF7C3AED),
+                            Color(0xFFEC4899)
+                          ],
                         ),
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -1704,7 +1455,7 @@ class _AgreementCard extends StatelessWidget {
                     ),
                   )
                 else
-                  Row(
+                  const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
@@ -1712,11 +1463,11 @@ class _AgreementCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
-                          color: const Color(0xFF7C3AED),
+                          color: Color(0xFF7C3AED),
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      const Icon(
+                      SizedBox(width: 4),
+                      Icon(
                         Icons.arrow_forward_rounded,
                         size: 16,
                         color: Color(0xFF7C3AED),
@@ -1726,7 +1477,7 @@ class _AgreementCard extends StatelessWidget {
               ],
             ),
 
-            // ── Missing Badges ───────────────────────────────────────────────
+            // ── Missing Badges ────────────────────────────────────────
             if ((item.withPolice == "true" &&
                 (item.policeVerificationPdf.isEmpty ||
                     item.policeVerificationPdf == 'null')) ||
@@ -1746,7 +1497,8 @@ class _AgreementCard extends StatelessWidget {
                   if (!isPolice &&
                       (item.notaryImg.isEmpty ||
                           item.notaryImg == 'null'))
-                    const _MissingBadge(label: "Notary Image Missing"),
+                    const _MissingBadge(
+                        label: "Notary Image Missing"),
                 ],
               ),
             ],
@@ -1757,7 +1509,9 @@ class _AgreementCard extends StatelessWidget {
   }
 }
 
-// ── Card Detail Row ───────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// CARD DETAIL ROW
+// ─────────────────────────────────────────────────────────────────────────────
 class _CardDetailRow extends StatelessWidget {
   final String label;
   final String value;
@@ -1795,8 +1549,8 @@ class _CardDetailRow extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color:
-                valueColor ?? (isDark ? Colors.black : Colors.white70),
+                color: valueColor ??
+                    (isDark ? Colors.black : Colors.white70),
               ),
             ),
           ),
@@ -1806,7 +1560,9 @@ class _CardDetailRow extends StatelessWidget {
   }
 }
 
-// ── Status Tick ───────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// STATUS TICK
+// ─────────────────────────────────────────────────────────────────────────────
 class _StatusTick extends StatelessWidget {
   final String label;
   final String sublabel;
@@ -1850,7 +1606,9 @@ class _StatusTick extends StatelessWidget {
   }
 }
 
-// ── Mini Avatar ───────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// MINI AVATAR
+// ─────────────────────────────────────────────────────────────────────────────
 class _MiniAvatar extends StatelessWidget {
   final Color color;
   final IconData icon;
@@ -1873,7 +1631,9 @@ class _MiniAvatar extends StatelessWidget {
   }
 }
 
-// ── Missing Badge ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// MISSING BADGE
+// ─────────────────────────────────────────────────────────────────────────────
 class _MissingBadge extends StatelessWidget {
   final String label;
   const _MissingBadge({required this.label});

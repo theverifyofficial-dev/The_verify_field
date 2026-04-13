@@ -369,6 +369,8 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
 
   // ── UI Widgets ─────────────────────────────────────────────────────────────
 
+
+  /// Glass container (plain white card)
   Widget _glassContainer({required Widget child, EdgeInsets? padding}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
@@ -378,7 +380,8 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
         color: isDark ? Colors.grey[900]!.withOpacity(0.85) : Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-            color: isDark ? Colors.grey[700]! : Colors.grey.shade200, width: 1),
+            color: isDark ? Colors.grey[700]! : Colors.grey.shade200,
+            width: 1),
         boxShadow: isDark
             ? []
             : [
@@ -392,19 +395,22 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     );
   }
 
+  /// Colored section card with gradient title bar
   Widget _sectionCard(
       {required String title, required List<Widget> children}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = _sectionThemes[title];
 
-    final visibleChildren =
-    children.where((c) => c is! SizedBox || (c.height ?? 0) > 0).toList();
+    final visibleChildren = children
+        .where((c) => c is! SizedBox || (c.height ?? 0) > 0)
+        .toList();
     if (visibleChildren.isEmpty) return const SizedBox.shrink();
 
     final titleBg = theme?.titleBg ?? const Color(0xFF4CA1FF);
     final titleText = theme?.titleText ?? Colors.white;
     final borderColor = theme?.borderColor ?? const Color(0xFF4CA1FF);
-    final cardBg = isDark ? Colors.white : (theme?.cardBg ?? Colors.white);
+    final cardBg =
+    isDark ? Colors.white : (theme?.cardBg ?? Colors.white);
     final icon = theme?.icon ?? Icons.info_outline;
 
     return Padding(
@@ -413,8 +419,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
         decoration: BoxDecoration(
           color: cardBg,
           borderRadius: BorderRadius.circular(14),
-          border:
-          Border.all(color: borderColor.withOpacity(0.4), width: 1.2),
+          border: Border.all(color: borderColor.withOpacity(0.4), width: 1.2),
           boxShadow: isDark
               ? []
               : [
@@ -427,7 +432,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title bar
+            // ── Colored Title Bar ──
             Container(
               padding:
               const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -440,21 +445,26 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                 children: [
                   Icon(icon, size: 18, color: titleText),
                   const SizedBox(width: 8),
-                  Text(title,
-                      style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: titleText,
-                          letterSpacing: 0.2)),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: titleText,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
                 ],
               ),
             ),
-            // Body
+
+            // ── Content ──
             Padding(
               padding: const EdgeInsets.all(14),
               child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: visibleChildren),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: visibleChildren,
+              ),
             ),
           ],
         ),
@@ -462,8 +472,9 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     );
   }
 
-  Widget _kv(String k, String? v) {
-    if (v == null || v.trim().isEmpty) return const SizedBox.shrink();
+  Widget _kv(String k, dynamic v) {
+    final value = v?.toString().trim() ?? "";
+    if (value.isEmpty) return const SizedBox.shrink();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final icon = _fieldIcons[k] ?? Icons.label_outline;
     return Padding(
@@ -486,7 +497,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                     color: isDark ? Colors.black87 : Colors.grey[600])),
           ),
           Expanded(
-            child: Text(v,
+            child: Text(value,
                 style: TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 13,
@@ -497,128 +508,203 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     );
   }
 
-  Widget _kvRow(String k1, dynamic v1, String k2, dynamic v2) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        children: [
-          Expanded(child: _kvSingle(k1, v1)),
-          const SizedBox(width: 4),
-          Expanded(child: _kvSingle(k2, v2)),
-        ],
-      ),
-    );
-  }
-
-  Widget _kvSingle(String k, dynamic v) {
-    final value = v?.toString().trim() ?? "";
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final icon = _fieldIcons[k] ?? Icons.label_outline;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 12, color: Colors.black87),
-            const SizedBox(width: 4),
-            Text(k,
-                style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? Colors.black87 : Colors.black87)),
-          ],
-        ),
-        const SizedBox(height: 2),
-        Text(value.isEmpty ? "—" : value,
-            style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: isDark ? Colors.black87 : Colors.black87)),
-      ],
-    );
-  }
-
-  Widget _kvFull(String k, dynamic v) {
+  Widget _hk(String k, dynamic v) {
     final value = v?.toString().trim() ?? "";
     if (value.isEmpty) return const SizedBox.shrink();
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final icon = _fieldIcons[k] ?? Icons.label_outline;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Column(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(icon,
-                  size: 12,
-                  color: isDark ? Colors.black87 : Colors.grey[900]),
-              const SizedBox(width: 4),
-              Text(k,
-                  style: TextStyle(
-                      fontSize: 11,
-                      color: isDark ? Colors.black87 : Colors.grey[900])),
-            ],
+          Padding(
+            padding: const EdgeInsets.only(top: 1, right: 8),
+            child: Icon(icon,
+                size: 16,
+                color: isDark ? Colors.grey[900] : Colors.grey[500]),
           ),
-          const SizedBox(height: 2),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: isDark ? Colors.black87 : Colors.grey[900])),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('$k:',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: isDark ? Colors.black87 : Colors.grey[600])),
+                const SizedBox(height: 2),
+                Text(value,
+                    style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 13,
+                        color: isDark ? Colors.black : Colors.black87),
+                    softWrap: true),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _kvHighlight(String k, dynamic v) {
+  Widget _vkCompact(String k, dynamic v) {
     final value = v?.toString().trim() ?? "";
     if (value.isEmpty) return const SizedBox.shrink();
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF7C3AED), Color(0xFF9333EA)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-              color: const Color(0xFF7C3AED).withOpacity(0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 3))
-        ],
-      ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final icon = _fieldIcons[k] ?? Icons.label_outline;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.calendar_today, size: 16, color: Colors.white),
-          const SizedBox(width: 8),
-          Text('$k:',
-              style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white70)),
-          const SizedBox(width: 8),
-          Text(value,
-              style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white)),
+          Padding(
+            padding: const EdgeInsets.only(top: 1, right: 8),
+            child: Icon(icon,
+                size: 16,
+                color: isDark ? Colors.grey[900] : Colors.grey[500]),
+          ),
+          SizedBox(
+            width: 130,
+            child: Text('$k:',
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: isDark ? Colors.black87 : Colors.grey[600])),
+          ),
+          Container(
+            padding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                  colors: [Color(0xFF42cbf5), Colors.white]),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                    color: const Color(0xFF16A34A).withOpacity(0.25),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2))
+              ],
+            ),
+            child: Text(value,
+                style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: Colors.black)),
+          ),
         ],
       ),
     );
   }
 
-  Widget _kvAmount(String k, String? v) {
-    final raw = v?.toString().trim() ?? "";
+  Widget _vAmount(String k, dynamic v) {
+    final value = v?.toString().trim() ?? "";
+    if (value.isEmpty) return const SizedBox.shrink();
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final icon = _fieldIcons[k] ?? Icons.label_outline;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 1, right: 8),
+            child: Icon(icon,
+                size: 16,
+                color: isDark ? Colors.grey[900] : Colors.grey[500]),
+          ),
+          SizedBox(
+            width: 130,
+            child: Text('$k:',
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: isDark ? Colors.black87 : Colors.grey[600])),
+          ),
+          Container(
+            padding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                  colors: [Color(0xFFf071c7), Colors.white]),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                    color: const Color(0xFF16A34A).withOpacity(0.25),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2))
+              ],
+            ),
+            child: Text(value,
+                style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                    color: Colors.black)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _kCompact(String k, dynamic v) {
+    final value = v?.toString().trim() ?? "";
+    if (value.isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final icon = _fieldIcons[k] ?? Icons.label_outline;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 1, right: 8),
+            child: Icon(icon,
+                size: 16,
+                color: isDark ? Colors.grey[900] : Colors.grey[500]),
+          ),
+          SizedBox(
+            width: 130,
+            child: Text('$k:',
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: isDark ? Colors.black87 : Colors.grey[600])),
+          ),
+          Container(
+            padding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                  colors: [Color(0xFF42cbf5), Color(0xFFb471f0)]),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                    color: const Color(0xFF16A34A).withOpacity(0.25),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2))
+              ],
+            ),
+            child: Text(value,
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _kvAmount(String k, dynamic v) {
+    final raw = v?.toString().trim() ?? "";
     final icon = _fieldIcons[k] ?? Icons.currency_rupee;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     Widget leading = Padding(
       padding: const EdgeInsets.only(top: 1, right: 8),
       child: Icon(icon,
-          size: 16, color: isDark ? Colors.grey[900] : Colors.grey[500]),
+          size: 16,
+          color: isDark ? Colors.grey[900] : Colors.grey[500]),
     );
 
     if (raw.isEmpty || raw == 'Not Added') {
@@ -672,7 +758,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
             const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
-                  colors: [Color(0xFF16A34A), Color(0xFF15803D)]),
+                  colors: [Color(0xFF55f2c0), Color(0xFFFFFFFF)]),
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
@@ -685,9 +771,126 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                 style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                    color: Colors.black,
                     letterSpacing: 0.3)),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _kvRow(String k1, dynamic v1, String k2, dynamic v2) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Expanded(child: _kvSingle(k1, v1)),
+          const SizedBox(width: 4),
+          Expanded(child: _kvSingle(k2, v2)),
+        ],
+      ),
+    );
+  }
+
+  Widget _kvFull(String k, dynamic v) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final icon = _fieldIcons[k] ?? Icons.label_outline;
+    final value = v?.toString().trim() ?? "";
+    if (value.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon,
+                  size: 12,
+                  color: isDark ? Colors.black87 : Colors.grey[900]),
+              const SizedBox(width: 4),
+              Text(k,
+                  style: TextStyle(
+                      fontSize: 11,
+                      color: isDark ? Colors.black87 : Colors.grey[900])),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.black87 : Colors.grey[900])),
+        ],
+      ),
+    );
+  }
+
+  Widget _kvSingle(String k, dynamic v) {
+    final value = v?.toString().trim() ?? "";
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final icon = _fieldIcons[k] ?? Icons.label_outline;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 12, color: Colors.black87),
+            const SizedBox(width: 4),
+            Text(k,
+                style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? Colors.black87 : Colors.black87)),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(value.isEmpty ? "—" : value,
+            style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.black87 : Colors.black87)),
+      ],
+    );
+  }
+
+  Widget _kvCompact(String k, dynamic v, IconData iconData) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final value = v?.toString().trim() ?? "";
+    if (value.isEmpty) return const SizedBox.shrink();
+    return Container(
+      margin: const EdgeInsetsDirectional.only(end: 15, bottom: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey[200] : Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isDark ? Colors.grey[400]! : Colors.grey[300]!,
+          width: 2.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2)),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Icon(iconData, size: 14, color: Colors.grey[600]),
+          // Text('$k',
+          //   style: TextStyle(
+          //       fontSize: 13,
+          //       fontWeight: FontWeight.w100,
+          //       color: isDark ? Colors.black87 : Colors.black87),
+          // ),
+          const SizedBox(width: 4),
+          Text(value,
+              style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w100,
+                  color: isDark ? Colors.black87 : Colors.black87),
+              softWrap: true),
+
         ],
       ),
     );
@@ -709,11 +912,10 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                 color: isDark ? Colors.black87 : Colors.grey[600])),
         const SizedBox(width: 6),
         Container(
-          padding:
-          const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-                colors: [Color(0xFF16A34A), Color(0xFF15803D)]),
+                colors: [Color(0xFFeff542), Color(0xFFf59342)]),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -722,41 +924,59 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                   offset: const Offset(0, 2))
             ],
           ),
-          child: Text(value,
+          child:
+          Text(value,
               style: const TextStyle(
                   fontSize: 13,
-                  fontWeight: FontWeight.w100,
-                  color: Colors.white)),
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black)),
         ),
       ],
     );
   }
 
-  Widget _kvCompact(String k, dynamic v, IconData iconData) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _kvHighlight(String k, dynamic v) {
     final value = v?.toString().trim() ?? "";
     if (value.isEmpty) return const SizedBox.shrink();
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Icon(iconData, size: 14, color: Colors.grey[600]),
-        const SizedBox(width: 6),
-        Text('$k:',
-            style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.black87 : Colors.grey[600])),
-        const SizedBox(width: 6),
-        Text(value,
-            style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w100,
-                color: isDark ? Colors.black87 : Colors.grey[600])),
-      ],
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFeb2f2f), Color(0xFFFFFFFF)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+              color: const Color(0xFF7C3AED).withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 3))
+        ],
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.calendar_today, size: 18, color: Colors.black),
+          const SizedBox(width: 8),
+          Text('$k:',
+              style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black)),
+          const SizedBox(width: 8),
+          Text(value,
+              style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black)),
+        ],
+      ),
     );
   }
 
   Widget _furnitureList(dynamic furnitureData) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (furnitureData == null || furnitureData.toString().trim().isEmpty)
       return const SizedBox.shrink();
     Map<String, dynamic> furnitureMap = {};
@@ -774,9 +994,10 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Furnished Items:',
+          Text('Furnished Items:',
               style:
-              TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+              TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.black87 : Colors.grey[800])),
           const SizedBox(height: 6),
           Wrap(
             spacing: 8,
@@ -804,6 +1025,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     );
   }
 
+  /// Document thumbnail
   Widget _docImage(String? imageUrl) {
     if (imageUrl == null || imageUrl.isEmpty) return const SizedBox.shrink();
     return GestureDetector(
@@ -829,7 +1051,9 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     );
   }
 
-  Widget _buildCard({required String title, required List<Widget> children}) {
+  /// Card wrapper for horizontal scroll
+  Widget _buildCard(
+      {required String title, required List<Widget> children}) {
     return Container(
       width: 400,
       margin: const EdgeInsets.only(right: 20),
@@ -837,6 +1061,32 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     );
   }
 
+  Widget _buildPoliceNotice(List<int> tenants) {
+    final tenantText = tenants.join(', ');
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.redAccent),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline, color: Colors.redAccent),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Police verification required for Tenant(s): $tenantText',
+              style: const TextStyle(
+                  color: Colors.redAccent, fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Pill-shaped stylish button (image-style)
   Widget _pillButton({
     required String label,
     required IconData icon,
@@ -847,14 +1097,16 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     Color? borderColor,
   }) {
     final isDisabled = onPressed == null;
+    final resolvedTextColor = textColor ?? Colors.white;
+    final resolvedIconColor = iconColor ?? Colors.white;
+
     return GestureDetector(
       onTap: isDisabled ? null : onPressed,
       child: AnimatedOpacity(
         opacity: isDisabled ? 0.5 : 1.0,
         duration: const Duration(milliseconds: 200),
         child: Container(
-          padding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             gradient: borderColor == null
                 ? LinearGradient(
@@ -874,24 +1126,28 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                 ? []
                 : [
               BoxShadow(
-                  color: colors.last.withOpacity(0.35),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4))
+                color: colors.last.withOpacity(0.35),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              )
             ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: iconColor ?? Colors.white, size: 20),
+              Icon(icon, color: resolvedIconColor, size: 20),
               const SizedBox(width: 8),
               Flexible(
-                child: Text(label,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: textColor ?? Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 13,
-                        height: 1.3)),
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: resolvedTextColor,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    height: 1.3,
+                  ),
+                ),
               ),
             ],
           ),
@@ -899,7 +1155,6 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
       ),
     );
   }
-
   // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
@@ -984,12 +1239,15 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
 
             const SizedBox(height: 16),
 
-            const SizedBox(height: 20),
-
             if (policeTenants.isNotEmpty)
               _buildPoliceNotice(policeTenants),
+
+            const SizedBox(height: 20),
+
+            // if (policeTenants.isNotEmpty)
+            //   _buildPoliceNotice(policeTenants),
             // ── Police notice ──
-            if (withPolice) _buildPoliceNotice(),
+            if (withPolice) _buildPoliceNotice(policeTenants),
 
             const SizedBox(height: 12),
 
@@ -998,13 +1256,27 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
 
             // ── Horizontal section cards ──
             SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+              scrollDirection: Axis.vertical,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Row(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Agreement Details
                   if (!isPolice)
+
+                    _buildCard(
+                      title: "Owner Details",
+                      children: [
+                        _kvRow("Owner Name", agreement?["owner_name"],
+                            "Relation",
+                            "${agreement?["owner_relation"] ?? ""} ${agreement?["relation_person_name_owner"] ?? ""}"),
+                        _kvFull("Address",
+                            agreement?["parmanent_addresss_owner"]),
+                        _kvRow("Mobile", agreement?["owner_mobile_no"],
+                            "Aadhar", agreement?["owner_addhar_no"]),
+                      ],
+                    ),
+
                     _buildCard(
                       title: "Agreement Details",
                       children: [
@@ -1066,24 +1338,6 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                       ],
                     ),
 
-                  // Owner Details
-                  _buildCard(
-                    title: "Owner Details",
-                    children: [
-                      _kvRow("Owner Name", agreement?["owner_name"],
-                          "Relation",
-                          "${agreement?["owner_relation"] ?? ""} ${agreement?["relation_person_name_owner"] ?? ""}"),
-                      _kvFull("Address",
-                          agreement?["parmanent_addresss_owner"]),
-                      _kvRow("Mobile", agreement?["owner_mobile_no"],
-                          "Aadhar", agreement?["owner_addhar_no"]),
-                      const SizedBox(height: 8),
-                      Row(children: [
-                        _docImage(agreement?["owner_aadhar_front"]),
-                        _docImage(agreement?["owner_aadhar_back"]),
-                      ]),
-                    ],
-                  ),
 
                   // Tenant / Director Details
                   _buildCard(
@@ -1118,11 +1372,11 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                       ],
 
                       const SizedBox(height: 8),
-                      Row(children: [
-                        _docImage(agreement?["tenant_aadhar_front"]),
-                        _docImage(agreement?["tenant_aadhar_back"]),
-                        _docImage(agreement?["tenant_image"]),
-                      ]),
+                      // Row(children: [
+                      //   _docImage(agreement?["tenant_aadhar_front"]),
+                      //   _docImage(agreement?["tenant_aadhar_back"]),
+                      //   _docImage(agreement?["tenant_image"]),
+                      // ]),
 
                       // Additional tenants inside same card
                       if (additionalTenants.isNotEmpty) ...[
@@ -1300,80 +1554,6 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     );
   }
 
-  // ── Sub-widgets ────────────────────────────────────────────────────────────
-
-  Widget _buildPoliceNotice(List<int> tenants) {
-    final tenantText = tenants.join(', ');
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.red.shade50,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.redAccent),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.info_outline, color: Colors.redAccent),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              'Note: Police verification must be created by Admin for this agreement.',
-              style: TextStyle(
-                  color: Colors.redAccent, fontWeight: FontWeight.w600),
-              'Police verification required for Tenant(s): $tenantText',
-              style: const TextStyle(
-                color: Colors.redAccent,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> fetchPropertyCard() async {
-    final propertyId = agreement?["property_id"];
-    if (propertyId == null || propertyId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Enter Property ID first")),
-      );
-      return;
-    }
-
-    try {
-      final response = await http.post(
-        Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
-        body: {"P_id": propertyId},
-      );
-
-      if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
-
-        if (json['status'] == "success") {
-          final data = json['data'];
-
-          setState(() {
-            propertyCard = _propertyCard(data);
-          });
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(json['message'] ?? "Property not found")),
-          );
-        }
-      }
-    } catch (e) {
-      print("Error: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to fetch property details")),
-      );
-    }
-  }
-
-  Widget _propertyCard(Map<String, dynamic> data) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
 
   Widget _buildPropertyCard(Map<String, dynamic> data) {
@@ -1545,40 +1725,40 @@ class ElevatedGradientButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onPressed;
   const ElevatedGradientButton(
-      {required this.text,
-        required this.icon,
-        required this.onPressed,
-        super.key});
+  {required this.text,
+  required this.icon,
+  required this.onPressed,
+  super.key});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-              colors: [Color(0xFF4CA1FF), Color(0xFF8A5CFF)]),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withOpacity(0.18),
-                blurRadius: 16,
-                offset: const Offset(0, 8))
-          ],
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 18),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: Colors.white),
-            const SizedBox(width: 12),
-            Text(text,
-                style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.w600)),
-          ],
-        ),
-      ),
-    );
+  return GestureDetector(
+  onTap: onPressed,
+  child: Container(
+  height: 48,
+  decoration: BoxDecoration(
+  gradient: const LinearGradient(
+  colors: [Color(0xFF4CA1FF), Color(0xFF8A5CFF)]),
+  borderRadius: BorderRadius.circular(12),
+  boxShadow: [
+  BoxShadow(
+  color: Colors.black.withOpacity(0.18),
+  blurRadius: 16,
+  offset: const Offset(0, 8))
+  ],
+  ),
+  padding: const EdgeInsets.symmetric(horizontal: 18),
+  child: Row(
+  mainAxisSize: MainAxisSize.min,
+  children: [
+  Icon(icon, color: Colors.white),
+  const SizedBox(width: 12),
+  Text(text,
+  style: const TextStyle(
+  color: Colors.white, fontWeight: FontWeight.w600)),
+  ],
+  ),
+  ),
+  );
   }
-}
+  }

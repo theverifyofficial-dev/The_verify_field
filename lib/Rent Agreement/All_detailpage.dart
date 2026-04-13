@@ -1004,8 +1004,8 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
       }
     }
 
-    final bool isPolice =
-        agreement?["agreement_type"] == "Police Verification";
+    // final bool isPolice =
+    //     agreement?["agreement_type"] == "Police Verification";
     final withPolice = agreement?['is_Police']?.toString() == "true";
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bool paymentDone =
@@ -1088,28 +1088,28 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
             if (policeTenants.isNotEmpty)
               _buildPoliceNotice(policeTenants),
             // ── Police note ──
-            if (withPolice)
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.redAccent)),
-                child: Row(
-                  children: const [
-                    Icon(Icons.info_outline, color: Colors.redAccent),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Note: Police verification must be created by Admin for this agreement.',
-                        style: TextStyle(
-                            color: Colors.redAccent,
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            // if (withPolice)
+            //   Container(
+            //     padding: const EdgeInsets.all(12),
+            //     decoration: BoxDecoration(
+            //         color: Colors.red.shade50,
+            //         borderRadius: BorderRadius.circular(10),
+            //         border: Border.all(color: Colors.redAccent)),
+            //     child: Row(
+            //       children: const [
+            //         Icon(Icons.info_outline, color: Colors.redAccent),
+            //         SizedBox(width: 8),
+            //         Expanded(
+            //           child: Text(
+            //             'Note: Police verification must be created by Admin for this agreement.',
+            //             style: TextStyle(
+            //                 color: Colors.redAccent,
+            //                 fontWeight: FontWeight.w600),
+            //           ),
+            //         ),
+            //       ],
+            //     ),
+            //   ),
 
             const SizedBox(height: 20),
 
@@ -1441,13 +1441,13 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
   }
 
   // ── Property Card ──────────────────────────
-  Widget _buildCard({required String title, required List<Widget> children}) {
-    return Container(
-      width: 300,
-      margin: const EdgeInsets.only(right: 20),
-      child: _sectionCard(title: title, children: children),
-    );
-  }
+  // Widget _buildCard({required String title, required List<Widget> children}) {
+  //   return Container(
+  //     width: 300,
+  //     margin: const EdgeInsets.only(right: 20),
+  //     child: _sectionCard(title: title, children: children),
+  //   );
+  // }
 
   Widget _statusCard({
     required String title,
@@ -1526,41 +1526,41 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
 
 
 
-  Widget _docImage(String? imageUrl) {
-    if (imageUrl == null || imageUrl.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ImagePreviewScreen(
-              imageUrl:
-              'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$imageUrl',
-            ),
-          ),
-        );
-      },
-      child: Container(
-        width: 120,
-        height: 120,
-        margin: const EdgeInsets.only(right: 12),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(10),
-          child: Image.network(
-            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$imageUrl",
-            width: 160,   // force same as container
-            height: 120,  // force same as container
-            fit: BoxFit.cover, // ensures full fill
-            errorBuilder: (context, error, stackTrace) =>
-            const SizedBox.shrink(), // Hide if image fails to load
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _docImage(String? imageUrl) {
+  //   if (imageUrl == null || imageUrl.isEmpty) {
+  //     return const SizedBox.shrink();
+  //   }
+  //
+  //   return GestureDetector(
+  //     onTap: () {
+  //       Navigator.push(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (_) => ImagePreviewScreen(
+  //             imageUrl:
+  //             'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$imageUrl',
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //     child: Container(
+  //       width: 120,
+  //       height: 120,
+  //       margin: const EdgeInsets.only(right: 12),
+  //       child: ClipRRect(
+  //         borderRadius: BorderRadius.circular(10),
+  //         child: Image.network(
+  //           "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$imageUrl",
+  //           width: 160,   // force same as container
+  //           height: 120,  // force same as container
+  //           fit: BoxFit.cover, // ensures full fill
+  //           errorBuilder: (context, error, stackTrace) =>
+  //           const SizedBox.shrink(), // Hide if image fails to load
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget _buildPoliceNotice(List<int> tenants) {
     final tenantText = tenants.join(', ');
@@ -1591,55 +1591,52 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
   }
 
 
-  _launchURL(String pdf_url) async {
-    final Uri url = Uri.parse(pdf_url);
-    if (!await launchUrl(url)) {
-      throw Exception('Could not launch $url');
-    }
-  }
-
-
-  Widget? propertyCard;
-
-
-  Future<void> fetchPropertyCard() async {
-    final propertyId = agreement?["property_id"];
-    if (propertyId == null || propertyId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Property ID not found")),
-      );
-      return;
-    }
-
-    try {
-      final response = await http.post(
-        Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
-        body: {"P_id": propertyId},
-      );
-
-      if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
-
-        if (json['status'] == "success") {
-          final data = json['data'];
-
-          setState(() {
-            propertyCard = _propertyCard(data);
-          });
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(json['message'] ?? "Property not found")),
-          );
-        }
-      }
-    } catch (e) {
-      print("Error: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to fetch property details")),
-      );
-    }
-  }
-
+//   _launchURL(String pdf_url) async {
+//     final Uri url = Uri.parse(pdf_url);
+//     if (!await launchUrl(url)) {
+//       throw Exception('Could not launch $url');
+//     }
+//   }
+//
+//
+//   Future<void> fetchPropertyCard() async {
+//     final propertyId = agreement?["property_id"];
+//     if (propertyId == null || propertyId.isEmpty) {
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         const SnackBar(content: Text("Property ID not found")),
+//       );
+//       return;
+//     }
+//
+//     try {
+//       final response = await http.post(
+//         Uri.parse("https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
+//         body: {"P_id": propertyId},
+//       );
+//
+//       if (response.statusCode == 200) {
+//         final json = jsonDecode(response.body);
+//
+//         if (json['status'] == "success") {
+//           final data = json['data'];
+//
+//           setState(() {
+//             propertyCard = _propertyCard(data);
+//           });
+//         } else {
+//           ScaffoldMessenger.of(context).showSnackBar(
+//             SnackBar(content: Text(json['message'] ?? "Property not found")),
+//           );
+//         }
+//       }
+//     } catch (e) {
+//       print("Error: $e");
+//       ScaffoldMessenger.of(context).showSnackBar(
+//         const SnackBar(content: Text("Failed to fetch property details")),
+//       );
+//     }
+//   }
+//
   Widget _propertyCard(Map<String, dynamic> data) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final String imageUrl =
@@ -1745,134 +1742,4 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
       ),
     );
   }
-}
-
-// ─────────────────────────────────────────────
-//  Top-level helpers
-// ─────────────────────────────────────────────
-
-Widget _statusCard({
-  required String title,
-  required String value,
-  required bool isPositive,
-  String? dateTime,
-}) {
-  String formattedTime = "";
-  if (dateTime != null && dateTime.isNotEmpty) {
-    try {
-      final dt = DateTime.parse(dateTime).toLocal();
-      formattedTime =
-      "${dt.day.toString().padLeft(2, '0')} ${_monthName(dt.month)} ${dt.year}, ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
-    } catch (_) {}
-  }
-  return Container(
-    constraints: const BoxConstraints(minWidth: 160),
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: Colors.grey),
-      color: const Color(0xFF1E1E2C).withOpacity(0.9),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title,
-            style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Colors.white)),
-        const SizedBox(height: 6),
-        Text(value,
-            style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: isPositive ? Colors.green : Colors.red)),
-        if (formattedTime.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(formattedTime,
-              style: const TextStyle(
-                  fontSize: 11,
-                  color: Colors.white,
-                  fontStyle: FontStyle.italic)),
-        ],
-      ],
-    ),
-  );
-}
-
-Widget _actionButton({
-  required IconData icon,
-  required String label,
-  required Color color,
-  required VoidCallback onTap,
-}) {
-  return InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(14),
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: color.withOpacity(0.1),
-        border: Border.all(color: color, width: 1.5),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 6),
-          Text(label,
-              style:
-              TextStyle(fontWeight: FontWeight.w600, color: color)),
-        ],
-      ),
-    ),
-  );
-}
-
-String _monthName(int month) {
-  const months = [
-    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-  ];
-  return months[month - 1];
-}
-
-class ElevatedGradientButton extends StatelessWidget {
-  final String text;
-  final IconData icon;
-  final VoidCallback onPressed;
-  const ElevatedGradientButton(
-      {required this.text,
-        required this.icon,
-        required this.onPressed,
-        super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-              colors: [Color(0xFF4CA1FF), Color(0xFF8A5CFF)]),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withOpacity(0.18),
-                blurRadius: 16,
-                offset: const Offset(0, 8))
-          ],
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 18),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, color: Colors.white),
-          const SizedBox(width: 12),
-          Text(text,
-              style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.w600)),
-        ]),
-      ),
-    );
-  }
-}
+ }

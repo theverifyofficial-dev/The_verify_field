@@ -1119,7 +1119,6 @@ class _SheetLabel extends StatelessWidget {
         fontSize: 12,
         fontWeight: FontWeight.w700,
         color: c.muted,
-        color: Colors.white70,
         letterSpacing: .2,
       ),
     );

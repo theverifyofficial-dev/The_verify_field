@@ -881,32 +881,130 @@ class _VerificationWizardPageState extends State<VerificationWizardPage> with Ti
   }
 
   Widget _glowTextField({
-    required TextEditingController controller, required String label,
-    TextInputType? keyboard, String? Function(String?)? validator,
-    void Function(String)? onFieldSubmitted, List<TextInputFormatter>? inputFormatters,
-    void Function(String)? onChanged, bool showInWords = false,
+    required TextEditingController controller,
+    required String label,
+    TextInputType? keyboard,
+    String? Function(String?)? validator,
+    void Function(String)? onFieldSubmitted,
+    List<TextInputFormatter>? inputFormatters,
+    void Function(String)? onChanged,
+    bool readOnly = false,
+    bool enabled = true,
+    bool showInWords = false,
   }) {
-    return StatefulBuilder(builder: (context, setState) {
-      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Focus(child: Builder(builder: (contextField) {
-          final hasFocus = Focus.of(contextField).hasPrimaryFocus;
-          return AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            decoration: BoxDecoration(
-                boxShadow: hasFocus ? [BoxShadow(color: Theme.of(context).colorScheme.primary.withOpacity(0.14), blurRadius: 14, spreadRadius: 1)] : null,
-                borderRadius: BorderRadius.circular(12)),
-            child: TextFormField(
-                controller: controller, keyboardType: keyboard,
-                textCapitalization: TextCapitalization.characters, validator: validator,
-                onFieldSubmitted: onFieldSubmitted, inputFormatters: inputFormatters,
+    return StatefulBuilder(
+      builder: (context, setState) {
+        final isEmpty = controller.text.trim().isEmpty;
+        return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Focus(child: Builder(builder: (contextField) {
+            final hasFocus = Focus.of(contextField).hasPrimaryFocus;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              decoration: BoxDecoration(
+                  boxShadow: hasFocus
+                      ? [BoxShadow(
+                      color: isEmpty
+                          ? Colors.red.withOpacity(0.25)
+                          : Theme.of(context).colorScheme.primary.withOpacity(0.14),
+                      blurRadius: 14, spreadRadius: 1)]
+                      : null,
+                  borderRadius: BorderRadius.circular(12)),
+              child: TextFormField(
+                controller: controller,
+                keyboardType: keyboard,
+                textCapitalization: TextCapitalization.characters,
+                validator: validator,
+                onFieldSubmitted: onFieldSubmitted,
+                inputFormatters: inputFormatters,
+                readOnly: readOnly,
+                enabled: enabled,
                 style: const TextStyle(color: Colors.black),
-                decoration: InputDecoration(labelText: label, labelStyle: const TextStyle(color: Colors.black),
-                    errorMaxLines: 2, errorStyle: const TextStyle(color: Color(0xFFB00020), fontWeight: FontWeight.w600)),
-                onChanged: (v) { if (showInWords) setState(() {}); if (onChanged != null) onChanged(v); }),
-          );
-        })),
-      ]);
-    });
+                decoration: InputDecoration(
+                  labelText: label,
+                  labelStyle: TextStyle(
+                    color: isEmpty ? Colors.red.shade700 : Colors.black,
+                    fontWeight: isEmpty ? FontWeight.w600 : FontWeight.normal,
+                  ),
+                  floatingLabelBehavior: FloatingLabelBehavior.auto,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  filled: true,
+                  fillColor: isEmpty ? Colors.red.shade50 : Colors.grey.shade50,
+                  enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                          color: isEmpty ? Colors.red.shade400 : Colors.grey.shade400,
+                          width: isEmpty ? 1.8 : 1.0)),
+                  focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                          color: isEmpty ? Colors.red.shade600 : Colors.black,
+                          width: 1.8)),
+                  errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.red.shade700, width: 1.8)),
+                  focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.red.shade700, width: 2)),
+                  errorMaxLines: 2,
+                  errorStyle: const TextStyle(color: Color(0xFFB00020), fontWeight: FontWeight.w600),
+                  suffixIcon: isEmpty
+                      ? Icon(Icons.warning_amber_rounded, color: Colors.red.shade400, size: 20)
+                      : const Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
+                ),
+                onChanged: (v) {
+                  setState(() {});
+                  if (onChanged != null) onChanged(v);
+                },
+              ),
+            );
+          })),
+          if (showInWords && controller.text.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4, left: 8),
+              child: Text(
+                  convertToWords(int.tryParse(controller.text.replaceAll(',', '')) ?? 0),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            ),
+        ]);
+      },
+    );
+  }
+  String convertToWords(int number) {
+    if (number == 0) return 'Zero';
+
+    final ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+    final teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    final tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+    String twoDigits(int n) {
+      if (n < 10) return ones[n];
+      if (n < 20) return teens[n - 10];
+      return '${tens[n ~/ 10]} ${ones[n % 10]}'.trim();
+    }
+
+    String threeDigits(int n) {
+      int hundred = n ~/ 100;
+      int rest = n % 100;
+      String result = '';
+      if (hundred > 0) result += '${ones[hundred]} Hundred ';
+      if (rest > 0) result += twoDigits(rest);
+      return result.trim();
+    }
+
+    List<String> parts = [];
+
+    int lakh = number ~/ 100000;
+    number %= 100000;
+    if (lakh > 0) parts.add('${twoDigits(lakh)} Lakh');
+
+    int thousand = number ~/ 1000;
+    number %= 1000;
+    if (thousand > 0) parts.add('${twoDigits(thousand)} Thousand');
+
+    if (number > 0) parts.add(threeDigits(number));
+
+    return parts.join(' ').trim();
   }
 
   Widget _imageTile({File? file, String? url, required String hint}) {

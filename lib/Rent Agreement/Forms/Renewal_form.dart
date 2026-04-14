@@ -2042,64 +2042,117 @@ class _RenewalFormState extends State<RenewalForm>
     bool enabled = true,
     bool showInWords = false,
   }) {
-    return StatefulBuilder(builder: (context, setState) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Focus(
-            child: Builder(builder: (contextField) {
-              final hasFocus = Focus.of(contextField).hasPrimaryFocus;
-              return AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                decoration: BoxDecoration(
-                  boxShadow: hasFocus
-                      ? [
-                    BoxShadow(
-                        color: Colors.purple.withOpacity(0.2),
+    return StatefulBuilder(
+      builder: (context, setState) {
+        final isEmpty = controller.text.trim().isEmpty;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Focus(
+              child: Builder(builder: (contextField) {
+                final hasFocus = Focus.of(contextField).hasPrimaryFocus;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  decoration: BoxDecoration(
+                    boxShadow: hasFocus
+                        ? [
+                      BoxShadow(
+                        color: isEmpty
+                            ? Colors.red.withOpacity(0.25)
+                            : Theme.of(context).colorScheme.primary.withOpacity(0.14),
                         blurRadius: 14,
-                        spreadRadius: 1)
-                  ]
-                      : null,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: TextFormField(
-                  controller: controller,
-                  keyboardType: keyboard,
-                  textCapitalization: TextCapitalization.characters,
-                  validator: validator,
-                  readOnly: readOnly,
-                  enabled: enabled,
-                  onFieldSubmitted: onFieldSubmitted,
-                  inputFormatters: inputFormatters,
-                  style: const TextStyle(color: Colors.black),
-                  decoration: InputDecoration(
-                    labelText: label,
-                    labelStyle: const TextStyle(color: Colors.black),
-                    errorMaxLines: 2,
-                    errorStyle: const TextStyle(
-                        color: Color(0xFFB00020),
-                        fontWeight: FontWeight.w600),
+                        spreadRadius: 1,
+                      )
+                    ]
+                        : null,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  onChanged: (v) {
-                    if (showInWords) setState(() {});
-                    if (onChanged != null) onChanged(v);
-                  },
-                ),
-              );
-            }),
-          ),
-          if (showInWords && controller.text.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4, left: 8),
-              child: Text(
-                convertToWords(
-                    int.tryParse(controller.text.replaceAll(',', '')) ?? 0),
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
+                  child: TextFormField(
+                    controller: controller,
+                    keyboardType: keyboard,
+                    textCapitalization: TextCapitalization.characters,
+                    validator: validator,
+                    onFieldSubmitted: onFieldSubmitted,
+                    inputFormatters: inputFormatters,
+                    readOnly: readOnly,
+                    enabled: enabled,
+                    style: const TextStyle(color: Colors.black),
+                    decoration: InputDecoration(
+                      labelText: label,
+                      labelStyle: TextStyle(
+                        // 🔥 label bhi red jab empty
+                        color: isEmpty ? Colors.red.shade700 : Colors.black,
+                        fontWeight: isEmpty ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                      floatingLabelBehavior: FloatingLabelBehavior.auto,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
+                      filled: true,
+                      // 🔥 background bhi halka red jab empty
+                      fillColor: isEmpty
+                          ? Colors.red.shade50
+                          : Colors.grey.shade50,
+
+                      // 🔥 Border: red when empty, normal when filled
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isEmpty ? Colors.red.shade400 : Colors.grey.shade400,
+                          width: isEmpty ? 1.8 : 1.0,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isEmpty ? Colors.red.shade600 : Colors.black,
+                          width: 1.8,
+                        ),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                            color: Colors.red.shade700, width: 1.8),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                            color: Colors.red.shade700, width: 2),
+                      ),
+                      errorMaxLines: 2,
+                      errorStyle: const TextStyle(
+                        color: Color(0xFFB00020),
+                        fontWeight: FontWeight.w600,
+                      ),
+                      // 🔥 suffix icon: red X when empty, green check when filled
+                      suffixIcon: isEmpty
+                          ? Icon(Icons.warning_amber_rounded,
+                          color: Colors.red.shade400, size: 20)
+                          : const Icon(Icons.check_circle_outline,
+                          color: Colors.green, size: 20),
+                    ),
+                    onChanged: (v) {
+                      setState(() {}); // rebuild for color update
+                      if (onChanged != null) onChanged(v);
+                    },
+                  ),
+                );
+              }),
             ),
-        ],
-      );
-    });
+            if (showInWords && controller.text.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4, left: 8),
+                child: Text(
+                  convertToWords(
+                      int.tryParse(controller.text.replaceAll(',', '')) ?? 0),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ),
+          ],
+        );
+      },
+    );
   }
 
   void _showImageFullScreen({File? file, String? url}) {

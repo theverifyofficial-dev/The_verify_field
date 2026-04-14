@@ -213,8 +213,8 @@ import 'package:verify_feild_worker/Administrator/AdminInsurance/Admin_insurance
 
     final Map<String, List<String>> locationWorkerMap = {
       "sultanpur": ["sumit", "ravi", "faizan","avjit"],
-      "rajpur": ["manish", "abhey"],
-      "chattarpur": ["manish", "abhey"],
+      // "rajpur": ["manish", "abhey"],
+      // "chattarpur": ["manish", "abhey"],
     };
 
     String _normalizeLocation(String raw) {
@@ -231,8 +231,6 @@ import 'package:verify_feild_worker/Administrator/AdminInsurance/Admin_insurance
       {"name": "Sumit", "id": "9711775300"},
       {"name": "Ravi", "id": "9711275300"},
       {"name": "Faizan", "id": "9971172204"},
-      {"name": "Manish", "id": "8130209217"},
-      {"name": "Abhey", "id": "9675383184"},
     ];
     bool isLoading = true;
 
@@ -397,7 +395,7 @@ import 'package:verify_feild_worker/Administrator/AdminInsurance/Admin_insurance
               final workerName = worker['name']!;
               final data = workerData[workerName] ?? [];
 
-              if (data.isEmpty) return const SizedBox();
+              if (data.isEmpty) return _buildEmptyState(isDark, workerName);
 
               return _workerSection(
                 workerName: workerName,
@@ -411,16 +409,28 @@ import 'package:verify_feild_worker/Administrator/AdminInsurance/Admin_insurance
       );
     }
 
-    Widget _buildEmptyState(bool isDark) {
-      return Center(
-        child: Text(
-          "No Insurance Records Found",
-          style: TextStyle(
-            fontSize: 16,
-            fontFamily: "PoppinsBold",
-            color: isDark ? Colors.white70 : Colors.black54,
+    Widget _buildEmptyState(bool isDark, String workerName) {
+      return Column(
+        children: [
+
+          SizedBox(height: 10,),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+              "No data for $workerName",
+              style: TextStyle(
+                fontSize: 16,
+                fontFamily: "PoppinsBold",
+                color: isDark ? Colors.white70 : Colors.black54,
+              ),
+                      ),
+            ],
           ),
-        ),
+          SizedBox(height: 10,),
+
+        ]
       );
     }
 

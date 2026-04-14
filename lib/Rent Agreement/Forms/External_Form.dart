@@ -1923,15 +1923,15 @@ class _ExternalWizardPageState extends State<ExternalWizardPage> with TickerProv
     String? Function(String?)? validator,
     void Function(String)? onFieldSubmitted,
     List<TextInputFormatter>? inputFormatters,
-    void Function(String)? onChanged,  // <- add this
-    // 🔒 NEW (for system-generated fields)
+    void Function(String)? onChanged,
     bool readOnly = false,
     bool enabled = true,
-
-    bool showInWords = false, // ✅ define default here
+    bool showInWords = false,
   }) {
     return StatefulBuilder(
       builder: (context, setState) {
+        final isEmpty = controller.text.trim().isEmpty;
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1944,12 +1944,12 @@ class _ExternalWizardPageState extends State<ExternalWizardPage> with TickerProv
                     boxShadow: hasFocus
                         ? [
                       BoxShadow(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withOpacity(0.14),
-                          blurRadius: 14,
-                          spreadRadius: 1)
+                        color: isEmpty
+                            ? Colors.red.withOpacity(0.25)
+                            : Theme.of(context).colorScheme.primary.withOpacity(0.14),
+                        blurRadius: 14,
+                        spreadRadius: 1,
+                      )
                     ]
                         : null,
                     borderRadius: BorderRadius.circular(12),
@@ -1957,26 +1957,71 @@ class _ExternalWizardPageState extends State<ExternalWizardPage> with TickerProv
                   child: TextFormField(
                     controller: controller,
                     keyboardType: keyboard,
-                    textCapitalization: TextCapitalization.characters, // <-- make all letters uppercase
+                    textCapitalization: TextCapitalization.characters,
                     validator: validator,
                     onFieldSubmitted: onFieldSubmitted,
                     inputFormatters: inputFormatters,
-                    style: const TextStyle(
-                      color: Colors.black, // ✅ make entered text visible (white on black)
-                    ),
-                    decoration: InputDecoration(labelText: label, labelStyle: const TextStyle(
-                      color: Colors.black, // ✅ label text color
-                    ),  errorMaxLines: 2,
+                    readOnly: readOnly,
+                    enabled: enabled,
+                    style: const TextStyle(color: Colors.black),
+                    decoration: InputDecoration(
+                      labelText: label,
+                      labelStyle: TextStyle(
+                        // 🔥 label bhi red jab empty
+                        color: isEmpty ? Colors.red.shade700 : Colors.black,
+                        fontWeight: isEmpty ? FontWeight.w600 : FontWeight.normal,
+                      ),
+                      floatingLabelBehavior: FloatingLabelBehavior.auto,
+                      isDense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 14),
+                      filled: true,
+                      // 🔥 background bhi halka red jab empty
+                      fillColor: isEmpty
+                          ? Colors.red.shade50
+                          : Colors.grey.shade50,
+
+                      // 🔥 Border: red when empty, normal when filled
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isEmpty ? Colors.red.shade400 : Colors.grey.shade400,
+                          width: isEmpty ? 1.8 : 1.0,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                          color: isEmpty ? Colors.red.shade600 : Colors.black,
+                          width: 1.8,
+                        ),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                            color: Colors.red.shade700, width: 1.8),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(
+                            color: Colors.red.shade700, width: 2),
+                      ),
+                      errorMaxLines: 2,
                       errorStyle: const TextStyle(
-                        color: Color(0xFFB00020), // 🔥 darker red
+                        color: Color(0xFFB00020),
                         fontWeight: FontWeight.w600,
                       ),
+                      // 🔥 suffix icon: red X when empty, green check when filled
+                      suffixIcon: isEmpty
+                          ? Icon(Icons.warning_amber_rounded,
+                          color: Colors.red.shade400, size: 20)
+                          : const Icon(Icons.check_circle_outline,
+                          color: Colors.green, size: 20),
                     ),
                     onChanged: (v) {
-                      if (showInWords) setState(() {});
-                      if (onChanged != null) onChanged(v);  // forward to caller
+                      setState(() {}); // rebuild for color update
+                      if (onChanged != null) onChanged(v);
                     },
-
                   ),
                 );
               }),

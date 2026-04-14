@@ -537,7 +537,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
+                          gradient: const LinearGradient(
                             colors: [
                               Colors.blueAccent,
                               Colors.purpleAccent,
@@ -618,7 +618,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                             width: 1.5,
                           ),
                         ),
-                        child: ClipOval(
+                        child: const ClipOval(
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: AnimatedAnalogClock(
@@ -641,7 +641,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                         width: 4,
                         height: 20,
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
+                          gradient: const LinearGradient(
                             colors: [Colors.redAccent, Colors.orangeAccent],
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
@@ -709,7 +709,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                           _enhancedCountBox(
                             "Agreements",
                             todayCounts!.agreements,
-                            LinearGradient(
+                            const LinearGradient(
                               colors: [Colors.redAccent, Colors.orangeAccent],
                             ),
                             Icons.handshake,
@@ -719,7 +719,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                           _enhancedCountBox(
                             "Web Visit",
                             todayCounts!.websiteVisits,
-                            LinearGradient(
+                            const LinearGradient(
                               colors: [Colors.greenAccent, Colors.tealAccent],
                             ),
                             Icons.travel_explore,
@@ -736,10 +736,10 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
 
                   Row(
-                    children: [
-                      Icon(Icons.calendar_today, color: Colors.blueAccent, size: 16),
+                       children: [
+                         const Icon(Icons.calendar_today, color: Colors.blueAccent, size: 16),
                       const SizedBox(width: 8),
-                      Text(
+                         const Text(
                         "Tomorrow",
                         style: const TextStyle(
                           fontFamily: "PoppinsMedium",
@@ -810,7 +810,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                                 Expanded(
                                   child: Text(
                                     event.title,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -858,7 +858,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
                   ] else ...[
                     // NO EVENT UI
-                    Text(
+                    const Text(
                       "No events scheduled",
                       style: TextStyle(
                         fontFamily: "PoppinsMedium",
@@ -1259,8 +1259,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-    final monthlyProgress = (monthlyAchieved / monthlyTarget).clamp(0.0, 1.0);
-    final yearlyProgress = (yearlyAchieved / yearlyTarget).clamp(0.0, 1.0);
     final isTablet = screenWidth > 600;
 
     // Dynamic expanded height to prevent overflow on small screens
@@ -1270,9 +1268,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Dynamic colors based on theme for text
-    final Color welcomeTextColor = isDark ? Colors.white : Colors.black87;
-    final Color scaffoldBackground = isDark ? Color(0xFF0F172A) : Color(0xFFF3F4F6);
+    final Color scaffoldBackground = isDark ? const Color(0xFF0F172A) : const Color(0xFFF3F4F6);
 
     // Enhanced gradients
     final primaryGradient = LinearGradient(
@@ -1321,7 +1317,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         "onTap": () => Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) =>  FuturePropertyTabPage(),
+            builder: (_) => const FuturePropertyTabPage(),
           ),
         ),
         "gradient": cardGradients[2],
@@ -1338,7 +1334,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         "image": AppImages.tenant,
         "title": "Costumer Demand",
         "onTap": () => Navigator.push(context, MaterialPageRoute(
-            builder: (context) => parent_TenandDemand()
+            builder: (context) => const parent_TenandDemand()
         )),
         "gradient": cardGradients[9],
       },
@@ -1431,8 +1427,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                               // App Logo
                               Container(
                                 padding: EdgeInsets.all(screenWidth * 0.03),
-                                decoration: BoxDecoration(
-                                ),
                                 child: Image.asset(AppImages.transparent,
                                     height: (screenWidth * 0.1).clamp(32.0, 45.0)),
                               ),

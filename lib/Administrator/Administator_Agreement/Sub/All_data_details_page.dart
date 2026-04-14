@@ -1442,7 +1442,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                         Row(
                           children: [
                             Expanded(
-                              child: _hkCompact("Agreement Price", agreement?["agreement_price"] ?? "", Icons.home),
+                              child: _hkCompact("Cost", agreement?["agreement_price"] ?? "", Icons.home),
                             ),
                             Expanded(
                               child: _hkCompact("Notary", agreement?["notary_price"] ?? "", Icons.layers),

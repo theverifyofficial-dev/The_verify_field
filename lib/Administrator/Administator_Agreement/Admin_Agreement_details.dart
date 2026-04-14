@@ -1384,7 +1384,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                           children: [
                             Expanded(
                                 child: _hkCompact(
-                                    "Agreement Price",
+                                    "Cost",
                                     agreement?["agreement_price"] ?? "",
                                     Icons.receipt_long_outlined)),
                             Expanded(

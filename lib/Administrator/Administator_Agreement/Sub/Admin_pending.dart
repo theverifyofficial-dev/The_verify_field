@@ -118,7 +118,7 @@ class _AdminPendingState extends State<AdminPending> {
               ),
               child: Text(
                   "ID: ${agreement.id}",
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
                     fontSize: 12,

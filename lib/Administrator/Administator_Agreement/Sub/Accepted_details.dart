@@ -607,11 +607,11 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
       width: double.infinity,
       padding: padding ?? const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? Colors.grey[900]!.withOpacity(0.85) : Colors.white,
+        color: Color(0xFFFFF7ED),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-            color: isDark ? Colors.grey[700]! : Colors.grey.shade200,
-            width: 1),
+            color: const Color(0xFFC2410C)
+                .withOpacity(0.3), width: 1.2),
         boxShadow: isDark
             ? []
             : [
@@ -1451,6 +1451,7 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
   }
 
   Widget _buildTenantCard(String D_or_T) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark; // ← ADD
     return _sectionCard(
       title: "$D_or_T Details",
       children: [
@@ -1480,35 +1481,37 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
             ],
           ],
         ),
-        if (additionalTenants.isNotEmpty) ...[
-          const SizedBox(height: 20),
-          Text("Additional $D_or_T",
-              style: const TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 10),
-          ...List.generate(additionalTenants.length, (index) {
-            final t = additionalTenants[index];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 14),
-              child: _glassContainer(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("$D_or_T ${index + 2}",
-                        style:
-                        const TextStyle(fontWeight: FontWeight.w700)),
-                    const SizedBox(height: 8),
-                    _kvRow("Name", t.name,
-                        "Relation", "${t.relation} ${t.relation_name}"),
-                    _kvFull("Address", t.address),
-                    _kvRow("Mobile", t.mobile,
-                        "Aadhaar", t.aadhaar),
-                    const SizedBox(height: 8),
-                    Wrap(children: [
-                      _docImage(t.front),
-                      _docImage(t.back),
-                      _docImage(t.photo),
-                    ]),
+
+    if (additionalTenants.isNotEmpty) ...[
+      const Divider(height: 24),
+      Text("Additional $D_or_T",
+          style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFFC2410C))), // ← white in dark
+      const SizedBox(height: 10),
+      ...List.generate(additionalTenants.length, (index) {
+        final t = additionalTenants[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 14),
+          child: _glassContainer(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("$D_or_T ${index + 2}",
+                    style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                       color: Color(0xFFC2410C))), // ← fix
+                const SizedBox(height: 8),
+                _kvRow("Name", t.name, "Relation", "${t.relation} ${t.relation_name}"),
+                _kvFull("Address", t.address),
+                _kvRow("Mobile", t.mobile, "Aadhaar", t.aadhaar),
+                const SizedBox(height: 8),
+                Wrap(children: [
+                  _docImage(t.front),
+                  _docImage(t.back),
+                  _docImage(t.photo),
+                ]),
                   ],
                 ),
               ),

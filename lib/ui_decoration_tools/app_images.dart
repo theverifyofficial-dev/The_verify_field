@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class AppImages{
-  static const vehicle = "assets/images/carshundred.png";
   static const documents = "assets/images/Documenthundred.png";
   static const accounts = "assets/images/account.png";
   static const pay = "assets/images/pay.png";

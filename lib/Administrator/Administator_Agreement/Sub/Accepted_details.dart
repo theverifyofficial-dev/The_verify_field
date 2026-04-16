@@ -13,6 +13,7 @@ import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:image/image.dart' as img;
 import '../../../Custom_Widget/Custom_backbutton.dart';
+import '../../../Custom_Widget/Web_veiw.dart';
 import '../../../model/Additional_agreement_tenants.dart';
 import '../../imagepreviewscreen.dart';
 import '../PDFs/Commercial_PDF.dart';
@@ -20,7 +21,6 @@ import '../PDFs/PDF.dart';
 import '../PDFs/furnished pdf.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 
-// ─── Custom Clause Model ──────────────────────────────────────────────────────
 class CustomClause {
   final TextEditingController titleCtrl;
   final TextEditingController subtitleCtrl;
@@ -40,7 +40,6 @@ class CustomClause {
   };
 }
 
-// ─── Section color themes ─────────────────────────────────────────────────────
 class _SectionTheme {
   final Color titleBg;
   final Color titleText;
@@ -115,7 +114,6 @@ final Map<String, _SectionTheme> _sectionThemes = {
   ),
 };
 
-// ─── Field icons ──────────────────────────────────────────────────────────────
 final Map<String, IconData> _fieldIcons = {
   'BHK': Icons.home_outlined,
   'Sqft': Icons.square_foot,
@@ -149,7 +147,6 @@ final Map<String, IconData> _fieldIcons = {
   'Number': Icons.phone_outlined,
 };
 
-// ─── Main Widget ──────────────────────────────────────────────────────────────
 class AcceptedDetails extends StatefulWidget {
   final String agreementId;
   const AcceptedDetails({super.key, required this.agreementId});
@@ -159,7 +156,7 @@ class AcceptedDetails extends StatefulWidget {
 }
 
 class _AcceptedDetailsState extends State<AcceptedDetails> {
-  // ── State ──────────────────────────────────────────────────────────────────
+
   Map<String, dynamic>? agreement;
   bool isLoading = true;
   File? pdfFile;
@@ -242,6 +239,7 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
 
   Future<void> _fetchAgreementDetail() async {
     try {
+      print(widget.agreementId);
       final response = await http.get(Uri.parse(
           "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/details_api_for_accect_agreement.php?id=${widget.agreementId}"));
       if (response.statusCode == 200) {
@@ -491,7 +489,6 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
     }
   }
 
-  // ── PDF Generation ─────────────────────────────────────────────────────────
   Future<void> _handleGeneratePdf() async {
     if (agreement == null) return;
 
@@ -533,7 +530,6 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
     }
   }
 
-  // ── Notary picker ──────────────────────────────────────────────────────────
   void _showNotaryPicker() {
     showModalBottomSheet(
       context: context,
@@ -596,11 +592,6 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  //  UI Helpers
-  // ─────────────────────────────────────────────────────────────────────────
-
-  /// Glass container (plain white card)
   Widget _glassContainer({required Widget child, EdgeInsets? padding}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
@@ -625,9 +616,9 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
     );
   }
 
-  /// Colored section card with gradient title bar
   Widget _sectionCard(
-      {required String title, required List<Widget> children}) {
+      {required String title, required List<Widget> children})
+  {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = _sectionThemes[title];
 
@@ -1266,7 +1257,6 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
     );
   }
 
-  /// Document thumbnail
   Widget _docImage(String? imageUrl) {
     if (imageUrl == null || imageUrl.isEmpty) return const SizedBox.shrink();
     return GestureDetector(
@@ -1291,82 +1281,6 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
       ),
     );
   }
-
-  // Pill-shaped button
-  Widget _pillButton({
-    required String label,
-    required IconData icon,
-    required List<Color> colors,
-    required VoidCallback? onPressed,
-    Color? textColor,
-    Color? iconColor,
-    Color? borderColor,
-  }) {
-    final isDisabled = onPressed == null;
-    final resolvedTextColor = textColor ?? Colors.white;
-    final resolvedIconColor = iconColor ?? Colors.white;
-
-    return GestureDetector(
-      onTap: isDisabled ? null : onPressed,
-      child: AnimatedOpacity(
-        opacity: isDisabled ? 0.5 : 1.0,
-        duration: const Duration(milliseconds: 200),
-        child: Container(
-          padding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: BoxDecoration(
-            gradient: borderColor == null
-                ? LinearGradient(
-              colors: isDisabled
-                  ? [
-                Colors.grey.shade600,
-                Colors.grey.shade700
-              ]
-                  : colors,
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            )
-                : null,
-            color: borderColor != null ? colors[0] : null,
-            borderRadius: BorderRadius.circular(50),
-            border: borderColor != null
-                ? Border.all(color: borderColor, width: 1.5)
-                : null,
-            boxShadow: isDisabled
-                ? []
-                : [
-              BoxShadow(
-                  color: colors.last.withOpacity(0.35),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4))
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, color: resolvedIconColor, size: 20),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                      color: resolvedTextColor,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                      height: 1.3),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  //  Section builders
-  // ─────────────────────────────────────────────────────────────────────────
 
   Widget _buildMainTopSections(String D_or_T) {
     return SingleChildScrollView(
@@ -1550,7 +1464,6 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
     );
   }
 
-  // ─── Custom Clauses UI ────────────────────────────────────────────────────
   Widget _buildCustomClausesSection() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
@@ -1731,7 +1644,6 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
     );
   }
 
-  // ── Property Card ──────────────────────────────────────────────────────────
   Widget _buildPropertyCard(Map<String, dynamic> data) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final String imageUrl =
@@ -1836,9 +1748,7 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  //  Build
-  // ─────────────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -1976,6 +1886,9 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
                     ),
                   ),
                 ),
+                // ── ADD THIS: Launch Portal Button (Police Verification) ──────────────────
+
+// ── END ADD ───────────────────────────────────────────────────────────────
                 if (!isPolice)
                   Expanded(
                     child: Container(
@@ -2001,6 +1914,34 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
                   ),
               ],
             ),
+
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => EStampWebView(stampData: agreement!),
+                    ));
+                  },
+                  icon: const Icon(Icons.launch, color: Colors.white),
+                  label: const Text(
+                    '🌐 Launch E-stamp Portal',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1D4ED8),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
 
             // const SizedBox(height: 30),
 
@@ -2102,8 +2043,6 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
     );
   }
 }
-
-// ─── Helper Widgets ───────────────────────────────────────────────────────────
 
 class ElevatedGradientButton extends StatelessWidget {
   final String text;

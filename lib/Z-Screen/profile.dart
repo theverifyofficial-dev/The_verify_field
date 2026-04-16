@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../APK_VERSION/ApkVersionScreen.dart';
 import 'Login_page.dart';
 import '../model/Profile_model.dart';
-import '../main.dart'; // Import to access ThemeSwitcher
+import '../main.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

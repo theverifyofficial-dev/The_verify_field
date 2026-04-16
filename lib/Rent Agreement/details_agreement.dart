@@ -1361,8 +1361,6 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>
             ),
           ),
 
-          // Rejected ribbon overlay
-          if (isRejected) _diagonalRibbon(true, 'REJECTED'),
         ],
       ),
     );

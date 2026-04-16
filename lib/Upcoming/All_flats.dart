@@ -434,171 +434,194 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
                               child: Container(
                                 margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
 
-                                child: Card(
-                                  elevation: 4, // ✅ elevation added
-                                  shadowColor:  Theme.of(context).brightness == Brightness.dark
-                                      ? Colors.white
-                                      : Colors.black,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.white,
-                                  child:
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Stack(
+                                child: Builder(
+                                  builder: (context) {
+                                    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+                                    final cardColor = isDark ? Colors.white : Colors.black;
+                                    final textColor = isDark ? Colors.black : Colors.white;
+                                    final subTextColor = isDark ? Colors.black54 : Colors.white70;
+
+                                    return Card(
+                                      elevation: 6,
+                                      shadowColor: Colors.black45,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      color: cardColor,
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Container(
-                                            height: 450,
-                                            width: double.infinity,
-                                            decoration: BoxDecoration(
-                                              color: Theme.of(context).highlightColor,
-                                              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                            ),
-                                            child: Image.network(
-                                              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${_filteredProperties[index].propertyPhoto}",
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) => Center(
-                                                child: Icon(Icons.home, size: 50, color: Theme.of(context).hintColor),
-                                              ),
+
+                                          /// 🔹 TOP SECTION
+                                          Padding(
+                                            padding: const EdgeInsets.all(10),
+                                            child: Row(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+
+                                                /// 🔹 IMAGE
+                                                ClipRRect(
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  child: Stack(
+                                                    children: [
+                                                      Image.network(
+                                                        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${_filteredProperties[index].propertyPhoto}",
+                                                        height: 250,
+                                                        width: 120,
+                                                        fit: BoxFit.cover,
+                                                      ),
+
+                                                      Positioned(
+                                                        top: 8,
+                                                        left: 8,
+                                                        child: Container(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                          decoration: BoxDecoration(
+                                                            color: (_filteredProperties[index].buyRent == "Rent")
+                                                                ? Colors.green
+                                                                : Colors.blue,
+                                                            borderRadius: BorderRadius.circular(20),
+                                                          ),
+                                                          child: Text(
+                                                            _filteredProperties[index].buyRent ?? "",
+                                                            style: const TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 12,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+
+                                                const SizedBox(width: 12),
+
+                                                /// 🔹 DETAILS
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+
+                                                      Text(
+                                                        _filteredProperties[index].apartmentAddress ?? "",
+                                                        maxLines: 2,
+                                                        overflow: TextOverflow.ellipsis,
+                                                        style: TextStyle(
+                                                          fontSize: 14,
+                                                          fontWeight: FontWeight.bold,
+                                                          color: textColor,
+                                                        ),
+                                                      ),
+
+                                                      const SizedBox(height: 6),
+
+                                                      Row(
+                                                        children: [
+                                                          const Icon(Icons.location_on, size: 14, color: Colors.red),
+                                                          const SizedBox(width: 4),
+                                                          Text(
+                                                            _filteredProperties[index].locations ?? "",
+                                                            style: TextStyle(color: subTextColor),
+                                                          ),
+                                                        ],
+                                                      ),
+
+                                                      const SizedBox(height: 6),
+
+                                                      Text(
+                                                        "₹ ${_filteredProperties[index].showPrice ?? "-"}",
+                                                        style: const TextStyle(
+                                                          color: Colors.greenAccent,
+                                                          fontWeight: FontWeight.bold,
+                                                        ),
+                                                      ),
+
+                                                      const SizedBox(height: 6),
+
+                                                      Row(
+                                                        children: [
+                                                          const Icon(Icons.bed, size: 14, color: Colors.pink),
+                                                          const SizedBox(width: 4),
+                                                          Text(
+                                                            "${_filteredProperties[index].bhk} BHK",
+                                                            style: TextStyle(color: subTextColor),
+                                                          ),
+
+                                                          const SizedBox(width: 10),
+
+                                                          const Icon(Icons.layers, size: 14, color: Colors.teal),
+                                                          const SizedBox(width: 4),
+                                                          Text(
+                                                            "${_filteredProperties[index].floor} Floor",
+                                                            style: TextStyle(color: subTextColor),
+                                                          ),
+                                                        ],
+                                                      ),
+
+                                                      const SizedBox(height: 6),
+
+                                                      Row(
+                                                        children: [
+                                                          const Icon(Icons.apartment, size: 14, color: Colors.blue),
+                                                          const SizedBox(width: 4),
+                                                          Text(
+                                                            _filteredProperties[index].typeOfProperty ?? "",
+                                                            style: TextStyle(color: subTextColor),
+                                                          ),
+                                                        ],
+                                                      ),
+
+                                                      const SizedBox(height: 6),
+
+                                                      Text(
+                                                        "Flat No: ${_filteredProperties[index].flatNumber}",
+                                                        style: TextStyle(color: subTextColor, fontSize: 12),
+                                                      ),
+
+                                                      Text(
+                                                        "Building ID: ${_filteredProperties[index].pId}",
+                                                        style: TextStyle(color: subTextColor, fontSize: 12),
+                                                      ),
+
+                                                      const SizedBox(height: 6),
+
+                                                      Text(
+                                                        "Added by: ${_filteredProperties[index].fieldWorkerName}",
+                                                        style: TextStyle(color: subTextColor, fontSize: 12),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
-                                          Positioned(
-                                            top: 12,
-                                            right: 12,
-                                            child: Wrap(
-                                              spacing: 8, // space between the two containers
-                                              children: [
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  // icon: Icons.king_bed,
-                                                  text: "${_filteredProperties[index].pId}",
-                                                  borderColor: Colors.red.shade200,
-                                                  backgroundColor: Colors.red.shade50,
-                                                  textColor: Colors.red.shade700,
-                                                  shadowColor: Colors.red.shade100,
-                                                ),  _buildFeatureItem(
-                                                  context: context,
-                                                  // icon: Icons.king_bed,
-                                                  text: _filteredProperties[index].buyRent ?? "Property",
-                                                  borderColor: Colors.blue.shade200,
-                                                  backgroundColor: Colors.blue.shade50,
-                                                  textColor: Colors.blue.shade700,
-                                                  shadowColor: Colors.blue.shade100,
-                                                ),
 
-                                              ],
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(16),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text(
-                                                  "₹${_filteredProperties[index].showPrice??"-"
-                                                      ".0"}"
-                                                  ,
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 20,
-                                                    fontFamily: "PoppinsBold",
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  _filteredProperties[index].locations ?? "",
-                                                  style: TextStyle(
-                                                    fontFamily: "PoppinsBold",
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Wrap(
-                                              spacing: 4, // horizontal spacing between items
-                                              runSpacing: 8, // vertical spacing between lines
-                                              alignment: WrapAlignment.start,
-                                              children: [
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  icon: Icons.king_bed,
-                                                  text: "${_filteredProperties[index].bhk}",
-                                                  borderColor: Colors.purple.shade200,
-                                                  backgroundColor: Colors.purple.shade50,
-                                                  textColor: Colors.purple.shade700,
-                                                  shadowColor: Colors.purple.shade100,
-                                                ),
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  icon: Icons.apartment,
-                                                  text: "${_filteredProperties[index].floor}",
-                                                  borderColor: Colors.teal.shade200,
-                                                  backgroundColor: Colors.teal.shade50,
-                                                  textColor: Colors.teal.shade700,
-                                                  shadowColor: Colors.teal.shade100,
-                                                ),
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  icon: Icons.receipt_rounded,
-                                                  text: "Flat No. ${_filteredProperties[index].flatNumber}",
-                                                  borderColor: Colors.red.shade200,
-                                                  backgroundColor: Colors.red.shade50,
-                                                  textColor: Colors.red.shade700,
-                                                  shadowColor: Colors.red.shade100,
-                                                ),
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  icon: Icons.home_work,
-                                                  text: _filteredProperties[index].typeOfProperty ?? "",
-                                                  borderColor: Colors.orange.shade200,
-                                                  backgroundColor: Colors.orange.shade50,
-                                                  textColor: Colors.orange.shade700,
-                                                  shadowColor: Colors.orange.shade100,
-                                                ),
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  text: " By :${_filteredProperties[index].fieldWorkerName}" ?? "",
-                                                  borderColor: Colors.blue.shade200,
-                                                  backgroundColor: Colors.blue.shade50,
-                                                  textColor: Colors.blue.shade700,
-                                                  shadowColor: Colors.blue.shade100,
-                                                ),
-
-                                              ],
-                                            ),
-                                            if (hasMissingFields) ...[
-                                              SizedBox(height: 20),
-                                              Container(
-                                                width: double.infinity,
-                                                padding : const EdgeInsets.all(10),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.red[50],
-                                                  borderRadius: BorderRadius.circular(10),
-                                                  border: Border.all(color: Colors.redAccent, width: 1),
-                                                ),
-                                                child: Text(
-                                                  "⚠ Missing fields: ${missingFields.join(", ")}",
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.redAccent,
-                                                  ),
+                                          /// 🔴 MISSING FIELD (FULL WIDTH)
+                                          if (hasMissingFields)
+                                            Container(
+                                              width: double.infinity,
+                                              margin: const EdgeInsets.all(10),
+                                              padding: const EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                color: Colors.red,
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                              child: Text(
+                                                "⚠ Missing: ${missingFields.join(", ")}",
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
                                                 ),
                                               ),
-                                            ]
-                                          ],
-                                        ),
+                                            ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
+                                    );
+                                  },
                                 ),
                               ),
                             ),

@@ -279,8 +279,8 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
   Future<void> uploadImageWithTitle(File imageFile) async {
 
     // this is for API current date & available date
-    final DateFormat dateOnlyFormatter = DateFormat('yyyy-MM-dd');
-    final DateFormat dateTimeFormatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+    final DateFormat dateOnlyFormatter = DateFormat('dd-MMMM-yyyy');
+    final DateFormat dateTimeFormatter = DateFormat('dd-MMMM-yyyy HH:mm:ss');
 
     String availableDate = _availableDate != null
         ? dateOnlyFormatter.format(_availableDate!)

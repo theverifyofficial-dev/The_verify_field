@@ -104,7 +104,6 @@ class EditFlatState extends State<EditFlat> {
     autofillFormFields();
     _maintenanceController = TextEditingController();
     getFurnishingStringForApi();
-    // Add listener for _priceController
     _showPrice.addListener(() {
       final input = _showPrice.text.replaceAll(',', '').trim();
       final number = int.tryParse(input);
@@ -156,12 +155,10 @@ class EditFlatState extends State<EditFlat> {
     if (_furnishing == null || _furnishing == 'Unfurnished') {
       return 'Unfurnished';
     } else if (_selectedFurniture.isNotEmpty) {
-      // Only send furniture items for Semi/Fully Furnished
       return _selectedFurniture.entries
           .map((e) => '${e.key} (${e.value})')
           .join(', ');
     } else {
-      // If nothing selected, just send furnishing type
       return _furnishing!;
     }
   }
@@ -172,7 +169,6 @@ class EditFlatState extends State<EditFlat> {
     print('Starting update to: $uploadUrl');
     FormData formData = FormData();
 
-    // ✅ Only attach image if a new one is picked
     if (imageFile != null) {
       formData.files.add(
         MapEntry(
@@ -230,7 +226,6 @@ class EditFlatState extends State<EditFlat> {
       MapEntry("Last_Price", _formattedLastPrice),
       MapEntry("asking_price", _formattedAskingPrice),
       MapEntry("meter", _meter.text),
-      // MapEntry("subid", widget.id),
     ];
 
     formData.fields.addAll(fields);
@@ -272,7 +267,7 @@ class EditFlatState extends State<EditFlat> {
     final Map<String, int> furnitureMap = {};
 
     furnitureString.split(',').forEach((item) {
-      item = item.trim(); // remove extra spaces
+      item = item.trim();
       final match = RegExp(r'(.+)\((\d+)\)').firstMatch(item);
       if (match != null) {
         final name = match.group(1)?.trim() ?? '';
@@ -283,7 +278,7 @@ class EditFlatState extends State<EditFlat> {
       }
     });
 
-  return furnitureMap;
+    return furnitureMap;
   }
 
 
@@ -338,7 +333,6 @@ class EditFlatState extends State<EditFlat> {
       'Sofa Set', 'Dining Table', 'Induction', 'Gas Stove','',
     ];
 
-    // 👇 clone current selection so it shows already selected items ticked
     Map<String, int> tempSelection = Map.from(_selectedFurniture);
 
     showModalBottomSheet(
@@ -367,34 +361,42 @@ class EditFlatState extends State<EditFlat> {
                       child: SingleChildScrollView(
                         child: Column(
                           children: furnitureItems.map((item) {
-                            // 👇 auto-tick if exists in tempSelection
                             final isSelected = tempSelection.containsKey(item);
 
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 8),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Row(
-                                    children: [
-                                      Checkbox(
-                                        activeColor: Colors.blue,
-                                        value: isSelected,
-                                        onChanged: (checked) {
-                                          setModalState(() {
-                                            if (checked == true) {
-                                              tempSelection[item] = 1;
-                                            } else {
-                                              tempSelection.remove(item);
-                                            }
-                                          });
-                                        },
-                                      ),
-                                      Text(item, style: const TextStyle(fontSize: 16)),
-                                    ],
+                                  // ✅ FIX: Flexible wraps checkbox+text to prevent overflow
+                                  Flexible(
+                                    child: Row(
+                                      children: [
+                                        Checkbox(
+                                          activeColor: Colors.blue,
+                                          value: isSelected,
+                                          onChanged: (checked) {
+                                            setModalState(() {
+                                              if (checked == true) {
+                                                tempSelection[item] = 1;
+                                              } else {
+                                                tempSelection.remove(item);
+                                              }
+                                            });
+                                          },
+                                        ),
+                                        Flexible(
+                                          child: Text(
+                                            item,
+                                            style: const TextStyle(fontSize: 16),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                   if (isSelected)
                                     Row(
+                                      mainAxisSize: MainAxisSize.min,
                                       children: [
                                         IconButton(
                                           icon: const Icon(Icons.remove_circle_outline),
@@ -430,12 +432,10 @@ class EditFlatState extends State<EditFlat> {
                     ElevatedButton(
                       onPressed: () {
                         setState(() {
-                          // 👇 update global selected furniture
                           _selectedFurniture = Map.fromEntries(
                             tempSelection.entries.where((e) => e.value > 0),
                           );
 
-                          // 👇 update textfield with items + counts
                           furnitureController.text = _selectedFurniture.entries
                               .map((e) => '${e.key} (${e.value})')
                               .join(', ');
@@ -475,21 +475,17 @@ class EditFlatState extends State<EditFlat> {
     final str = raw.toString().trim();
     if (str.isEmpty) return null;
 
-    // Try ISO first
     final iso = DateTime.tryParse(str);
     if (iso != null) return iso;
 
-    // Try dd-MM-yyyy
     try {
       return DateFormat("dd-MM-yyyy").parseStrict(str);
     } catch (_) {}
 
-    // Try dd/MM/yyyy
     try {
       return DateFormat("dd/MM/yyyy").parseStrict(str);
     } catch (_) {}
 
-    // Couldn’t parse
     print("DEBUG: Unrecognized date format from API → $str");
     return null;
   }
@@ -540,7 +536,6 @@ class EditFlatState extends State<EditFlat> {
         _Owner_number.text = data.ownerNumber;
         _Ownername.text = data.ownerName;
 
-        // Handle Maintenance value from API
         final apiMaintenance = data.maintenance?.toString() ?? '';
         print("DEBUG: Maintenance from API = $apiMaintenance");
 
@@ -555,7 +550,6 @@ class EditFlatState extends State<EditFlat> {
           _customMaintenance = apiMaintenance;
           _customMaintenanceController.text = apiMaintenance;
         } else {
-          // default case if API sends null/empty
           _maintenance = null;
           _maintenanceController.clear();
           _customMaintenance = null;
@@ -563,15 +557,13 @@ class EditFlatState extends State<EditFlat> {
         }
         print("DEBUG: _maintenance=$_maintenance, _maintenanceController.text=${_maintenanceController.text}, _customMaintenance=$_customMaintenance");
 
-
-        // Autofill for meter
         if (data.meter == 'Commercial' || data.meter == 'Govt') {
           _houseMeter = data.meter;
-          _meter.text = data.meter; // predefined
+          _meter.text = data.meter;
           print("DEBUG: Predefined meter = ${data.meter}");
         } else {
           _houseMeter = 'Custom';
-          _meter.text = data.meter; // custom value like "500"
+          _meter.text = data.meter;
           print("DEBUG: Custom meter = ${data.meter}");
         }
 
@@ -589,11 +581,9 @@ class EditFlatState extends State<EditFlat> {
         field_address.text = data.fieldWorkerAddress;
         _Google_Location.text = data.fieldWorkerCurrentLocation;
         parseFurnishingFromApi(data.furnishedUnfurnished ?? '');
-        // _customMaintenanceController.text = data.maintenance;
-        // _customMaintenance = data.maintenance;
         _furnished = data.furnishedUnfurnished;
         print(_furnished);
-        String furnitureString = data.apartmentName; // "Bed(1), Sofa(2), Chair(4)"
+        String furnitureString = data.apartmentName;
         print(furnitureString);
         _selectedFurniture = parseFurnitureString(furnitureString);
         print(_selectedFurniture);
@@ -634,7 +624,6 @@ class EditFlatState extends State<EditFlat> {
       return;
     }
 
-    // ✅ Always call updateImageWithTitle, even if no new image picked
     await updateImageWithTitle(_imageFile);
   }
 
@@ -650,7 +639,7 @@ class EditFlatState extends State<EditFlat> {
   final List<String> _items_floor1 = ['G Floor','1 Floor','2 Floor','3 Floor','4 Floor','5 Floor','6 Floor','7 Floor','8 Floor','9 Floor','10 Floor',''];
   final List<String> _items_floor2 = ['G Floor','1 Floor','2 Floor','3 Floor','4 Floor','5 Floor','6 Floor','7 Floor','8 Floor','9 Floor','10 Floor',''];
 
-  final List<String> _balcony_items = ['Front Side Balcony', 'Back Side Balcony','Side','Window', 'Park Facing', 'Road Facing', 'Corner', 'No Balcony',''];
+  final List<String> _balcony_items = ['Front Side','Front Side Balcony','Back Side','Back Side Balcony','Side','Window', 'Park Facing', 'Road Facing', 'Corner', 'No Balcony',''];
 
 
   final List<String> _Parking_items = ['Car','Bike','Both','No Parking',''];
@@ -669,7 +658,7 @@ class EditFlatState extends State<EditFlat> {
   final TextEditingController _Longitude = TextEditingController();
   final TextEditingController _Latitude = TextEditingController();
   final TextEditingController full_address = TextEditingController();
-  String? _houseMeter; // selected dropdown value
+  String? _houseMeter;
 
   Widget _buildSectionCard({required String title, required Widget child}) {
     return Container(
@@ -677,7 +666,6 @@ class EditFlatState extends State<EditFlat> {
       child: Card(
         elevation: 6,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        // color: Colors.white,
         margin: const EdgeInsets.only(bottom: 20),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -769,7 +757,7 @@ class EditFlatState extends State<EditFlat> {
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade600),
                           onPressed: () async {
-                            XFile? pickedImage = await pickAndCompressImage(); // XFile returned
+                            XFile? pickedImage = await pickAndCompressImage();
                             if (pickedImage != null) {
                               setState(() {
                                 _imageFile = File(pickedImage.path);
@@ -811,72 +799,79 @@ class EditFlatState extends State<EditFlat> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const SizedBox(height: 10,),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildDropdownRow(
-                        'Type of property',
-                        _typeofproperty,
-                        selectedPropertyType,
-                            (val) => setState(() => selectedPropertyType = val),
-                        validator: (val) => val == null || val.isEmpty
-                            ? 'Please select a property type'
-                            : null,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildDropdownRow(
-                        'Buy/Rent',
-                        buy_rent,
-                        _selectedItem1,
-                            (val) => setState(() => _selectedItem1 = val),
-                        validator: (val) => val == null || val.isEmpty
-                            ? 'Please select Buy/Rent'
-                            : null,
-                      ),
-                    ),
-                  ],
-                ),
-
-                // 👇 Show extra dropdowns when Sell is selected
-                if (_selectedItem1 == "Buy") ...[
-                  const SizedBox(width: 16),
-                  Row(
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // ✅ FIX: IntrinsicHeight prevents Row children from overflowing
+                          IntrinsicHeight(
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 Expanded(
-                                  child: _buildDropdownRegister(
-                                    'Register',
-                                    registryOptions,
-                                    _registry,
-                                    (val) => setState(() => _registry = val),
-                                    validator: (val) =>
-                                        val == null || val.isEmpty
-                                            ? 'Please select Register'
-                                            : null,
+                                  child: _buildDropdownRow(
+                                    'Type of property',
+                                    _typeofproperty,
+                                    selectedPropertyType,
+                                        (val) => setState(() => selectedPropertyType = val),
+                                    validator: (val) => val == null || val.isEmpty
+                                        ? 'Please select a property type'
+                                        : null,
                                   ),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
-                                  child: _buildDropdownRegister(
-                                    'Loan',
-                                    yesNoOptions,
-                                    _loan,
-                                    (val) => setState(() => _loan = val),
-                                    validator: (val) =>
-                                        val == null || val.isEmpty
-                                            ? 'Please select Loan'
-                                            : null,
+                                  child: _buildDropdownRow(
+                                    'Buy/Rent',
+                                    buy_rent,
+                                    _selectedItem1,
+                                        (val) => setState(() => _selectedItem1 = val),
+                                    validator: (val) => val == null || val.isEmpty
+                                        ? 'Please select Buy/Rent'
+                                        : null,
                                   ),
                                 ),
                               ],
-                            )
-                ],
-              ],
-            ),
+                            ),
+                          ),
+
+                          if (_selectedItem1 == "Buy") ...[
+                            const SizedBox(width: 16),
+                            // ✅ FIX: IntrinsicHeight here too
+                            IntrinsicHeight(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(
+                                    child: _buildDropdownRegister(
+                                      'Register',
+                                      registryOptions,
+                                      _registry,
+                                          (val) => setState(() => _registry = val),
+                                      validator: (val) =>
+                                      val == null || val.isEmpty
+                                          ? 'Please select Register'
+                                          : null,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: _buildDropdownRegister(
+                                      'Loan',
+                                      yesNoOptions,
+                                      _loan,
+                                          (val) => setState(() => _loan = val),
+                                      validator: (val) =>
+                                      val == null || val.isEmpty
+                                          ? 'Please select Loan'
+                                          : null,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
 
 
 
@@ -884,6 +879,7 @@ class EditFlatState extends State<EditFlat> {
                       _buildSectionCard(
                         child: DropdownButtonFormField<String>(
                           value: _furnished,
+                          isExpanded: true, // ✅ FIX: prevents label overflow
                           decoration: InputDecoration(
                             labelText: "",
                             border: OutlineInputBorder(
@@ -901,7 +897,6 @@ class EditFlatState extends State<EditFlat> {
                           onChanged: (val) {
                             setState(() {
                               _furnished = val;
-                              // Clear previously selected furniture if not furnished
                               if (val == 'Unfurnished') {
                                 _selectedFurniture.clear();
                               }
@@ -927,7 +922,7 @@ class EditFlatState extends State<EditFlat> {
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    filled: true, // ✅ enable background color
+                                    filled: true,
                                     fillColor: Theme.of(context).brightness==Brightness.dark?Colors.grey.shade800:Colors.white,
                                     contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                                   ),
@@ -952,100 +947,117 @@ class EditFlatState extends State<EditFlat> {
                         validator: (val) => val == null || val.isEmpty ? 'Please select parking type' : null,
                       ),
                       const SizedBox(height: 10,),
-                      Row(
-                        children: [
-                          Expanded(
-                            child:
-                            _buildDropdownRow('Bathroom', _bathroom_items, bathroom, (val) => setState(() => bathroom = val),
-                              validator: (val) => val == null || val.isEmpty ? 'Please select a Bathroom type' : null,
+                      // ✅ FIX: IntrinsicHeight on all 2-column rows
+                      IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child:
+                              _buildDropdownRow('Bathroom', _bathroom_items, bathroom, (val) => setState(() => bathroom = val),
+                                validator: (val) => val == null || val.isEmpty ? 'Please select a Bathroom type' : null,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildDropdownRow('Kitchen', _kitchen_items, kitchen, (val) => setState(() => kitchen = val),
-                              validator: (val) => val == null || val.isEmpty ? 'Please select a Kitchen type' : null,
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildDropdownRow('Kitchen', _kitchen_items, kitchen, (val) => setState(() => kitchen = val),
+                                validator: (val) => val == null || val.isEmpty ? 'Please select a Kitchen type' : null,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 10,),
-                      Row(
-                        children: [
-                          Expanded(
-                            child:
-                            _buildTextInput('Flat Number', _FlatNumber,keyboardType: TextInputType.name),
+                      IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child:
+                              _buildTextInput('Flat Number', _FlatNumber,keyboardType: TextInputType.name),
 
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildTextInput('Sqft', _sqft,keyboardType: TextInputType.phone),
-                          ),
-                        ],
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildTextInput('Sqft', _sqft,keyboardType: TextInputType.phone),
+                            ),
+                          ],
+                        ),
                       ),
 
-                      Row(
-                        children: [
-                          Expanded(
-                            child:
-                            _buildDropdownRow('Balcony', _balcony_items, balcony, (val) => setState(() => balcony = val),
-                              validator: (val) => val == null || val.isEmpty ? 'Please select a balcony type' : null,
+                      IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child:
+                              _buildDropdownRow(
+                              'Balcony',
+                              _balcony_items,
+                              _balcony_items.contains(balcony) ? balcony : null,
+                              (val) => setState(() => balcony = val),
+                                validator: (val) => val == null || val.isEmpty ? 'Please select a balcony type' : null,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildDropdownRow('Select  BHK',bhkOptions, selectedBHK, (val) => setState(() => selectedBHK = val),
-                              validator: (val) => val == null || val.isEmpty ? 'Please select a BHK' : null,
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildDropdownRow('Select  BHK',bhkOptions, selectedBHK, (val) => setState(() => selectedBHK = val),
+                                validator: (val) => val == null || val.isEmpty ? 'Please select a BHK' : null,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
 
                       const SizedBox(height: 10,),
 
-                      Row(
-                        children: [
-                          Expanded(
-                            child:
-                            _buildSectionCard(
-                              title: 'Available Date',
-                              child: GestureDetector(
-                                onTap: () async {
-                                  final DateTime? picked = await showDatePicker(
-                                    context: context,
-                                    initialDate: DateTime.now(),
-                                    firstDate: DateTime(2020),
-                                    lastDate: DateTime(2100),
-                                  );
-                                  if (picked != null) {
-                                    setState(() {
-                                      _availableDate = picked;
-                                    });
-                                  }
-                                },
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade600,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    _availableDate != null
-                                        ? DateFormat('dd MMMM yyyy').format(_availableDate!)
-                                        : '', // 👈 empty string if null
-                                    style: const TextStyle(color: Colors.white),
+                      IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child:
+                              _buildSectionCard(
+                                title: 'Available Date',
+                                child: GestureDetector(
+                                  onTap: () async {
+                                    final DateTime? picked = await showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now(),
+                                      firstDate: DateTime(2020),
+                                      lastDate: DateTime(2100),
+                                    );
+                                    if (picked != null) {
+                                      setState(() {
+                                        _availableDate = picked;
+                                      });
+                                    }
+                                  },
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade600,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      _availableDate != null
+                                          ? DateFormat('dd MMMM yyyy').format(_availableDate!)
+                                          : '',
+                                      style: const TextStyle(color: Colors.white),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child:              _buildDropdownRow('Floor no.',_items_floor1, _floor1, (val) => setState(() => _floor1 = val),
-                              validator: (val) => val == null || val.isEmpty ? 'Please select a floor number' : null,
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildDropdownRow('Floor no.',_items_floor1, _floor1, (val) => setState(() => _floor1 = val),
+                                validator: (val) => val == null || val.isEmpty ? 'Please select a floor number' : null,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
 
                       TextFormField(
@@ -1131,7 +1143,7 @@ class EditFlatState extends State<EditFlat> {
                           suffix: Padding(
                             padding: const EdgeInsets.only(right: 8.0),
                             child: Text(
-                              _formattedAskingPrice ?? '',  // This should be a String variable updated by your listener
+                              _formattedAskingPrice ?? '',
                               style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
                             ),
                           ),
@@ -1139,109 +1151,93 @@ class EditFlatState extends State<EditFlat> {
                       ),
                       const SizedBox(height: 10,),
 
-                      Row(
-                        children: [
-                          /// Maintenance dropdown field
-                          Expanded(
-                            child: _buildReadOnlyField(
-                              label: "Maintenance",
-                              controller: _maintenanceController,
-                              onTap: () => _showBottomSheet(
-                                options: ['Included', 'Custom'],
-                                onSelected: (val) {
-                                  setState(() {
-                                    _maintenance = val;
-                                    _maintenanceController.text = val;
-                                    if (val != 'Custom') _customMaintenance = null;
-                                  });
-                                },
-                              ),
-                              validator: (val) =>
-                              val == null || val.isEmpty ? "Select maintenance" : null,
-                            ),
-                          ),
-
-                          if (_maintenance == 'Custom')
-
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.only(left: 16.0),
-                                child: TextFormField(
-                                  controller: _customMaintenanceController, // ✅ attach controller
-                                  decoration: InputDecoration(
-                                    labelText: "Enter Maintenance Fee",
-                                    labelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                      borderSide: BorderSide(
-                                        color: Theme.of(context).brightness == Brightness.dark
-                                            ? Colors.grey.shade700
-                                            : Colors.grey.shade300,
-                                      ),
-                                    ),
-                                    // ✅ Error text style
-                                    errorStyle: const TextStyle(
-                                    color: Colors.redAccent, // deep red text
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
-                                    ),
-
-                                    // ✅ Error border (deep red)
-                                    errorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    borderSide: const BorderSide(
-                                    color: Colors.redAccent,
-                                    width: 2,
-                                    ),
-                                    ),
-
-                                    // ✅ Focused border when error
-                                    focusedErrorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                    borderSide: const BorderSide(
-                                    color: Colors.red,
-                                    width: 2,
-                                    ),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                      borderSide: BorderSide(
-                                        color: Theme.of(context).brightness == Brightness.dark
-                                            ? Colors.grey.shade700
-                                            : Colors.grey.shade300,
-                                      ),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                      borderSide: BorderSide(
-                                        color: Theme.of(context).brightness == Brightness.dark
-                                            ? Colors.blue
-                                            : Colors.blue.shade300,
-                                        width: 2,
-                                      ),
-                                    ),
-
-                                    contentPadding:
-                                    const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-                                    filled: true,
-                                    fillColor:Colors.blue
-                                  ),
-                                  style: TextStyle(
-                                    color: Theme.of(context).brightness == Brightness.dark
-                                        ? Colors.white
-                                        : Colors.black,
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                  onChanged: (val) => _customMaintenance = val,
-                                  validator: (val) => _maintenance == 'Custom' &&
-                                      (val == null || val.isEmpty)
-                                      ? "Enter maintenance fee"
-                                      : null,
-                                ),
-                              ),
-                            ),
-                        ],
+                      // ✅ FIX: Maintenance - use Column instead of Row to avoid overflow
+                      _buildReadOnlyField(
+                        label: "Maintenance",
+                        controller: _maintenanceController,
+                        onTap: () => _showBottomSheet(
+                          options: ['Included', 'Custom'],
+                          onSelected: (val) {
+                            setState(() {
+                              _maintenance = val;
+                              _maintenanceController.text = val;
+                              if (val != 'Custom') _customMaintenance = null;
+                            });
+                          },
+                        ),
+                        validator: (val) =>
+                        val == null || val.isEmpty ? "Select maintenance" : null,
                       ),
+
+                      if (_maintenance == 'Custom') ...[
+                        const SizedBox(height: 10),
+                        TextFormField(
+                          controller: _customMaintenanceController,
+                          decoration: InputDecoration(
+                            labelText: "Enter Maintenance Fee",
+                            labelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
+                              ),
+                            ),
+                            errorStyle: const TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(
+                                color: Colors.redAccent,
+                                width: 2,
+                              ),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(
+                                color: Colors.red,
+                                width: 2,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey.shade700
+                                    : Colors.grey.shade300,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.blue
+                                    : Colors.blue.shade300,
+                                width: 2,
+                              ),
+                            ),
+                            contentPadding:
+                            const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                            filled: true,
+                            fillColor: Colors.blue,
+                          ),
+                          style: TextStyle(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white
+                                : Colors.black,
+                          ),
+                          keyboardType: TextInputType.number,
+                          onChanged: (val) => _customMaintenance = val,
+                          validator: (val) => _maintenance == 'Custom' &&
+                              (val == null || val.isEmpty)
+                              ? "Enter maintenance fee"
+                              : null,
+                        ),
+                      ],
 
 
                       const SizedBox(height: 16,),
@@ -1253,6 +1249,7 @@ class EditFlatState extends State<EditFlat> {
                             value: (_houseMeter != null && _houseMeter != 'Custom')
                                 ? _houseMeter
                                 : (_meter.text.isNotEmpty ? 'Custom' : null),
+                            isExpanded: true, // ✅ FIX: prevents label overflow
                             decoration: _buildInputDecoration(context, "House Meter Type"),
                             items: ['Commercial', 'Govt', 'Custom'].map((option) {
                               return DropdownMenuItem<String>(
@@ -1291,18 +1288,20 @@ class EditFlatState extends State<EditFlat> {
 
                       buildTextInput('Video Link', _videoLink),
                       buildTextInput('Caretaker Name (Optional)', _CareTaker_name),
-                      buildTextInput('Caretaker Mobile (Optional)', _CareTaker_number,keyboardType: TextInputType.phone),
+                      buildTextInput('Caretaker Mobile (Optional)', _CareTaker_number,
+                        keyboardType: TextInputType.phone,),
                       buildTextInput('Owner Name (Optional)', _Ownername),
                       buildTextInput('Owner Mobile (Optional)', _Owner_number,keyboardType: TextInputType.phone),
 
                     ],
                   ),
+
                   SizedBox(height: 10),
+
                   GestureDetector(
                     onTap: _isLoading
                         ? null
                         : () async {
-                      // ✅ Validate form before starting countdown
                       if (!_formKey.currentState!.validate()) {
                         showDialog(
                           context: context,
@@ -1322,7 +1321,7 @@ class EditFlatState extends State<EditFlat> {
                             ],
                           ),
                         );
-                        return; // Stop here if any field is empty
+                        return;
                       }
 
                       setState(() {
@@ -1331,14 +1330,12 @@ class EditFlatState extends State<EditFlat> {
 
                       int countdown = 3;
 
-                      // Show countdown dialog
                       await showDialog(
                         context: context,
                         barrierDismissible: false,
                         builder: (context) {
                           return StatefulBuilder(
                             builder: (context, setStateDialog) {
-                              // Countdown logic
                               Future.delayed(const Duration(seconds: 1), () async {
                                 if (countdown > 1) {
                                   setStateDialog(() {
@@ -1351,15 +1348,13 @@ class EditFlatState extends State<EditFlat> {
 
                                   await Future.delayed(const Duration(seconds: 1));
                                   if (Navigator.of(context).canPop()) {
-                                    Navigator.of(context).pop(); // close dialog
+                                    Navigator.of(context).pop();
                                   }
 
-                                  // Run your upload logic
                                   await _handleUpload();
 
                                   if (!mounted) return;
 
-                                  // Show success message
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text("✅ Submitted Successfully!"),
@@ -1502,21 +1497,16 @@ class EditFlatState extends State<EditFlat> {
         value: selectedValue,
         style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
         validator: validator,
-        // dropdownColor: Colors.blue,
+        isExpanded: true, // ✅ FIX
         decoration: InputDecoration(
           filled: true,
-          //fillColor: Colors.blue,
-
           border: OutlineInputBorder
             (borderRadius: BorderRadius.circular(10)),
-          // ✅ Error text style
           errorStyle: const TextStyle(
-            color: Colors.redAccent, // deep red text
+            color: Colors.redAccent,
             fontSize: 13,
             fontWeight: FontWeight.bold,
           ),
-
-          // ✅ Error border (deep red)
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(
@@ -1524,8 +1514,6 @@ class EditFlatState extends State<EditFlat> {
               width: 2,
             ),
           ),
-
-          // ✅ Focused border when error
           focusedErrorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(
@@ -1534,12 +1522,12 @@ class EditFlatState extends State<EditFlat> {
             ),
           ),
         ),
-        icon: const Icon(Icons.arrow_drop_down, /*color: Colors.black*/),
+        icon: const Icon(Icons.arrow_drop_down),
         onChanged: onChanged,
         items: items
             .map((item) => DropdownMenuItem<String>(
           value: item,
-          child: Text(item, style:  TextStyle(/*color: Colors.grey.shade800*/)),
+          child: Text(item, style: TextStyle()),
         ))
             .toList(),
       ),
@@ -1558,20 +1546,15 @@ class EditFlatState extends State<EditFlat> {
       child: DropdownButtonFormField<String>(
         value: selectedValue,
         validator: validator,
-        // dropdownColor: Colors.grey.shade100,
+        isExpanded: true, // ✅ FIX: prevents text overflow in dropdown
         decoration: InputDecoration(
           filled: true,
-          // fillColor: Colors.grey.shade200,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-
-          // ✅ Error text style
           errorStyle: const TextStyle(
-            color: Colors.redAccent, // deep red text
+            color: Colors.redAccent,
             fontSize: 13,
             fontWeight: FontWeight.bold,
           ),
-
-          // ✅ Error border (deep red)
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(
@@ -1579,8 +1562,6 @@ class EditFlatState extends State<EditFlat> {
               width: 2,
             ),
           ),
-
-          // ✅ Focused border when error
           focusedErrorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(
@@ -1590,12 +1571,12 @@ class EditFlatState extends State<EditFlat> {
           ),
         ),
         style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-        icon: const Icon(Icons.arrow_drop_down, /*color: Colors.black*/),
+        icon: const Icon(Icons.arrow_drop_down),
         onChanged: onChanged,
         items: items
             .map((item) => DropdownMenuItem<String>(
           value: item,
-          child: Text(item, style:  TextStyle(fontSize: 10)),
+          child: Text(item, style: TextStyle(fontSize: 16)),
         ))
             .toList(),
       ),
@@ -1628,13 +1609,13 @@ class EditFlatState extends State<EditFlat> {
       String label,
       TextEditingController controller, {
         IconData? icon,
-        TextInputType? keyboardType, // optional keyboard type
+        TextInputType? keyboardType,
       }) {
     return _blueSectionCard(
       title: label,
       child: TextFormField(
         controller: controller,
-        keyboardType: keyboardType,  // set keyboard type here
+        keyboardType: keyboardType,
         style: TextStyle(),
         decoration: InputDecoration(
           hintText: 'Enter $label',
@@ -1644,7 +1625,6 @@ class EditFlatState extends State<EditFlat> {
             borderRadius: BorderRadius.all(Radius.circular(10)),
           ),
           filled: true,
-          // fillColor: Colors.grey.shade100,
         ),
         validator: (value) {
           if (value == null || value.trim().isEmpty) {
@@ -1667,10 +1647,9 @@ class EditFlatState extends State<EditFlat> {
       child: DropdownButtonFormField<String>(
         value: selectedValue,
         validator: validator,
-        // dropdownColor: Colors.grey.shade100,
+        isExpanded: true, // ✅ FIX
         decoration: InputDecoration(
           filled: true,
-          // fillColor: Colors.grey.shade200,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
         ),
         style: const TextStyle(color: Colors.grey),
@@ -1679,7 +1658,7 @@ class EditFlatState extends State<EditFlat> {
         items: items
             .map((item) => DropdownMenuItem<String>(
           value: item,
-          child: Text(item, style:  TextStyle()),
+          child: Text(item, style: TextStyle()),
         ))
             .toList(),
       ),
@@ -1694,17 +1673,12 @@ class EditFlatState extends State<EditFlat> {
       labelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        // borderSide: BorderSide(
-        //     color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
       ),
-      // ✅ Error text style
       errorStyle: const TextStyle(
-        color: Colors.redAccent, // deep red text
+        color: Colors.redAccent,
         fontSize: 13,
         fontWeight: FontWeight.bold,
       ),
-
-      // ✅ Error border (deep red)
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(
@@ -1712,8 +1686,6 @@ class EditFlatState extends State<EditFlat> {
           width: 2,
         ),
       ),
-
-      // ✅ Focused border when error
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(
@@ -1728,13 +1700,9 @@ class EditFlatState extends State<EditFlat> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        // borderSide: BorderSide(
-        //     color: isDark ? Colors.blue.shade200 : Colors.blue.shade300,
-        //     width: 2),
       ),
       contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
       filled: true,
-      // fillColor: isDark ? Colors.grey.shade900 : Colors.white,
     );
   }
 
@@ -1744,7 +1712,7 @@ class EditFlatState extends State<EditFlat> {
       TextEditingController controller, {
         IconData? icon,
         TextInputType? keyboardType,
-        bool validateLength = false, // keep if you still want digit-only & length limiter
+        bool validateLength = false,
       }) {
     return _buildSectionCard(
       title: label,
@@ -1764,8 +1732,8 @@ class EditFlatState extends State<EditFlat> {
         ),
         inputFormatters: validateLength
             ? [
-          FilteringTextInputFormatter.digitsOnly, // only digits
-          LengthLimitingTextInputFormatter(10),   // max 10 digits
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(10),
         ]
             : [],
       ),
@@ -1776,13 +1744,13 @@ class EditFlatState extends State<EditFlat> {
       String label,
       TextEditingController controller, {
         IconData? icon,
-        TextInputType? keyboardType, // optional keyboard type
+        TextInputType? keyboardType,
       }) {
     return _buildSectionCard(
       title: label,
       child: TextFormField(
         controller: controller,
-        keyboardType: keyboardType,  // set keyboard type here
+        keyboardType: keyboardType,
         style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
         decoration: InputDecoration(
           hintText: 'Enter $label',
@@ -1791,14 +1759,11 @@ class EditFlatState extends State<EditFlat> {
           border: const OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(10)),
           ),
-          // ✅ Error text style
           errorStyle: const TextStyle(
-            color: Colors.redAccent, // deep red text
+            color: Colors.redAccent,
             fontSize: 13,
             fontWeight: FontWeight.bold,
           ),
-
-          // ✅ Error border (deep red)
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(
@@ -1806,8 +1771,6 @@ class EditFlatState extends State<EditFlat> {
               width: 2,
             ),
           ),
-
-          // ✅ Focused border when error
           focusedErrorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
             borderSide: const BorderSide(
@@ -1816,7 +1779,6 @@ class EditFlatState extends State<EditFlat> {
             ),
           ),
           filled: true,
-          // fillColor: Colors.grey.shade100,
         ),
         validator: (value) {
           if (value == null || value.trim().isEmpty) {
@@ -1826,7 +1788,9 @@ class EditFlatState extends State<EditFlat> {
         },
       ),
     );
-  }  void _showFacilitySelectionDialog() async {
+  }
+
+  void _showFacilitySelectionDialog() async {
     final result = await showModalBottomSheet<List<String>>(
       context: context,
       isScrollControlled: true,
@@ -1888,7 +1852,6 @@ class EditFlatState extends State<EditFlat> {
     );
 
     if (selected != null) {
-      // Delay to ensure bottom sheet closes before updating state
       Future.delayed(const Duration(milliseconds: 50), () {
         onSelected(selected);
       });
@@ -2043,9 +2006,9 @@ class _FacilityBottomSheetState extends State<_FacilityBottomSheet> {
               }).toList(),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white, // Button background
-                  foregroundColor: Colors.black, // Text/icon color
-                  side: const BorderSide(color: Colors.black), // Optional border
+                  backgroundColor: Colors.white,
+                  foregroundColor: Colors.black,
+                  side: const BorderSide(color: Colors.black),
                   elevation: 3,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),

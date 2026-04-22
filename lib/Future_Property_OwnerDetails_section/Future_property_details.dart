@@ -973,7 +973,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       ),
     );
   }
-  // Specifications Section - Improved with dynamic grid and better overflow
+
   Widget _buildSpecificationsSection(FutureProperty2 property, bool isDarkMode) {
     final specifications = [
       {"icon": Icons.train, "label": "Metro Station", "value": property.metroName},
@@ -984,6 +984,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       {"icon": Icons.local_parking, "label": "Parking", "value": property.parking},
       {"icon": Icons.shopping_cart, "label": "Locality", "value": property.localityList},
     ].where((spec) => (spec["value"] as String).isNotEmpty).toList();
+
     if (specifications.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(16),
@@ -999,6 +1000,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
         ),
       );
     }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1011,9 +1013,11 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
           ),
         ),
         const SizedBox(height: 12),
+
         LayoutBuilder(
           builder: (context, constraints) {
             final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
+
             return GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -1021,11 +1025,14 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                 crossAxisCount: crossAxisCount,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 2.5, // Adjusted for better fit and less overflow
+                childAspectRatio: 1.9,
               ),
               itemCount: specifications.length,
               itemBuilder: (context, index) {
                 final spec = specifications[index];
+                final label = spec["label"] as String;
+                final value = spec["value"] as String;
+
                 return Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -1034,16 +1041,21 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                     border: Border.all(color: Colors.grey[200]!),
                   ),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(spec["icon"] as IconData, size: 18, color: Colors.blue),
+                      Icon(
+                        spec["icon"] as IconData,
+                        size: 18,
+                        color: Colors.blue,
+                      ),
                       const SizedBox(width: 8),
+
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              spec["label"] as String,
+                              label,
                               style: TextStyle(
                                 fontSize: 11,
                                 color: Colors.grey[600],
@@ -1051,17 +1063,56 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            const SizedBox(height: 2),
-                            Text(
-                              spec["value"] as String,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
+
+                            const SizedBox(height: 4),
+
+                            if (label == "Date & Time") ...[
+                              Builder(
+                                builder: (_) {
+                                  final parts = value.split(" ");
+
+                                  String datePart =
+                                  parts.isNotEmpty ? parts[0] : "";
+                                  String timePart =
+                                  parts.length > 1 ? parts[1] : "";
+                                  String amPm =
+                                  parts.length > 2 ? parts[2] : "";
+
+                                  return Column(
+                                    crossAxisAlignment:
+                                    CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        datePart,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                      Text(
+                                        "$timePart $amPm",
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black87,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                            ] else
+                              Text(
+                                value,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                           ],
                         ),
                       ),
@@ -1075,7 +1126,8 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       ],
     );
   }
-  // Location Section
+
+
   Widget _buildLocationSection(FutureProperty2 property, bool isDarkMode) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1131,7 +1183,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (label == "Current Location")
-              Icon(
+             const Icon(
                 Icons.location_on,
                 color: Colors.red,
                 size: 16,

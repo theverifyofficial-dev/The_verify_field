@@ -1728,7 +1728,7 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
     if (picked != null) {
       setState(() {
         _availableFromController.text =
-            DateFormat('MMMM dd, yyyy').format(picked);
+            DateFormat('dd,MMMM, yyyy').format(picked);
       });
     }
   }

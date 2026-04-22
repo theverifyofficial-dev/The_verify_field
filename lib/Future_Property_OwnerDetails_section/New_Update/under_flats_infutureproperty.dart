@@ -1245,7 +1245,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
+                const Icon(
                   Icons.video_library,
                   color: Colors.red,
                   size: 22,

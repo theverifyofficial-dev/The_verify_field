@@ -803,7 +803,6 @@ class _VerificationWizardPageState extends State<VerificationWizardPage> with Ti
         "relation_person_name_tenant": firstTenant.relationPerson.text, "permanent_address_tenant": firstTenant.address.text,
         "tenant_mobile_no": firstTenant.mobile.text, "tenant_addhar_no": firstTenant.aadhaar.text,
         "current_dates": DateTime.now().toIso8601String(), "rented_address": propertyAddress.text,
-        "Fieldwarkarname": _name, "Fieldwarkarnumber": _number,
         "agreement_price": totalPrice.toString(), "is_agreement_hide": isAgreementHide ? "1" : "0",
       };
       request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));

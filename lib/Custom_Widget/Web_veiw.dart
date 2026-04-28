@@ -84,7 +84,7 @@ class _EStampWebViewState extends State<EStampWebView> {
               el.dispatchEvent(new Event('blur', { bubbles: true }));
 
               console.log("Filled:", selectors[i]);
-              return true;
+              return true; 
             }
           }
           return false;

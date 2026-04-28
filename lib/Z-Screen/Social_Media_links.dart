@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/fl
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import '../Custom_Widget/constant.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LinksPage extends StatelessWidget {
   const LinksPage({super.key});
@@ -78,8 +81,13 @@ class LinksPage extends StatelessWidget {
     return InkWell(
       onTap: () {
         if (urlOrList is String) {
-          _launchUrl(urlOrList);
-        } else if (urlOrList is List<Map<String, String>>) {
+          _showLinkBottomSheet(
+            context,
+            title,
+            urlOrList,
+          );
+        }
+        else if (urlOrList is List<Map<String, String>>) {
           _showMultipleLinks(context, title, urlOrList);
         }
       },
@@ -208,6 +216,116 @@ class LinksPage extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+// ✅ BottomSheet Open + Copy Link
+  void _showLinkBottomSheet(
+      BuildContext context,
+      String title,
+      String url,
+      ) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(22),
+        ),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+
+              Container(
+                width: 45,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              Text(
+                url,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 13,
+                ),
+              ),
+
+              const SizedBox(height: 22),
+
+              Row(
+                children: [
+
+                  /// OPEN BUTTON
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await _launchUrl(url);
+                      },
+                      icon: const Icon(Icons.open_in_new),
+                      label: const Text("Open"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  /// COPY BUTTON
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        await Share.share(
+                          url,
+                          subject: title,
+                        );
+                      },
+                      icon: const Icon(Icons.share),
+                      label: const Text("Share"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 15),
+            ],
+          ),
+        );
+      },
     );
   }
 

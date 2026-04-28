@@ -1077,6 +1077,7 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final value = v?.toString().trim() ?? "";
     if (value.isEmpty) return const SizedBox.shrink();
+
     return Container(
       margin: const EdgeInsetsDirectional.only(end: 15, bottom: 6),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -1089,29 +1090,31 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
         ),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 4,
-              offset: const Offset(0, 2)),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
         ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start, // 👈 important
         children: [
           Icon(iconData, size: 14, color: Colors.grey[600]),
-          // Text('$k',
-          //   style: TextStyle(
-          //       fontSize: 13,
-          //       fontWeight: FontWeight.w100,
-          //       color: isDark ? Colors.black87 : Colors.black87),
-          // ),
-          const SizedBox(width: 4),
-          Text(value,
-              style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w100,
-                  color: isDark ? Colors.black87 : Colors.black87),
-              softWrap: true),
+          const SizedBox(width: 6),
 
+          /// ✅ FIXED PART
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+                color: isDark ? Colors.black87 : Colors.black87,
+              ),
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );

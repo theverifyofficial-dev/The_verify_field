@@ -2,7 +2,6 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("dev.flutter.flutter-gradle-plugin")
-    // Do NOT put `com.google.gms.google-services` here in plugins block
 }
 
 android {
@@ -10,6 +9,14 @@ android {
     compileSdk = 36
     ndkVersion = "27.0.12077973"
 
+//    splits {
+//        abi {
+//            isEnable = true
+//            reset()
+//            include("arm64-v8a", "armeabi-v7a")
+//            isUniversalApk = false
+//        }
+//    }
 
     defaultConfig {
         applicationId = "com.example.new_verify_feild_worker"
@@ -18,18 +25,19 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
     }
-
 
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
-            isShrinkResources = false
-            signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = true        // ✅ ON karo
+            isShrinkResources = true      // ✅ ON karo
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            signingConfig = signingConfigs.getByName("debug") // release key baad mein
         }
     }
-
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -49,17 +57,10 @@ flutter {
 dependencies {
     implementation("androidx.annotation:annotation:1.9.1")
     testImplementation("junit:junit:4.13.2")
-
-    // Required for Java 8 language features (used by flutter_local_notifications, etc.)
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
-
-    // Firebase BOM for unified SDK versions
     implementation(platform("com.google.firebase:firebase-bom:33.16.0"))
-
     implementation("com.google.mlkit:text-recognition:16.0.0")
-    // Firebase Messaging SDK
     implementation("com.google.firebase:firebase-messaging")
 }
 
-// Apply the Google services plugin the legacy way here:
 apply(plugin = "com.google.gms.google-services")

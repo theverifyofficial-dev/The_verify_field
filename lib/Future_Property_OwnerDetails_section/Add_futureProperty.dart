@@ -202,7 +202,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
   void _generateDateTime() {
     setState(() {
-      _date = DateFormat('d-MMMM-yyyy').format(DateTime.now());
+      _date = DateFormat('dd-MMMM-yyyy').format(DateTime.now());
       _Time = DateFormat('h:mm a').format(DateTime.now());
     });
   }
@@ -271,8 +271,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       MapEntry("age_of_property", _ageOfProperty ?? ''),
       MapEntry("total_floor", _totalFloor ?? ''),
       MapEntry("lift", _selectedLift ?? ""),
-      MapEntry("current_date_",
-          DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.now())),
+      MapEntry("current_date_",DateFormat('dd-MMMM-yyyy hh:mm a').format(DateTime.now())),
       MapEntry("Residence_commercial", _selectedPropertyType ?? ''),
       MapEntry("facility", selectedFacilities.join(', ')),
       MapEntry("metro_name", metroController.text),

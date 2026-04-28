@@ -7,10 +7,9 @@ import 'package:verify_feild_worker/Upcoming/user_flat.dart';
 import '../ui_decoration_tools/app_images.dart';
 
 
-
 class ParentUpcoming extends StatefulWidget {
   const ParentUpcoming({super.key});
-
+  
   @override
   State<ParentUpcoming> createState() => _Show_New_Real_EstateState();
 }
@@ -49,9 +48,10 @@ class _Show_New_Real_EstateState extends State<ParentUpcoming> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const
             SizedBox(height: 5,),
             Container(
-              margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+              margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               height: 50,
               decoration: BoxDecoration(
                 color: Colors.grey[800],
@@ -64,8 +64,8 @@ class _Show_New_Real_EstateState extends State<ParentUpcoming> {
                 ),
                 labelColor: Colors.white,
                 unselectedLabelColor: Colors.white70,
-                labelStyle: TextStyle(fontWeight: FontWeight.bold),
-                unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+                unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
                 indicatorSize: TabBarIndicatorSize.tab, // Full width of tab
                 tabs: const [
                   Tab(text: 'All Property'),
@@ -75,7 +75,7 @@ class _Show_New_Real_EstateState extends State<ParentUpcoming> {
               ),
             ),
 
-            Expanded(
+            const Expanded(
               child: TabBarView(children: [
                 AllFlats(),
                 UserFlat(),

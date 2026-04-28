@@ -401,7 +401,7 @@ class _EditCommercialFormState extends State<EditCommercialForm> {
     );
     if (picked != null) {
       setState(() {
-        _availableFromController.text = DateFormat('MMMM dd, yyyy').format(picked);
+        _availableFromController.text = DateFormat('dd,MMMM,yyyy').format(picked);
       });
     }
   }

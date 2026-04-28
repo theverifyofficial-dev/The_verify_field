@@ -99,28 +99,44 @@ class _UpcomingDetailsPageState extends State<AdminUpcomingDetails> {
   }
 
   Widget infoRow(BuildContext context, String label, String? value) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey.shade100 : Colors.grey.shade900,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isDark ? Colors.grey.shade300 : Colors.grey.shade800,
+        ),
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+
+          /// 🔹 LABEL
           Expanded(
             flex: 3,
             child: Text(
               label,
-              style: theme.textTheme.bodyMedium?.copyWith(
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: theme.colorScheme.onSurface.withOpacity(0.8),
+                color: isDark ? Colors.black87 : Colors.white70,
+                fontSize: 13,
               ),
             ),
           ),
+
+          /// 🔹 VALUE
           Expanded(
             flex: 5,
             child: Text(
               value?.isNotEmpty == true ? value! : "N/A",
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
+              style: TextStyle(
+                color: isDark ? Colors.black : Colors.white,
+                fontWeight: FontWeight.w500,
+                fontSize: 13,
               ),
             ),
           ),
@@ -130,32 +146,66 @@ class _UpcomingDetailsPageState extends State<AdminUpcomingDetails> {
   }
 
   Widget sectionCard(BuildContext context, String title, List<Widget> children) {
-    final theme = Theme.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(top: 18),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.brightness == Brightness.dark
-            ? Colors.grey.shade900
-            : Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
+        color: isDark ? Colors.white : Colors.black,
+        borderRadius: BorderRadius.circular(18),
+
+        /// 🔥 Premium border glow
+        border: Border.all(
+          color: isDark ? Colors.grey.shade300 : Colors.grey.shade800,
+          width: 1.2,
+        ),
+
         boxShadow: [
           BoxShadow(
-            color: theme.colorScheme.shadow.withOpacity(0.1),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
+            color: isDark
+                ? Colors.black.withOpacity(0.08)
+                : Colors.black.withOpacity(0.5),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
+
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: theme.colorScheme.primary,
-              )),
-          const SizedBox(height: 8),
+
+          /// 🔥 TITLE WITH ICON STYLE
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.black : Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  Icons.dashboard_customize,
+                  size: 16,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.black : Colors.white,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          /// 🔹 CONTENT
           ...children,
         ],
       ),
@@ -231,12 +281,18 @@ class _UpcomingDetailsPageState extends State<AdminUpcomingDetails> {
           children: [
             // Main Image
             ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: Image.network(
-                imageUrl,
-                height: 220,
-                width: double.infinity,
-                fit: BoxFit.cover,
+              borderRadius: BorderRadius.circular(18),
+              child: Stack(
+                children: [
+
+                  /// IMAGE
+                  Image.network(
+                    imageUrl,
+                    height: 240,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 16),

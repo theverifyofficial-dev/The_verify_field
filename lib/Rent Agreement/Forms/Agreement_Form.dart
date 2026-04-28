@@ -1939,10 +1939,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         print("File Name : ${file.filename}");
       }
 
-      print("===========================================");
-
-
-      // 🔹 Send request
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
@@ -1953,10 +1949,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
 
         print("✅ Submission successful");
 
-        // Close loader
         Navigator.of(context, rootNavigator: true).pop();
 
-        // Show short SnackBar, then navigate
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Updated successfully!"),

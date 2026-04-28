@@ -12,8 +12,6 @@ import 'package:open_filex/open_filex.dart';
 import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:image/image.dart' as img;
-import '../../../Custom_Widget/Custom_backbutton.dart';
-import '../../../Custom_Widget/Web_veiw.dart';
 import '../../../model/Additional_agreement_tenants.dart';
 import '../../imagepreviewscreen.dart';
 import '../PDFs/Commercial_PDF.dart';
@@ -1915,35 +1913,7 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
               ],
             ),
 
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => EStampWebView(stampData: agreement!),
-                    ));
-                  },
-                  icon: const Icon(Icons.launch, color: Colors.white),
-                  label: const Text(
-                    '🌐 Launch E-stamp Portal',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1D4ED8),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-
-            // const SizedBox(height: 30),
+            const SizedBox(height: 30),
 
             // Uploaded file previews
             if (policeVerificationFile != null)

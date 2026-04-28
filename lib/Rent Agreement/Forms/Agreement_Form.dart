@@ -1829,7 +1829,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         "relation_person_name_owner": ownerRelationPerson.text,
         "parmanent_addresss_owner": ownerAddress.text,
         "owner_mobile_no": ownerMobile.text,
-        "owner_addhar_no": ownerAadhaar.text, // confirm spelling with backend
+        "owner_addhar_no": ownerAadhaar.text,
         "tenant_name": firstTenant.name.text,
         "tenant_relation": firstTenant.relation,
         "relation_person_name_tenant": firstTenant.relationPerson.text,
@@ -1939,10 +1939,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         print("File Name : ${file.filename}");
       }
 
-      print("===========================================");
-
-
-      // 🔹 Send request
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
@@ -1953,14 +1949,12 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
 
         print("✅ Submission successful");
 
-        // Close loader
         Navigator.of(context, rootNavigator: true).pop();
 
-        // Show short SnackBar, then navigate
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text("Updated successfully!"),
-            duration: const Duration(seconds: 1),
+          const SnackBar(
+            content: Text("Updated successfully!"),
+            duration: Duration(seconds: 1),
           ),
         ).closed.then((_) {
           Navigator.of(context).pushReplacement(

@@ -906,22 +906,44 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
                       ),
                       const SizedBox(height: 16),
 
-                      TextFormField(
-                        controller: _numberCtrl,
-                        decoration: _modernInput("Customer Number", Icons.phone),
-                        keyboardType: TextInputType.phone,
-                        maxLength: 12,
-                        onChanged: (value) {
-                          final last10 = _extractLast10Digits(value);
-                          if (last10.length == 10 && !_fetchingCustomer) {
-                            _fetchCustomerByPhone(last10);
-                          }
-                        },
-                        validator: (value) {
-                          final last10 = _extractLast10Digits(value ?? "");
-                          return last10.length != 10 ? "Invalid number" : null;
-                        },
-                      ),
+
+                  TextFormField(
+                  controller: _numberCtrl,
+                  decoration: _modernInput("Customer Number", Icons.phone),
+                  keyboardType: TextInputType.phone,
+                  maxLength: 12,
+
+                  // Only allow numbers
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+
+                  onChanged: (value) {
+                    // Remove all spaces automatically
+                    final cleaned = value.replaceAll(RegExp(r'\s+'), '');
+
+                    // Update textfield if pasted text had spaces
+                    if (cleaned != value) {
+                      _numberCtrl.value = TextEditingValue(
+                        text: cleaned,
+                        selection: TextSelection.collapsed(offset: cleaned.length),
+                      );
+                    }
+
+                    final last10 = _extractLast10Digits(cleaned);
+
+                    if (last10.length == 10 && !_fetchingCustomer) {
+                      _fetchCustomerByPhone(last10);
+                    }
+                  },
+
+                  validator: (value) {
+                    final cleaned = (value ?? "").replaceAll(RegExp(r'\s+'), '');
+                    final last10 = _extractLast10Digits(cleaned);
+
+                    return last10.length != 10 ? "Invalid number" : null;
+                  },
+                ),
 
                       const SizedBox(height: 12),
 

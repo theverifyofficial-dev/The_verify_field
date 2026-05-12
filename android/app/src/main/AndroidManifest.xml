@@ -83,6 +83,11 @@
 
         </activity>
 
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+
         <!-- Firebase Messaging service -->
         <service
             android:name="com.google.firebase.messaging.FirebaseMessagingService"

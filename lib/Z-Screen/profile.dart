@@ -299,8 +299,8 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Container(
                 width: tabWidth,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [const Color(0xFF3B82F6), const Color(0xFF1D4ED8)],
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
                   ),
                   borderRadius: BorderRadius.circular(18),
                   boxShadow: [

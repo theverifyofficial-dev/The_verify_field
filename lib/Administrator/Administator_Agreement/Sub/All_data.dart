@@ -222,7 +222,7 @@ class _AgreementDetailsState extends State<AllData> {
 
   // ─────────────────────────────────────────────────────────────────────────
   // FETCH AGREEMENTS — paginated
-  // ─────────────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────
   Future<void> fetchAgreements({bool isInitial = true}) async {
     if (isFetchingMore) return;
     isFetchingMore = true;
@@ -277,7 +277,8 @@ class _AgreementDetailsState extends State<AllData> {
   Future<void> fetchAgreementsByMonth({
     required String month,
     String? fieldWorker,
-  }) async {
+  })
+   async {
     _activeFilterMonth = month;
     _activeFilterWorker = fieldWorker;
 

@@ -34,63 +34,63 @@ class _SectionTheme {
 }
 
 final Map<String, _SectionTheme> _sectionThemes = {
-  "Agreement Details": _SectionTheme(
+  "Agreement Details": const _SectionTheme(
     titleBg: const Color(0xFF7C3AED),
     titleText: Colors.white,
     borderColor: const Color(0xFF7C3AED),
     cardBg: const Color(0xFFF5F0FF),
     icon: Icons.description_outlined,
   ),
-  "Owner Details": _SectionTheme(
+  "Owner Details": const _SectionTheme(
     titleBg: const Color(0xFF0F766E),
     titleText: Colors.white,
     borderColor: const Color(0xFF0F766E),
     cardBg: const Color(0xFFE6FFFA),
     icon: Icons.person_outlined,
   ),
-  "Tenant Details": _SectionTheme(
+  "Tenant Details": const _SectionTheme(
     titleBg: const Color(0xFF1D4ED8),
     titleText: Colors.white,
     borderColor: const Color(0xFF1D4ED8),
     cardBg: const Color(0xFFEFF6FF),
     icon: Icons.people_outlined,
   ),
-  "Director Details": _SectionTheme(
+  "Director Details": const _SectionTheme(
     titleBg: const Color(0xFF1D4ED8),
     titleText: Colors.white,
     borderColor: const Color(0xFF1D4ED8),
     cardBg: const Color(0xFFEFF6FF),
     icon: Icons.business_center_outlined,
   ),
-  "Additional Tenant": _SectionTheme(
+  "Additional Tenant": const _SectionTheme(
     titleBg: const Color(0xFFC2410C),
     titleText: Colors.white,
     borderColor: const Color(0xFFC2410C),
     cardBg: const Color(0xFFFFF7ED),
     icon: Icons.group_add_outlined,
   ),
-  "Additional Director": _SectionTheme(
+  "Additional Director": const _SectionTheme(
     titleBg: const Color(0xFFC2410C),
     titleText: Colors.white,
     borderColor: const Color(0xFFC2410C),
     cardBg: const Color(0xFFFFF7ED),
     icon: Icons.group_add_outlined,
   ),
-  "Field Worker": _SectionTheme(
+  "Field Worker": const _SectionTheme(
     titleBg: const Color(0xFFB45309),
     titleText: Colors.white,
     borderColor: const Color(0xFFB45309),
     cardBg: const Color(0xFFFFFBEB),
     icon: Icons.engineering_outlined,
   ),
-  "Property Residential Address": _SectionTheme(
+  "Property Residential Address": const _SectionTheme(
     titleBg: const Color(0xFF0369A1),
     titleText: Colors.white,
     borderColor: const Color(0xFF0369A1),
     cardBg: const Color(0xFFE0F2FE),
     icon: Icons.location_on_outlined,
   ),
-  "Documents": _SectionTheme(
+  "Documents": const _SectionTheme(
     titleBg: const Color(0xFF065F46),
     titleText: Colors.white,
     borderColor: const Color(0xFF065F46),
@@ -1324,7 +1324,6 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Agreement Details
-                  if (!isPolice)
 
                     _buildCard(
                       title: "Owner Details",
@@ -1362,12 +1361,12 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                         ),
                         const SizedBox(height: 6),
                         _kv("Rented Address", agreement?["rented_address"]),
-                        _kvAmount("Monthly Rent",
-                            "₹${agreement?["monthly_rent"] ?? ""}"),
-                        _kvAmount("Security",
-                            "₹${agreement?["securitys"] ?? ""}"),
-                        _kvAmount("Installment Security",
-                            "₹${agreement?["installment_security_amount"] ?? ""}"),
+                        // _kvAmount("Monthly Rent",
+                        //     "₹${agreement?["monthly_rent"] ?? ""}"),
+                        // _kvAmount("Security",
+                        //     "₹${agreement?["securitys"] ?? ""}"),
+                        // _kvAmount("Installment Security",
+                        //     "₹${agreement?["installment_security_amount"] ?? ""}"),
                         _kv("Meter", agreement?["meter"]),
                         _kv("Custom Unit", agreement?["custom_meter_unit"]),
                         _kv("Maintenance", agreement?["maintaince"]),

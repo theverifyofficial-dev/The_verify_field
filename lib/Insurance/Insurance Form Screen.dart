@@ -102,7 +102,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
       var request = http.MultipartRequest(
         'POST',
         Uri.parse(
-          'https://verifyrealestateandservices.in/PHP_Files/insurance_insert_api/insurance_details/insert.php',
+          '00',
         ),
       );
 

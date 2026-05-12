@@ -83,9 +83,7 @@ class _AgreementDetailsState extends State<AllData> {
     {"number": "9971172204", "name": "Faizan Khan"},
   ];
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // LIFECYCLE
-  // ─────────────────────────────────────────────────────────────────────────
+
   @override
   void initState() {
     super.initState();
@@ -877,6 +875,8 @@ class _AgreementDetailsState extends State<AllData> {
                     final bool officeReceived =
                         item.recieved.toString() == "1";
 
+
+
                     return GestureDetector(
                       key: _itemKeys.putIfAbsent(
                           item.id, () => GlobalKey()),
@@ -921,6 +921,7 @@ class _AgreementDetailsState extends State<AllData> {
                               agreementId: item.id.toString(),
                             ),
                       ),
+
                     );
                   },
                   childCount: filteredAgreements.length +
@@ -1477,28 +1478,35 @@ class _AgreementCard extends StatelessWidget {
               ],
             ),
 
-            // ── Missing Badges ────────────────────────────────────────
+            // ── Missing Badges ────────────────────────────────────────────────────────
             if ((item.withPolice == "true" &&
                 (item.policeVerificationPdf.isEmpty ||
                     item.policeVerificationPdf == 'null')) ||
                 (!isPolice &&
                     (item.notaryImg.isEmpty ||
-                        item.notaryImg == 'null'))) ...[
+                        item.notaryImg == 'null')) ||
+                (isPolice && _getMissingPoliceFields(item).isNotEmpty)) ...[
               const SizedBox(height: 10),
               Wrap(
                 spacing: 8,
                 runSpacing: 6,
                 children: [
+                  // Police verification missing
                   if (item.withPolice == "true" &&
                       (item.policeVerificationPdf.isEmpty ||
                           item.policeVerificationPdf == 'null'))
-                    const _MissingBadge(
-                        label: "Police Verification Missing"),
+                    const _MissingBadge(label: "Police Verification Missing"),
+
+                  // Notary missing (non-police)
                   if (!isPolice &&
-                      (item.notaryImg.isEmpty ||
-                          item.notaryImg == 'null'))
-                    const _MissingBadge(
-                        label: "Notary Image Missing"),
+                      (item.notaryImg.isEmpty || item.notaryImg == 'null'))
+                    const _MissingBadge(label: "Notary Image Missing"),
+
+                  // Police Verification agreement missing fields
+                  if (isPolice)
+                    ..._getMissingPoliceFields(item).map((field) =>
+                        _MissingBadge(label: "$field Missing")
+                    ).toList(),
                 ],
               ),
             ],
@@ -1508,6 +1516,45 @@ class _AgreementCard extends StatelessWidget {
     );
   }
 }
+
+/// Check which documents are missing for Police Verification
+List<String> _getMissingPoliceFields(AgreementModel item) {
+  final missing = <String>[];
+
+  // Check Owner documents
+  if ((item.ownerAadharFront?.isEmpty ?? true) ||
+      (item.ownerAadharFront == 'null')) {
+    missing.add("Owner Aadhar Front");
+  }
+  if ((item.ownerAadharBack?.isEmpty ?? true) ||
+      (item.ownerAadharBack == 'null')) {
+    missing.add("Owner Aadhar Back");
+  }
+
+  // Check Tenant documents
+  if ((item.tenantAadharFront?.isEmpty ?? true) ||
+      (item.tenantAadharFront == 'null')) {
+    missing.add("Tenant Aadhar Front");
+  }
+  if ((item.tenantAadharBack?.isEmpty ?? true) ||
+      (item.tenantAadharBack == 'null')) {
+    missing.add("Tenant Aadhar Back");
+  }
+
+  // Check property address
+  if ((item.rentedAddress?.isEmpty ?? true)) {
+    missing.add("Property Address");
+  }
+
+  // Check police verification document itself
+  if ((item.policeVerificationPdf?.isEmpty ?? true) ||
+      (item.policeVerificationPdf == 'null')) {
+    missing.add("Police verification");
+  }
+
+  return missing;
+}
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // CARD DETAIL ROW
@@ -1636,28 +1683,62 @@ class _MiniAvatar extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 class _MissingBadge extends StatelessWidget {
   final String label;
-  const _MissingBadge({required this.label});
+  final bool isPolice;
+  final bool isComplete;
+
+  const _MissingBadge({
+    required this.label,
+    this.isPolice = false,
+    this.isComplete = false,
+  });
 
   @override
   Widget build(BuildContext context) {
+    Color bgColor;
+    Color borderColor;
+    Color iconColor;
+    Color textColor;
+
+    if (isComplete) {
+      // Green for complete
+      bgColor = const Color(0xFF22C55E).withOpacity(0.12);
+      borderColor = const Color(0xFF22C55E).withOpacity(0.4);
+      iconColor = const Color(0xFF22C55E);
+      textColor = const Color(0xFF22C55E);
+    } else if (isPolice) {
+      // Orange for police missing
+      bgColor = const Color(0xFFF97316).withOpacity(0.12);
+      borderColor = const Color(0xFFF97316).withOpacity(0.4);
+      iconColor = const Color(0xFFF97316);
+      textColor = const Color(0xFFF97316);
+    } else {
+      // Red for regular missing
+      bgColor = const Color(0xFFEF4444).withOpacity(0.12);
+      borderColor = const Color(0xFFEF4444).withOpacity(0.4);
+      iconColor = const Color(0xFFEF4444);
+      textColor = const Color(0xFFEF4444);
+    }
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFEF4444).withOpacity(0.10),
+        color: bgColor,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-            color: const Color(0xFFEF4444).withOpacity(0.4), width: 0.8),
+        border: Border.all(color: borderColor, width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.warning_amber_rounded,
-              color: Color(0xFFEF4444), size: 14),
-          const SizedBox(width: 4),
+          Icon(
+            isComplete ? Icons.check_circle_rounded : Icons.warning_amber_rounded,
+            color: iconColor,
+            size: 14,
+          ),
+          const SizedBox(width: 5),
           Text(
             label,
-            style: const TextStyle(
-              color: Color(0xFFEF4444),
+            style: TextStyle(
+              color: textColor,
               fontSize: 11,
               fontWeight: FontWeight.w700,
             ),

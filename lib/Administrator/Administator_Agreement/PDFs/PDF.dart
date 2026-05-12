@@ -4,6 +4,7 @@ import 'package:pdf/pdf.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/Home_Screen.dart';
 
 String numberToWords(int number) {
   if (number == 0) return 'ZERO';
@@ -292,6 +293,71 @@ pw.Widget customClausePdf(String title, String subtitle) {
   );
 }
 
+pw.Widget _buildPageSignatures(
+    pw.Context context,
+    List<int> pagesToShowSignatures,  // [0, 1, 2, 5, 6, 7]
+    String ownerName,
+    String tenantName,
+    List<Map<String, dynamic>> additionalTenants,
+    bool hideAgreement,
+    String Function(String) getIdLabel,
+    String Function(String) maskIdNumber,
+    String rawOwnerAadhaar,
+    String rawTenantAadhaar,
+    ) {
+  final baseStyle = pw.TextStyle(fontSize: 8, height: 1.2);
+  final boldStyle = pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold);
+
+  // ✅ Sirf first N pages par signatures
+  if (!pagesToShowSignatures.contains(context.pageNumber)) {
+    return pw.SizedBox.shrink();  // Empty
+  }
+
+  final ownerAadhaar = hideAgreement ? maskIdNumber(rawOwnerAadhaar) : rawOwnerAadhaar;
+  final tenantAadhaar = hideAgreement ? maskIdNumber(rawTenantAadhaar) : rawTenantAadhaar;
+
+  return pw.Container(
+    margin: const pw.EdgeInsets.only(top: 10),
+    padding: const pw.EdgeInsets.only(top: 10),
+    child: pw.Column(
+      children: [
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Expanded(
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  if (ownerName.isNotEmpty)
+                    pw.Text('$ownerName: __________', style: boldStyle),
+                ],
+              ),
+            ),
+            pw.SizedBox(width: 20),
+            pw.Expanded(
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.end,
+                children: [
+                  if (tenantName.isNotEmpty)
+                    pw.Text('$tenantName: __________', style: boldStyle),
+                ],
+              ),
+            ),
+          ],
+        ),
+        pw.SizedBox(height: 40),
+        pw.Align(
+          alignment: pw.Alignment.center,
+          child: pw.Text(
+            'Page ${context.pageNumber + 1} of ${context.pagesCount}',
+            style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
 /* -------------------- PDF GENERATOR -------------------- */
 // ✅ Added optional customClauses parameter
 Future<File> generateAgreementPdf(
@@ -401,6 +467,12 @@ Future<File> generateAgreementPdf(
   final rawOwnerAadhaar = safeString(data, 'owner_addhar_no');
   final rawTenantAadhaar = safeString(data, 'tenant_addhar_no');
 
+
+// ✅ NEW PARAMETERS: Reference Number & eStamping Certificate
+  final Reference_Number = safeString(data, 'Reference_Number');
+  final eStamping_Certificate_No = safeString(data, 'eStamping_Certificate_No');
+
+
   final ownerAadhaar =
   hideAgreement ? maskIdNumber(rawOwnerAadhaar) : rawOwnerAadhaar;
   final tenantAadhaar = hideAgreement
@@ -421,7 +493,7 @@ Future<File> generateAgreementPdf(
     if (meterValue != null) {
       return pw.TextSpan(
         children: [
-          pw.TextSpan(
+          const pw.TextSpan(
             text: "The rate per unit is INR ",
             style: pw.TextStyle(fontSize: 11),
           ),
@@ -430,7 +502,7 @@ Future<File> generateAgreementPdf(
             style: pw.TextStyle(
                 fontSize: 11, fontWeight: pw.FontWeight.bold),
           ),
-          pw.TextSpan(
+        const pw.TextSpan(
             text:
             " per unit and water charges as per actual usage. These payments are separate from the monthly rent.",
             style: pw.TextStyle(fontSize: 11),
@@ -438,7 +510,7 @@ Future<File> generateAgreementPdf(
         ],
       );
     } else {
-      return pw.TextSpan(
+      return const  pw.TextSpan(
         text:
         "The rate per unit will be billed separately from the monthly rent as per applicable rates.",
         style: pw.TextStyle(fontSize: 11),
@@ -493,7 +565,7 @@ Future<File> generateAgreementPdf(
       ? '${shiftingDate.day.toString().padLeft(2, '0')}/${shiftingDate.month.toString().padLeft(2, '0')}/${shiftingDate.year}'
       : '';
 
-  final baseStyle = pw.TextStyle(fontSize: 11, height: 1.4);
+  const baseStyle = pw.TextStyle(fontSize: 11, height: 1.4);
   final boldStyle = pw.TextStyle(
       fontSize: 11, fontWeight: pw.FontWeight.bold, height: 1.4);
   final titleStyle =
@@ -521,27 +593,153 @@ Future<File> generateAgreementPdf(
   // ✅ _clauseCounter isRenewal ke baad assign karo
   _clauseCounter = isRenewal ? 6 : 7;
 
+  pw.Widget _buildHeaderWithReference(
+      pw.Context context,
+      List<int> pagesToShowHeader,  // [0, 1, 4, 5, 8, 9]
+      String referenceNumber,
+      String eStampingCertificateNo,
+      ) {
+
+    // ✅ Sirf select pages par dikhega
+    if (!pagesToShowHeader.contains(context.pageNumber)) {
+      return pw.SizedBox.shrink();  // Empty
+    }
+
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 10),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        children: [
+          // LEFT - eStamping
+          if (eStampingCertificateNo.isNotEmpty) ...[
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+                pw.Text('eStamping Certificate:', style: pw.TextStyle(fontSize: 9)),
+                pw.SizedBox(height: 2),
+                pw.Text(eStampingCertificateNo, style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold)),
+              ],
+            ),
+          ],
+
+          // RIGHT - Reference ID
+          if (referenceNumber.isNotEmpty) ...[
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+                pw.Text('Reference ID', style: const pw.TextStyle(fontSize: 9)),
+                pw.SizedBox(height: 2),
+                pw.Text(referenceNumber, style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold)),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+  // PAGE 2 - POLICE VERIFICATION
   pdf.addPage(
     pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
-      margin:
-      const pw.EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
-      maxPages: 50,
-      footer: (context) => pw.Container(
-        alignment: pw.Alignment.center,
-        margin: const pw.EdgeInsets.only(top: 20),
-        child: pw.Text(
-          'Page ${context.pageNumber + 1} of ${context.pagesCount}',
-          style: pw.TextStyle(
-              fontSize: 10, fontWeight: pw.FontWeight.bold),
-        ),
+      margin: const pw.EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+
+      header: (context) => _buildHeaderWithReference(
+        context,
+        [2, 4,],  // Page 1,2 + Page 5,6 + Page 9,10
+        Reference_Number,
+        eStamping_Certificate_No,
       ),
+
+      footer: (context) => _buildPageSignatures(
+        context,
+        [0, 1, 2,4],  // First 3 pages + Page 5,6,7 (jaha signatures dikhane hai)
+        ownerName,
+        tenantName,
+        additionalTenants,
+        hideAgreement,
+        getIdLabel,
+        maskIdNumber,
+        rawOwnerAadhaar,
+        rawTenantAadhaar,
+      ),
+
+      maxPages: 50,
+
       build: (context) => [
-        pw.Center(
-          child: pw.Padding(
-            padding: const pw.EdgeInsets.only(bottom: kSectionSpace),
-            child: pw.Text('Leave & License', style: titleStyle),
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: kSectionSpace),
+          child: pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // ✅ LEFT - eStamping Certificate
+              pw.Padding(
+                padding: const pw.EdgeInsets.only(top: 8),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    if (eStamping_Certificate_No.isNotEmpty) ...[
+                      pw.Text(
+                        'eStamping Certificate:',
+                        style: pw.TextStyle(
+                          fontSize: 9,
+                          fontWeight: pw.FontWeight.normal,
+                          color: PdfColors.grey700,
+                        ),
+                      ),
+                      pw.SizedBox(height: 2),
+                      pw.Text(
+                        eStamping_Certificate_No,
+                        style: pw.TextStyle(
+                          fontSize: 10,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.black,
+                        ),
+                      ),
+                      pw.SizedBox(height: 8),
+                    ],
+                  ],
+                ),
+              ),
+
+              // ✅ CENTER - Leave & License Title
+              pw.Expanded(
+                child: pw.Center(
+                  child: pw.Text('Leave & License', style: titleStyle),
+                ),
+              ),
+
+              // ✅ RIGHT - Reference ID
+              pw.Padding(
+                padding: const pw.EdgeInsets.only(top: 8),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    if (Reference_Number.isNotEmpty) ...[
+                      pw.Text(
+                        'Reference ID',
+                        style: pw.TextStyle(
+                          fontSize: 9,
+                          fontWeight: pw.FontWeight.normal,
+                          color: PdfColors.grey700,
+                        ),
+                      ),
+                      pw.SizedBox(height: 2),
+                      pw.Text(
+                        Reference_Number,
+                        style: pw.TextStyle(
+                          fontSize: 10,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.black,
+                        ),
+                      ),
+                      pw.SizedBox(height: 8),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
 
@@ -552,10 +750,11 @@ Future<File> generateAgreementPdf(
               pw.RichText(
                 text: pw.TextSpan(
                   children: [
-                    pw.TextSpan(
+                    const pw.TextSpan(
                       text:
                       'This Leave & License is made and executed on this ',
                       style: baseStyle,
+
                     ),
                     pw.TextSpan(
                       text: currentDateFormatted,
@@ -563,7 +762,7 @@ Future<File> generateAgreementPdf(
                           fontWeight: pw.FontWeight.bold,
                           fontSize: 11),
                     ),
-                    pw.TextSpan(
+                    const pw.TextSpan(
                       text: ' by and Between:',
                       style: baseStyle,
                     ),
@@ -666,7 +865,7 @@ Future<File> generateAgreementPdf(
             child: pw.RichText(
               text: pw.TextSpan(
                 children: [
-                  pw.TextSpan(
+                const  pw.TextSpan(
                       text:
                       '1. That the tenancy in respect of the above said premises has been granted by the First Party to the Second Party for a period of ',
                       style: baseStyle),
@@ -674,18 +873,18 @@ Future<File> generateAgreementPdf(
                       text: '11 months',
                       style:
                       pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                  pw.TextSpan(
+                const  pw.TextSpan(
                       text: ' commencing ', style: baseStyle),
                   pw.TextSpan(
                       text: '$shiftingDateFormatted',
                       style:
                       pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                  pw.TextSpan(text: ' to ', style: baseStyle),
+               const   pw.TextSpan(text: ' to ', style: baseStyle),
                   pw.TextSpan(
                       text: '$endDateFormatted',
                       style:
                       pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                  pw.TextSpan(text: '.', style: baseStyle),
+                 const pw.TextSpan(text: '.', style: baseStyle),
                 ],
               ),
             ),
@@ -704,7 +903,7 @@ Future<File> generateAgreementPdf(
                     style: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold, fontSize: 11),
                   ),
-                  pw.TextSpan(
+                 const pw.TextSpan(
                     text:
                     'The Second Party has paid an advance rent of ',
                     style: baseStyle,
@@ -714,7 +913,7 @@ Future<File> generateAgreementPdf(
                     style: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold, fontSize: 11),
                   ),
-                  pw.TextSpan(
+                const  pw.TextSpan(
                       text: '. The monthly rent shall be ',
                       style: baseStyle),
                   pw.TextSpan(
@@ -722,7 +921,7 @@ Future<File> generateAgreementPdf(
                     style: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold, fontSize: 11),
                   ),
-                  pw.TextSpan(
+                 const pw.TextSpan(
                     text:
                     ' and is payable in advance on or before the ',
                     style: baseStyle,
@@ -732,7 +931,7 @@ Future<File> generateAgreementPdf(
                     style: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold, fontSize: 11),
                   ),
-                  pw.TextSpan(
+                   const pw.TextSpan(
                     text: ' of each calendar month. ',
                     style: baseStyle,
                   ),
@@ -765,18 +964,18 @@ Future<File> generateAgreementPdf(
                     text: '3. Security Deposit: ',
                     style: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold, fontSize: 11)),
-                pw.TextSpan(
+               const pw.TextSpan(
                     text: 'A security deposit of ',
                     style: baseStyle),
                 pw.TextSpan(
                     text: formatAmount(securityRaw),
                     style: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold, fontSize: 11)),
-                pw.TextSpan(
+               const pw.TextSpan(
                     text:
                     ' is paid by the Second Party to the First Party This deposit is interest-free and shall be adjustable/refundable at the time of termination of this Leave & License after accounting for any dues, damages, remaining rent, electricity bill, cleaning, and other maintenance charges as per actual.',
                     style: baseStyle),
-                pw.TextSpan(
+               const pw.TextSpan(
                     text: '(BNS 324, 316(2))', style: baseStyle),
               ]),
             ),
@@ -797,7 +996,7 @@ Future<File> generateAgreementPdf(
                       style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold),
                     ),
-                    pw.TextSpan(
+                   const pw.TextSpan(
                       text:
                       'The Second Party shall not terminate the lease within the first ',
                       style: baseStyle,
@@ -807,7 +1006,7 @@ Future<File> generateAgreementPdf(
                       style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold),
                     ),
-                    pw.TextSpan(
+                   const pw.TextSpan(
                       text:
                       '. If terminated within this period, the security deposit shall be forfeited. After the lock-in period, the Second Party must give one month\'s notice to vacate, and the First Party must give the same notice to repossess the premises.',
                       style: baseStyle,
@@ -830,15 +1029,15 @@ Future<File> generateAgreementPdf(
                       text: '$usageClauseNumber. Usage: ',
                       style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold)),
-                  pw.TextSpan(
+                 const pw.TextSpan(
                       text:
                       'The rented premises shall be used for '),
                   pw.TextSpan(
                       text: 'residential',
                       style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold)),
-                  pw.TextSpan(text: ' purposes only.'),
-                  pw.TextSpan(
+                 const pw.TextSpan(text: ' purposes only.'),
+                 const pw.TextSpan(
                       text: '(IPC 420, 406)  (BNS 318, 316(1))',
                       style: baseStyle),
                 ],
@@ -860,8 +1059,10 @@ Future<File> generateAgreementPdf(
                       '$electricityClauseNumber. Electricity & Water Charges: ',
                       style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold)),
+
                   getMeterClause(data),
-                  pw.TextSpan(
+
+                 const pw.TextSpan(
                       text:
                       '(IPC 379, Electricity Act 135) (BNS 303(2))',
                       style: baseStyle),
@@ -878,17 +1079,11 @@ Future<File> generateAgreementPdf(
         clause('Mandatory Police Verification & Visitor Compliance:',
             'The Tenant shall complete mandatory Police Verification within 7 days from the date of possession.Failure to comply may result in legal action under Section 188 IPC. The First Party/Landlord may submit tenant information to the local police station as required by law. (IPC 188) (BNS 223(3))'),
 
+
         clause('Extension and Alterations:',
             'The tenancy can be extended if both parties agree. The Tenant cannot make any alterations to the rented property without the owner\'s written permission.(IPC 425, 427) (BNS 324, 303)'),
 
-        clause('Rules for Using Common Areas:',
-            'The Tenant shall not block staircases, corridors, terrace, or parking areas with personal belongings. Any violation may lead to penalty or termination.'),
 
-        clause('Pet Policy:',
-            'No pets shall be kept on the premises without prior written approval of the Landlord. Any damage caused by pets shall be borne by the Tenant.'),
-
-        // ✅ CUSTOM CLAUSES — appear as clause 12, 13... shifting Inspection to 12+N
-        // _clauseCounter continues automatically, so all following clauses shift
         ...(() {
           if (customClauses == null || customClauses.isEmpty) return <pw.Widget>[];
           final valid = customClauses
@@ -901,6 +1096,12 @@ Future<File> generateAgreementPdf(
               .toList();
         })(),
 
+
+        clause('Rules for Using Common Areas:',
+            'The Tenant shall not block staircases, corridors, terrace, or parking areas with personal belongings. Any violation may lead to penalty or termination.'),
+
+        clause('Pet Policy:',
+            'No pets shall be kept on the premises without prior written approval of the Landlord. Any damage caused by pets shall be borne by the Tenant.'),
 
         clause('Inspection & Emergency Entry:',
             'The Tenant must allow the Landlord or their authorized agent to enter the premises for inspection or required work. This access should be at any reasonable time, ensuring both parties can manage the property effectively. In situations involving a gas leak, fire, water leakage, flooding, structural danger, or any life-threatening emergency, the Landlord or authorized technicians may enter the premises without prior notice to prevent harm. (IPC 268, 269, 336, 188) (BNS 280, 285, 281, 223(3))'),
@@ -938,6 +1139,7 @@ Future<File> generateAgreementPdf(
         clause('Non-Payment of Rent:',
             'If the Second Party/Tenant fails to pay the rent on time, the First Party/Landlord reserves the right to take legal action to recover the outstanding amount and repossess the premises. (IPC 421, 403) (BNS 319(3), 316(2))'),
 
+
         clause('Legal Issues or Police Cases:',
             'If the Second Party/Tenant is involved in any police case or legal issue, the First Party/Landlord shall not be held responsible or liable for any consequences arising therefrom.'),
 
@@ -959,7 +1161,7 @@ Future<File> generateAgreementPdf(
         clause('Full Non-Liability & Internet/Cyber Responsibility Clause',
             'The First Party/Landlord and the property itself shall not be held liable for any actions, misconduct, illegal activity, disputes, fraud, civil matters, criminal cases, online offences, cyber crimes, internet misuse, illegal downloads, harassment, or any other legal violations committed by the Second Party/Tenant through physical means or through the use of the internet/Wi-Fi connection within the premises.All consequences arising from the behavior, actions, omissions, digital activities, or cyber activities of the Tenant shall be the sole responsibility of the Tenant alone, and the Landlord shall bear no legal, civil, or financial liability in any manner whatsoever.'),
 
-        pw.SizedBox(height: kLargeSpace),
+        //pw.SizedBox(height: kLargeSpace),
 
         if (agreement_type.trim().toLowerCase() !=
             "external rental agreement" &&
@@ -968,8 +1170,6 @@ Future<File> generateAgreementPdf(
             'Mediator:',
             'Swaven Realty Pvt. Ltd. ("Mediator") acts solely as a facilitator between the Owner and the Tenant. It operates as a pure agent, collecting the first month\'s rent from the Tenant, deducting commission, and transferring the balance to the Owner. From the second month onward, the Tenant shall pay rent directly to the Owner. The Mediator holds no responsibility for any disputes between the parties after the initial transaction.',
           ),
-
-        pw.SizedBox(height: kLargeSpace),
 
         pw.Partition(
           child: pw.Text(
@@ -1106,6 +1306,13 @@ Future<File> generateAgreementPdf(
           horizontal: 18, vertical: 18),
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       build: (context) => [
+        pw.Center(
+          child: pw.Text(
+            'POLICE VERIFICATION LETTER',
+            style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+          ),
+        ),
+        pw.SizedBox(height: 20),
         pw.Text('To,', style: baseStyle),
         pw.Text('Respected SHO Sir,', style: baseStyle),
         pw.Text('Police Station - Fatehpur Beri,', style: baseStyle),
@@ -1319,7 +1526,7 @@ Future<File> generateAgreementPdf(
         mainAxisAlignment: pw.MainAxisAlignment.start,
         children: [
           pw.Text(
-            'OWNER — Aadhaar',
+            'OWNER Aadhaar',
             style: pw.TextStyle(
                 fontWeight: pw.FontWeight.bold, fontSize: 12),
           ),
@@ -1333,8 +1540,9 @@ Future<File> generateAgreementPdf(
             ],
           ),
           pw.SizedBox(height: 20),
+
           pw.Text(
-            'TENANT — Aadhaar',
+            'TENANT Aadhaar',
             style: pw.TextStyle(
                 fontWeight: pw.FontWeight.bold, fontSize: 12),
           ),
@@ -1370,7 +1578,7 @@ Future<File> generateAgreementPdf(
       final tBackImg = await _loadAgreementImage(tBackPath);
 
       final String tName =
-          t['tenant_name']?.toString() ?? 'Co-Tenant';
+          t['tenant name']?.toString() ?? 'Co Tenant';
 
       pdf.addPage(
         pw.Page(
@@ -1381,11 +1589,12 @@ Future<File> generateAgreementPdf(
             mainAxisAlignment: pw.MainAxisAlignment.start,
             children: [
               pw.Text(
-                'CO-TENANT: $tName — Aadhaar',
+                'CO TENANT: $tName Aadhaar',
                 style: pw.TextStyle(
                     fontWeight: pw.FontWeight.bold, fontSize: 12),
               ),
               pw.SizedBox(height: 8),
+
               pw.Row(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [

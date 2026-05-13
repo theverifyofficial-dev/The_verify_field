@@ -233,31 +233,6 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     }
   }
 
-  Future<void> _handleGeneratePdf() async {
-    if (agreement == null) return;
-    final String type = (agreement!['agreement_type'] ?? '').toString().trim();
-    setState(() => isLoading = true);
-    try {
-      File file;
-      if (type == "Furnished Agreement") {
-        file = await generateFurnishedAgreementPdf(agreement!);
-      } else if (type == "Commercial Agreement") {
-        file = await generateCommercialAgreementPdf(agreement!);
-      } else {
-        file = await generateAgreementPdf(agreement!);
-      }
-      setState(() {
-        pdfFile = file;
-        pdfGenerated = true;
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Failed to generate PDF: $e'),
-          backgroundColor: Colors.redAccent));
-    } finally {
-      setState(() => isLoading = false);
-    }
-  }
 
   Future<void> _pickAndUploadPoliceVerification() async {
     final result = await FilePicker.platform
@@ -265,6 +240,224 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     if (result != null && result.files.single.path != null) {
       await _uploadDocument(File(result.files.single.path!),
           type: "police_verification_pdf");
+    }
+  }
+
+  Future<void> _pickAndUploadAgreementPdf() async {
+
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+
+    if (result != null &&
+        result.files.single.path != null) {
+
+      await _uploadDocument(
+        File(result.files.single.path!),
+        type: "agreement_pdf",
+      );
+    }
+  }
+
+  Future<void> _generatePreviewAndUpdateAgreementPdf() async {
+
+    if (agreement == null) return;
+
+    setState(() => isLoading = true);
+
+    try {
+
+      File generatedFile;
+
+      final String type =
+      (agreement!['agreement_type'] ?? '')
+          .toString()
+          .trim();
+
+      if (type == "Furnished Agreement") {
+
+        generatedFile =
+        await generateFurnishedAgreementPdf(
+            agreement!);
+
+      } else if (type ==
+          "Commercial Agreement") {
+
+        generatedFile =
+        await generateCommercialAgreementPdf(
+            agreement!);
+
+      } else {
+
+        generatedFile =
+        await generateAgreementPdf(
+            agreement!);
+      }
+
+      setState(() {
+
+        pdfFile = generatedFile;
+
+        pdfGenerated = true;
+      });
+
+      if (!mounted) return;
+
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+
+        builder: (_) {
+
+          final isDark =
+              Theme.of(context).brightness ==
+                  Brightness.dark;
+
+          return Container(
+
+            padding: const EdgeInsets.all(20),
+
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.grey[900]
+                  : Colors.white,
+
+              borderRadius:
+              const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+            ),
+
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin:
+                  const EdgeInsets.only(bottom: 18),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade500,
+                    borderRadius:
+                    BorderRadius.circular(10),
+                  ),
+                ),
+
+                const Row(
+                  children: [
+
+                    Icon(
+                      Icons.picture_as_pdf,
+                      color: Colors.red,
+                      size: 28,
+                    ),
+
+                    SizedBox(width: 12),
+
+                    Expanded(
+                      child: Text(
+                        "Generated Agreement Preview",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight:
+                          FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                ListTile(
+                  leading: const Icon(
+                    Icons.picture_as_pdf,
+                    color: Colors.red,
+                  ),
+
+                  title: Text(
+                    generatedFile.path
+                        .split('/')
+                        .last,
+                  ),
+
+                  subtitle:
+                  const Text("Tap to preview"),
+
+                  onTap: () async {
+
+                    await OpenFilex.open(
+                      generatedFile.path,
+                    );
+                  },
+                ),
+
+                const SizedBox(height: 20),
+
+                SizedBox(
+                  width: double.infinity,
+
+                  child: ElevatedButton.icon(
+
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                      Colors.green,
+                      foregroundColor:
+                      Colors.white,
+                      padding:
+                      const EdgeInsets.symmetric(
+                        vertical: 14,
+                      ),
+                      shape:
+                      RoundedRectangleBorder(
+                        borderRadius:
+                        BorderRadius.circular(
+                            14),
+                      ),
+                    ),
+
+                    icon:
+                    const Icon(Icons.upload),
+
+                    label: const Text(
+                      "Submit For Update",
+                    ),
+
+                    onPressed: () async {
+
+                      Navigator.pop(context);
+
+                      await _uploadDocument(
+                        generatedFile,
+                        type: "agreement_pdf",
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 10),
+              ],
+            ),
+          );
+        },
+      );
+
+    } catch (e) {
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(
+        SnackBar(
+          content: Text("Error: $e"),
+          backgroundColor: Colors.red,
+        ),
+      );
+
+    } finally {
+
+      setState(() => isLoading = false);
     }
   }
 
@@ -358,6 +551,15 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
       } else if (type == "police_verification_pdf") {
         request.files.add(await http.MultipartFile.fromPath(
             "police_verification_pdf", file.path));
+      }
+      else if (type == "agreement_pdf") {
+
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            "agreement_pdf",
+            file.path,
+          ),
+        );
       }
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
@@ -1237,6 +1439,137 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     );
   }
 
+  void _showAgreementActionSheet({
+    required String pdfUrl,
+  }) {
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+
+      builder: (_) {
+
+        final isDark =
+            Theme.of(context).brightness ==
+                Brightness.dark;
+
+        return Container(
+
+          padding: const EdgeInsets.all(20),
+
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.grey[900]
+                : Colors.white,
+
+            borderRadius:
+            const BorderRadius.vertical(
+              top: Radius.circular(24),
+            ),
+
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 20,
+                offset: const Offset(0, -4),
+              )
+            ],
+          ),
+
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+
+              Container(
+                width: 40,
+                height: 4,
+                margin:
+                const EdgeInsets.only(bottom: 18),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade500,
+                  borderRadius:
+                  BorderRadius.circular(10),
+                ),
+              ),
+
+              const Row(
+                children: [
+
+                  Icon(
+                    Icons.picture_as_pdf_outlined,
+                    size: 26,
+                    color: Colors.red,
+                  ),
+
+                  SizedBox(width: 12),
+
+                  Expanded(
+                    child: Text(
+                      "Agreement PDF",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight:
+                        FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 25),
+
+              // ── View ──
+              _actionButton(
+                icon: Icons.visibility_outlined,
+                label: "View PDF",
+                color: Colors.blue,
+                onTap: () {
+
+                  Navigator.pop(context);
+
+                  _launchURL(pdfUrl);
+                },
+              ),
+
+              const SizedBox(height: 14),
+
+              // ── Generate & Preview ──
+              _actionButton(
+                icon: Icons.picture_as_pdf_outlined,
+                label: "Generate & Preview",
+                color: Colors.green,
+                onTap: () {
+
+                  Navigator.pop(context);
+
+                  _generatePreviewAndUpdateAgreementPdf();
+                },
+              ),
+
+              const SizedBox(height: 14),
+
+              // ── Upload From Device ──
+              _actionButton(
+                icon: Icons.upload_file_outlined,
+                label: "Upload From Device",
+                color: Colors.orange,
+                onTap: () {
+
+                  Navigator.pop(context);
+
+                  _pickAndUploadAgreementPdf();
+                },
+              ),
+
+              const SizedBox(height: 10),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _showDocumentActionSheet({
     required String title,
     required VoidCallback onView,
@@ -1697,27 +2030,39 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                 ),
                 child: Row(
                   children: [
+
                     Expanded(
                       child: _pillButton(
+
                         label: "View\nAgreement",
-                        icon: Icons.remove_red_eye_outlined,
-                        colors: const [Color(0xFF1F2937), Color(0xFF374151)],
-                        textColor: const Color(0xFF60A5FA),
-                        iconColor: const Color(0xFF60A5FA),
-                        borderColor: const Color(0xFF374151),
-                        onPressed: () => _launchURL(
-                            'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/${agreement?["agreement_pdf"]}'),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: _pillButton(
-                        label: "Generate\nPDF",
-                        icon: Icons.picture_as_pdf_outlined,
-                        colors: const [Color(0xFF4ADE80), Color(0xFF22C55E)],
-                        textColor: const Color(0xFF14532D),
-                        iconColor: const Color(0xFF14532D),
-                        onPressed: _handleGeneratePdf,
+
+                        icon: Icons.description_outlined,
+
+                        colors: const [
+                          Color(0xFF06B6D4),
+                          Color(0xFF0891B2)
+                        ],
+
+                        onPressed: () {
+
+                          final pdf = agreement?["agreement_pdf"];
+
+                          if (pdf == null || pdf.toString().isEmpty) {
+
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Agreement PDF not available"),
+                              ),
+                            );
+
+                            return;
+                          }
+
+                          _showAgreementActionSheet(
+                            pdfUrl:
+                            'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/$pdf',
+                          );
+                        },
                       ),
                     ),
                   ],
@@ -1887,23 +2232,73 @@ Widget _actionButton({
   required Color color,
   required VoidCallback onTap,
 }) {
-  return InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(14),
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: color.withOpacity(0.1),
-        border: Border.all(color: color, width: 1.5),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 24),
-          const SizedBox(height: 6),
-          Text(label,
-              style: TextStyle(fontWeight: FontWeight.w600, color: color)),
-        ],
+
+  return Material(
+    color: Colors.transparent,
+
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+
+      child: Container(
+
+        width: double.infinity,
+
+        padding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+
+        decoration: BoxDecoration(
+
+          borderRadius: BorderRadius.circular(16),
+
+          color: color.withOpacity(0.08),
+
+          border: Border.all(
+            color: color.withOpacity(0.35),
+            width: 1.2,
+          ),
+        ),
+
+        child: Row(
+          children: [
+
+            Container(
+              padding: const EdgeInsets.all(10),
+
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+
+              child: Icon(
+                icon,
+                color: color,
+                size: 22,
+              ),
+            ),
+
+            const SizedBox(width: 14),
+
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                  color: color,
+                ),
+              ),
+            ),
+
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: color.withOpacity(0.7),
+              size: 16,
+            ),
+          ],
+        ),
       ),
     ),
   );

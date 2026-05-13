@@ -8,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_tab.dart';
+import '../../Custom_Widget/Crop.dart';
 import '../../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 import '../../Future_Property_OwnerDetails_section/Future_property_details.dart';
@@ -480,15 +481,19 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
   Future<void> _pickDirectorAadhaar(int index, bool isFront) async {
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
+    final croppedFile = await cropImage(picked.path);
+
+    if (croppedFile == null) return;
     setState(() {
-      if (isFront) directors[index].aadhaarFront = File(picked.path);
-      else directors[index].aadhaarBack = File(picked.path);
+      if (isFront) directors[index].aadhaarFront = croppedFile;
+      else directors[index].aadhaarBack = croppedFile;
     });
     showDialog(context: context, barrierDismissible: false,
         builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
             child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 14), Text('Scanning Aadhaar card...')])))));
     try {
-      final rawText = await _recognizeTextNative(picked.path);
+      final rawText =
+      await _recognizeTextNative(croppedFile.path);
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
       if (rawText != null && rawText.trim().isNotEmpty) {
         await _applyOcrResult(ocr: _parseAadhaarText(rawText), fillOwner: false, directorIndex: index);
@@ -527,7 +532,10 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
   Future<void> _pickDirectorPAN(int index) async {
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
-    setState(() => directors[index].panPhoto = File(picked.path));
+    final croppedFile = await cropImage(picked.path);
+
+    if (croppedFile == null) return;
+    setState(() => directors[index].panPhoto = croppedFile);
 
     // 🔍 OCR scan for PAN number
     showDialog(context: context, barrierDismissible: false,
@@ -537,7 +545,8 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
               Text('Scanning PAN card...', style: TextStyle(fontSize: 14)),
             ])))));
     try {
-      final rawText = await _recognizeTextNative(picked.path);
+      final rawText =
+      await _recognizeTextNative(croppedFile.path);
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
       if (rawText != null && rawText.trim().isNotEmpty) {
         final panRegex = RegExp(r'\b([A-Z]{5}[0-9]{4}[A-Z])\b');
@@ -860,17 +869,24 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
   Future<void> _pickImage(String which) async {
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
+
+    final croppedFile = await cropImage(picked.path);
+
+    if (croppedFile == null) return;
+
     setState(() {
       switch (which) {
-        case 'ownerFront': ownerAadhaarFront = File(picked.path); break;
-        case 'ownerBack': ownerAadhaarBack = File(picked.path); break;
+        case 'ownerFront': ownerAadhaarFront = croppedFile; break;
+        case 'ownerBack': ownerAadhaarBack = croppedFile; break;
       }
     });
+
     showDialog(context: context, barrierDismissible: false,
         builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
             child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 14), Text('Scanning Aadhaar card...')])))));
     try {
-      final rawText = await _recognizeTextNative(picked.path);
+      final rawText =
+      await _recognizeTextNative(croppedFile.path);
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
       if (rawText != null && rawText.trim().isNotEmpty) {
         await _applyOcrResult(ocr: _parseAadhaarText(rawText), fillOwner: true);

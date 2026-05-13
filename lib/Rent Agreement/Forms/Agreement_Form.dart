@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_tab.dart';
 import '../../AppLogger.dart';
+import '../../Custom_Widget/Crop.dart';
 import '../../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 
@@ -423,15 +424,17 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
 
-    final pickedFile = File(picked.path);
+    final croppedFile = await cropImage(picked.path);
+
+    if (croppedFile == null) return;
 
     setState(() {
       switch (which) {
         case 'ownerFront':
-          ownerAadhaarFront = pickedFile;
+          ownerAadhaarFront = croppedFile;
           break;
         case 'ownerBack':
-          ownerAadhaarBack = pickedFile;
+          ownerAadhaarBack = croppedFile;
           break;
       }
     });
@@ -454,7 +457,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     );
 
     try {
-      final rawText = await _recognizeTextNative(picked.path);
+      final rawText =
+      await _recognizeTextNative(croppedFile.path);
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
 
       if (rawText == null || rawText.trim().isEmpty) {
@@ -477,11 +481,16 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
 
+    final croppedFile =
+    await cropImage(picked.path);
+
+    if (croppedFile == null) return;
+
     setState(() {
       if (isFront) {
-        tenants[index].aadhaarFront = File(picked.path);
+        tenants[index].aadhaarFront = croppedFile;
       } else {
-        tenants[index].aadhaarBack = File(picked.path);
+        tenants[index].aadhaarBack = croppedFile;
       }
     });
 
@@ -504,7 +513,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     );
 
     try {
-      final rawText = await _recognizeTextNative(picked.path);
+      final rawText =
+      await _recognizeTextNative(croppedFile.path);
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
 
       if (rawText == null || rawText.trim().isEmpty) {
@@ -528,8 +538,13 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         source: ImageSource.gallery, imageQuality: 75);
     if (picked == null) return;
 
+    final croppedFile =
+    await cropImage(picked.path);
+
+    if (croppedFile == null) return;
+
     setState(() {
-      tenants[index].photo = File(picked.path);
+      tenants[index].photo = croppedFile;
     });
   }
 

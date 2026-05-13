@@ -111,11 +111,12 @@
     confetti: ^0.7.0
     flutter_animate: ^4.5.2
     webview_flutter: ^4.7.0
+    image_cropper: ^9.1.0
+    image_gallery_saver_plus: ^4.0.1
+
 
   #    agora_rtc_engine: ^6.0.0
 #    socket_io_client: ^2.0.3
-
-
 
   dev_dependencies:
     flutter_launcher_icons: ^0.13.1

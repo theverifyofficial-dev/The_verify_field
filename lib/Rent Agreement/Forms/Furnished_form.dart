@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_tab.dart';
 import '../../Administrator/Administator_Agreement/Admin_Agreement_details.dart';
 import '../../AppLogger.dart';
+import '../../Custom_Widget/Crop.dart';
 import '../../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 
@@ -569,14 +570,19 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
   Future<void> _pickImage(String which) async {
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
+
+    final croppedFile = await cropImage(picked.path);
+
+    if (croppedFile == null) return;
+
     final isOwner = which == 'ownerFront' || which == 'ownerBack';
     setState(() {
       switch (which) {
-        case 'ownerFront': ownerAadhaarFront = File(picked.path); break;
-        case 'ownerBack': ownerAadhaarBack = File(picked.path); break;
-        case 'tenantFront': tenantAadhaarFront = File(picked.path); break;
-        case 'tenantBack': tenantAadhaarBack = File(picked.path); break;
-        case 'tenantImage': tenantImage = File(picked.path); break;
+        case 'ownerFront': ownerAadhaarFront = croppedFile; break;
+        case 'ownerBack': ownerAadhaarBack = croppedFile; break;
+        case 'tenantFront': tenantAadhaarFront = croppedFile; break;
+        case 'tenantBack': tenantAadhaarBack = croppedFile; break;
+        case 'tenantImage': tenantImage = croppedFile; break;
       }
     });
     // OCR scan only for aadhaar images, not photo
@@ -585,7 +591,8 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
         builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
             child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 14), Text('Scanning Aadhaar card...')])))));
     try {
-      final rawText = await _recognizeTextNative(picked.path);
+      final rawText =
+      await _recognizeTextNative(croppedFile.path);
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
       if (rawText != null && rawText.trim().isNotEmpty) {
         await _applyOcrResult(ocr: _parseAadhaarText(rawText), fillOwner: isOwner);
@@ -600,8 +607,9 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
   builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
   child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 14), Text('Scanning Aadhaar card...')])))));
   try {
-  final rawText = await _recognizeTextNative(picked.path);
-  if (mounted) Navigator.of(context, rootNavigator: true).pop();
+    final rawText =
+    await _recognizeTextNative(croppedFile.path);
+    if (mounted) Navigator.of(context, rootNavigator: true).pop();
   if (rawText != null && rawText.trim().isNotEmpty) {
   await _applyOcrResult(ocr: _parseAadhaarText(rawText), fillOwner: isOwner);
   if (mounted) setState(() {});

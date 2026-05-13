@@ -6,9 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../Custom_Widget/constant.dart';
 import '../../utilities/bug_founder_fuction.dart';
+import 'package:image_picker/image_picker.dart';
+import '../../Custom_Widget/Crop.dart';
 
 class AgreementUser {
   final String id;
@@ -70,6 +73,86 @@ class _AgreementCustomerState extends State<AgreementCustomer> {
   void initState() {
     super.initState();
     fetchAllData();
+  }
+
+  final ImagePicker _picker = ImagePicker();
+
+  Future<void> _pickCropAndUpload({
+    required String userId,
+    required String field,
+  })
+  async {
+
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
+
+    if (picked == null) return;
+
+    final croppedFile = await cropImage(picked.path);
+
+    if (croppedFile == null) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    try {
+
+      final request = http.MultipartRequest(
+        "POST",
+        Uri.parse(
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/update_api_fetch_agreement.php",
+        ),
+      );
+
+      request.fields["id"] = userId;
+
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          field,
+          croppedFile.path,
+        ),
+      );
+
+      final response = await request.send();
+
+      final body =
+      await response.stream.bytesToString();
+
+      Navigator.pop(context);
+
+      final data = jsonDecode(body);
+
+      if (response.statusCode == 200) {
+
+        Fluttertoast.showToast(
+          msg: data["message"] ??
+              "Image updated successfully",
+        );
+
+        fetchAllData();
+
+      } else {
+
+        Fluttertoast.showToast(
+          msg: "Upload failed",
+        );
+      }
+
+    } catch (e) {
+
+      Navigator.pop(context);
+
+      Fluttertoast.showToast(
+        msg: e.toString(),
+      );
+    }
   }
 
   Future<void> fetchAllData() async {
@@ -231,6 +314,101 @@ class _AgreementCustomerState extends State<AgreementCustomer> {
   }
 
 
+  void openFullImage(
+      BuildContext context,
+      String imageUrl, {
+        String? userId,
+        String? field,
+        VoidCallback? onUpdated,
+      })
+  {
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black,
+
+      builder: (_) => Material(
+
+        color: Colors.black,
+
+        child: Stack(
+          children: [
+
+            Center(
+              child: InteractiveViewer(
+                minScale: 1,
+                maxScale: 4,
+                child: Image.network(imageUrl),
+              ),
+            ),
+
+            // ── CLOSE ──
+            Positioned(
+              top: 12,
+              right: 12,
+
+              child: IconButton(
+                icon: const Icon(
+                  Icons.close,
+                  color: Colors.white,
+                ),
+
+                onPressed: () =>
+                    Navigator.pop(context),
+              ),
+            ),
+
+            // ── DOWNLOAD ──
+            Positioned(
+              top: 12,
+              left: 12,
+
+              child: IconButton(
+                icon: const Icon(
+                  Icons.download,
+                  color: Colors.white,
+                ),
+
+                onPressed: () =>
+                    downloadAndSaveImage(imageUrl),
+              ),
+            ),
+
+            // ── EDIT ──
+            if (userId != null && field != null)
+              Positioned(
+                bottom: 30,
+                right: 20,
+
+                child: FloatingActionButton.extended(
+
+                  backgroundColor: Colors.blue,
+
+                  icon: const Icon(Icons.edit),
+
+                  label: const Text("Update Image"),
+
+                  onPressed: () async {
+
+                    Navigator.pop(context);
+
+                    await _pickCropAndUpload(
+                      userId: userId,
+                      field: field,
+                    );
+
+                    if (onUpdated != null) {
+                      onUpdated();
+                    }
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget buildUserCard(
       BuildContext context, AgreementUser user, int index) {
     return Card(
@@ -276,7 +454,16 @@ class _AgreementCustomerState extends State<AgreementCustomer> {
                   children: [
                     GestureDetector(
                       onTap: () =>
-                          openFullImage(context, baseImageUrl + user.selfie),
+                    openFullImage(
+                    context,
+                    baseImageUrl + user.selfie,
+
+                    userId: user.id,
+
+                    field: "selfie",
+
+                    onUpdated: fetchAllData,
+      ),
                       child:CircleAvatar(
                         radius: 28,
                         backgroundColor: Colors.grey.shade300,
@@ -388,6 +575,8 @@ class _AgreementCustomerState extends State<AgreementCustomer> {
                         context,
                         "Aadhar Front",
                         baseImageUrl + user.aadhaarFront,
+                        user.id,
+                        "addhar_front"
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -396,6 +585,8 @@ class _AgreementCustomerState extends State<AgreementCustomer> {
                         context,
                         "Aadhar Back",
                         baseImageUrl + user.aadhaarBack,
+                          user.id,
+                          "addhar_back"
                       ),
                     ),
                   ],
@@ -430,7 +621,7 @@ class _AgreementCustomerState extends State<AgreementCustomer> {
   }
 
   Widget buildImageCard(
-      BuildContext context, String title, String imageUrl) {
+      BuildContext context, String title, String imageUrl, String userId, String field) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -440,7 +631,16 @@ class _AgreementCustomerState extends State<AgreementCustomer> {
         ),
         const SizedBox(height: 4),
         GestureDetector(
-          onTap: () => openFullImage(context, imageUrl),
+          onTap: () => openFullImage(
+          context,
+          imageUrl,
+
+    userId: userId,
+
+    field: field,
+
+    onUpdated: fetchAllData,
+    ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: AspectRatio(
@@ -461,88 +661,55 @@ class _AgreementCustomerState extends State<AgreementCustomer> {
   }
 }
 
-Future<void> downloadAndSaveImage(String imageUrl) async {
+Future<void> downloadAndSaveImage(
+    String imageUrl,
+    ) async {
+
   try {
-    final status = await Permission.storage.request();
-    if (!status.isGranted) {
-      Fluttertoast.showToast(msg: "Permission denied");
-      return;
-    }
 
     final response = await Dio().get(
       imageUrl,
-      options: Options(responseType: ResponseType.bytes),
+
+      options: Options(
+        responseType: ResponseType.bytes,
+      ),
     );
 
-    final result = await ImageGallerySaverPlus.saveImage(
+    final result =
+    await ImageGallerySaverPlus.saveImage(
+
       Uint8List.fromList(response.data),
+
       quality: 100,
-      name: "agreement_${DateTime.now().millisecondsSinceEpoch}",
+
+      name:
+      "agreement_${DateTime.now().millisecondsSinceEpoch}",
     );
+
+    if (result['isSuccess'] == true ||
+        result['filePath'] != null) {
+
+      Fluttertoast.showToast(
+        msg: "Image saved to gallery ✅",
+      );
+
+    } else {
+
+      Fluttertoast.showToast(
+        msg: "Save failed ❌",
+      );
+    }
+
+  } catch (e) {
+
+    print(e);
 
     Fluttertoast.showToast(
-      msg: result['isSuccess'] == true
-          ? "Image saved to gallery ✅"
-          : "Save failed ❌",
+      msg: e.toString(),
     );
-  } catch (e) {
-    Fluttertoast.showToast(msg: e.toString());
   }
 }
 
-void openFullImage(BuildContext context, String imageUrl) {
-  showDialog(
-    context: context,
-    barrierColor: Colors.black,
-    builder: (_) => Material(
-      color: Colors.black,
-      child: Stack(
-        children: [
-          Center(
-            child: InteractiveViewer(
-              minScale: 1,
-              maxScale: 4,
-              child: Image.network(imageUrl),
-            ),
-          ),
-          Positioned(
-            top: 12,
-            right: 12,
-            child: IconButton(
-              icon: const Icon(Icons.close, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-          Positioned(
-            top: 12,
-            left: 12,
-            child: IconButton(
-              icon: const Icon(Icons.download, color: Colors.white),
-              onPressed: () => downloadAndSaveImage(imageUrl),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-class ImageGallerySaverPlus {
-  static const MethodChannel _channel =
-  MethodChannel('image_gallery_saver_plus');
-
-  static Future<dynamic> saveImage(
-      Uint8List imageBytes, {
-        int quality = 80,
-        String? name,
-      }) async {
-    return _channel.invokeMethod('saveImageToGallery', {
-      'imageBytes': imageBytes,
-      'quality': quality,
-      'name': name,
-    });
-  }
-}
 
 Widget _skeletonCard() {
   return Card(

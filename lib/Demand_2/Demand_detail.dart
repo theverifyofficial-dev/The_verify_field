@@ -1387,6 +1387,9 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                     ),
                   ),
 
+
+
+
                   const SizedBox(height: 22),
 
                   // CONTACT BUTTONS
@@ -1696,6 +1699,19 @@ class _AdminDemandDetailState extends State<DemandDetail> {
               ),
             ],
           ),
+
+          const SizedBox(height: 5),
+
+
+          if (widget.isReadOnly)
+            Text(
+              d["Tnumber"] ?? "--",
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: _textPrimary,
+              ),
+            ),
 
           const SizedBox(height: 10),
 

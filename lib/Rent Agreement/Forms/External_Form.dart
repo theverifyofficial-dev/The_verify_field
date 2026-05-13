@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_tab.dart';
 import '../../AppLogger.dart';
+import '../../Custom_Widget/Crop.dart';
 import '../../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 
@@ -396,14 +397,17 @@ class _ExternalWizardPageState extends State<ExternalWizardPage> with TickerProv
   Future<void> _pickImage(String which) async {
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
+    final croppedFile = await cropImage(picked.path);
+
+    if (croppedFile == null) return;
 
     setState(() {
       switch (which) {
         case 'ownerFront':
-          ownerAadhaarFront = File(picked.path);
+          ownerAadhaarFront = croppedFile;
           break;
         case 'ownerBack':
-          ownerAadhaarBack = File(picked.path);
+          ownerAadhaarBack = croppedFile;
           break;
       }
     });
@@ -427,7 +431,8 @@ class _ExternalWizardPageState extends State<ExternalWizardPage> with TickerProv
     );
 
     try {
-      final rawText = await _recognizeTextNative(picked.path);
+      final rawText =
+      await _recognizeTextNative(croppedFile.path);
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
       if (rawText != null && rawText.trim().isNotEmpty) {
         final parsed = _parseAadhaarText(rawText);
@@ -1029,11 +1034,15 @@ class _ExternalWizardPageState extends State<ExternalWizardPage> with TickerProv
         source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
 
+    final croppedFile = await cropImage(picked.path);
+
+    if (croppedFile == null) return;
+
     setState(() {
       if (isFront) {
-        tenants[index].aadhaarFront = File(picked.path);
+        tenants[index].aadhaarFront = croppedFile;
       } else {
-        tenants[index].aadhaarBack = File(picked.path);
+        tenants[index].aadhaarBack = croppedFile;
       }
     });
 
@@ -1056,7 +1065,8 @@ class _ExternalWizardPageState extends State<ExternalWizardPage> with TickerProv
     );
 
     try {
-      final rawText = await _recognizeTextNative(picked.path);
+      final rawText =
+      await _recognizeTextNative(croppedFile.path);
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
       if (rawText != null && rawText.trim().isNotEmpty) {
         final parsed = _parseAadhaarText(rawText);

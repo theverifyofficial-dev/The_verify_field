@@ -239,7 +239,6 @@ class LinksPage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-
               Container(
                 width: 45,
                 height: 5,

@@ -144,7 +144,7 @@ class _AdminPendingState extends State<AdminPending> {
                     ),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Row(
+                  child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.touch_app, color: Colors.white, size: 16),

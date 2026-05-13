@@ -295,7 +295,6 @@ pw.Widget customClausePdf(String title, String subtitle) {
 
 pw.Widget _buildPageSignatures(
     pw.Context context,
-    List<int> pagesToShowSignatures,  // [0, 1, 2, 5, 6, 7]
     String ownerName,
     String tenantName,
     List<Map<String, dynamic>> additionalTenants,
@@ -308,11 +307,20 @@ pw.Widget _buildPageSignatures(
   final baseStyle = pw.TextStyle(fontSize: 8, height: 1.2);
   final boldStyle = pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold);
 
-  // ✅ Sirf first N pages par signatures
-  if (!pagesToShowSignatures.contains(context.pageNumber)) {
-    return pw.SizedBox.shrink();  // Empty
+  // ✅ PAGE 0 (First Party) और LAST PAGE (WITNESS) पर सिर्फ page number
+  // NO SIGNATURES
+  if (context.pageNumber == 0 || context.pageNumber == context.pagesCount - 1) {
+    return pw.Container(
+      alignment: pw.Alignment.center,
+      margin: const pw.EdgeInsets.only(top: 8),
+      child: pw.Text(
+        'Page ${context.pageNumber + 1} of ${context.pagesCount}',
+        style: pw.TextStyle(fontSize: 7, fontWeight: pw.FontWeight.bold),
+      ),
+    );
   }
 
+  // ✅ बाकी सभी pages (1, 2, 3, 4...) पर SIGNATURES + PAGE NUMBER
   final ownerAadhaar = hideAgreement ? maskIdNumber(rawOwnerAadhaar) : rawOwnerAadhaar;
   final tenantAadhaar = hideAgreement ? maskIdNumber(rawTenantAadhaar) : rawTenantAadhaar;
 
@@ -639,6 +647,33 @@ Future<File> generateAgreementPdf(
     );
   }
   // PAGE 2 - POLICE VERIFICATION
+  // pdf.addPage(
+  //   pw.MultiPage(
+  //     pageFormat: PdfPageFormat.a4,
+  //     margin: const pw.EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+  //
+  //     header: (context) => _buildHeaderWithReference(
+  //       context,
+  //       [1,2, 3, 4, 5, 6],  // Page 1,2 + Page 5,6 + Page 9,10
+  //       Reference_Number,
+  //       eStamping_Certificate_No,
+  //     ),
+  //
+  //     footer: (context) => _buildPageSignatures(
+  //       context,
+  //       [0, 1, 2, 3, 4, 5],  // First 3 pages + Page 5,6,7 (jaha signatures dikhane hai)
+  //       ownerName,
+  //       tenantName,
+  //       additionalTenants,
+  //       hideAgreement,
+  //       getIdLabel,
+  //       maskIdNumber,
+  //       rawOwnerAadhaar,
+  //       rawTenantAadhaar,
+  //     ),
+  //
+  //     maxPages: 50,
+
   pdf.addPage(
     pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
@@ -646,25 +681,24 @@ Future<File> generateAgreementPdf(
 
       header: (context) => _buildHeaderWithReference(
         context,
-        [2, 4,],  // Page 1,2 + Page 5,6 + Page 9,10
+        [ 2, 3, 4, 5, 6],
         Reference_Number,
         eStamping_Certificate_No,
       ),
 
-      footer: (context) => _buildPageSignatures(
-        context,
-        [0, 1, 2,4],  // First 3 pages + Page 5,6,7 (jaha signatures dikhane hai)
-        ownerName,
-        tenantName,
-        additionalTenants,
-        hideAgreement,
-        getIdLabel,
-        maskIdNumber,
-        rawOwnerAadhaar,
-        rawTenantAadhaar,
-      ),
+        // ✅ अब:
+        footer: (context) => _buildPageSignatures(
+          context,
+          ownerName,  // सीधे ownerName से शुरू करो
+          tenantName,
+          additionalTenants,
+          hideAgreement,
+          getIdLabel,
+          maskIdNumber,
+          rawOwnerAadhaar,
+          rawTenantAadhaar,
+        ),
 
-      maxPages: 50,
 
       build: (context) => [
         pw.Padding(
@@ -1190,22 +1224,13 @@ Future<File> generateAgreementPdf(
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Text(
-                        'FIRST PARTY / LANDLORD',
-                        style: pw.TextStyle(
-                          fontWeight: pw.FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
+                      pw.Text('FIRST PARTY / LANDLORD',
+                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
                       pw.SizedBox(height: 8),
                       pw.Text('Name: $ownerName', style: boldStyle),
-                      pw.Text(
-                          '${getIdLabel(ownerAadhaar)} $ownerAadhaar',
-                          style: boldStyle),
-                      pw.SizedBox(height: kSectionSpace),
-                      pw.Text(
-                          'Signature: ____________________________',
-                          style: baseStyle),
+                      pw.Text('${getIdLabel(ownerAadhaar)} $ownerAadhaar', style: boldStyle),
+                      pw.SizedBox(height: 30),
+                      pw.Text('Signature: ____________________________', style: baseStyle),
                     ],
                   ),
                 ),
@@ -1216,22 +1241,13 @@ Future<File> generateAgreementPdf(
                   child: pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Text(
-                        'SECOND PARTY / TENANT',
-                        style: pw.TextStyle(
-                          fontWeight: pw.FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
+                      pw.Text('SECOND PARTY / TENANT',
+                          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
                       pw.SizedBox(height: 8),
                       pw.Text('Name: $tenantName', style: boldStyle),
-                      pw.Text(
-                          '${getIdLabel(tenantAadhaar)} $tenantAadhaar',
-                          style: boldStyle),
-                      pw.SizedBox(height: 20),
-                      pw.Text(
-                          'Signature: ____________________________',
-                          style: baseStyle),
+                      pw.Text('${getIdLabel(tenantAadhaar)} $tenantAadhaar', style: boldStyle),
+                      pw.SizedBox(height: 30),
+                      pw.Text('Signature: ____________________________', style: baseStyle),
                       if (additionalTenants.isNotEmpty)
                         ...additionalTenants.map((t) {
                           final name = t['tenant_name'] ?? '';
@@ -1240,6 +1256,7 @@ Future<File> generateAgreementPdf(
                           final aadhaar = hideAgreement
                               ? maskIdNumber(rawAadhaar)
                               : rawAadhaar;
+
                           return pw.Padding(
                             padding:
                             const pw.EdgeInsets.only(top: 20),

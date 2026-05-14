@@ -565,6 +565,9 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
       final responseBody = await response.stream.bytesToString();
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
+
+      print(response.statusCode);
+      print(responseBody);
       if (response.statusCode == 200) {
         try {
           final data = jsonDecode(responseBody);
@@ -1896,20 +1899,6 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
 
             const SizedBox(height: 20),
 
-            // ── PDF tile ──
-            if (!isPolice && pdfFile != null) ...[
-              _glassContainer(
-                child: ListTile(
-                  leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
-                  title: Text(pdfFile!.path.split('/').last),
-                  subtitle: const Text("Tap to open"),
-                  onTap: () async => await OpenFilex.open(pdfFile!.path),
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-
-            // ── Police & Notary buttons ──
             Row(
               children: [
                 Expanded(
@@ -2085,7 +2074,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
         "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${data['property_photo'] ?? ''}";
 
     final Color textPrimary = isDark ? Colors.white : Colors.black87;
-    final Color textSecondary = isDark ? Colors.grey[300]! : Colors.grey[700]!;
+    final Color textSecondary = Colors.grey[700]!;
     final Color textMuted = isDark ? Colors.grey[400]! : Colors.grey[600]!;
 
     return Card(
@@ -2133,7 +2122,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                             fontWeight: FontWeight.bold,
                             color: textPrimary)),
                     Text(data['Floor_'] ?? "--",
-                        style: TextStyle(fontSize: 14, color: textMuted)),
+                        style: TextStyle(fontSize: 14, color: textSecondary)),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -2163,7 +2152,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                     Text("Maintenance: ${data['maintance'] ?? '--'}",
                         style: TextStyle(fontSize: 15, color: textSecondary)),
                     Text("ID: ${agreement?["property_id"] ?? '--'}",
-                        style: TextStyle(fontSize: 15, color: textMuted)),
+                        style: TextStyle(fontSize: 15, color: textSecondary)),
                   ],
                 ),
               ],

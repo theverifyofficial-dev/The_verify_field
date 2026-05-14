@@ -2945,7 +2945,7 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
         if (fetchedData != null) _propertyCard(fetchedData!), // Card appears only after fetch
-        Row(
+        const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Property Details', style: TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
@@ -3033,6 +3033,7 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
         Form(
           key: _propertyFormKey,
           child: Column(children: [
+            const SizedBox(height: 10),
             _glowTextField(controller: propertyID,keyboard: TextInputType.number, label: 'Property ID', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
             const SizedBox(height: 6),
             Row(
@@ -3075,6 +3076,7 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
                   ),
                 ]
             ),
+            const SizedBox(height: 10),
             _glowTextField(controller: Address, label: 'Rented Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,   readOnly: isPropertyFetched,
             ),
             const SizedBox(height: 10),

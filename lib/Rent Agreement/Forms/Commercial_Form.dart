@@ -3334,6 +3334,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         Form(
           key: _propertyFormKey,
           child: Column(children: [
+            const SizedBox(height: 10),
             _glowTextField(controller: propertyID,keyboard: TextInputType.number, label: 'Property ID', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
             const SizedBox(height: 6),
             Row(
@@ -3376,6 +3377,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                   ),
                 ]
             ),
+            const SizedBox(height: 10),
             _glowTextField(controller: Address, label: 'Rented Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,   readOnly: isPropertyFetched,
             ),
             const SizedBox(height: 10),

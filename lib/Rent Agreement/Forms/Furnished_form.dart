@@ -2584,7 +2584,7 @@ Widget _propertyStep() {
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
       if (fetchedData != null) _propertyCard(fetchedData!), // Card appears only after fetch
-      Row(
+      const Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text('Property Details', style: TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
@@ -2694,7 +2694,9 @@ Widget _propertyStep() {
       Form(
         key: _propertyFormKey,
         child: Column(children: [
+          const SizedBox(height: 10),
           _glowTextField(controller: propertyID,keyboard: TextInputType.number, label: 'Property ID', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+          const SizedBox(height: 10),
           Row(
               children: [
                 Expanded(
@@ -2706,6 +2708,7 @@ Widget _propertyStep() {
                     )),
               ]
           ),
+          const SizedBox(height: 10),
           _glowTextField(controller: Address, label: 'Rented Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,   readOnly: isPropertyFetched,
           ),
           const SizedBox(height: 10),

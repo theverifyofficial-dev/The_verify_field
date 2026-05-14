@@ -3397,12 +3397,14 @@ class _RenewalFormState extends State<RenewalForm>
         Form(
           key: _propertyFormKey,
           child: Column(children: [
+            const SizedBox(height: 10),
             _glowTextField(
                 controller: propertyID,
                 keyboard: TextInputType.number,
                 label: 'Property ID',
                 validator: (v) =>
                 (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            const SizedBox(height: 10),
             Row(children: [
               Expanded(
                   child: _glowTextField(
@@ -3420,6 +3422,7 @@ class _RenewalFormState extends State<RenewalForm>
                       validator: (v) =>
                       (v?.trim().isEmpty ?? true) ? 'Required' : null)),
             ]),
+            const SizedBox(height: 10),
             _glowTextField(
                 controller: Address,
                 label: 'Rented Address',

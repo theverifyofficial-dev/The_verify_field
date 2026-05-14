@@ -3718,7 +3718,7 @@ class _ExternalWizardPageState extends State<ExternalWizardPage> with TickerProv
 
         if (fetchedData != null) _propertyCard(fetchedData!),
 
-        Row(
+        const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Property Details',
@@ -3802,12 +3802,14 @@ class _ExternalWizardPageState extends State<ExternalWizardPage> with TickerProv
         Form(
           key: _propertyFormKey,
           child: Column(children: [
+            const SizedBox(height: 10),
             _glowTextField(
                 controller: propertyID,
                 keyboard: TextInputType.number,
                 label: 'Property ID',
                 validator: (v) =>
                 (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            const SizedBox(height: 10),
             Row(children: [
               Expanded(
                   child: _glowTextField(
@@ -3825,6 +3827,7 @@ class _ExternalWizardPageState extends State<ExternalWizardPage> with TickerProv
                       validator: (v) =>
                       (v?.trim().isEmpty ?? true) ? 'Required' : null)),
             ]),
+            const SizedBox(height: 10),
             _glowTextField(
                 controller: Address,
                 label: 'Rented Address',

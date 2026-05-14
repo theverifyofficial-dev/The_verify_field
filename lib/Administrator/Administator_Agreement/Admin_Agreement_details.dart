@@ -83,13 +83,13 @@ final Map<String, _SectionTheme> _sectionThemes = {
     cardBg: const Color(0xFFFFFBEB),
     icon: Icons.engineering_outlined,
   ),
-  "Property Residential Address": const _SectionTheme(
-    titleBg: const Color(0xFF0369A1),
-    titleText: Colors.white,
-    borderColor: const Color(0xFF0369A1),
-    cardBg: const Color(0xFFE0F2FE),
-    icon: Icons.location_on_outlined,
-  ),
+  // "Property Residential Address": const _SectionTheme(
+  //   titleBg: const Color(0xFF0369A1),
+  //   titleText: Colors.white,
+  //   borderColor: const Color(0xFF0369A1),
+  //   cardBg: const Color(0xFFE0F2FE),
+  //   icon: Icons.location_on_outlined,
+  // ),
   "Documents": const _SectionTheme(
     titleBg: const Color(0xFF065F46),
     titleText: Colors.white,
@@ -1361,12 +1361,12 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                         ),
                         const SizedBox(height: 6),
                         _kv("Rented Address", agreement?["rented_address"]),
-                        // _kvAmount("Monthly Rent",
-                        //     "₹${agreement?["monthly_rent"] ?? ""}"),
-                        // _kvAmount("Security",
-                        //     "₹${agreement?["securitys"] ?? ""}"),
-                        // _kvAmount("Installment Security",
-                        //     "₹${agreement?["installment_security_amount"] ?? ""}"),
+                        _kvAmount("Monthly Rent",
+                            "₹${agreement?["monthly_rent"] ?? ""}"),
+                        _kvAmount("Security",
+                            "₹${agreement?["securitys"] ?? ""}"),
+                        _kvAmount("Installment Security",
+                            "₹${agreement?["installment_security_amount"] ?? ""}"),
                         _kv("Meter", agreement?["meter"]),
                         _kv("Custom Unit", agreement?["custom_meter_unit"]),
                         _kv("Maintenance", agreement?["maintaince"]),
@@ -1501,14 +1501,14 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
               ),
             ),
 
-            // ── Police address ──
-            if (isPolice)
-              _sectionCard(
-                title: "Property Residential Address",
-                children: [
-                  _kv("Property Address", agreement?["rented_address"]),
-                ],
-              ),
+            // // ── Police address ──
+            // if (isPolice)
+            //   _sectionCard(
+            //     title: "Property Residential Address",
+            //     children: [
+            //       _kv("Property Address", agreement?["rented_address"]),
+            //     ],
+            //   ),
 
             // ── Field Worker ──
             _sectionCard(

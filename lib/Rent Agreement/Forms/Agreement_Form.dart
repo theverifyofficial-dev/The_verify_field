@@ -16,7 +16,6 @@ import 'package:http_parser/http_parser.dart';
 import '../../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../Dashboard_screen.dart';
 
-
 class TenantBlock {
   String? id; // 🔥 (for update case)
 
@@ -40,6 +39,7 @@ class TenantBlock {
   String? aadhaarBackUrl;
   String? photoUrl;
 }
+
 class BuildingSuggestion {
   final int id;
   final String ownerName;
@@ -67,6 +67,7 @@ class BuildingSuggestion {
     );
   }
 }
+
 class FlatSuggestion {
   final String id;
   final String bhk;
@@ -494,7 +495,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       }
     });
 
-    // 🔍 OCR scan
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -3881,10 +3881,9 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
         if (fetchedData != null) _propertyCard(fetchedData!), // Card appears only after fetch
-        Row(
+        const Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-
             Text(
               'Property Details',
               style: TextStyle(fontFamily: "Poppins",
@@ -3893,8 +3892,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                 color: Colors.black,
               ),
             ),
-
-
           ],
         ),
         const SizedBox(height: 12),
@@ -3986,8 +3983,12 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         ),
         Form(
           key: _propertyFormKey,
-          child: Column(children: [
+          child: Column(
+              children: [
+            const SizedBox(height: 10),
+
             _glowTextField(controller: propertyID,keyboard: TextInputType.number, label: 'Property ID', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            const SizedBox(height: 10),
             Row(
                 children: [
                   Expanded(
@@ -3999,10 +4000,10 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                       )),
                 ]
             ),
+            const SizedBox(height: 10),
             _glowTextField(controller: Address, label: 'Rented Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,   readOnly: isPropertyFetched,
             ),
             const SizedBox(height: 10),
-
 
             Row(
                 children: [

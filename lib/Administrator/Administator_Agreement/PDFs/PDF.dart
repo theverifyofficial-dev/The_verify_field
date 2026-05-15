@@ -697,6 +697,7 @@ Future<File> generateAgreementPdf(
   //       rawOwnerAadhaar,
   //       rawTenantAadhaar,
   //     ),
+
   //
   //     maxPages: 50,
 
@@ -732,34 +733,34 @@ Future<File> generateAgreementPdf(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
               // ✅ LEFT - eStamping Certificate
-              pw.Padding(
-                padding: const pw.EdgeInsets.only(top: 8),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    if (eStamping_Certificate_No.isNotEmpty) ...[
-                      pw.Text(
-                        'eStamping Certificate:',
-                        style: pw.TextStyle(
-                          fontSize: 9,
-                          fontWeight: pw.FontWeight.normal,
-                          color: PdfColors.grey700,
-                        ),
-                      ),
-                      pw.SizedBox(height: 2),
-                      pw.Text(
-                        eStamping_Certificate_No,
-                        style: pw.TextStyle(
-                          fontSize: 10,
-                          fontWeight: pw.FontWeight.bold,
-                          color: PdfColors.black,
-                        ),
-                      ),
-                      pw.SizedBox(height: 8),
-                    ],
-                  ],
-                ),
-              ),
+              // pw.Padding(
+              //   padding: const pw.EdgeInsets.only(top: 8),
+              //   child: pw.Column(
+              //     crossAxisAlignment: pw.CrossAxisAlignment.start,
+              //     children: [
+              //       if (eStamping_Certificate_No.isNotEmpty) ...[
+              //         pw.Text(
+              //           'eStamping Certificate:',
+              //           style: pw.TextStyle(
+              //             fontSize: 9,
+              //             fontWeight: pw.FontWeight.normal,
+              //             color: PdfColors.grey700,
+              //           ),
+              //         ),
+              //         pw.SizedBox(height: 2),
+              //         pw.Text(
+              //           eStamping_Certificate_No,
+              //           style: pw.TextStyle(
+              //             fontSize: 10,
+              //             fontWeight: pw.FontWeight.bold,
+              //             color: PdfColors.black,
+              //           ),
+              //         ),
+              //         pw.SizedBox(height: 8),
+              //       ],
+              //     ],
+              //   ),
+              // ),
 
               // ✅ CENTER - Leave & License Title
               pw.Expanded(
@@ -769,37 +770,37 @@ Future<File> generateAgreementPdf(
               ),
 
               // ✅ RIGHT - Reference ID
-              pw.Padding(
-                padding: const pw.EdgeInsets.only(top: 8),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.end,
-                  children: [
-                    if (Reference_Number.isNotEmpty) ...[
-                      pw.Text(
-                        'Reference ID',
-                        style: pw.TextStyle(
-                          fontSize: 9,
-                          fontWeight: pw.FontWeight.normal,
-                          color: PdfColors.grey700,
-                        ),
-                      ),
-                      pw.SizedBox(height: 2),
-                      pw.Text(
-                        Reference_Number,
-                        style: pw.TextStyle(
-                          fontSize: 10,
-                          fontWeight: pw.FontWeight.bold,
-                          color: PdfColors.black,
-                        ),
-                      ),
-                      pw.SizedBox(height: 8),
-                    ],
-                  ],
-                ),
-              ),
+              // pw.Padding(
+              //   padding: const pw.EdgeInsets.only(top: 8),
+              //   child: pw.Column(
+              //     crossAxisAlignment: pw.CrossAxisAlignment.end,
+              //     children: [
+              //       if (Reference_Number.isNotEmpty) ...[
+              //         pw.Text(
+              //           'Reference ID',
+              //           style: pw.TextStyle(
+              //             fontSize: 9,
+              //             fontWeight: pw.FontWeight.normal,
+              //             color: PdfColors.grey700,
+              //           ),
+              //         ),
+              //         pw.SizedBox(height: 2),
+              //         pw.Text(
+              //           Reference_Number,
+              //           style: pw.TextStyle(
+              //             fontSize: 10,
+              //             fontWeight: pw.FontWeight.bold,
+              //             color: PdfColors.black,
+              //           ),
+              //         ),
+              //         pw.SizedBox(height: 8),
+              //       ],
+              //     ],
+              //   ),
+              // ),
             ],
           ),
-        ),
+              ),
 
         pw.Partition(
           child: pw.Column(

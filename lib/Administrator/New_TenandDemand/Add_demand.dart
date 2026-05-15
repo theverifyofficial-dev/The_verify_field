@@ -53,7 +53,10 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
   Map<String, dynamic>? _demandData;
   bool _loadingDemand = false;
 
-  String? _buyRent, _reference, _location;
+  String? _buyRent, _reference;
+
+  final Set<String> _selectedLocations = {};
+
   bool _isSubmitting = false;
   String get _status {
     if (widget.mode == DemandEditMode.add) return "New";
@@ -413,8 +416,16 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
 
     // LOCATION
     final location = safeString(data["Location"]);
-    if (_location == null && location != null) {
-      _location = location;
+
+    if (location != null) {
+      _selectedLocations.clear();
+
+      _selectedLocations.addAll(
+        location
+            .split(",")
+            .map((e) => e.trim())
+            .where((e) => e.isNotEmpty),
+      );
     }
 
     // REFERENCE
@@ -566,7 +577,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
           : "${_rentBudget.start.toInt()}-${_rentBudget.end.toInt()}",
 
       "Bhk": _selectedBhks.isEmpty ? "" : _selectedBhks.join(", "),
-      "Location": _location ?? "",
+      "Location": _selectedLocations.join(","),
       "Buy_rent": _buyRent ?? "",
       "Reference": _reference ?? "",
       "Message": _messageCtrl.text.trim(),
@@ -974,16 +985,63 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
 
                       const SizedBox(height: 12),
 
-                      DropdownButtonFormField<String>(
-                        value: _location,
-                        decoration: _modernInput("e.g. Sultanpur", Icons.location_on_sharp),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
 
+                          const Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              "Preferred Locations",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
 
+                          const SizedBox(height: 10),
 
-                        items: _locationOptions
-                            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                            .toList(),
-                        onChanged: (v) => setState(() => _location = v),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: _locationOptions.map((location) {
+
+                              final selected = _selectedLocations.contains(location);
+
+                              return FilterChip(
+                                label: Text(location),
+
+                                selected: selected,
+
+                                selectedColor: const Color(0xFFDC2626),
+
+                                checkmarkColor: Colors.white,
+
+                                labelStyle: TextStyle(
+                                  color: selected ? Colors.white : Colors.black,
+                                  fontWeight: FontWeight.w500,
+                                ),
+
+                                backgroundColor: Colors.grey.shade100,
+
+                                side: BorderSide(
+                                  color: selected
+                                      ? const Color(0xFFDC2626)
+                                      : Colors.grey.shade300,
+                                ),
+
+                                onSelected: (value) {
+                                  setState(() {
+                                    value
+                                        ? _selectedLocations.add(location)
+                                        : _selectedLocations.remove(location);
+                                  });
+                                },
+                              );
+                            }).toList(),
+                          ),
+                        ],
                       ),
 
                       const SizedBox(height: 12),

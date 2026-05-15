@@ -596,7 +596,7 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
       width: double.infinity,
       padding: padding ?? const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? Colors.purple.withOpacity(0.5) : Color(0xFFFFF7ED),
+        color: const Color(0xFFFFF7ED),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
             color: const Color(0xFFC2410C)

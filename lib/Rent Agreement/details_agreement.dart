@@ -40,74 +40,74 @@ class _SectionTheme {
 }
 
 final Map<String, _SectionTheme> _sectionThemes = {
-  "Owner Details": _SectionTheme(
-    titleBg: const Color(0xFF0F766E),
+  "Owner Details": const _SectionTheme(
+    titleBg: Color(0xFF0F766E),
     titleText: Colors.white,
-    borderColor: const Color(0xFF0F766E),
-    cardBg: const Color(0xFFE6FFFA),
+    borderColor: Color(0xFF0F766E),
+    cardBg: Color(0xFFE6FFFA),
     icon: Icons.person_outlined,
   ),
-  "Tenant Details": _SectionTheme(
-    titleBg: const Color(0xFF1D4ED8),
+  "Tenant Details": const _SectionTheme(
+    titleBg: Color(0xFF1D4ED8),
     titleText: Colors.white,
-    borderColor: const Color(0xFF1D4ED8),
-    cardBg: const Color(0xFFEFF6FF),
+    borderColor: Color(0xFF1D4ED8),
+    cardBg: Color(0xFFEFF6FF),
     icon: Icons.people_outlined,
   ),
-  "Director Details": _SectionTheme(
-    titleBg: const Color(0xFF1D4ED8),
+  "Director Details": const _SectionTheme(
+    titleBg: Color(0xFF1D4ED8),
     titleText: Colors.white,
-    borderColor: const Color(0xFF1D4ED8),
-    cardBg: const Color(0xFFEFF6FF),
+    borderColor: Color(0xFF1D4ED8),
+    cardBg: Color(0xFFEFF6FF),
     icon: Icons.business_center_outlined,
   ),
-  "Additional Tenant": _SectionTheme(
-    titleBg: const Color(0xFFC2410C),
+  "Additional Tenant": const _SectionTheme(
+    titleBg: Color(0xFFC2410C),
     titleText: Colors.white,
-    borderColor: const Color(0xFFC2410C),
-    cardBg: const Color(0xFFFFF7ED),
+    borderColor: Color(0xFFC2410C),
+    cardBg: Color(0xFFFFF7ED),
     icon: Icons.group_add_outlined,
   ),
-  "Additional Director": _SectionTheme(
-    titleBg: const Color(0xFFC2410C),
+  "Additional Director": const _SectionTheme(
+    titleBg: Color(0xFFC2410C),
     titleText: Colors.white,
-    borderColor: const Color(0xFFC2410C),
-    cardBg: const Color(0xFFFFF7ED),
+    borderColor: Color(0xFFC2410C),
+    cardBg: Color(0xFFFFF7ED),
     icon: Icons.group_add_outlined,
   ),
-  "Property Residential Address": _SectionTheme(
-    titleBg: const Color(0xFF0369A1),
+  // "Property Residential Address": _SectionTheme(
+  //   titleBg: const Color(0xFF0369A1),
+  //   titleText: Colors.white,
+  //   borderColor: const Color(0xFF0369A1),
+  //   cardBg: const Color(0xFFE0F2FE),
+  //   icon: Icons.location_on_outlined,
+  // ),
+  "Agreement Status": const _SectionTheme(
+    titleBg: Color(0xFF374151),
     titleText: Colors.white,
-    borderColor: const Color(0xFF0369A1),
-    cardBg: const Color(0xFFE0F2FE),
-    icon: Icons.location_on_outlined,
-  ),
-  "Agreement Status": _SectionTheme(
-    titleBg: const Color(0xFF374151),
-    titleText: Colors.white,
-    borderColor: const Color(0xFF374151),
-    cardBg: const Color(0xFFF9FAFB),
+    borderColor: Color(0xFF374151),
+    cardBg: Color(0xFFF9FAFB),
     icon: Icons.flag_outlined,
   ),
-  "Agreement Details": _SectionTheme(
-    titleBg: const Color(0xFF7C3AED),
+  "Agreement Details": const _SectionTheme(
+    titleBg: Color(0xFF7C3AED),
     titleText: Colors.white,
-    borderColor: const Color(0xFF7C3AED),
-    cardBg: const Color(0xFFF5F0FF),
+    borderColor: Color(0xFF7C3AED),
+    cardBg: Color(0xFFF5F0FF),
     icon: Icons.description_outlined,
   ),
-  "Documents": _SectionTheme(
-    titleBg: const Color(0xFF065F46),
+  "Documents": const _SectionTheme(
+    titleBg: Color(0xFF065F46),
     titleText: Colors.white,
-    borderColor: const Color(0xFF065F46),
-    cardBg: const Color(0xFFECFDF5),
+    borderColor: Color(0xFF065F46),
+    cardBg: Color(0xFFECFDF5),
     icon: Icons.folder_copy_outlined,
   ),
-  "Property Details": _SectionTheme(
-    titleBg: const Color(0xFF0369A1),
+  "Property Details": const _SectionTheme(
+    titleBg: Color(0xFF0369A1),
     titleText: Colors.white,
-    borderColor: const Color(0xFF0369A1),
-    cardBg: const Color(0xFFE0F2FE),
+    borderColor: Color(0xFF0369A1),
+    cardBg: Color(0xFFE0F2FE),
     icon: Icons.apartment_outlined,
   ),
 };
@@ -1347,14 +1347,14 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>
                   ),
                 ),
 
-                // ── Police residential address ────────────────────────────
-                if (isPolice)
-                  _sectionCard(
-                    title: "Property Residential Address",
-                    children: [
-                      _kv("Property Address", a["rented_address"]),
-                    ],
-                  ),
+                // // ── Police residential address ────────────────────────────
+                // if (isPolice)
+                //   _sectionCard(
+                //     title: "Property Residential Address",
+                //     children: [
+                //       _kv("Property Address", a["rented_address"]),
+                //     ],
+                //   ),
 
                 const SizedBox(height: 30),
               ],

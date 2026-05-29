@@ -319,59 +319,6 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
     }
   }
 
-
-
-
-  Future<void> _prefetchAllPropertyData() async {
-    final allProperties = _groupedData.values.expand((list) => list).toList();
-    if (allProperties.isEmpty) return;
-
-    final futures = allProperties.map((p) async {
-      try {
-        final resp1 = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/count_api_for_avability_for_building?subid=${p.id}'));
-        if (resp1.statusCode == 200) {
-          final body = jsonDecode(resp1.body);
-          if (body is List && body.isNotEmpty) {
-            _totalFlatsMap[p.id] = body[0]['logg'].toString();
-          }
-        }
-
-        final resp2 = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/live_unlive_flat_under_building?subid=${p.id}'));
-        if (resp2.statusCode == 200) {
-          final body = jsonDecode(resp2.body);
-          if (body is List) {
-            for (var item in body) {
-              if (item['live_unlive'] == 'Live') {
-                _liveCountMap[p.id] = (item['logs'] as num?)?.toInt() ?? 0;
-                break;
-              }
-            }
-          }
-        }
-      } catch (_) {}
-    });
-
-    await Future.wait(futures);
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _handleNotification(String buildingId) async {
-    setState(() => _highlightedBuildingId = buildingId);
-    await _fetchAndUpdateData();
-  }
-
-  Future<void> _scrollToHighlighted() async {
-    if (_highlightedBuildingId == null) return;
-    final key = _cardKeys[_highlightedBuildingId!];
-    if (key?.currentContext != null) {
-      await Scrollable.ensureVisible(
-        key!.currentContext!,
-        duration: const Duration(milliseconds: 800),
-        curve: Curves.easeInOut,
-      );
-    }
-  }
-
   String formatDate(String s) {
     if (s.isEmpty) return '-';
     try {
@@ -473,7 +420,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
     required Map<String, dynamic> status,
     required double imageHeight,
     required double multiImgHeight,
-  }) {
+  })  {
     final int liveCount = status['liveCount'] ?? 0;
     final Color liveColor = liveCount > 0 ? Colors.green : Colors.red;
     final String liveLabel = liveCount > 0 ? "Live: $liveCount" : "Unlive: 0";

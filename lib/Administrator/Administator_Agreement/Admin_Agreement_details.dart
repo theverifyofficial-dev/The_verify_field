@@ -1211,9 +1211,10 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
       page = FurnishedForm(agreementId: id,rewardStatus: reward);
     } else if (type.contains("renewal agreement")) {
       page = RenewalForm(agreementId: id,rewardStatus: reward);
-    } else if (type.contains("Police Verification")) {
+    } else if (type.contains("police verification")) {
       page = VerificationWizardPage(agreementId: id,rewardStatus: reward);
     } else {
+      print("Unknown agreement type: ${agreement['agreement_type']}");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Unknown agreement type: ${agreement['agreement_type']}")),
       );

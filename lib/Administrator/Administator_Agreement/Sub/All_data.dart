@@ -6,15 +6,15 @@ import 'package:http/http.dart' as http;
 import '../../../model/Agreement_model.dart';
 import 'All_data_details_page.dart';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MODEL
-// ─────────────────────────────────────────────────────────────────────────────
+
 class FieldWorkerPayment {
   final String number;
   final String name;
   final int totalAmount;
   final int paidAmount;
   final int remainingAmount;
+  final int? totalAgreement;
+  final int? totalPolice;
 
   FieldWorkerPayment({
     required this.number,
@@ -22,18 +22,27 @@ class FieldWorkerPayment {
     required this.totalAmount,
     required this.paidAmount,
     required this.remainingAmount,
+     this.totalAgreement,
+     this.totalPolice,
   });
 
   factory FieldWorkerPayment.fromJson(
       Map<String, dynamic> json, {
         required String name,
+        // NEW
+        int totalAgreement = 0,
+        int totalPolice = 0,
       }) {
+
+
     return FieldWorkerPayment(
       number: json['fieldworker'] ?? '',
       name: name,
       totalAmount: int.tryParse(json['total_amount'].toString()) ?? 0,
       paidAmount: int.tryParse(json['paid_amount'].toString()) ?? 0,
       remainingAmount: int.tryParse(json['remaining_amount'].toString()) ?? 0,
+      totalAgreement: totalAgreement,
+      totalPolice: totalPolice,
     );
   }
 }
@@ -60,6 +69,7 @@ class _AgreementDetailsState extends State<AllData> {
   List<AgreementModel> filteredAgreements = [];
   bool isLoading = true;
   int totalRecords = 0;
+  int filteredTotalRecords = 0;
   int? _lastOpenedId;
   double _savedScrollOffset = 0;
   final Map<int, GlobalKey> _itemKeys = {};
@@ -91,6 +101,10 @@ class _AgreementDetailsState extends State<AllData> {
     _paymentsFuture = fetchAllFieldWorkersPayments();
     fetchAgreements();
     _scrollController.addListener(() {
+
+      // ❌ Disable pagination when filter is active
+      if (_activeFilterMonth != null) return;
+
       if (_scrollController.position.pixels >=
           _scrollController.position.maxScrollExtent - 200 &&
           !isFetchingMore &&
@@ -108,21 +122,44 @@ class _AgreementDetailsState extends State<AllData> {
     super.dispose();
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // API — FIELD WORKER PAYMENTS
-  // ─────────────────────────────────────────────────────────────────────────
   Future<FieldWorkerPayment> fetchPaymentForWorker({
     required String number,
     required String name,
   }) async {
-    final res = await http.get(
-      Uri.parse(
-        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/payment_count_new_api.php?fieldworker=$number',
-      ),
+
+    final paymentUrl =
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/payment_count_new_api.php?fieldworker=$number';
+
+    final countUrl =
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/count_of_police_verification_and_agreement.php?Fieldwarkarnumber=$number';
+
+    final responses = await Future.wait([
+      http.get(Uri.parse(paymentUrl)),
+      http.get(Uri.parse(countUrl)),
+    ]);
+
+    final paymentRes = responses[0];
+    final countRes = responses[1];
+
+    final paymentData = jsonDecode(paymentRes.body);
+    final countData = jsonDecode(countRes.body);
+
+    if (paymentData['status'] != true) {
+      throw Exception("Failed for $number");
+    }
+
+    final count = countData['data'] ?? {};
+
+    return FieldWorkerPayment.fromJson(
+      paymentData,
+      name: name,
+
+      totalPolice:
+      int.tryParse(count['police_verification_count'].toString()) ?? 0,
+
+    totalAgreement:
+      int.tryParse(count['other_agreement_count'].toString()) ?? 0,
     );
-    final data = jsonDecode(res.body);
-    if (data['status'] != true) throw Exception("Failed for $number");
-    return FieldWorkerPayment.fromJson(data, name: name);
   }
 
   Future<List<FieldWorkerPayment>> fetchAllFieldWorkersPayments() async {
@@ -213,6 +250,7 @@ class _AgreementDetailsState extends State<AllData> {
       _activeFilterWorker = null;
       monthlyPaymentSummary = null;
       await fetchAgreements(isInitial: true);
+      hasMore = true;
     } catch (e) {
       debugPrint("❌ Error refreshing agreements: $e");
     }
@@ -280,6 +318,7 @@ class _AgreementDetailsState extends State<AllData> {
     _activeFilterMonth = month;
     _activeFilterWorker = fieldWorker;
 
+
     final Map<String, String> queryParams = {"month": month};
     if (fieldWorker != null && fieldWorker.isNotEmpty) {
       queryParams["fw"] = fieldWorker;
@@ -288,6 +327,8 @@ class _AgreementDetailsState extends State<AllData> {
     final uri = Uri.parse(
       'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/month_wise_agreement.php',
     ).replace(queryParameters: queryParams);
+
+    print(uri);
 
     AppLogger.api("📡 Month Filter API: $uri");
 
@@ -299,6 +340,13 @@ class _AgreementDetailsState extends State<AllData> {
       if (decoded['success'] == true && decoded['data'] is List) {
         final summary = decoded['month_payment_summary'];
         setState(() {
+
+          filteredTotalRecords =
+              decoded['count'] ?? agreements.length;
+
+
+          hasMore = false;
+
           agreements = (decoded['data'] as List)
               .map<AgreementModel>((e) => AgreementModel.fromJson(e))
               .toList();
@@ -665,6 +713,18 @@ class _AgreementDetailsState extends State<AllData> {
                     ),
                     child: TextField(
                       controller: searchController,
+                      textInputAction: TextInputAction.search,
+
+                      onSubmitted: (value) {
+                        final query = value.trim();
+
+                        if (_searchQuery == query) return;
+
+                        _searchQuery = query;
+
+                        fetchAgreements(isInitial: true);
+                      },
+
                       style: TextStyle(
                         fontSize: 14,
                         color: isDark ? Colors.white : Colors.black87,
@@ -756,7 +816,7 @@ class _AgreementDetailsState extends State<AllData> {
                           }
                           final data = snapshot.data!;
                           return SizedBox(
-                            height: 140,
+                            height: 250,
                             child: SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
                               child: Row(
@@ -806,8 +866,12 @@ class _AgreementDetailsState extends State<AllData> {
                               ),
                             ),
                             TextSpan(
-                              text:
-                              '${_searchQuery.isNotEmpty ? filteredAgreements.length : totalRecords}',
+                              // text: '${filteredAgreements.length}',
+                              // text:
+                              // '${_searchQuery.isNotEmpty ? filteredAgreements.length : totalRecords}',
+                              text: _activeFilterMonth != null
+                                  ? '$filteredTotalRecords'
+                                  : '$totalRecords',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w800,
@@ -993,6 +1057,93 @@ class _AgreementDetailsState extends State<AllData> {
             labelColor: isDark ? Colors.white60 : Colors.black45,
             valueColor: const Color(0xFFEF4444),
           ),
+
+          const SizedBox(height: 8),
+
+          Divider(
+            height: 1,
+            color: isDark ? Colors.white12 : Colors.grey.shade200,
+          ),
+
+          const SizedBox(height: 8),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.local_police_rounded,
+                        size: 16,
+                        color: Colors.blue,
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        "${summary.totalPolice}",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: Colors.blue,
+                        ),
+                      ),
+                      const Text(
+                        "Police",
+                        style: TextStyle(fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7C3AED).withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.description_rounded,
+                        size: 16,
+                        color: Color(0xFF7C3AED),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        "${summary.totalAgreement}",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: Color(0xFF7C3AED),
+                        ),
+                      ),
+                      const Text(
+                        "Agreement",
+                        style: TextStyle(fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+
         ],
       ),
     );
@@ -1083,6 +1234,93 @@ class _FieldWorkerCard extends StatelessWidget {
             amount: "₹${fw.remainingAmount}",
             labelColor: isDark ? Colors.white60 : Colors.black45,
             valueColor: const Color(0xFFEF4444),
+          ),
+
+
+          const SizedBox(height: 8),
+
+          Divider(
+            height: 1,
+            color: isDark ? Colors.white12 : Colors.grey.shade200,
+          ),
+
+          const SizedBox(height: 8),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.local_police_rounded,
+                        size: 16,
+                        color: Colors.blue,
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        "${fw.totalPolice}",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: Colors.blue,
+                        ),
+                      ),
+                      const Text(
+                        "Police",
+                        style: TextStyle(fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7C3AED).withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.description_rounded,
+                        size: 16,
+                        color: Color(0xFF7C3AED),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        "${fw.totalAgreement}",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: Color(0xFF7C3AED),
+                        ),
+                      ),
+                      const Text(
+                        "Agr.",
+                        style: TextStyle(fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

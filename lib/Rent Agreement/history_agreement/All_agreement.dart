@@ -197,6 +197,10 @@ class _AllAgreementState extends State<AllAgreement> {
             paidAmount: int.tryParse(summary['paid_amount'].toString()) ?? 0,
             remainingAmount:
             int.tryParse(summary['remaining_amount'].toString()) ?? 0,
+            totalAgreement:
+            int.tryParse(summary['Total_agreement'].toString()) ?? 0,
+            totalPolice:
+            int.tryParse(summary['Total_police'].toString()) ?? 0,
           );
           isMonthFiltered = true;
         });

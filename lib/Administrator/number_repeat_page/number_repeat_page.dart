@@ -25,7 +25,11 @@ class _add_repet_numState extends State<add_repet_num> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   Future<List<TenantModel>> fetchData() async {
-    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/Verify_Tenant_show_by_V_number_?V_number=${_number.text}');
+    String finalNumber = normalizePhoneNumber(_number.text);
+
+    var url = Uri.parse(
+        'https://verifyrealestateandservices.in/WebService4.asmx/Verify_Tenant_show_by_V_number_?V_number=$finalNumber'
+    );
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -34,6 +38,18 @@ class _add_repet_numState extends State<add_repet_num> {
     else {
       throw Exception('Unexpected error occured!');
     }
+  }
+
+  String normalizePhoneNumber(String input) {
+    // Remove everything except digits
+    String number = input.replaceAll(RegExp(r'[^0-9]'), '');
+
+    // Remove country code if present
+    if (number.startsWith('91') && number.length > 10) {
+      number = number.substring(number.length - 10);
+    }
+
+    return number;
   }
 
   @override
@@ -93,18 +109,24 @@ class _add_repet_numState extends State<add_repet_num> {
                   ),
                   child: TextFormField(
                     controller: _number,
-                    keyboardType: TextInputType.number,
-                    maxLength: 12, // restrict input to 10 digits
+                    keyboardType: TextInputType.phone,
+                    maxLength: 13,
+
                     inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(12),
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+                      LengthLimitingTextInputFormatter(13),
                     ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Number is required';
-                      } else if (value.length != 10) {
-                        return 'Enter exactly 10 digits';
                       }
+
+                      String normalized = normalizePhoneNumber(value);
+
+                      if (normalized.length != 10) {
+                        return 'Enter valid 10 digit number';
+                      }
+
                       return null;
                     },
                     style: const TextStyle(
@@ -142,12 +164,13 @@ class _add_repet_numState extends State<add_repet_num> {
 
                 if (_formKey.currentState?.validate() == true) {
 
+                  String finalNumber = normalizePhoneNumber(_number.text);
 
-                  final responce_Official_table = await http.get(Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/countapi_by_demand_number_assign_tenant_demand?demand_number=${_number.text}"));
+                  final responce_Official_table = await http.get(Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/countapi_by_demand_number_assign_tenant_demand?demand_number=$finalNumber"));
 
-                  final responce_Official_table_SECOND = await http.get(Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/countapi_by_demand_no_assign_tanant_demand_2nd_table?demand_number=${_number.text}"));
+                  final responce_Official_table_SECOND = await http.get(Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/countapi_by_demand_no_assign_tanant_demand_2nd_table?demand_number=$finalNumber"));
 
-                  final responce_Official_Maintable = await http.get(Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/Verify_Tenant_Countapi_by_V_number_?V_number=${_number.text}"));
+                  final responce_Official_Maintable = await http.get(Uri.parse("https://verifyrealestateandservices.in/WebService4.asmx/Verify_Tenant_Countapi_by_V_number_?V_number=$finalNumber"));
 
 
                   print(responce_Official_table.body);
@@ -161,7 +184,7 @@ class _add_repet_numState extends State<add_repet_num> {
                     Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) =>  assign_demand_form(A_num: '${_number.text}',)));
+                            builder: (context) =>  assign_demand_form(A_num: finalNumber,)));
                     //Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => assign_demand_form(num: '${_number.text}',),), (route) => route.isFirst);
 
                     // Successful login
@@ -180,7 +203,7 @@ class _add_repet_numState extends State<add_repet_num> {
                         fontSize: 16.0
                     );
 
-                    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Pending_demand_Status(id: '${_number.text}',),), (route) => route.isFirst);
+                    Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Pending_demand_Status(id: finalNumber,),), (route) => route.isFirst);
 
                   }
 

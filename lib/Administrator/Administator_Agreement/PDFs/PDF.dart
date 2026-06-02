@@ -672,35 +672,6 @@ Future<File> generateAgreementPdf(
     );
   }
 
-  // PAGE 2 - POLICE VERIFICATION
-  // pdf.addPage(
-  //   pw.MultiPage(
-  //     pageFormat: PdfPageFormat.a4,
-  //     margin: const pw.EdgeInsets.symmetric(horizontal: 18, vertical: 18),
-  //
-  //     header: (context) => _buildHeaderWithReference(
-  //       context,
-  //       [1,2, 3, 4, 5, 6],  // Page 1,2 + Page 5,6 + Page 9,10
-  //       Reference_Number,
-  //       eStamping_Certificate_No,
-  //     ),
-  //
-  //     footer: (context) => _buildPageSignatures(
-  //       context,
-  //       [0, 1, 2, 3, 4, 5],  // First 3 pages + Page 5,6,7 (jaha signatures dikhane hai)
-  //       ownerName,
-  //       tenantName,
-  //       additionalTenants,
-  //       hideAgreement,
-  //       getIdLabel,
-  //       maskIdNumber,
-  //       rawOwnerAadhaar,
-  //       rawTenantAadhaar,
-  //     ),
-
-  //
-  //     maxPages: 50,
-
   pdf.addPage(
     pw.MultiPage(
       pageFormat: PdfPageFormat.a4,

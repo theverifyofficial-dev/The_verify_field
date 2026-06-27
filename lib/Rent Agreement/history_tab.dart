@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -149,14 +149,14 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
           child: const Row(
             children: [
               SizedBox(width: 3),
-              Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 30),
+              Icon(PhosphorIconsRegular.caretLeft, color: Colors.white, size: 30),
             ],
           ),
         ),
         actions: [
           GestureDetector(
             onTap: _launchURL,
-            child: const Icon(PhosphorIcons.share, color: Colors.white, size: 28),
+            child:  Icon(PhosphorIcons.share(), color: Colors.white, size: 28),
           ),
           const SizedBox(width: 20),
         ],

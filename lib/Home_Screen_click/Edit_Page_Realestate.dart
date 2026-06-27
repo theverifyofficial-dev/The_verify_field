@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../ui_decoration_tools/app_images.dart';
@@ -158,7 +158,7 @@ class _Edit_Page_realestateState extends State<Edit_Page_realestate> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -170,8 +170,8 @@ class _Edit_Page_realestateState extends State<Edit_Page_realestate> {
             onTap: () {
               Navigator.of(context).push(MaterialPageRoute(builder: (context)=> image_Update(id: '${_id.toString()}',)));
             },
-            child: const Icon(
-              PhosphorIcons.pencil,
+            child: Icon(
+              PhosphorIcons.pencil(),
               color: Colors.white,
               size: 30,
             ),

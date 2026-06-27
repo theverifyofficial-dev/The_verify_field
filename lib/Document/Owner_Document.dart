@@ -1,6 +1,6 @@
 import '../../AppLogger.dart';
 import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter/material.dart';import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -328,7 +328,7 @@ class _Owner_DocumentState extends State<Owner_Document> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -340,8 +340,8 @@ class _Owner_DocumentState extends State<Owner_Document> {
             onTap: () {
               // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MyHomePage()));
             },
-            child: const Icon(
-              PhosphorIcons.image,
+            child:  Icon(
+              PhosphorIcons.image(),
               color: Colors.white,
               size: 30,
             ),

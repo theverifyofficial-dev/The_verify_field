@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -122,7 +122,7 @@ class _Tenant_ALl_demandsState extends State<Tenant_ALl_demands> {
                           width: 3,
                         ),
                         Icon(
-                          PhosphorIcons.caret_left_bold,
+                          PhosphorIconsRegular.caretLeft,
                           color: Colors.white,
                           size: 30,
                         ),
@@ -137,8 +137,8 @@ class _Tenant_ALl_demandsState extends State<Tenant_ALl_demands> {
                   onTap: () {
                     //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MyHomePage()));
                   },
-                  child: const Icon(
-                    PhosphorIcons.image,
+                  child: Icon(
+                    PhosphorIcons.image(),
                     color: Colors.black,
                     size: 30,
                   ),
@@ -277,7 +277,7 @@ class _Tenant_ALl_demandsState extends State<Tenant_ALl_demands> {
                                                     // Icon(Iconsax.sort_copy,size: 15,),
                                                     //SizedBox(width: 10,),
                                                     Icon(
-                                                      PhosphorIcons.house,
+                                                      PhosphorIcons.house(),
                                                       size: 12,
                                                       color: Colors.red,
                                                     ),
@@ -685,7 +685,7 @@ class _Tenant_ALl_demandsState extends State<Tenant_ALl_demands> {
                                           Row(
                                             children: [
                                               Icon(
-                                                PhosphorIcons.car,
+                                                PhosphorIcons.car(),
                                                 size: 12,
                                                 color: Colors.red,
                                               ),
@@ -804,7 +804,7 @@ class _Tenant_ALl_demandsState extends State<Tenant_ALl_demands> {
                                           Row(
                                             children: [
                                               Icon(
-                                                PhosphorIcons.users_four,
+                                                PhosphorIcons.users(),
                                                 size: 12,
                                                 color: Colors.red,
                                               ),
@@ -848,7 +848,7 @@ class _Tenant_ALl_demandsState extends State<Tenant_ALl_demands> {
                                           Row(
                                             children: [
                                               Icon(
-                                                PhosphorIcons.address_book,
+                                                PhosphorIcons.addressBook(),
                                                 size: 12,
                                                 color: Colors.red,
                                               ),
@@ -903,7 +903,7 @@ class _Tenant_ALl_demandsState extends State<Tenant_ALl_demands> {
                                           Row(
                                             children: [
                                               Icon(
-                                                PhosphorIcons.address_book,
+                                                PhosphorIcons.addressBook(),
                                                 size: 12,
                                                 color: Colors.red,
                                               ),
@@ -953,7 +953,7 @@ class _Tenant_ALl_demandsState extends State<Tenant_ALl_demands> {
                                                     //SizedBox(width: 10,),
                                                     Icon(
                                                       PhosphorIcons
-                                                          .currency_inr,
+                                                          .currencyInr(),
                                                       size: 12,
                                                       color: Colors.red,
                                                     ),

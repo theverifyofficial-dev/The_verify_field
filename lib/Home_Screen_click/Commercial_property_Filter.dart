@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -164,7 +164,7 @@ class _Commercial_FilterState extends State<Commercial_Filter> {
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   prefixIcon: Icon(
-                    PhosphorIcons.map_pin_line,
+                    PhosphorIcons.mapPinLine(),
                     color: Colors.white,
                   ),
                 ),
@@ -317,7 +317,7 @@ class _Show_Commercial_FilterState extends State<Show_Commercial_Filter> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -330,8 +330,8 @@ class _Show_Commercial_FilterState extends State<Show_Commercial_Filter> {
               //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Filter_Options()));
               //_showBottomSheet(context);
             },
-            child: const Icon(
-              PhosphorIcons.faders,
+            child:  Icon(
+              PhosphorIcons.faders(),
               color: Colors.white,
               size: 30,
             ),
@@ -598,7 +598,7 @@ class _Show_Commercial_FilterState extends State<Show_Commercial_Filter> {
                                                       ),
                                                       Row(
                                                         children: [
-                                                          Icon(PhosphorIcons.push_pin,size: 12,color: Colors.red,),
+                                                          Icon(PhosphorIcons.pushPin(),size: 12,color: Colors.red,),
                                                           SizedBox(width: 2,),
                                                           Text("Building facilities",
                                                             style: TextStyle(
@@ -636,7 +636,7 @@ class _Show_Commercial_FilterState extends State<Show_Commercial_Filter> {
                                                       ),
                                                       Row(
                                                         children: [
-                                                          Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
+                                                          Icon(PhosphorIcons.addressBook(),size: 12,color: Colors.red,),
                                                           SizedBox(width: 2,),
                                                           Text("Building Information & facilitys",
                                                             style: TextStyle(
@@ -997,7 +997,7 @@ class _Show_Commercial_FilterState extends State<Show_Commercial_Filter> {
                                               ),
                                               Row(
                                                 children: [
-                                                  Icon(PhosphorIcons.push_pin,size: 12,color: Colors.red,),
+                                                  Icon(PhosphorIcons.pushPin(),size: 12,color: Colors.red,),
                                                   SizedBox(width: 2,),
                                                   Text("Place",
                                                     style: TextStyle(

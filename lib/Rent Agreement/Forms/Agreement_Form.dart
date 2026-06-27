@@ -425,7 +425,11 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
 
-    final croppedFile = await cropImage(picked.path);
+
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
+    );
 
     if (croppedFile == null) return;
 
@@ -482,8 +486,10 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
 
-    final croppedFile =
-    await cropImage(picked.path);
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
+    );
 
     if (croppedFile == null) return;
 
@@ -538,8 +544,10 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         source: ImageSource.gallery, imageQuality: 75);
     if (picked == null) return;
 
-    final croppedFile =
-    await cropImage(picked.path);
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
+    );
 
     if (croppedFile == null) return;
 

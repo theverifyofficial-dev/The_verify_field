@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -84,7 +84,7 @@ class _Visit_FormState extends State<Visit_Form> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -96,8 +96,8 @@ class _Visit_FormState extends State<Visit_Form> {
             onTap: () {
               //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Delete_Image()));
             },
-            child: const Icon(
-              PhosphorIcons.trash,
+            child: Icon(
+              PhosphorIcons.trash(),
               color: Colors.black,
               size: 30,
             ),

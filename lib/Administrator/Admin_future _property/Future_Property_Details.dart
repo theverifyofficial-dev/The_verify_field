@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../Custom_Widget/constant.dart';
 import '../../Custom_Widget/property_preview.dart';
@@ -663,7 +663,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
           icon: Icon(
-            PhosphorIcons.caret_left_bold,
+            PhosphorIconsRegular.caretLeft,
             color: isDarkMode ? Colors.white : Colors.black87,
             size: 30,
           ),

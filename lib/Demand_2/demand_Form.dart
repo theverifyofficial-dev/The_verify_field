@@ -1,7 +1,7 @@
 import 'dart:convert';
 import '../../AppLogger.dart';
 import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter/material.dart';import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:intl/intl.dart';
 import '../Custom_Widget/constant.dart';
 import '../utilities/bug_founder_fuction.dart';
@@ -492,7 +492,7 @@ class _TenantDemandUpdatePageState extends State<TenantDemandUpdatePage>
         leading: InkWell(
           onTap: () => Navigator.pop(context),
           child: const Icon(
-            PhosphorIcons.caret_left_bold,
+            PhosphorIconsRegular.caretLeft,
             color: Colors.white,
             size: 30,
           ),

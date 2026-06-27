@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Home_Screen_click/showVehicle.dart';
@@ -184,7 +184,7 @@ class _Delete_ImageState extends State<Delete_Image> {
           child: const Row(
             children: [
               SizedBox(width: 3),
-              Icon(PhosphorIcons.caret_left_bold,
+              Icon(PhosphorIconsRegular.caretLeft,
                   color: Colors.white, size: 30),
             ],
           ),

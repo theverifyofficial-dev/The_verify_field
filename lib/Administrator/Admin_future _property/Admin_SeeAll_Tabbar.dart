@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../Custom_Widget/constant.dart';
 import 'BuildingHistoryPage.dart';
@@ -60,7 +60,7 @@ class _TabBarPageState extends State<TabBarPage>
             children: [
               SizedBox(width: 3),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -135,7 +135,7 @@ class _TabBarPageState extends State<TabBarPage>
                             const SizedBox(height: 2),
                             Row(
                               children: [
-                                const Icon(PhosphorIcons.phone,
+                                 Icon(PhosphorIcons.phone(),
                                     color: Colors.white38, size: 11),
                                 const SizedBox(width: 4),
                                 Text(
@@ -218,7 +218,7 @@ class _TabBarPageState extends State<TabBarPage>
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(PhosphorIcons.buildings,
+                            Icon(PhosphorIcons.buildings(),
                                 size: 15,
                                 color: _selectedIndex == 0
                                     ? Colors.black
@@ -232,7 +232,7 @@ class _TabBarPageState extends State<TabBarPage>
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(PhosphorIcons.clock_counter_clockwise,
+                            Icon(PhosphorIcons.clockCounterClockwise(),
                                 size: 15,
                                 color: _selectedIndex == 1
                                     ? Colors.black

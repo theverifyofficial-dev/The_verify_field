@@ -1,8 +1,5 @@
-  import '../../AppLogger.dart';
-import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
-import '../Police_Verification/Tenant_Details.dart';
-import '../Tenant_Details_Demand/Show_TenantDemands.dart';
+
+import 'package:flutter/material.dart';import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../Custom_Widget/constant.dart';
 import 'Add_Assign_Tenant_Demand/Show_Unexpected_Demand.dart';
 import 'Administater_TenanDemand.dart';
@@ -35,7 +32,7 @@ class _Administater_parent_TenandDemandState extends State<Administater_parent_T
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -47,8 +44,8 @@ class _Administater_parent_TenandDemandState extends State<Administater_parent_T
             onTap: () {
              // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Administater_Assignd_Tenant_details()));
             },
-            child: const Icon(
-              PhosphorIcons.bounding_box,
+            child: Icon(
+              PhosphorIcons.boundingBox(),
               color: Colors.black,
               size: 30,
             ),

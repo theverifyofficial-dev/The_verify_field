@@ -5,7 +5,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../model/realestateSlider.dart';
@@ -631,7 +631,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                         children: [
                           GestureDetector(
                             onTap: () => openWhatsApp(number),
-                            child: Icon(PhosphorIcons.whatsapp_logo_bold,
+                            child: Icon(PhosphorIcons.whatsappLogo(),
                                 color: cardColor,
                                 size: isSmallScreen ? 20.0 : 24.0),
                           ),
@@ -939,7 +939,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                         GestureDetector(
                           onTap: () => openWhatsApp(number),
                           child: Icon(
-                            PhosphorIcons.whatsapp_logo_bold,
+                            PhosphorIcons.whatsappLogo(),
                             color: bgColor,
                             size: isSmallScreen ? 20.0 : 24.0,
                           ),
@@ -1686,7 +1686,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                   padding: EdgeInsets.zero,
                                   onPressed: () => Navigator.pop(context),
                                   icon: Icon(
-                                    PhosphorIcons.caret_left_bold,
+                                    PhosphorIconsRegular.caretLeft,
                                     color: Colors.white,
                                     size: isSmallScreen ? 22 : 26,
                                   ),

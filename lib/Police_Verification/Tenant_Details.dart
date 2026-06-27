@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../Document/Owner_Document.dart';
-import '../Document/Tenant_Document.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Rented_property_Details.dart';
 
@@ -54,7 +52,7 @@ class _Tenant_detailsState extends State<Tenant_details> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -66,8 +64,8 @@ class _Tenant_detailsState extends State<Tenant_details> {
             onTap: () {
               //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Delete_Image()));
             },
-            child: const Icon(
-              PhosphorIcons.trash,
+            child: Icon(
+              PhosphorIcons.trash(),
               color: Colors.black,
               size: 30,
             ),

@@ -1,12 +1,8 @@
-import '../../AppLogger.dart';
-import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter/material.dart';import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 import '../Custom_Widget/constant.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class LinksPage extends StatelessWidget {
   const LinksPage({super.key});
@@ -399,7 +395,7 @@ class LinksPage extends StatelessWidget {
           onTap: () => Navigator.pop(context),
           child: const Padding(
             padding: EdgeInsets.only(left: 6),
-            child: Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 28),
+            child: Icon(PhosphorIconsRegular.caretLeft, color: Colors.white, size: 28),
           ),
         ),
       ),

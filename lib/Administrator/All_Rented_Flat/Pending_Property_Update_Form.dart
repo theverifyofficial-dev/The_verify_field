@@ -2,7 +2,7 @@ import 'dart:convert';
 import '../../AppLogger.dart';
 import '../../AppLogger.dart';
 import 'package:flutter/material.dart';import 'package:flutter/services.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
@@ -230,7 +230,7 @@ class _UpdateOwnerPageState extends State<UpdateOwnerPage> {
         centerTitle: true,
         leading: InkWell(
           onTap: () => Navigator.pop(context),
-          child: const Icon(PhosphorIcons.caret_left_bold,
+          child: const Icon(PhosphorIconsRegular.caretLeft,
               color: Colors.white, size: 30),
         ),
       ),

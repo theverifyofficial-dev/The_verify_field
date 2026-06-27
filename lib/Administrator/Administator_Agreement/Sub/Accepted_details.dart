@@ -462,6 +462,7 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
       final response = await http.Response.fromStream(streamed);
 
       if (!mounted) return;
+      print("hello: ${response.body}");
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
         ScaffoldMessenger.of(context)
@@ -1922,14 +1923,14 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
                   leading: const Icon(Icons.picture_as_pdf,
                       color: Colors.orange),
                   title:
-                  Text(policeVerificationFile!.path.split('/').last),
-                  subtitle: const Text("Police Verification File"),
+                  Text(policeVerificationFile!.path.split('/').last,style: const TextStyle(color: Colors.black)),
+                  subtitle: const Text("Police Verification File",style: TextStyle(color: Colors.black)),
                   onTap: () async =>
                   await OpenFilex.open(policeVerificationFile!.path),
                 ),
               ),
 
-            //const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
             if (!isPolice && notaryImageFile != null)
               _glassContainer(
@@ -1957,20 +1958,20 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
                       ),
                     const Text("Notary Image",
                         style: TextStyle(
-                            fontWeight: FontWeight.w600, fontSize: 16)),
+                            fontWeight: FontWeight.w600, fontSize: 16,color: Colors.black)),
                   ],
                 ),
               ),
 
-            //const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
             if (!isPolice && pdfFile != null)
               _glassContainer(
                 child: ListTile(
                   leading: const Icon(Icons.picture_as_pdf,
                       color: Colors.red),
-                  title: Text(pdfFile!.path.split('/').last),
-                  subtitle: const Text("Tap to open"),
+                  title: Text(pdfFile!.path.split('/').last,style: const TextStyle(color: Colors.black)),
+                  subtitle: const Text("Tap to open",style: TextStyle(color: Colors.black)),
                   onTap: () async => await OpenFilex.open(pdfFile!.path),
                 ),
               ),

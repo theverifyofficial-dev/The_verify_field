@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import '../../AppLogger.dart';
 import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter/material.dart';import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -1650,19 +1650,19 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
               Row(
                 children: [
                   _miniChip(
-                    icon: PhosphorIcons.currency_inr,
+                    icon: PhosphorIcons.currencyInr(),
                     text: "₹${t.monthlyRent}",
                     isDark: isDark,
                   ),
                   const SizedBox(width: 6),
                   _miniChip(
-                    icon: PhosphorIcons.buildings,
+                    icon: PhosphorIcons.buildings(),
                     text: t.bhk,
                     isDark: isDark,
                   ),
                   const SizedBox(width: 6),
                   _miniChip(
-                    icon: PhosphorIcons.star_fill,
+                    icon: PhosphorIcons.star(),
                     text: "${t.floor}",
                     isDark: isDark,
                   ),
@@ -1980,13 +1980,13 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
               Row(
                 children: [
                   _miniChip(
-                    icon: PhosphorIcons.bed,
+                    icon: PhosphorIcons.bed(),
                     text: v.bhk,
                     isDark: isDark,
                   ),
                   const SizedBox(width: 6),
                   _miniChip(
-                    icon: PhosphorIcons.currency_inr,
+                    icon: PhosphorIcons.currencyInr(),
                     text: v.price,
                     isDark: isDark,
                   ),
@@ -2153,7 +2153,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
               Row(
                 children: [
                   Icon(
-                    PhosphorIcons.house_line,
+                    PhosphorIcons.house(),
                     size: 16,
                     color: Colors.white,
                   ),
@@ -2208,20 +2208,20 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
               Row(
                 children: [
                   _miniChip(
-                    icon: PhosphorIcons.currency_inr,
+                    icon: PhosphorIcons.currencyInr(),
                     text: "₹${f.showPrice}",
                     isDark: isDark,
                   ),
                   const SizedBox(width: 6),
                   _miniChip(
-                    icon: PhosphorIcons.briefcase,
+                    icon: PhosphorIcons.briefcase(),
                     text: f.buyRent,
                     isDark: isDark,
                   ),
                   const SizedBox(width: 6),
 
                   _miniChip(
-                    icon: PhosphorIcons.star_fill,
+                    icon: PhosphorIcons.star(),
                     text: f.floor,
                     isDark: isDark,
                   ),
@@ -2354,19 +2354,19 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 Row(
                   children: [
                     _miniChip(
-                      icon: PhosphorIcons.currency_inr,
+                      icon: PhosphorIcons.currencyInr(),
                       text: "₹${t.monthlyRent}",
                       isDark: isDark,
                     ),
                     const SizedBox(width: 6),
                     _miniChip(
-                      icon: PhosphorIcons.buildings,
+                      icon: PhosphorIcons.buildings(),
                       text: t.bhk,
                       isDark: isDark,
                     ),
                     const SizedBox(width: 6),
                     _miniChip(
-                      icon: PhosphorIcons.star_fill,
+                      icon: PhosphorIcons.star(),
                       text: "${t.floor}",
                       isDark: isDark,
                     ),
@@ -2484,19 +2484,19 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
               Row(
                 children: [
                   _miniChip(
-                    icon: PhosphorIcons.currency_inr,
+                    icon: PhosphorIcons.currencyInr(),
                     text: "₹${t.monthlyRent}",
                     isDark: isDark,
                   ),
                   const SizedBox(width: 6),
                   _miniChip(
-                    icon: PhosphorIcons.buildings,
+                    icon: PhosphorIcons.buildings(),
                     text: t.bhk,
                     isDark: isDark,
                   ),
                   const SizedBox(width: 6),
                   _miniChip(
-                    icon: PhosphorIcons.star_fill,
+                    icon: PhosphorIcons.star(),
                     text: "${t.floor}",
                     isDark: isDark,
                   ),
@@ -2610,19 +2610,19 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
             Row(
               children: [
                 _miniChip(
-                  icon: PhosphorIcons.currency_inr,
+                  icon: PhosphorIcons.currencyInr(),
                   text: "₹${f.showPrice}",
                   isDark: isDark,
                 ),
                 const SizedBox(width: 6),
                 _miniChip(
-                  icon: PhosphorIcons.car,
+                  icon: PhosphorIcons.car(),
                   text: f.parking,
                   isDark: isDark,
                 ),
                 const SizedBox(width: 6),
                 _miniChip(
-                  icon: PhosphorIcons.star_fill,
+                  icon: PhosphorIcons.star(),
                   text: f.floor,
                   isDark: isDark,
                 ),
@@ -2743,7 +2743,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                         Row(
                           children: [
                             Icon(
-                              PhosphorIcons.buildings,
+                              PhosphorIcons.buildings(),
                               size: 16,
                               color: Colors.white,
                             ),
@@ -2854,7 +2854,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 children: [
                   if (f.metroName.isNotEmpty)
                     _miniChip(
-                      icon: PhosphorIcons.train,
+                      icon: PhosphorIcons.train(),
                       text:
                       "${f.metroName} ${f.metroDistance}",
                       isDark: isDark,
@@ -2862,7 +2862,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   if (f.metroName.isNotEmpty)
                     const SizedBox(width: 6),
                   _miniChip(
-                    icon: PhosphorIcons.star_fill,
+                    icon: PhosphorIcons.star(),
                     text: "${f.totalFloor}",
                     isDark: isDark,
                   ),
@@ -3185,7 +3185,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
           // Refresh
           IconButton(
             tooltip: "Refresh",
-            icon: const Icon(PhosphorIcons.arrow_clockwise),
+            icon: Icon(PhosphorIcons.arrowClockwise()),
             onPressed: () => _fetchData(_selectedDay ?? _focusedDay),
           ),
 
@@ -3575,13 +3575,13 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
               Row(
                 children: [
                   _miniChip(
-                    icon: PhosphorIcons.buildings,
+                    icon: PhosphorIcons.buildings(),
                     text: t.bhk,
                     isDark: isDark,
                   ),
                   const SizedBox(width: 6),
                   _miniChip(
-                    icon: PhosphorIcons.currency_inr,
+                    icon: PhosphorIcons.currencyInr(),
                     text: formatIndianCurrency(t.price),
                     isDark: isDark,
                   ),
@@ -3718,7 +3718,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
             Row(
               children: [
                 Icon(
-                  PhosphorIcons.buildings,
+                  PhosphorIcons.buildings(),
                   size: 16,
                   color: Colors.white,
                 ),
@@ -3776,13 +3776,13 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
               children: [
                 if (f.metroDistance.isNotEmpty)
                   _miniChip(
-                    icon: PhosphorIcons.train,
+                    icon: PhosphorIcons.train(),
                     text: "${f.metroDistance} ${f.highwayDistance}",
                     isDark: isDark,
                   ),
                 if (f.totalFloor.isNotEmpty) const SizedBox(width: 6),
                 _miniChip(
-                  icon: PhosphorIcons.star_fill,
+                  icon: PhosphorIcons.star(),
                   text: "${f.totalFloor}",
                   isDark: isDark,
                 ),

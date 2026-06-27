@@ -41,7 +41,7 @@
     syncfusion_flutter_pdfviewer: ^29.2.8
     loading_overlay: ^0.3.0
     timezone: ^0.9.2
-    flutter_phosphor_icons: ^0.0.1+6
+    phosphor_flutter: ^2.1.0
     flutter_screenutil: ^5.9.3
     dotted_border: ^2.1.0
     table_calendar: ^3.0.6
@@ -113,6 +113,7 @@
     webview_flutter: ^4.7.0
     image_cropper: ^9.1.0
     image_gallery_saver_plus: ^4.0.1
+    crop_your_image: ^2.0.0
 
 
   #    agora_rtc_engine: ^6.0.0

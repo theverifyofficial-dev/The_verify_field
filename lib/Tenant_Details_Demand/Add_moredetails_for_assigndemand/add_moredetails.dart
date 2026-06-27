@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Custom_Widget/constant.dart';
@@ -110,7 +109,7 @@ class _Add_Moredetails_for_assigndemandState extends State<Add_Moredetails_for_a
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -122,8 +121,8 @@ class _Add_Moredetails_for_assigndemandState extends State<Add_Moredetails_for_a
             onTap: () {
               // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MyHomePage()));
             },
-            child: const Icon(
-              PhosphorIcons.image,
+            child:  Icon(
+              PhosphorIcons.image(),
               color: Colors.white,
               size: 30,
             ),
@@ -463,7 +462,7 @@ class _Add_Moredetails_for_assigndemandState extends State<Add_Moredetails_for_a
                         decoration: InputDecoration(
                             hintText: "Enter Rent Date",
                             prefixIcon: Icon(
-                              PhosphorIcons.calendar,
+                              PhosphorIcons.calendar(),
                               color: Colors.black54,
                             ),
                             hintStyle: TextStyle(color: Colors.grey,fontFamily: 'Poppins',),
@@ -498,7 +497,7 @@ class _Add_Moredetails_for_assigndemandState extends State<Add_Moredetails_for_a
                         }
                       },
                       icon: Icon(
-                        PhosphorIcons.calendar,
+                        PhosphorIcons.calendar(),
                         color: Colors.black,
                       ),),
                   )

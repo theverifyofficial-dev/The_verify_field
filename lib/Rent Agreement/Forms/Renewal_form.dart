@@ -348,8 +348,10 @@ class _RenewalFormState extends State<RenewalForm>
     final picked =
     await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
-    final croppedFile = await cropImage(picked.path);
-
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
+    );
     if (croppedFile == null) return;
 
     setState(() {
@@ -400,8 +402,10 @@ class _RenewalFormState extends State<RenewalForm>
     await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
 
-    final croppedFile = await cropImage(picked.path);
-
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
+    );
     if (croppedFile == null) return;
 
     setState(() {
@@ -448,8 +452,10 @@ class _RenewalFormState extends State<RenewalForm>
     final picked =
     await _picker.pickImage(source: ImageSource.gallery, imageQuality: 75);
     if (picked == null) return;
-    final croppedFile = await cropImage(picked.path);
-
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
+    );
     if (croppedFile == null) return;
 
 

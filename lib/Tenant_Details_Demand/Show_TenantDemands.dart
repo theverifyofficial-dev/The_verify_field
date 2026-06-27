@@ -1,7 +1,7 @@
 import 'package:get/get.dart';
 import '../Controller/Show_demand_control.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'Add_tenantdemand_num.dart';
 import 'Tenant_demands_details.dart';
 
@@ -173,7 +173,7 @@ class _Tenant_demandsState extends State<Tenant_demands> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             _buildTag(
-                              icon: PhosphorIcons.house,
+                              icon: PhosphorIcons.house(),
                               text: item.bhk,
                               borderColor: Colors.red,
                               iconColor: Colors.red,
@@ -209,7 +209,7 @@ class _Tenant_demandsState extends State<Tenant_demands> {
                           children: [
                             Expanded(
                               child: _buildTag(
-                                icon: PhosphorIcons.currency_inr,
+                                icon: PhosphorIcons.currencyInr(),
                                 text: "Budget : ${item.budget}",
                                 borderColor: Colors.blue,
                                 iconColor: Colors.red,

@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -406,7 +406,7 @@ class _Add_Property_VerificationState extends State<Add_Property_Verification> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -418,8 +418,8 @@ class _Add_Property_VerificationState extends State<Add_Property_Verification> {
             onTap: () {
               //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MyHomePage()));
             },
-            child: const Icon(
-              PhosphorIcons.image,
+            child: Icon(
+              PhosphorIcons.image(),
               color: Colors.black,
               size: 30,
             ),
@@ -1399,7 +1399,7 @@ class _Add_Property_VerificationState extends State<Add_Property_Verification> {
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         prefixIcon: Icon(
-                          PhosphorIcons.map_pin_line,
+                          PhosphorIcons.mapPinLine(),
                           color: Colors.white,
                         ),
                       ),
@@ -1562,7 +1562,7 @@ class _Add_Property_VerificationState extends State<Add_Property_Verification> {
                       decoration: InputDecoration(
                           hintText: "Your Address",
                           prefixIcon: Icon(
-                            PhosphorIcons.map_pin,
+                            PhosphorIcons.mapPin(),
                             color: Colors.black,
                           ),
                           hintStyle: TextStyle(color: Colors.grey,fontFamily: 'Poppins',),

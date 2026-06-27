@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../../AppLogger.dart';
 import '../../AppLogger.dart';
 import 'package:flutter/material.dart';import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -638,7 +638,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
                         children: [
                           GestureDetector(
                             onTap: () => openWhatsApp(number),
-                            child: Icon(PhosphorIcons.whatsapp_logo_bold, color: cardColor, size: isSmallScreen ? 20.0 : 24.0),
+                            child: Icon(PhosphorIcons.whatsappLogo(), color: cardColor, size: isSmallScreen ? 20.0 : 24.0),
                           ),
                           SizedBox(width: isSmallScreen ? 12.0 : 16.0),
                           Icon(Icons.call, color: cardColor, size: isSmallScreen ? 20.0 : 24.0),
@@ -920,7 +920,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
                       children: [
                         GestureDetector(
                           onTap: () => openWhatsApp(number),
-                          child: Icon(PhosphorIcons.whatsapp_logo_bold, color: bgColor, size: isSmallScreen ? 20.0 : 24.0),
+                          child: Icon(PhosphorIcons.whatsappLogo(), color: bgColor, size: isSmallScreen ? 20.0 : 24.0),
                         ),
                         SizedBox(width: isSmallScreen ? 12.0 : 16.0),
                         Icon(Icons.call, color: bgColor, size: isSmallScreen ? 20.0 : 24.0),
@@ -1143,7 +1143,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
           child: const Row(
             children: [
               SizedBox(width: 3),
-              Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 30),
+              Icon(PhosphorIconsRegular.caretLeft, color: Colors.white, size: 30),
             ],
           ),
         ),

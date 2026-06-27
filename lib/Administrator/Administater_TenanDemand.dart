@@ -80,7 +80,7 @@ class _AdmiinistaterAssignd_Tenant_detailsState extends State<AdmiinistaterAssig
                           width: 3,
                         ),
                         Icon(
-                          PhosphorIcons.caret_left_bold,
+                          PhosphorIconsRegular.caretLeft,
                           color: Colors.white,
                           size: 30,
                         ),
@@ -96,7 +96,7 @@ class _AdmiinistaterAssignd_Tenant_detailsState extends State<AdmiinistaterAssig
                     //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MyHomePage()));
                   },
                   child: const Icon(
-                    PhosphorIcons.image,
+                    PhosphorIcons.image(),
                     color: Colors.black,
                     size: 30,
                   ),

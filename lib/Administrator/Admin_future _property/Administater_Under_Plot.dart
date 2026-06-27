@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:pdfx/pdfx.dart';
@@ -712,7 +712,7 @@ class Administater_Under_PlotState
                           children: [
                             GestureDetector(
                               onTap: () => openWhatsapp(),
-                              child: Icon(PhosphorIcons.whatsapp_logo_bold,
+                              child: Icon(PhosphorIcons.whatsappLogo(),
                                   color: Colors.green,
                                   size: isSmallScreen ? 20.0 : 24.0),
                             ),

@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
@@ -375,7 +375,7 @@ class _MoveTO_Add_propertyverificationState extends State<MoveTO_Add_propertyver
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -387,8 +387,8 @@ class _MoveTO_Add_propertyverificationState extends State<MoveTO_Add_propertyver
             onTap: () {
               //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MyHomePage()));
             },
-            child: const Icon(
-              PhosphorIcons.image,
+            child: Icon(
+              PhosphorIcons.image(),
               color: Colors.black,
               size: 30,
             ),
@@ -1389,7 +1389,7 @@ class _MoveTO_Add_propertyverificationState extends State<MoveTO_Add_propertyver
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         prefixIcon: Icon(
-                          PhosphorIcons.map_pin_line,
+                          PhosphorIcons.mapPinLine(),
                           color: Colors.white,
                         ),
                       ),
@@ -1552,7 +1552,7 @@ class _MoveTO_Add_propertyverificationState extends State<MoveTO_Add_propertyver
                       decoration: InputDecoration(
                           hintText: "Your Address",
                           prefixIcon: Icon(
-                            PhosphorIcons.map_pin,
+                            PhosphorIcons.mapPin(),
                             color: Colors.black,
                           ),
                           hintStyle: TextStyle(color: Colors.grey,fontFamily: 'Poppins',),

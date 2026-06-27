@@ -1,6 +1,6 @@
 import '../../AppLogger.dart';
 import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter/material.dart';import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../../Custom_Widget/constant.dart';
 import '../New_TenandDemand/Accepted_demand.dart';
 import '../New_TenandDemand/Admin_disclose.dart';
@@ -34,7 +34,7 @@ class _Show_New_Real_EstateState extends State<SubadminTabbar> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -201,7 +201,7 @@ class _visit_by_dateState extends State<visit_by_date> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.black,
                 size: 30,
               ),
@@ -215,7 +215,7 @@ class _visit_by_dateState extends State<visit_by_date> {
               //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MyHomePage()));
             },
             child: const Icon(
-              PhosphorIcons.apple_logo,
+              PhosphorIcons.appleLogo(),
               color: Colors.white,
               size: 30,
             ),
@@ -305,7 +305,7 @@ class _visit_by_dateState extends State<visit_by_date> {
                                                 children: [
                                                   // Icon(Iconsax.sort_copy,size: 15,),
                                                   //SizedBox(width: 10,),
-                                                  Icon(PhosphorIcons.house,size: 12,color: Colors.red,),
+                                                  Icon(PhosphorIcons.house(),size: 12,color: Colors.red,),
                                                   SizedBox(width: 2,),
                                                   Text(""+abc.data![len].visit_date*/
 /*+abc.data![len].Building_Name.toUpperCase()*//*,

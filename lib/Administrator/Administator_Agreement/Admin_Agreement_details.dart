@@ -9,6 +9,7 @@ import '../../Rent Agreement/Dashboard_screen.dart';
 import '../../Rent Agreement/Forms/Agreement_Form.dart';
 import '../../Rent Agreement/Forms/Commercial_Form.dart';
 import '../../Rent Agreement/Forms/External_Form.dart';
+import '../../Rent Agreement/Forms/Furnish_owner.dart';
 import '../../Rent Agreement/Forms/Furnished_form.dart';
 import '../../Rent Agreement/Forms/Renewal_form.dart';
 import '../../Rent Agreement/Forms/Verification_form.dart';
@@ -1209,6 +1210,8 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
       page = CommercialWizardPage(agreementId: id,rewardStatus: reward);
     } else if (type.contains("furnished agreement")) {
       page = FurnishedForm(agreementId: id,rewardStatus: reward);
+    } else if (type.contains("furnished by owner")) {
+      page = FurnishOwner(agreementId: id,rewardStatus: reward);
     } else if (type.contains("renewal agreement")) {
       page = RenewalForm(agreementId: id,rewardStatus: reward);
     } else if (type.contains("police verification")) {

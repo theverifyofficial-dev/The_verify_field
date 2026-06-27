@@ -1,7 +1,6 @@
 import 'dart:convert';
 import '../../AppLogger.dart';
-import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter/material.dart';import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/Upcoming/update_form.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -449,7 +448,7 @@ class _UpcomingDetailsPageState extends State<AddedDetails> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),

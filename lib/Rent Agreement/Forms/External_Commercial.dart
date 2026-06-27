@@ -481,8 +481,10 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
   Future<void> _pickDirectorAadhaar(int index, bool isFront) async {
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
-    final croppedFile = await cropImage(picked.path);
-
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
+    );
     if (croppedFile == null) return;
     setState(() {
       if (isFront) directors[index].aadhaarFront = croppedFile;
@@ -532,8 +534,10 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
   Future<void> _pickDirectorPAN(int index) async {
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
-    final croppedFile = await cropImage(picked.path);
-
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
+    );
     if (croppedFile == null) return;
     setState(() => directors[index].panPhoto = croppedFile);
 
@@ -870,8 +874,10 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
 
-    final croppedFile = await cropImage(picked.path);
-
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
+    );
     if (croppedFile == null) return;
 
     setState(() {

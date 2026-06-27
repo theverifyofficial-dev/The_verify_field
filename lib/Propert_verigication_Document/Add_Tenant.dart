@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -171,7 +171,7 @@ class _TenantDetailsState extends State<TenantDetails> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -197,7 +197,7 @@ class _TenantDetailsState extends State<TenantDetails> {
             _buildTextField(
               controller: _Tenant_Number,
               hintText: "Enter Tenant Number",
-              icon: PhosphorIcons.phone,
+              icon: PhosphorIcons.phone(),
               keyboardType: TextInputType.phone,
             ),
 
@@ -215,7 +215,7 @@ class _TenantDetailsState extends State<TenantDetails> {
             _buildTextField(
               controller: _Tenant_Rented_Amount,
               hintText: "Enter Rent Amount",
-              icon: PhosphorIcons.currency_btc,
+              icon: PhosphorIcons.currencyBtc(),
               keyboardType: TextInputType.number,
               prefixText: '₹ ',
             ),
@@ -343,7 +343,7 @@ class _TenantDetailsState extends State<TenantDetails> {
               decoration: InputDecoration(
                 hintText: "Select Rent Date",
                 hintStyle: TextStyle(color: isDark ? Colors.white : Colors.grey[800]),
-                prefixIcon: Icon(PhosphorIcons.calendar, color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600]),
+                prefixIcon: Icon(PhosphorIcons.calendar(), color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600]),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -357,7 +357,7 @@ class _TenantDetailsState extends State<TenantDetails> {
           IconButton(
             onPressed: _selectDate,
             icon: Icon(
-              PhosphorIcons.calendar_blank,
+              PhosphorIcons.calendarBlank(),
               color: Theme.of(context).brightness==Brightness.dark?Colors.lightBlueAccent:Colors.blue[700],
             ),
           ),

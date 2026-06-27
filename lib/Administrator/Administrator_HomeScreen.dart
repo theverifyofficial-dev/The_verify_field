@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:animated_analog_clock/animated_analog_clock.dart';
 import '../../AppLogger.dart';
 import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter/material.dart';import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Administrator/Admin_upcoming.dart';
@@ -271,7 +271,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                 // Important for proper centering
                 children: [
                   Icon(
-                    PhosphorIcons.user_circle,
+                    PhosphorIcons.userCircle(),
                     color: Colors.white,
                     size: 28, // Slightly reduced for better proportion
                   ),

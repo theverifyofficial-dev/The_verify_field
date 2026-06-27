@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -426,7 +426,7 @@ class _CalenderState extends State<Calender> {
                                                     children: [
                                                       // Icon(Iconsax.sort_copy,size: 15,),
                                                       //SizedBox(width: 10,),
-                                                      Icon(PhosphorIcons.house,size: 12,color: Colors.red,),
+                                                      Icon(PhosphorIcons.house(),size: 12,color: Colors.red,),
                                                       SizedBox(width: 2,),
                                                       Text(""+abc.data![len].visit_date/*+abc.data![len].Building_Name.toUpperCase()*/,
                                                         style: TextStyle(

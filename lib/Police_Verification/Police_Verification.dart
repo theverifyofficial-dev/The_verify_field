@@ -1,16 +1,10 @@
 import 'dart:convert';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Propert_verigication_Document/Add_Property_Veerification.dart';
-import '../Propert_verigication_Document/Show_tenant.dart';
 import '../ui_decoration_tools/app_images.dart';
-import 'Owner_Details.dart';
-import 'Submit_Police_Verification.dart';
 
 class P_model {
   final int id;
@@ -103,7 +97,7 @@ class _Police_VerificationState extends State<Police_Verification> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -115,8 +109,8 @@ class _Police_VerificationState extends State<Police_Verification> {
             onTap: () {
               //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Delete_Image()));
             },
-            child: const Icon(
-              PhosphorIcons.trash,
+            child: Icon(
+              PhosphorIcons.trash(),
               color: Colors.black,
               size: 30,
             ),

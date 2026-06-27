@@ -1,6 +1,6 @@
 import '../../AppLogger.dart';
 import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter/material.dart';import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:verify_feild_worker/Upcoming/All_flats.dart';
 import 'package:verify_feild_worker/Upcoming/add_flats.dart';
 import 'package:verify_feild_worker/Upcoming/user_flat.dart';
@@ -35,7 +35,7 @@ class _Show_New_Real_EstateState extends State<ParentUpcoming> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),

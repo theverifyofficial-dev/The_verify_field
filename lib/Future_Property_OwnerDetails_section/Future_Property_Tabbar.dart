@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Administrator/Admin_future _property/BuildingHistoryPage.dart';
 import '../Controller/Future_property_controller.dart';
@@ -92,7 +92,7 @@ class _FuturePropertyTabPageState
         title: Image.asset(AppImages.verify, height: 65),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white),
+          icon: const Icon(PhosphorIconsRegular.caretLeft, color: Colors.white),
         ),
       ),
       floatingActionButton: _tabController.index != 4

@@ -1,21 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:lottie/lottie.dart';
 import 'dart:convert';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../AppLogger.dart';
-import '../Home_Screen_click/View_All_Details.dart';
-import '../Police_Verification/Owner_Details.dart';
 import '../Police_Verification/Property_Verify_Details.dart';
 import '../ui_decoration_tools/app_images.dart';
-import '../model/doctenantSlider.dart';
 import 'Add_Tenant.dart';
-import 'Property_Verification.dart';
 import 'ViewAll_Details.dart';
 
 
@@ -250,7 +242,7 @@ class _ShowPropertyState extends State<ShowProperty> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),

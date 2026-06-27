@@ -142,7 +142,7 @@ class _AgreementDetailsState extends State<AdminAccepted> {
                         Text(
                           "${item.Type}",
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 14,
                             fontStyle: FontStyle.italic,
                             color: isDark ? Colors.grey.shade900 : Colors
                                 .white,

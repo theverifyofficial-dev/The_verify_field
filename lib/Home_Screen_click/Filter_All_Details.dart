@@ -5,7 +5,7 @@ import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../ui_decoration_tools/app_images.dart';
@@ -217,7 +217,7 @@ class _Filter_View_DetailsState extends State<Filter_View_Details> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -261,8 +261,8 @@ class _Filter_View_DetailsState extends State<Filter_View_Details> {
                 _refreshData();
               }*/
             },
-            child: const Icon(
-              PhosphorIcons.trash,
+            child: Icon(
+              PhosphorIcons.trash(),
               color: Colors.black,
               size: 30,
             ),
@@ -604,7 +604,7 @@ class _Filter_View_DetailsState extends State<Filter_View_Details> {
                                               ),
                                               Row(
                                                 children: [
-                                                  Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
+                                                  Icon(PhosphorIcons.addressBook(),size: 12,color: Colors.red,),
                                                   SizedBox(width: 2,),
                                                   Text("Building Information & facilitys",
                                                     style: TextStyle(
@@ -944,7 +944,7 @@ class _Filter_View_DetailsState extends State<Filter_View_Details> {
                                       ),
                                       Row(
                                         children: [
-                                          Icon(PhosphorIcons.push_pin,size: 13,color: Colors.red,),
+                                          Icon(PhosphorIcons.pushPin(),size: 13,color: Colors.red,),
                                           SizedBox(width: 5,),
                                           Text("Property Name & Address",
                                             style: TextStyle(
@@ -1023,7 +1023,7 @@ class _Filter_View_DetailsState extends State<Filter_View_Details> {
                                       ),
                                       Row(
                                         children: [
-                                          Icon(PhosphorIcons.push_pin,size: 12,color: Colors.red,),
+                                          Icon(PhosphorIcons.pushPin(),size: 12,color: Colors.red,),
                                           SizedBox(width: 2,),
                                           Text("Building facilities",
                                             style: TextStyle(
@@ -1566,7 +1566,7 @@ class _Filter_View_DetailsState extends State<Filter_View_Details> {
                                         ),
                                         Row(
                                           children: [
-                                            Icon(PhosphorIcons.push_pin,size: 12,color: Colors.red,),
+                                            Icon(PhosphorIcons.pushPin(),size: 12,color: Colors.red,),
                                             SizedBox(width: 2,),
                                             Text("Place",
                                               style: TextStyle(

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -237,7 +237,7 @@ class ReDemandDetailPageState extends State<ReDemandDetailPage> {
         backgroundColor: Colors.black,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white),
+          icon: const Icon(PhosphorIconsRegular.caretLeft, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(

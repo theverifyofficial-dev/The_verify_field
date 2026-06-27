@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
@@ -229,7 +229,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -566,8 +566,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                         Row(
                           children: [
                             Icon(
-                              PhosphorIcons
-                                  .address_book,
+                              PhosphorIcons.addressBook(),
                               size: 12,
                               color: Colors.red,
                             ),
@@ -1076,7 +1075,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                   Row(
                     children: [
                       Icon(
-                        PhosphorIcons.push_pin,
+                        PhosphorIcons.pushPin(),
                         size: 13,
                         color: Colors.red,
                       ),
@@ -1182,7 +1181,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                   Row(
                     children: [
                       Icon(
-                        PhosphorIcons.push_pin,
+                        PhosphorIcons.pushPin(),
                         size: 12,
                         color: Colors.red,
                       ),

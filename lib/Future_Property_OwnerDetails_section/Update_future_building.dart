@@ -6,7 +6,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -355,7 +355,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         centerTitle: true,
         title: Image.asset(AppImages.verify, height: 75),
         leading: IconButton(
-          icon: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 30),
+          icon: const Icon(PhosphorIconsRegular.caretLeft, color: Colors.white, size: 30),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -625,7 +625,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
               _buildTextInput('Address for Field Worker', _Address_apnehisaabka),
               buildTextInput('Owner Vehicle Number (Optional)', _vehicleno),
-              _buildTextInput('Google Location', _Google_Location, icon: PhosphorIcons.map_pin),
+              _buildTextInput('Google Location', _Google_Location, icon: PhosphorIcons.mapPin()),
 
               const SizedBox(height: 20),
               GestureDetector(

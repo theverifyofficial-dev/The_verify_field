@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../ui_decoration_tools/app_images.dart';
 
@@ -28,7 +28,7 @@ class _Available_propertyState extends State<Available_property> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -40,8 +40,8 @@ class _Available_propertyState extends State<Available_property> {
             onTap: () {
               // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MyHomePage()));
             },
-            child: const Icon(
-              PhosphorIcons.image,
+            child: Icon(
+              PhosphorIcons.image(),
               color: Colors.white,
               size: 30,
             ),

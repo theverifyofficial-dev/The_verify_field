@@ -92,6 +92,8 @@ const double kNormalSpace = 10;
 const double kLargeSpace = 16;
 const double kSectionSpace = 22;
 
+
+
 int parseIndianAmount(String input) {
   String value = input.toUpperCase().replaceAll(',', '').trim();
 
@@ -566,6 +568,22 @@ Future<File> generateAgreementPdf(
     }
   }
 
+
+  // --- Furniture parsing
+  Map<String, dynamic> furnitureMap = {};
+  try {
+    final fData = data['furniture'];
+    if (fData != null) {
+      if (fData is String && fData.startsWith('{')) {
+        furnitureMap = Map<String, dynamic>.from(json.decode(fData));
+      } else if (fData is Map) {
+        furnitureMap = Map<String, dynamic>.from(fData);
+      }
+    }
+  } catch (_) {
+    furnitureMap = {};
+  }
+
   final endDate =
   shiftingDate != null ? addMonthsSafely(shiftingDate, 11) : null;
 
@@ -591,18 +609,24 @@ Future<File> generateAgreementPdf(
   final currentDateFormatted =
       '${currentDate.day.toString().padLeft(2, '0')}/${currentDate.month.toString().padLeft(2, '0')}/${currentDate.year}';
 
-  final usageClauseNumber =
-  (agreement_type.trim().toLowerCase() == "renewal agreement")
+  final bool isFurnished =
+      agreement_type.trim().toLowerCase() == "furnished by owner";
+
+  final usageClauseNumber = isRenewal
       ? 4
-      : 5;
+      : (isFurnished ? 6 : 5);
 
-  final electricityClauseNumber =
-  (agreement_type.trim().toLowerCase() == "renewal agreement")
+  final electricityClauseNumber = isRenewal
       ? 5
-      : 6;
+      : (isFurnished ? 7 : 6);
 
-  // ✅ _clauseCounter isRenewal ke baad assign karo
-  _clauseCounter = isRenewal ? 6 : 7;
+  _clauseCounter = isRenewal
+      ? 6
+      : (isFurnished ? 8 : 7);
+
+  final lockInClauseNumber = isRenewal
+      ? null
+      : (isFurnished ? 5 : 4);
 
 
   pw.Widget _buildHeaderWithReference(
@@ -1041,6 +1065,52 @@ Future<File> generateAgreementPdf(
           ),
         ),
 
+        // Clause 4 — Furnishing (Only when agreement type is Furnished by owner)
+        if (agreement_type.trim().toLowerCase() == "furnished by owner") ...[
+          pw.Partition(
+            child: pw.Padding(
+              padding: const pw.EdgeInsets.only(bottom: kNormalSpace),
+              child: pw.RichText(
+                text: pw.TextSpan(
+                  children: [
+                    pw.TextSpan(
+                      text: '4. Furnishing: ',
+                      style: pw.TextStyle(
+                        fontWeight: pw.FontWeight.bold,
+                        fontSize: 11,
+                      ),
+                    ),
+
+                    const pw.TextSpan(
+                      text:
+                      'The rented flat is a semi-furnished unit. It includes the following fixtures and furnishings: ',
+                      style: pw.TextStyle(fontSize: 11),
+                    ),
+
+                    pw.TextSpan(
+                      text: furnitureMap.isNotEmpty
+                          ? furnitureMap.entries
+                          .map((e) => '${e.key} (${e.value})')
+                          .join(', ')
+                          : 'No furnished items specified',
+                      style: pw.TextStyle(
+                        fontSize: 11,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
+
+                    const pw.TextSpan(
+                      text:
+                      '. The Second Party shall maintain these items in good condition and return them in the same condition at the time of vacating the premises, subject to normal wear and tear. Any damage beyond reasonable use shall be repaired or replaced by the Second Party at their own cost.',
+                      style: pw.TextStyle(fontSize: 11),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+
         // Clause 4 — Lock-in Period (only for non-renewal)
         if (agreement_type.trim().toLowerCase() !=
             "renewal agreement") ...[
@@ -1051,7 +1121,7 @@ Future<File> generateAgreementPdf(
                 text: pw.TextSpan(
                   children: [
                     pw.TextSpan(
-                      text: '4. Lock-in Period: ',
+                      text: '$lockInClauseNumber. Lock-in Period: ',
                       style: pw.TextStyle(
                           fontWeight: pw.FontWeight.bold),
                     ),

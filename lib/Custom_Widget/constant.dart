@@ -30,6 +30,7 @@ class AppImages{
   static const agreement='assets/images/deals.png';
   static const agreement_details='assets/images/search.png';
   static const transparent="assets/images/transparent.png";
+  static const error="assets/images/No found Data.png";
 
 
 

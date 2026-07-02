@@ -119,6 +119,38 @@ class _PlotListPageState extends State<PlotListPage> {
     }
   }
 
+  String formatIndianPrice(String price) {
+    if (price.isEmpty) return "";
+
+    final num? value = num.tryParse(price.replaceAll(",", ""));
+    if (value == null) return price;
+
+    if (value >= 10000000) {
+      return "${(value / 10000000).toStringAsFixed(2)} Cr";
+    } else if (value >= 100000) {
+      return "${(value / 100000).toStringAsFixed(2)} Lakh";
+    } else if (value >= 1000) {
+      return "${(value / 1000).toStringAsFixed(2)} K";
+    } else {
+      return value.toString();
+    }
+  }
+
+  String formatPlotSize(String size) {
+    if (size.isEmpty) return "";
+
+    // ✅ Sirf numbers extract karo (text ignore karo)
+    final String numOnly = size.replaceAll(RegExp(r'[^0-9.]'), '').trim();
+    final num? value = num.tryParse(numOnly);
+
+    if (value == null || value == 0) return size;
+
+    final double gaj = value.toDouble();
+    final double sqft = gaj * 9.0;
+
+    return "${gaj.toStringAsFixed(0)} Gaj [${sqft.toStringAsFixed(0)} Sq.Ft]";
+  }
+
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery
@@ -528,7 +560,7 @@ class _PlotListPageState extends State<PlotListPage> {
                   detailRows.add(_DetailRow(
                     icon: Icons.square_foot,
                     label: 'Plot Size',
-                    value: property.plotSize!,
+                    value: formatPlotSize(property.plotSize!),
                     theme: theme,
                     getIconColor: _getIconColor,
                     fontSize: detailFontSize,
@@ -536,15 +568,17 @@ class _PlotListPageState extends State<PlotListPage> {
                   ));
                 }
                 if ((property.plotPrice ?? '').isNotEmpty) {
-                  detailRows.add(_DetailRow(
-                    icon: Icons.attach_money,
-                    label: 'Price',
-                    value: property.plotPrice!,
-                    theme: theme,
-                    getIconColor: _getIconColor,
-                    fontSize: detailFontSize,
-                    fontWeight: FontWeight.bold,
-                  ));
+                  detailRows.add(
+                    _DetailRow(
+                      icon: Icons.attach_money,
+                      label: 'Price',
+                      value: '₹ ${formatIndianPrice(property.plotPrice!)}',
+                      theme: theme,
+                      getIconColor: _getIconColor,
+                      fontSize: detailFontSize,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  );
                 }
                 if ((property.plotStatus ?? '').isNotEmpty) {
                   detailRows.add(_DetailRow(

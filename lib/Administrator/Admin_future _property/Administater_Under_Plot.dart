@@ -230,6 +230,21 @@ class PropertyService {
   }
 }
 
+String formatPlotSize(String size) {
+  if (size.isEmpty) return "";
+
+  // ✅ Sirf numbers extract karo (text ignore karo)
+  final String numOnly = size.replaceAll(RegExp(r'[^0-9.]'), '').trim();
+  final num? value = num.tryParse(numOnly);
+
+  if (value == null || value == 0) return size;
+
+  final double gaj = value.toDouble();
+  final double sqft = gaj * 9.0;
+
+  return "${gaj.toStringAsFixed(0)} Gaj [${sqft.toStringAsFixed(0)} Sq.Ft]";
+}
+
 // ------------------ DISPLAY PAGE ------------------
 class Administater_Under_Plot extends StatefulWidget {
   final PlotPropertyData? propertyData;
@@ -1026,7 +1041,7 @@ class Administater_Under_PlotState
     }
 
     final infoRows = [
-      buildInfoRow(Icons.square_foot, Colors.teal, "Plot Size", _currentData!.plotSize),
+      buildInfoRow(Icons.square_foot, Colors.teal, "Plot Size", formatPlotSize(_currentData!.plotSize ?? "")),
       buildInfoRow(Icons.open_with, Colors.indigo, "Front Size", _currentData!.plotFrontSize),
       buildInfoRow(Icons.swap_horiz, Colors.indigo, "Side Size", _currentData!.plotSideSize),
       buildInfoRow(Icons.alt_route, Colors.brown, "Road Size", _currentData!.roadSize),

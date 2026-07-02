@@ -337,7 +337,8 @@ class _VerificationWizardPageState extends State<VerificationWizardPage> with Ti
     required String? url,
     required VoidCallback onUpload,
     IconData placeholderIcon = Icons.add_a_photo_outlined,
-  }) {
+  })
+  {
     final hasImage = file != null || (url != null && url.isNotEmpty);
     const baseUrl = 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/';
     Widget imageContent;

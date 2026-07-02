@@ -2,6 +2,7 @@
 # This is a generated file; do not edit or check into version control.
 export "FLUTTER_ROOT=C:\Program Files\Flutter\flutter_3.35.5"
 export "FLUTTER_APPLICATION_PATH=D:\project\The_verify_field"
+export "FLUTTER_FRAMEWORK_SWIFT_PACKAGE_PATH=D:\project\The_verify_field\macos\Flutter\ephemeral\Packages\.packages\FlutterFramework"
 export "COCOAPODS_PARALLEL_CODE_SIGN=true"
 export "FLUTTER_BUILD_DIR=build"
 export "FLUTTER_BUILD_NAME=1.0.0"

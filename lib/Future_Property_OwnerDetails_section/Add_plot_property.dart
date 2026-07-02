@@ -193,12 +193,10 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
   static const Color _secondaryColor = Color(0xFF6C63FF);
   static const Color _accentColor = Color(0xFF00D4AA);
   static const Color _textColorConst = Color(0xFF2D3748);
-
   static const double _conversionFactor = 9.0;
 
   List<String> get _plotSizeOptions =>
       [..._plotSizeValuesInGaj.map((v) => '${v.toStringAsFixed(0)} gaj'), 'Custom'];
-
   String? get _currentPlotSizeValue {
     if (_selectedPlotSize == 'Custom' && _plotSizeController.text.isNotEmpty) {
       return _plotSizeController.text;
@@ -724,7 +722,7 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
               Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.transparent, Colors.transparent],
+                  colors: [Colors.transparent, Colors.transparent],
                   ),
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -739,7 +737,7 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
                   ),
                   child: Text(
                     '$totalImages images',
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: _accentColor,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,

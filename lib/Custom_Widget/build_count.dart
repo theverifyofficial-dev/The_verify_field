@@ -9,7 +9,9 @@ Widget buildTab(String title, int count) {
           padding: const EdgeInsets.only(right: 18),
           child: Text(
             title,
-            style: const TextStyle(fontWeight: FontWeight.bold),
+            style:
+            const TextStyle(
+                fontWeight: FontWeight.bold),
           ),
         ),
 

@@ -1,10 +1,11 @@
-import '../../AppLogger.dart';
-import '../../AppLogger.dart';
 import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../Custom_Widget/build_count.dart';
 import '../../Custom_Widget/constant.dart';
+import '../../Rent Agreement/Renewal_Agreement.dart';
 import '../Administrator_HomeScreen.dart';
+import 'Admin_Expire_agreement.dart';
+import 'Admin_Renewal_Agreement.dart';
 import 'Sub/Admin_accepted.dart';
 import 'Sub/All_data.dart';
 import 'Sub/Admin_pending.dart';
@@ -12,10 +13,10 @@ import 'customer_data.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-enum AppBarMenuOption {
-  _launchURL,
-  viewDetail, launchUrl,
-}
+// enum AppBarMenuOption {
+//   _launchURL,
+//   viewDetail, launchUrl,
+// }
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -101,42 +102,160 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
           ),
         ),
         actions:  [
-          PopupMenuButton<AppBarMenuOption>(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-
+          // PopupMenuButton<AppBarMenuOption>(
+          //   icon: const Icon(Icons.more_vert, color: Colors.white),
+          //
+          //   onSelected: (value) {
+          //     if (value == AppBarMenuOption._launchURL) {
+          //       _launchURL(); // ✅ YOUR URL FUNCTION
+          //     }
+          //
+          //     if (value == AppBarMenuOption.viewDetail) {
+          //       Navigator.push(
+          //         context,
+          //         MaterialPageRoute(
+          //           builder: (_) =>  const AgreementCustomer(),
+          //         ),
+          //       );
+          //     }
+          //   },
+          //
+          //   itemBuilder: (context) => const [
+          //     PopupMenuItem(
+          //       value: AppBarMenuOption._launchURL,
+          //       child: Row(
+          //         children: [
+          //           Icon(Icons.open_in_browser, size: 18),
+          //           SizedBox(width: 10),
+          //           Text("Launch URL"),
+          //         ],
+          //       ),
+          //     ),
+          //     PopupMenuItem(
+          //       value: AppBarMenuOption.viewDetail,
+          //       child: Row(
+          //         children: [
+          //           Icon(Icons.info_outline, size: 18),
+          //           SizedBox(width: 10),
+          //           Text("View Detail"),
+          //         ],
+          //       ),
+          //     ),
+          //   ],
+          // ),
+          PopupMenuButton<String>(
+            icon: const Icon(
+                Icons.more_vert,
+                color: Colors.white, size: 28),
+            color: const Color(0xFF1E1E2E),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            offset: const Offset(0, 50),
             onSelected: (value) {
-              if (value == AppBarMenuOption._launchURL) {
-                _launchURL(); // ✅ YOUR URL FUNCTION
-              }
-
-              if (value == AppBarMenuOption.viewDetail) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) =>  AgreementCustomer(),
-                  ),
-                );
+              switch (value) {
+                // case 'renewal':
+                //   Navigator.push(
+                //     context,
+                //     MaterialPageRoute(builder: (context) => const AdminDocumentsScreen(fieldWorkerNumber: "")),
+                //   );
+                //   break;
+                case 'launch':
+                  _launchURL();
+                  break;
+                // case 'expire':
+                //   Navigator.push(
+                //     context,
+                //     MaterialPageRoute(builder: (context) => const AdminExpireAgreementScreen(fieldWorkerNumber: '')),
+                //   );
+                //   break;
+                case 'View':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AgreementCustomer()),
+                  );
+                  break;
               }
             },
-
-            itemBuilder: (context) => const [
-              PopupMenuItem(
-                value: AppBarMenuOption._launchURL,
+            itemBuilder: (BuildContext context) => [
+              // ── Tab 1: Renewal Agreement ──────────────────────────────
+              const PopupMenuItem<String>(
+                value: 'renewal',
                 child: Row(
-                  children: [
-                    Icon(Icons.open_in_browser, size: 18),
-                    SizedBox(width: 10),
-                    Text("Launch URL"),
+                  children: const [
+                    Icon(PhosphorIcons.arrow_right, color: Color(0xFF4ADE80), size: 20),
+                    SizedBox(width: 12),
+                    Text(
+                      'Renewal Agreement',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              PopupMenuItem(
-                value: AppBarMenuOption.viewDetail,
+
+              // ── Divider ───────────────────────────────────────────────
+              const PopupMenuDivider(height: 1),
+              // ── Tab 3: Expire Agreement ───────────────────────────────
+              const PopupMenuItem<String>(
+                value: 'expire',
                 child: Row(
-                  children: [
-                    Icon(Icons.info_outline, size: 18),
-                    SizedBox(width: 10),
-                    Text("View Detail"),
+                  children: const [
+                    Icon(PhosphorIcons.prohibit, color: Color(0xFFF87171), size: 20),
+                    SizedBox(width: 12),
+                    Text(
+                      'Expire Agreement',
+                      style: TextStyle(
+                        color: Color(0xFFF87171),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(height: 1),
+
+              // ── Tab 2: Launch URL ─────────────────────────────────────
+              const PopupMenuItem<String>(
+                value: 'launch',
+                child: Row(
+                  children: const [
+                    Icon(PhosphorIcons.share, color: Color(0xFF60A5FA), size: 20),
+                    SizedBox(width: 12),
+                    Text(
+                      'Launch URL',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // ── Divider ───────────────────────────────────────────────
+              const PopupMenuDivider(height: 1),
+
+              // ── Tab 3: Expire Agreement ───────────────────────────────
+              const PopupMenuItem<String>(
+                value: 'View',
+                child: Row(
+                  children: const [
+                    Icon(PhosphorIcons.file_doc, color: Color(0xFFAC06F4), size: 20),
+                    SizedBox(width: 12),
+                    Text(
+                      'View Details',
+                      style: TextStyle(
+                        color: Color(0xFFFFFFFF),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -149,7 +268,7 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 5,),
+            const SizedBox(height: 5,),
             Container(
               margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               height: 50,

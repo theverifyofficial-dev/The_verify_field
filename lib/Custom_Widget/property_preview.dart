@@ -21,25 +21,16 @@ class PropertyPreview extends StatefulWidget {
 
 class _PropertyPreviewState
     extends State<PropertyPreview> {
-
   bool downloading = false;
-
   Future<void> downloadAndSaveImage() async {
     try {
-
       setState(() => downloading = true);
-
-      final response = await Dio().get(
-
-        widget.ImageUrl,
-
+      final response = await Dio().get(widget.ImageUrl,
         options: Options(
           responseType: ResponseType.bytes,
         ),
       );
-
-      final result =
-      await ImageGallerySaverPlus.saveImage(
+      final result = await ImageGallerySaverPlus.saveImage(
 
         Uint8List.fromList(response.data),
 
@@ -79,29 +70,18 @@ class _PropertyPreviewState
 
   @override
   Widget build(BuildContext context) {
-
-    final isDark =
-        Theme.of(context).brightness ==
-            Brightness.dark;
-
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-
       backgroundColor: Colors.black,
-
       appBar: AppBar(
-
         backgroundColor: Colors.black,
-
         iconTheme:
         const IconThemeData(
           color: Colors.white,
         ),
-
         actions: [
-
-          downloading
-              ? const Padding(
-            padding: EdgeInsets.all(16),
+          downloading ?
+          const Padding(padding: EdgeInsets.all(16),
             child: SizedBox(
               width: 20,
               height: 20,
@@ -111,11 +91,8 @@ class _PropertyPreviewState
               ),
             ),
           )
-
               : IconButton(
-
             onPressed: downloadAndSaveImage,
-
             icon: const Icon(
               Icons.download,
               color: Colors.white,
@@ -124,34 +101,28 @@ class _PropertyPreviewState
         ],
       ),
 
-      body: Center(
-        child: InteractiveViewer(
-
-          minScale: 1,
-          maxScale: 4,
-
+      body: InteractiveViewer(
+        scaleEnabled: true,
+        minScale: 0.5,
+        maxScale: 4.0,
+        //boundaryMargin: const EdgeInsets.all(double.infinity),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height,
+          width: MediaQuery.of(context).size.width,
           child: Image.network(
-
             widget.ImageUrl,
-
-            loadingBuilder:
-                (context, child, progress) {
-
+            fit: BoxFit.contain,
+            loadingBuilder: (context, child, progress) {
               if (progress == null) return child;
-
               return const Center(
-                child: CircularProgressIndicator(),
+                child: CircularProgressIndicator(color: Colors.white),
               );
             },
-
-            errorBuilder: (_, __, ___) =>
-                Icon(
-                  Icons.image_rounded,
-                  color: isDark
-                      ? Colors.white
-                      : Colors.grey,
-                  size: 40,
-                ),
+            errorBuilder: (_, __, ___) => const Icon(
+              Icons.image_rounded,
+              color: Colors.grey,
+              size: 40,
+            ),
           ),
         ),
       ),

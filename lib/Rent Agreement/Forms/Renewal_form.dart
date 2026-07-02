@@ -2212,7 +2212,7 @@ class _RenewalFormState extends State<RenewalForm>
                         color: Colors.white, size: 24)),
               ),
             ),
-            Positioned(
+           const Positioned(
               bottom: 32,
               left: 0,
               right: 0,
@@ -2254,14 +2254,24 @@ class _RenewalFormState extends State<RenewalForm>
                 : const Center(
                 child: CircularProgressIndicator(strokeWidth: 2)),
             errorBuilder: (_, __, ___) => const Center(
-                child: Icon(Icons.broken_image,
-                    color: Colors.grey, size: 40))),
-        Positioned(top: 8, right: 8, child: _zoomBadge()),
+                child: Icon(
+                    Icons.broken_image,
+                    color:
+                    Colors.grey,
+                    size: 40)
+            ),
+        ),
+        Positioned(
+            top: 8,
+            right: 8,
+            child: _zoomBadge()),
       ]);
     } else {
       imageContent =
-          Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(placeholderIcon, color: Colors.grey, size: 32),
+          Column(
+              mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(
+                placeholderIcon, color: Colors.grey, size: 32),
             const SizedBox(height: 6),
             const Text('Tap to upload',
                 style: TextStyle(fontSize: 11, color: Colors.grey)),
@@ -2351,8 +2361,8 @@ class _RenewalFormState extends State<RenewalForm>
             Positioned(
                 bottom: 4,
                 right: 4,
-                child: Container(
-                    padding: const EdgeInsets.all(3),
+                child:  Container(
+                    padding: EdgeInsets.all(3),
                     decoration: BoxDecoration(
                         color: Colors.black54,
                         shape: BoxShape.circle),
@@ -2373,7 +2383,7 @@ class _RenewalFormState extends State<RenewalForm>
                 right: 4,
                 child: Container(
                     padding: const EdgeInsets.all(3),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                         color: Colors.black54,
                         shape: BoxShape.circle),
                     child: const Icon(Icons.zoom_in,

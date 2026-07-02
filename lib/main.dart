@@ -16,8 +16,6 @@ import 'package:verify_feild_worker/Notification_demo/routes.dart';
 import 'package:verify_feild_worker/Z-Screen/splash.dart';
 import 'Administrator/AdminInsurance/AdminInsuranceListScreen.dart';
 import 'Administrator/Admin_future _property/Admin_SeeAll_Tabbar.dart';
-import 'Administrator/Admin_future _property/Administater_Future_Tabbar.dart';
-import 'Administrator/Admin_future _property/See_All_Futureproperty.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
 import 'Administrator/SubAdmin/SubAdminAccountant_Home.dart';
 import 'Controller/Cache_memory.dart';
@@ -30,15 +28,11 @@ import 'SocialMediaHandler/VideoSubmitPage.dart';
 import 'dart:async';
 import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
 GlobalKey<ScaffoldMessengerState>();
-
-
-
 
 void main() {
   runZonedGuarded(() async {
@@ -227,7 +221,7 @@ class _MyAppState extends State<MyApp> {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           navigatorKey.currentState?.push(
             MaterialPageRoute(
-              builder: (_) => AdminInsuranceListScreen(),
+              builder: (_) => const AdminInsuranceListScreen(),
             ),
           );
         });
@@ -700,9 +694,6 @@ class _MyAppState extends State<MyApp> {
       AppLogger.api("❌ Navigation error: $e");
     }
   }
-
-
-
 
   void _initDynamicLinks() async {
     final PendingDynamicLinkData? initialLink =

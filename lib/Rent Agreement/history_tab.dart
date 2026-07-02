@@ -5,8 +5,11 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/Rent%20Agreement/Expire_agreement.dart';
+import 'package:verify_feild_worker/Rent%20Agreement/Renewal_Agreement.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_agreement/All_agreement.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_agreement/request_agreement.dart';
+import 'package:verify_feild_worker/Tenant_Details_Demand/Filter_by_feildworker.dart';
 
 import '../Custom_Widget/build_count.dart';
 import '../Custom_Widget/constant.dart';
@@ -33,6 +36,8 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
   int pendingCount = 0;
   bool isLoadingCount = true;
   String? mobileNumber;
+
+
 
   @override
   void initState() {
@@ -143,7 +148,8 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
         centerTitle: true,
         backgroundColor: Colors.black,
         elevation: 5,
-        title: Image.asset(AppImages.verify, height: 75),
+        title: Image.asset(
+            AppImages.verify, height: 75),
         leading: InkWell(
           onTap: () => Navigator.pop(context, true),
           child: const Row(
@@ -154,13 +160,101 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
           ),
         ),
         actions: [
-          GestureDetector(
-            onTap: _launchURL,
-            child: const Icon(PhosphorIcons.share, color: Colors.white, size: 28),
+          PopupMenuButton<String>(
+            icon: const Icon(
+                Icons.more_vert,
+                color: Colors.white, size: 28),
+            color: const Color(0xFF1E1E2E),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            offset: const Offset(0, 50),
+            onSelected: (value) {
+              switch (value) {
+                // case 'renewal':
+                //   Navigator.push(context, MaterialPageRoute(
+                //     builder: (_) => const DocumentsScreen(fieldWorkerNumber: '11' ),
+                //   ));
+                //   break;
+                case 'launch':
+                  _launchURL();
+                  break;
+                // case 'expire':
+                //   Navigator.push(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => ExpireAgreementScreen(fieldWorkerNumber: "11")),
+                // );
+                //   break;
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              // ── Tab 1: Renewal Agreement ──────────────────────────────
+              const PopupMenuItem<String>(
+                value: 'renewal',
+                child: Row(
+                  children: const [
+                    Icon(PhosphorIcons.arrow_right, color: Color(0xFF4ADE80), size: 20),
+                    SizedBox(width: 12),
+                    Text(
+                      'Renewal Agreement',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // ── Divider ───────────────────────────────────────────────
+              const PopupMenuDivider(height: 1),
+
+              // ── Tab 3: Expire Agreement ───────────────────────────────
+             const PopupMenuItem<String>(
+                value: 'expire',
+                child: Row(
+                  children: const [
+                    Icon(PhosphorIcons.prohibit, color: Color(0xFFF87171), size: 20),
+                    SizedBox(width: 12),
+                    Text(
+                      'Expire Agreement',
+                      style: TextStyle(
+                        color: Color(0xFFF87171),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(height: 1),
+
+              // ── Tab 2: Launch URL ─────────────────────────────────────
+              const PopupMenuItem<String>(
+                value: 'launch',
+                child: Row(
+                  children: const [
+                    Icon(PhosphorIcons.share, color: Color(0xFF60A5FA), size: 20),
+                    SizedBox(width: 12),
+                    Text(
+                      'Launch URL',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 20),
+          const SizedBox(width: 8),
         ],
+
       ),
+
 
       body:  Column(
           children: [

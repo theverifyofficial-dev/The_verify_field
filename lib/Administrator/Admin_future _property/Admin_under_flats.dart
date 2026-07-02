@@ -997,9 +997,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
     if (prop.highwayDistance.isNotEmpty) {
       rows.add(buildInfoRow(Icons.directions_car, Colors.red, "Metro Distance", prop.highwayDistance));
     }
-    if (prop.mainMarketDistance.isNotEmpty) {
-      rows.add(buildInfoRow(Icons.store, Colors.purple, "Market Distance", prop.mainMarketDistance));
-    }
+
 
     if (prop.registryAndGpa.isNotEmpty) {
       rows.add(buildInfoRow(Icons.document_scanner, Colors.purple, "Registry & GPA", prop.registryAndGpa));
@@ -1013,19 +1011,16 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
       rows.add(buildInfoRow(Icons.calendar_today, Colors.blue, "Available From", prop.availableDate));
     }
 
-
     if (prop.roadSize.isNotEmpty) {
       rows.add(buildInfoRow(Icons.straighten, Colors.teal, "Road Size", "${prop.roadSize}"));
     }
 
-    if (prop.highwayDistance.isNotEmpty) {
-      rows.add(buildInfoRow(Icons.directions_car, Colors.red, "Metro Distance", prop.highwayDistance));
-    }
-
-
-
     if (prop.loan.isNotEmpty) {
       rows.add(buildInfoRow(Icons.balance, Colors.purple, "Loan", prop.loan));
+    }
+
+    if (prop.highwayDistance.isNotEmpty) {
+      rows.add(buildInfoRow(Icons.directions_car, Colors.red, "Market Distance", prop.mainMarketDistance));
     }
 
     if (prop.flatNumber.isNotEmpty) {
@@ -1112,6 +1107,172 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
               overflow: TextOverflow.ellipsis,
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFurnishedDetailsCard(Property prop) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+
+    // Furnished status se details determine karo
+    final String status = prop.furnishedUnfurnished.toLowerCase();
+    final bool isFullyFurnished = status.contains('full');
+    final bool isSemiFurnished = status.contains('semi');
+    final bool isUnfurnished = status.contains('unfurnish') || status.contains('un-furnish');
+
+    Color statusColor = isFullyFurnished
+        ? Colors.purple
+        : isSemiFurnished
+        ? Colors.blue
+        : Colors.red;
+
+    IconData statusIcon = isFullyFurnished
+        ? Icons.check_circle
+        : isSemiFurnished
+        ? Icons.remove_circle
+        : Icons.cancel;
+
+    // Items typically included per category
+    final Map<String, List<Map<String, dynamic>>> furnishedItems = {
+      'Fully Furnished Includes': [
+        {'icon': Icons.tv, 'label': 'TV', 'included': isFullyFurnished},
+        {'icon': Icons.kitchen, 'label': 'Fridge', 'included': isFullyFurnished},
+        {'icon': Icons.local_laundry_service, 'label': 'Washing Machine', 'included': isFullyFurnished},
+        {'icon': Icons.ac_unit, 'label': 'AC', 'included': isFullyFurnished},
+        {'icon': Icons.bed, 'label': 'Bed & Wardrobe', 'included': isFullyFurnished},
+        {'icon': Icons.microwave, 'label': 'Microwave', 'included': isFullyFurnished},
+      ],
+      'Semi Furnished Includes': [
+        {'icon': Icons.lightbulb, 'label': 'Light Fixtures', 'included': isFullyFurnished || isSemiFurnished},
+        {'icon': Icons.wind_power, 'label': 'Fan', 'included': isFullyFurnished || isSemiFurnished},
+        {'icon': Icons.curtains, 'label': 'Curtains', 'included': isFullyFurnished || isSemiFurnished},
+        {'icon': Icons.bathroom, 'label': 'Geyser', 'included': isFullyFurnished || isSemiFurnished},
+      ],
+    };
+
+    return Container(
+      padding: EdgeInsets.all(isSmallScreen ? 10.0 : 14.0),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: statusColor.withOpacity(0.4)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Status Badge
+          Row(
+            children: [
+              Icon(statusIcon, color: statusColor, size: isSmallScreen ? 22.0 : 26.0),
+              SizedBox(width: isSmallScreen ? 6.0 : 8.0),
+              Expanded(
+                child: Text(
+                  prop.furnishedUnfurnished,
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 15.0 : 17.0,
+                    fontWeight: FontWeight.bold,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: statusColor.withOpacity(0.4)),
+                ),
+                child: Text(
+                  isFullyFurnished ? 'Move-in Ready' : isSemiFurnished ? 'Partially Ready' : 'Bare Shell',
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 9.0 : 10.0,
+                    fontWeight: FontWeight.w600,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          SizedBox(height: isSmallScreen ? 10.0 : 14.0),
+          Divider(color: Colors.grey.shade300, height: 1),
+          SizedBox(height: isSmallScreen ? 10.0 : 14.0),
+
+          // Items Grid
+          ...furnishedItems.entries.map((section) {
+            final visibleItems = section.value.where((item) => item['included'] == true).toList();
+            if (visibleItems.isEmpty) return const SizedBox.shrink();
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  section.key,
+                  style: TextStyle(
+                    fontSize: isSmallScreen ? 10.0 : 11.0,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                SizedBox(height: isSmallScreen ? 6.0 : 8.0),
+                Wrap(
+                  spacing: isSmallScreen ? 6.0 : 8.0,
+                  runSpacing: isSmallScreen ? 6.0 : 8.0,
+                  children: visibleItems.map((item) {
+                    return Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isSmallScreen ? 8.0 : 10.0,
+                        vertical: isSmallScreen ? 5.0 : 6.0,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: statusColor.withOpacity(0.25)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(item['icon'] as IconData, size: isSmallScreen ? 13.0 : 15.0, color: statusColor),
+                          SizedBox(width: isSmallScreen ? 4.0 : 5.0),
+                          Text(
+                            item['label'] as String,
+                            style: TextStyle(
+                              fontSize: isSmallScreen ? 10.0 : 11.0,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
+                ),
+                SizedBox(height: isSmallScreen ? 10.0 : 12.0),
+              ],
+            );
+          }),
+
+          // Unfurnished message
+          if (isUnfurnished)
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(isSmallScreen ? 10.0 : 12.0),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.06),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                "No furniture or fixtures included. Tenant needs to arrange everything.",
+                style: TextStyle(
+                  fontSize: isSmallScreen ? 11.0 : 12.0,
+                  color: Colors.red.shade700,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -1276,7 +1437,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
                                   ),
                                   child: Center(
                                     child: Text(
-                                      "${prop.maintance} Maintance",
+                                      "${prop.bhk}",
                                       style: TextStyle(
                                         fontSize: (isSmallScreen ? 14.0 : 16.0) * fontScale,
                                         fontWeight: FontWeight.bold,
@@ -1313,8 +1474,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
                                   final chipWidth = (available - spacing * (itemsPerRow - 1)) / itemsPerRow;
 
                                   final chipsData = [
-                                    {'icon': Icons.bedroom_parent, 'text': prop.bhk, 'color': Colors.blue},
-                                    {'icon': Icons.kitchen, 'text': prop.kitchen, 'color': Colors.green},
+                                    {'icon': Icons.cleaning_services, 'text': "maintance ${prop.maintance}", 'color': Colors.blue},
                                     {'icon': Icons.chair, 'text': prop.furnishedUnfurnished, 'color': Colors.purple},
                                     {'icon': Icons.apartment, 'text': prop.residenceCommercial, 'color': Colors.amber},
                                   ].where((e) => (e['text'] as String).isNotEmpty).toList();
@@ -1465,6 +1625,37 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
                             ],
                           ),
                         ),
+                        // Property Details section ke BAAD, Building Facility se PEHLE add karo:
+
+                        // Furnished Details Section
+                        if (prop.furnishedUnfurnished.isNotEmpty)
+                          Container(
+                            margin: EdgeInsets.all(horizontalPadding),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding / 2),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.chair, color: Colors.purple, size: (isSmallScreen ? 16.0 : 18.0) * fontScale),
+                                      SizedBox(width: horizontalPadding),
+                                      Text(
+                                        "Furnished Status",
+                                        style: TextStyle(
+                                          fontSize: (isSmallScreen ? 15.0 : 16.0) * fontScale,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(height: verticalPadding),
+                                _buildFurnishedDetailsCard(prop),
+                              ],
+                            ),
+                          ),
 
                         // Additional Info
                         Container(

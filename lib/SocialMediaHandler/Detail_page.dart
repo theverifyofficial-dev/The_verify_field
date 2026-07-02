@@ -749,7 +749,7 @@ class _View_DetailsState extends State<DetailPage> {
                                               ],
                                             ),
                                             child: ClipRRect(
-                                              borderRadius: BorderRadiusGeometry.circular(10),
+                                              borderRadius: BorderRadius.circular(10),
                                               child: CachedNetworkImage(
                                                 imageUrl:
                                                 "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${image.mImages}",

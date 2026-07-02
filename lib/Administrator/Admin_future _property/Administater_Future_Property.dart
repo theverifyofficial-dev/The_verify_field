@@ -214,8 +214,8 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
     {"name": "Sumit Kasaniya", "id": "9711775300"},
     {"name": "Ravi Kumar", "id": "9711275300"},
     {"name": "Faizan Khan", "id": "9971172204"},
-    // {"name": "Manish", "id": "8130209217"},
-    // {"name": "Abhay", "id": "9675383184"},
+    {"name": "Jitesh Kumar", "id": "9211335994"},
+    {"name": "Yash", "id": "9211335993"},
   ];
 
   final Map<int, int> _liveCountMap = {};
@@ -731,7 +731,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                     return TabBarPage(number: int.tryParse(id) ?? 0);
                   }));
                 },
-                child: Text('See All →', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
+                child: const Text('See All →', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -786,7 +786,11 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
 
     return Scaffold(
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.blue))
+          ? const Center(
+          child:
+             CircularProgressIndicator(
+                 color: Colors.blue),
+      )
           : RefreshIndicator(
         onRefresh: _fetchAndUpdateData,
         child: hasAccess
@@ -805,7 +809,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                 children: [
                   const Icon(Icons.warning, size: 60, color: Colors.orange),
                   const SizedBox(height: 20),
-                  Text(
+                  const Text(
                     "No access to any field worker data.",
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,

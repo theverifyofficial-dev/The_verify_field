@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
@@ -235,7 +235,7 @@ class _HistoryPageState extends State<HistoryPage> {
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(PhosphorIcons.wifi_slash, color: c.textMuted, size: 48),
+        Icon(PhosphorIcons.wifiSlash(), color: c.textMuted, size: 48),
         const SizedBox(height: 14),
         Text(_error!,
             style: TextStyle(
@@ -259,7 +259,7 @@ class _HistoryPageState extends State<HistoryPage> {
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(PhosphorIcons.bell_slash, color: c.textMuted, size: 48),
+        Icon(PhosphorIcons.bellSlash(), color: c.textMuted, size: 48),
         const SizedBox(height: 12),
         Text('No records found',
             style: TextStyle(
@@ -276,11 +276,11 @@ class _HistoryPageState extends State<HistoryPage> {
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
       child: Row(
         children: [
-          _statBox(c, 'Total',  _all.length.toString(), _C.total,  PhosphorIcons.list_bullets),
+          _statBox(c, 'Total',  _all.length.toString(), _C.total,  PhosphorIcons.listBullets()),
           const SizedBox(width: 10),
-          _statBox(c, 'Live',   live.toString(),         _C.live,   PhosphorIcons.check_circle),
+          _statBox(c, 'Live',   live.toString(),         _C.live,   PhosphorIcons.checkCircle()),
           const SizedBox(width: 10),
-          _statBox(c, 'Booked', booked.toString(),       _C.booked, PhosphorIcons.tag),
+          _statBox(c, 'Booked', booked.toString(),       _C.booked, PhosphorIcons.tag()),
         ],
       ),
     );
@@ -324,11 +324,11 @@ class _HistoryPageState extends State<HistoryPage> {
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
       child: Row(
         children: [
-          _chip(c, 'all',    'All',    PhosphorIcons.funnel),
+          _chip(c, 'all',    'All',    PhosphorIcons.funnel()),
           const SizedBox(width: 8),
-          _chip(c, 'live',   'Live',   PhosphorIcons.check_circle),
+          _chip(c, 'live',   'Live',   PhosphorIcons.checkCircle()),
           const SizedBox(width: 8),
-          _chip(c, 'booked', 'Booked', PhosphorIcons.tag),
+          _chip(c, 'booked', 'Booked', PhosphorIcons.tag()),
         ],
       ),
     );
@@ -398,7 +398,7 @@ class _HistoryPageState extends State<HistoryPage> {
   Widget _buildCard(NotifHistory h, _C c) {
     final isLive  = h.isLive;
     final color   = isLive ? _C.live : _C.booked;
-    final icon    = isLive ? PhosphorIcons.check_circle : PhosphorIcons.tag;
+    final icon    = isLive ? PhosphorIcons.checkCircle() : PhosphorIcons.tag();
     final bgColor = color.withOpacity(c.isDark ? 0.07 : 0.06);
 
     return Padding(
@@ -476,10 +476,10 @@ class _HistoryPageState extends State<HistoryPage> {
                     Row(
                       children: [
                         _miniChip('SubId: ${h.subid}',
-                            PhosphorIcons.door, c.refreshIcon),
+                            PhosphorIcons.door(), c.refreshIcon),
                         const SizedBox(width: 10),
                         _miniChip('Building Id: ${h.subid}',
-                            PhosphorIcons.buildings, c.refreshIcon),
+                            PhosphorIcons.buildings(), c.refreshIcon),
                       ],
                     ),
                   ],

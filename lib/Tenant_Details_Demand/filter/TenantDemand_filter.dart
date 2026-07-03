@@ -1,15 +1,10 @@
 import 'dart:convert';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../Custom_Widget/constant.dart';
 
 class TenantDemand_Filter extends StatefulWidget {
@@ -113,7 +108,7 @@ class _TenantDemand_FilterState extends State<TenantDemand_Filter> {
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   prefixIcon: Icon(
-                    PhosphorIcons.map_pin_line,
+                    PhosphorIcons.mapPinLine(),
                     color: Colors.white,
                   ),
                 ),
@@ -311,7 +306,7 @@ class _Show_tenatdemand_filterState extends State<Show_tenatdemand_filter> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -324,8 +319,8 @@ class _Show_tenatdemand_filterState extends State<Show_tenatdemand_filter> {
               //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Filter_Options()));
               //_showBottomSheet(context);
             },
-            child: const Icon(
-              PhosphorIcons.faders,
+            child: Icon(
+              PhosphorIcons.faders(),
               color: Colors.white,
               size: 30,
             ),
@@ -428,7 +423,7 @@ class _Show_tenatdemand_filterState extends State<Show_tenatdemand_filter> {
                                                   children: [
                                                     // Icon(Iconsax.sort_copy,size: 15,),
                                                     //SizedBox(width: 10,),
-                                                    Icon(PhosphorIcons.house,size: 12,color: Colors.red,),
+                                                    Icon(PhosphorIcons.house(),size: 12,color: Colors.red,),
                                                     SizedBox(width: 2,),
                                                     Text(""+abc.data![len].bhk/*+abc.data![len].Building_Name.toUpperCase()*/,
                                                       style: TextStyle(
@@ -735,7 +730,7 @@ class _Show_tenatdemand_filterState extends State<Show_tenatdemand_filter> {
                                           ),
                                           Row(
                                             children: [
-                                              Icon(PhosphorIcons.car,size: 12,color: Colors.red,),
+                                              Icon(PhosphorIcons.car(),size: 12,color: Colors.red,),
                                               SizedBox(width: 2,),
                                               Text("Need Parking / Vehicle Number",
                                                 style: TextStyle(
@@ -832,7 +827,7 @@ class _Show_tenatdemand_filterState extends State<Show_tenatdemand_filter> {
                                           ),
                                           Row(
                                             children: [
-                                              Icon(PhosphorIcons.users_four,size: 12,color: Colors.red,),
+                                              Icon(PhosphorIcons.users(),size: 12,color: Colors.red,),
                                               SizedBox(width: 2,),
                                               SizedBox(
                                                 width: 100,
@@ -867,7 +862,7 @@ class _Show_tenatdemand_filterState extends State<Show_tenatdemand_filter> {
                                           ),
                                           Row(
                                             children: [
-                                              Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
+                                              Icon(PhosphorIcons.addressBook(),size: 12,color: Colors.red,),
                                               SizedBox(width: 2,),
                                               Text("Additional Information",
                                                 style: TextStyle(
@@ -914,7 +909,7 @@ class _Show_tenatdemand_filterState extends State<Show_tenatdemand_filter> {
 
                                           Row(
                                             children: [
-                                              Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
+                                              Icon(PhosphorIcons.addressBook(),size: 12,color: Colors.red,),
                                               SizedBox(width: 2,),
                                               Text("Budget / Shifting Date",
                                                 style: TextStyle(
@@ -949,7 +944,7 @@ class _Show_tenatdemand_filterState extends State<Show_tenatdemand_filter> {
                                                   children: [
                                                     // Icon(Iconsax.sort_copy,size: 15,),
                                                     //SizedBox(width: 10,),
-                                                    Icon(PhosphorIcons.currency_inr,size: 12,color: Colors.red,),
+                                                    Icon(PhosphorIcons.currencyInr(),size: 12,color: Colors.red,),
                                                     SizedBox(width: 2,),
                                                     Text(""+abc.data![len].budget/*+abc.data![len].Building_Name.toUpperCase()*/,
                                                       style: TextStyle(
@@ -1360,7 +1355,7 @@ class _Show_tenatdemand_filterState extends State<Show_tenatdemand_filter> {
                                         ),
                                         Row(
                                           children: [
-                                            Icon(PhosphorIcons.push_pin,size: 12,color: Colors.red,),
+                                            Icon(PhosphorIcons.pushPin(),size: 12,color: Colors.red,),
                                             SizedBox(width: 2,),
                                             Text("Place",
                                               style: TextStyle(

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import '../Custom_Widget/constant.dart';
 import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:intl/intl.dart';
@@ -132,7 +132,7 @@ class _ActionFormNewState extends State<ActionFormNew> {
             children: [
               SizedBox(width: 3),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),

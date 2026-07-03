@@ -1,7 +1,7 @@
 import 'dart:convert';
 import '../../AppLogger.dart';
 import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter/material.dart';import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Tenant_Details_Demand/ALl_Demands.dart';
@@ -300,7 +300,7 @@ class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_dema
                                     children: [
                                       Expanded(
                                         child: _buildTag(
-                                          icon: PhosphorIcons.house,
+                                          icon: PhosphorIcons.house(),
                                           text: item.bhk,
                                           borderColor: Colors.red,
                                           iconColor: Colors.red,
@@ -341,7 +341,7 @@ class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_dema
                                     children: [
                                       Expanded(
                                         child: _buildTag(
-                                          icon: PhosphorIcons.currency_inr,
+                                          icon: PhosphorIcons.currencyInr(),
                                           text: "Budget : ${item.budget}",
                                           borderColor: Colors.blue,
                                           iconColor: Colors.red,

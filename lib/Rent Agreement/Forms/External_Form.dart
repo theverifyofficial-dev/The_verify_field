@@ -397,8 +397,10 @@ class _ExternalWizardPageState extends State<ExternalWizardPage> with TickerProv
   Future<void> _pickImage(String which) async {
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
-    final croppedFile = await cropImage(picked.path);
-
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
+    );
     if (croppedFile == null) return;
 
     setState(() {
@@ -1034,8 +1036,10 @@ class _ExternalWizardPageState extends State<ExternalWizardPage> with TickerProv
         source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
 
-    final croppedFile = await cropImage(picked.path);
-
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
+    );
     if (croppedFile == null) return;
 
     setState(() {

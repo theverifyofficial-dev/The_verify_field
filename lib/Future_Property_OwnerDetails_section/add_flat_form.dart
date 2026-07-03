@@ -3,7 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
@@ -723,7 +723,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                   width: 10,
                 ),
                 Icon(
-                  PhosphorIcons.caret_left_bold,
+                  PhosphorIconsRegular.caretLeft,
                   color: Colors.white,
                   size: 30,
                 ),

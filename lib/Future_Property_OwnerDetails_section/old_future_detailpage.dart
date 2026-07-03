@@ -5,7 +5,7 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/Owner_Call/All_contact.dart';
 import 'dart:io';
@@ -598,7 +598,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                     children: [
                       SizedBox(width: 3),
                       Icon(
-                        PhosphorIcons.caret_left_bold,
+                        PhosphorIconsRegular.caretLeft,
                         color: Colors.white,
                         size: 30,
                       ),

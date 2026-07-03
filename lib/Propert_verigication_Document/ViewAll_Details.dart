@@ -6,7 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -273,7 +273,7 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
         backgroundColor: Colors.black,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 28),
+          icon: Icon(PhosphorIconsRegular.caretLeft, color: Colors.white, size: 28),
           onPressed: () => Navigator.pop(context),
         ),
         title: Image.asset(AppImages.verify, height: 75),),
@@ -404,7 +404,7 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
                                 child: _buildDetailCard(
                                   abc.data![0].Tenant_Name,
                                   'Tenant Name',
-                                  PhosphorIcons.user,
+                                  PhosphorIcons.user(),
                                   Colors.purple,
                                 ),
                               ),
@@ -440,7 +440,7 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
                                   child: _buildDetailCard(
                                     abc.data![0].Tenant_Number,
                                     'Contact Number',
-                                    PhosphorIcons.phone_call,
+                                    PhosphorIcons.phoneCall(),
                                     Colors.blue,
                                   ),
                                 ),
@@ -453,42 +453,42 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
                           _buildDetailRow(
                             'Rent & Maintenance',
                             '${abc.data![0].Tenant_Rented_Amount} | ${abc.data![0].maintence}',
-                            PhosphorIcons.money,
+                            PhosphorIcons.money(),
                             Colors.green,
                           ),
 
                           _buildDetailRow(
                             'Shifting Date',
                             abc.data![0].Tenant_Rented_Date,
-                            PhosphorIcons.calendar,
+                            PhosphorIcons.calendar(),
                             Colors.orange,
                           ),
 
                           _buildDetailRow(
                             'Living Members',
                             '${abc.data![0].Tenant_Members} Members',
-                            PhosphorIcons.users,
+                            PhosphorIcons.users(),
                             Colors.purple,
                           ),
 
                           _buildDetailRow(
                             'Work Profile',
                             abc.data![0].Tenant_WorkProfile,
-                            PhosphorIcons.briefcase,
+                            PhosphorIcons.briefcase(),
                             Colors.blue,
                           ),
 
                           _buildDetailRow(
                             'Email',
                             abc.data![0].Tenant_Email,
-                            PhosphorIcons.envelope,
+                            PhosphorIcons.envelope(),
                             Colors.red,
                           ),
 
                           _buildDetailRow(
                             'Vehicle Details',
                             'Vehicle no coming soon',
-                            PhosphorIcons.car,
+                            PhosphorIcons.car(),
                             Colors.teal,
                           ),
                         ],
@@ -529,7 +529,7 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
                                 child: _buildDetailCard(
                                   abc.data![0].Ownername,
                                   'Owner Name',
-                                  PhosphorIcons.user_circle,
+                                  PhosphorIcons.userCircle(),
                                   Colors.purple,
                                 ),
                               ),
@@ -559,7 +559,7 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
                                   child: _buildDetailCard(
                                     abc.data![0].Owner_number,
                                     'Contact Number',
-                                    PhosphorIcons.phone_call_bold,
+                                    PhosphorIcons.phone(),
                                     Colors.blue,
                                   ),
                                 ),
@@ -579,7 +579,7 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
                                 child: _buildDetailCard(
                                   abc.data![0].Caretaker_name,
                                   'Caretaker Name',
-                                  PhosphorIcons.user,
+                                  PhosphorIcons.user(),
                                   Colors.cyan,
                                 ),
                               ),
@@ -609,7 +609,7 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
                                   child: _buildDetailCard(
                                     abc.data![0].Caretaker_number,
                                     'Contact Number',
-                                    PhosphorIcons.phone_call,
+                                    PhosphorIcons.phone(),
                                     Colors.blue,
                                   ),
                                 ),
@@ -625,49 +625,49 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
                           _buildDetailRow(
                             'Rent & Maintenance',
                             '${abc.data![0].Rent} | ${abc.data![0].maintence}',
-                            PhosphorIcons.money,
+                            PhosphorIcons.money(),
                             Colors.red,
                           ),
 
                           _buildDetailRow(
                             'Area & Parking',
                             '${abc.data![0].sqft} | ${abc.data![0].balcony} | ${abc.data![0].Parking} Parking',
-                            PhosphorIcons.ruler,
+                            PhosphorIcons.ruler(),
                             Colors.blue,
                           ),
 
                           _buildDetailRow(
                             'Building Info',
                             abc.data![0].Building_information,
-                            PhosphorIcons.info,
+                            PhosphorIcons.info(),
                             Colors.green,
                           ),
 
                           _buildDetailRow(
                             'Address',
                             abc.data![0].Address_,
-                            PhosphorIcons.map_pin,
+                            PhosphorIcons.mapPin(),
                             Colors.orange,
                           ),
 
                           _buildDetailRow(
                             'Floor & Flat',
                             '${abc.data![0].floor_} | ${abc.data![0].flat_}',
-                            PhosphorIcons.buildings,
+                            PhosphorIcons.buildings(),
                             Colors.purple,
                           ),
 
                           _buildDetailRow(
                             'Facilities',
                             abc.data![0].facility,
-                            PhosphorIcons.wifi_high,
+                            PhosphorIcons.wifiHigh(),
                             Colors.teal,
                           ),
 
                           _buildDetailRow(
                             'Furnishing',
                             '${abc.data![0].Furnished} | ${abc.data![0].Details}',
-                            PhosphorIcons.bathtub,
+                            PhosphorIcons.bathtub(),
                             Colors.brown,
                           ),
 
@@ -699,7 +699,7 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
                                 child: _buildDetailCard(
                                   abc.data![0].Feild_name,
                                   'Name',
-                                  PhosphorIcons.user,
+                                  PhosphorIcons.user(),
                                   Colors.yellow[700]!,
                                 ),
                               ),
@@ -708,7 +708,7 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
                                 child: _buildDetailCard(
                                   abc.data![0].Feild_number,
                                   'Contact',
-                                  PhosphorIcons.phone,
+                                  PhosphorIcons.phone(),
                                   Colors.yellow[700]!,
                                 ),
                               ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import '../Custom_Widget/constant.dart';
 import 'Feedback_Details_Page.dart';
@@ -50,7 +50,7 @@ class _Add_review_Under_feedback_T_DemandState extends State<Add_review_Under_fe
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.black,
                 size: 30,
               ),
@@ -63,8 +63,8 @@ class _Add_review_Under_feedback_T_DemandState extends State<Add_review_Under_fe
               //_launchURL();
               //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MyHomePage()));
             },
-            child: const Icon(
-              PhosphorIcons.apple_logo,
+            child: Icon(
+              PhosphorIcons.appleLogo(),
               color: Colors.white,
               size: 30,
             ),
@@ -130,7 +130,7 @@ class _Add_review_Under_feedback_T_DemandState extends State<Add_review_Under_fe
                   decoration: InputDecoration(
                       hintText: "Enter Additional Number",
                       prefixIcon: Icon(
-                        PhosphorIcons.phone_call,
+                        PhosphorIcons.phone(),
                         color: Colors.black54,
                       ),
                       hintStyle: TextStyle(color: Colors.grey,fontFamily: 'Poppins',),

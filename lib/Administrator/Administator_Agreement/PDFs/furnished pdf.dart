@@ -202,7 +202,6 @@ Future<File> generateFurnishedAgreementPdf(Map<String, dynamic> data) async {
   }
 
   // --- Safe extracts
-  final ownerName = safeString(data, 'owner_name', 'SWAVEN REALTY PRIVATE LIMITED');
   final tenantName = safeString(data, 'tenant_name', 'PULKIT SATYARTHI');
   final tenantRelation = safeString(data, 'tenant_relation', 'S/O');
   final tenantRelationPerson = safeString(data, 'relation_person_name_tenant', '');

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
 import 'package:open_filex/open_filex.dart';
-import 'package:path/path.dart' as policeTenants;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 import '../../../model/Additional_agreement_tenants.dart';
@@ -282,7 +281,8 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
             agreement!);
 
       } else if (type ==
-          "Commercial Agreement") {
+          "Commercial Agreement" ||
+          type == "External Commercial Agreement") {
 
         generatedFile =
         await generateCommercialAgreementPdf(

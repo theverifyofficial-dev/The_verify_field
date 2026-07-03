@@ -4,7 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -308,7 +308,7 @@ class _AddExpensesState extends State<AddExpenses> {
         centerTitle: true,
         title: Image.asset(AppImages.verify, height: 75),
         leading: IconButton(
-          icon: const Icon(PhosphorIcons.caret_left_bold,
+          icon: const Icon(PhosphorIconsRegular.caretLeft,
               color: Colors.white, size: 30),
           onPressed: () => Navigator.pop(context),
         ),

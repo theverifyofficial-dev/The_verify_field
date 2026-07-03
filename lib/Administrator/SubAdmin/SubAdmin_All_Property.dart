@@ -1,14 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
-
-import '../../AppLogger.dart';
-import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 import '../../Home_Screen_click/All_view_details.dart';
 import '../../Home_Screen_click/New_Real_Estate.dart';
 import '../../ui_decoration_tools/app_images.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import '../../ui_decoration_tools/app_images.dart';
@@ -109,7 +109,7 @@ class _AddTenantUnderFuturePropertyState
         backgroundColor: Colors.black,
         title: Image.asset(AppImages.verify, height: 75),
         leading: IconButton(
-          icon: const Icon(PhosphorIcons.caret_left_bold,
+          icon: const Icon(PhosphorIconsRegular.caretLeft,
               color: Colors.white, size: 28),
           onPressed: () => Navigator.pop(context),
         ),

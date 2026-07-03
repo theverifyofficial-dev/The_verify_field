@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Custom_Widget/constant.dart';
@@ -10,6 +10,7 @@ import 'Forms/Agreement_Form.dart';
 import 'Forms/Commercial_Form.dart';
 import 'Forms/External_Commercial.dart';
 import 'Forms/External_Form.dart';
+import 'Forms/Furnish_owner.dart';
 import 'Forms/Furnished_form.dart';
 import 'Forms/Renewal_form.dart';
 import 'Forms/Verification_form.dart';
@@ -126,7 +127,7 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
             children: [
               SizedBox(width: 3),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -241,7 +242,7 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
                 children: [
 
                   _buildSectionItem(
-                    "Furnished",
+                    "Furnished Company",
                     Icons.workspace_premium,
                         () {
                       Navigator.push(
@@ -249,6 +250,20 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
                         MaterialPageRoute(
                           builder: (context) =>
                               FurnishedForm(rewardStatus: safeRewardStatus),
+                        ),
+                      );
+                    },
+                    _rewardStatus?.isDiscounted == true,
+                  ),
+                  _buildSectionItem(
+                    "Furnished Owner",
+                    Icons.workspace_premium,
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              FurnishOwner(rewardStatus: safeRewardStatus),
                         ),
                       );
                     },
@@ -316,7 +331,7 @@ Widget _buildSectionItem(
               padding: const EdgeInsets.all(10), // 👈 smaller icon circle
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.green.withOpacity(0.8),
+                color: Colors.purple.withOpacity(0.8),
               ),
               child: Icon(icon, size: 22, color: Colors.white), // smaller icon
             ),
@@ -381,7 +396,7 @@ class _RewardBanner extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: unlocked
-              ? [Colors.green.shade700, Colors.greenAccent.shade400]
+              ? [Colors.purple.shade700, Colors.purpleAccent.shade400]
               : [Colors.grey.shade800, Colors.grey.shade600],
         ),
         borderRadius: BorderRadius.circular(16),
@@ -442,7 +457,7 @@ class _RewardBanner extends StatelessWidget {
               minHeight: 10,
               backgroundColor: Colors.white.withOpacity(0.25),
               valueColor: AlwaysStoppedAnimation<Color>(
-                unlocked ? Colors.white : Colors.green,
+                unlocked ? Colors.white : Colors.purple,
               ),
             ),
           ),
@@ -569,7 +584,7 @@ class _SectionGroupState extends State<SectionGroup> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.green.withOpacity(0.8),
+                      color: Colors.purple.withOpacity(0.8),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(widget.icon, color: Colors.white),

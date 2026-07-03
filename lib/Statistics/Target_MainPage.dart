@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'package:fl_chart/fl_chart.dart';
 import '../../AppLogger.dart';
-import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter/material.dart';import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../ui_decoration_tools/app_images.dart';
@@ -666,7 +665,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
         title: Image.asset(AppImages.verify, height: 75),
         leading: IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white),
+          icon: const Icon(PhosphorIconsRegular.caretLeft, color: Colors.white),
         ),
         actions: [
           TextButton(onPressed: (){
@@ -675,8 +674,8 @@ class _Target_MainPageState extends State<Target_MainPage> {
             }));
           }, child: Text("Type")),
           IconButton(
-            icon: const Icon(
-                PhosphorIcons.arrow_clockwise, color: Colors.white),
+            icon:  Icon(
+                PhosphorIcons.arrowClockwise(), color: Colors.white),
             onPressed: _fetchAll,
             tooltip: 'Refresh',
           ),

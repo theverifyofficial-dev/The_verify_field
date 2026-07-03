@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../AppLogger.dart';
 import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter/material.dart';import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import '../../AppLogger.dart';
 import '../../Custom_Widget/constant.dart';
@@ -993,7 +993,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
                   width: 3,
                 ),
                 Icon(
-                  PhosphorIcons.caret_left_bold,
+                  PhosphorIconsRegular.caretLeft,
                   color: Colors.white,
                   size: 30,
                 ),
@@ -1006,7 +1006,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
           //       // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MyHomePage()));
           //     },
           //     child: const Icon(
-          //       PhosphorIcons.image,
+          //       PhosphorIcons.image(),
           //       color: Colors.black,
           //       size: 30,
           //     ),

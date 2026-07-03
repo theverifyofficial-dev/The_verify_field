@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
@@ -221,7 +221,7 @@ class _Edit_Building_futurepropertyState extends State<Edit_Building_futureprope
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -233,8 +233,8 @@ class _Edit_Building_futurepropertyState extends State<Edit_Building_futureprope
             onTap: () {
               // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MyHomePage()));
             },
-            child: const Icon(
-              PhosphorIcons.image,
+            child: Icon(
+              PhosphorIcons.image(),
               color: Colors.white,
               size: 30,
             ),
@@ -778,7 +778,7 @@ class _Edit_Building_futurepropertyState extends State<Edit_Building_futureprope
                       decoration: InputDecoration(
                           hintText: "Your Address",
                           prefixIcon: Icon(
-                            PhosphorIcons.map_pin,
+                            PhosphorIcons.mapPin(),
                             color: Colors.black,
                           ),
                           hintStyle: TextStyle(color: Colors.grey,fontFamily: 'Poppins',),

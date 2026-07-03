@@ -7,9 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
-import '../../AppLogger.dart';
-import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter/material.dart';import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -601,7 +599,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),
@@ -1250,7 +1248,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                         children: [
                           GestureDetector(
                             onTap: () => _openWhatsApp(number, context),
-                            child: Icon(PhosphorIcons.whatsapp_logo_bold, color: Colors.green, size: isSmallScreen ? 20.0 : 24.0),
+                            child: Icon(PhosphorIcons.whatsappLogo(), color: Colors.green, size: isSmallScreen ? 20.0 : 24.0),
                           ),
                           SizedBox(width: isSmallScreen ? 12.0 : 16.0),
                           Icon(Icons.call, color: cardColor, size: isSmallScreen ? 20.0 : 24.0),
@@ -1673,7 +1671,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                       children: [
                         GestureDetector(
                           onTap: () => _openWhatsApp(number, context),
-                          child: Icon(PhosphorIcons.whatsapp_logo_bold, color: Colors.green, size: isSmallScreen ? 20.0 : 24.0),
+                          child: Icon(PhosphorIcons.whatsappLogo(), color: Colors.green, size: isSmallScreen ? 20.0 : 24.0),
                         ),
                         SizedBox(width: isSmallScreen ? 12.0 : 16.0),
                         Icon(Icons.call, color: bgColor, size: isSmallScreen ? 20.0 : 24.0),

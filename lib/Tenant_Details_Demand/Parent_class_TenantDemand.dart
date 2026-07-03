@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 import '../Home_Screen_click/Commercial_property_Filter.dart';
@@ -99,7 +99,7 @@ class _parent_TenandDemandState extends State<parent_TenandDemand> {
                 width: 3,
               ),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIconsRegular.caretLeft,
                 color: Colors.white,
                 size: 30,
               ),

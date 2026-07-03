@@ -483,7 +483,10 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
 
-    final croppedFile = await cropImage(picked.path);
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
+    );
 
     if (croppedFile == null) return;
 
@@ -537,8 +540,10 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
 
-    final croppedFile = await cropImage(picked.path);
-
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
+    );
     if (croppedFile == null) return;
 
     setState(() => directors[index].panPhoto = croppedFile);
@@ -902,8 +907,10 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
 
-    final croppedFile = await cropImage(picked.path);
-
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
+    );
     if (croppedFile == null) return;
 
     setState(() {

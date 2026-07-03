@@ -396,8 +396,10 @@ class _VerificationWizardPageState extends State<VerificationWizardPage> with Ti
   Future<void> _pickImage(String which) async {
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
-    final croppedFile = await cropImage(picked.path);
-
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
+    );
     if (croppedFile == null) return;
     setState(() {
       switch (which) {
@@ -427,8 +429,10 @@ class _VerificationWizardPageState extends State<VerificationWizardPage> with Ti
   Future<void> _pickTenantDoc(int index, bool isFront) async {
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
-    final croppedFile = await cropImage(picked.path);
-
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
+    );
     if (croppedFile == null) return;
     setState(() {
       if (isFront) tenants[index].aadhaarFront = croppedFile;
@@ -458,8 +462,10 @@ class _VerificationWizardPageState extends State<VerificationWizardPage> with Ti
 
 
 
-    final croppedFile = await cropImage(picked.path);
-    if (croppedFile == null) return;
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
+    );    if (croppedFile == null) return;
     setState(() => tenants[index].photo = croppedFile);
 
   }

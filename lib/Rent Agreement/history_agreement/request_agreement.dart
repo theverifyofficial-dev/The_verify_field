@@ -11,6 +11,7 @@ import '../../model/agrement_model.dart';
 import '../Dashboard_screen.dart';
 import '../Forms/Agreement_Form.dart';
 import '../Forms/External_Form.dart';
+import '../Forms/Furnish_owner.dart';
 import '../Forms/Furnished_form.dart';
 import '../details_agreement.dart';
 
@@ -87,6 +88,9 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
         break;
       case "furnished agreement":
         page = FurnishedForm(agreementId: agreement.id, rewardStatus: reward);
+        break;
+        case "furnished by owner":
+        page = FurnishOwner(agreementId: agreement.id, rewardStatus: reward);
         break;
       case "police verification":
         page = VerificationWizardPage(agreementId: agreement.id, rewardStatus: reward);

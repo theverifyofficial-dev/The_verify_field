@@ -571,8 +571,10 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
     if (picked == null) return;
 
-    final croppedFile = await cropImage(picked.path);
-
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
+    );
     if (croppedFile == null) return;
 
     final isOwner = which == 'ownerFront' || which == 'ownerBack';
@@ -660,42 +662,36 @@ void updateAgreementPrice() {
   setState(() {});
 }
 
-void _goNext() {
-  bool valid = false;
+  void _goNext() {
+    bool valid = false;
 
-  if (_currentStep == 0) {
-    // Owner step: either file OR URL must exist
-    valid = _ownerFormKey.currentState?.validate() == true;
-    if (!valid) {
-      Fluttertoast.showToast(msg: 'Please Check Again!');
+    if (_currentStep == 0) {
+
+      valid = _tenantFormKey.currentState?.validate() == true &&
+          ((tenantAadhaarFront != null || tenantAadharFrontUrl != null) &&
+              (tenantAadhaarBack != null || tenantAadharBackUrl != null));
+
+      if (!valid) {
+        Fluttertoast.showToast(msg: 'Please Check Again!');
+      }
+
+    } else if (_currentStep == 1) {
+      valid = _propertyFormKey.currentState?.validate() == true && shiftingDate != null;
+      if (!valid && shiftingDate == null) Fluttertoast.showToast(msg: 'Please select shifting date');
+
+    }   else {
+      valid = true;
     }
 
-  } else if (_currentStep == 1) {
-    // Tenant step: either file OR URL must exist
-    valid = _tenantFormKey.currentState?.validate() == true &&
-        ((tenantAadhaarFront != null || tenantAadharFrontUrl != null) &&
-            (tenantAadhaarBack != null || tenantAadharBackUrl != null));
-
-    if (!valid) {
-      Fluttertoast.showToast(msg: 'Please Check Again!');
+    if (valid) {
+      if (_currentStep < 3) {
+        setState(() => _currentStep++);
+        _pageController.nextPage(duration: const Duration(milliseconds: 450), curve: Curves.easeInOut);
+      }
+    } else {
+      Fluttertoast.showToast(msg: 'Complete required fields');
     }
-
-  } else if (_currentStep == 2) {
-    valid = _propertyFormKey.currentState?.validate() == true && shiftingDate != null;
-    if (!valid && shiftingDate == null) Fluttertoast.showToast(msg: 'Please select shifting date');
-  } else {
-    valid = true;
   }
-
-  if (valid) {
-    if (_currentStep < 3) {
-      setState(() => _currentStep++);
-      _pageController.nextPage(duration: const Duration(milliseconds: 450), curve: Curves.easeInOut);
-    }
-  } else {
-    Fluttertoast.showToast(msg: 'Complete required fields');
-  }
-}
 
 void _goPrevious() {
   if (_currentStep > 0) {
@@ -1356,7 +1352,6 @@ Widget build(BuildContext context) {
                   controller: _pageController,
                   physics: const NeverScrollableScrollPhysics(),
                   children: [
-                    SingleChildScrollView(padding: const EdgeInsets.all(18), child: _ownerStep()),
                     SingleChildScrollView(padding: const EdgeInsets.all(18), child: _tenantStep()),
                     SingleChildScrollView(padding: const EdgeInsets.all(18), child: _propertyStep()),
                     SingleChildScrollView(padding: const EdgeInsets.all(18), child: _previewStep()),
@@ -1893,8 +1888,8 @@ void _showFurnitureBottomSheet(BuildContext context) {
 
 
 Widget _fancyStepHeader() {
-  final stepLabels = ['Owner', 'Tenant', 'Property', 'Preview'];
-  final stepIcons = [Icons.person, Icons.person_outline, Icons.home, Icons.preview];
+  final stepLabels = ['Tenant', 'Property', 'Preview'];
+  final stepIcons = [Icons.person_outline, Icons.home, Icons.preview];
 
   return Row(
     children: [
@@ -2065,90 +2060,6 @@ Widget _fancyStepHeader() {
     ],
   );
 }
-Widget _ownerStep() {
-  return _glassContainer(
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Expanded(child: Text('Owner Details', style: const TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black))),
-        Container(
-          decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [Color(0xFF1B5E20), Color(0xFF2E7D32), Color(0xFF66BB6A)], begin: Alignment.topLeft, end: Alignment.bottomRight),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.15), blurRadius: 14, offset: const Offset(0, 6))]),
-          child: ElevatedButton.icon(
-              onPressed: () async {
-                final a = ownerAadhaar.text.trim(); final m = ownerMobile.text.trim();
-                if (a.isEmpty && m.isEmpty) { _showToast('Please enter Aadhaar or Mobile number first'); return; }
-                showDialog(context: context, barrierDismissible: false,
-                    builder: (_) => const Center(child: Card(child: Padding(padding: EdgeInsets.all(24),
-                        child: Column(mainAxisSize: MainAxisSize.min, children: [CircularProgressIndicator(), SizedBox(height: 14), Text('Fetching owner details...')])))));
-                await _fetchUserData(fillOwner: true, aadhaar: a.isNotEmpty ? a : null, mobile: a.isEmpty ? m : null);
-                if (mounted) { Navigator.of(context, rootNavigator: true).pop(); setState(() {}); }
-              },
-              icon: const Icon(Icons.search, color: Colors.white),
-              label: const Text('Auto Fetch', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.transparent, shadowColor: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)))),
-        ),
-      ]),
-      const SizedBox(height: 16),
-      // ── AADHAAR IMAGES upar ──
-      Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(14), border: Border.all(color: Colors.grey.shade300)),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            const Icon(Icons.badge_outlined, size: 18, color: Colors.black54), const SizedBox(width: 6),
-            const Text('Owner Aadhaar Documents', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Colors.black87)),
-            const Spacer(),
-            if (ownerAadhaarFront != null || (ownerAadharFrontUrl?.isNotEmpty ?? false)) const Icon(Icons.check_circle, color: Colors.green, size: 18),
-          ]),
-          const SizedBox(height: 14),
-          Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Expanded(child: _aadhaarImageCard(label: 'Aadhaar Front', file: ownerAadhaarFront, url: ownerAadharFrontUrl, onUpload: () => _pickImage('ownerFront'))),
-            const SizedBox(width: 12),
-            Expanded(child: _aadhaarImageCard(label: 'Aadhaar Back', file: ownerAadhaarBack, url: ownerAadharBackUrl, onUpload: () => _pickImage('ownerBack'))),
-          ]),
-          const SizedBox(height: 8),
-          Text('Enter Aadhaar or Mobile number above and tap Auto Fetch to fill details automatically.',
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontStyle: FontStyle.italic)),
-        ]),
-      ),
-      const SizedBox(height: 16),
-      Form(
-        key: _ownerFormKey,
-        child: Column(children: [
-          Row(children: [
-            Expanded(child: _glowTextField(controller: ownerMobile, label: 'Mobile No', keyboard: TextInputType.phone,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)])),
-            const SizedBox(width: 12),
-            Expanded(child: _glowTextField(controller: ownerAadhaar, label: 'Aadhaar/VID No', keyboard: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(16)])),
-          ]),
-          const SizedBox(height: 14),
-          _glowTextField(controller: ownerName, label: 'Owner Full Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
-          const SizedBox(height: 12),
-          Row(children: [
-            Expanded(child: DropdownButtonFormField<String>(
-                value: ownerRelation,
-                items: const ['S/O', 'D/O', 'W/O', 'C/O', ''].map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(color: Colors.black)))).toList(),
-                onChanged: (v) => setState(() => ownerRelation = v ?? ''),
-                decoration: _fieldDecoration('Relation').copyWith(
-                    labelStyle: const TextStyle(color: Colors.black),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.black)),
-                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.black, width: 1.5))),
-                iconEnabledColor: Colors.black, dropdownColor: Colors.white, style: const TextStyle(color: Colors.black))),
-            const SizedBox(width: 12),
-            Expanded(child: _glowTextField(controller: ownerRelationPerson, label: 'Person Name')),
-          ]),
-          const SizedBox(height: 12),
-          _glowTextField(controller: ownerAddress, label: 'Permanent Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
-          const SizedBox(height: 12),
-        ]),
-      ),
-    ]),
-  );
-}
 
 Widget _tenantStep() {
   return _glassContainer(
@@ -2202,6 +2113,8 @@ Widget _tenantStep() {
               Text('Upload Aadhaar images — OCR will auto-fill fields below.', style: TextStyle(fontSize: 11, color: Colors.grey.shade600, fontStyle: FontStyle.italic)),
             ]),
           ),
+          const SizedBox(height: 8),
+
           Row(children: [
             Expanded(child: _glowTextField(controller: tenantMobile, label: 'Mobile No', keyboard: TextInputType.phone,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
@@ -2995,37 +2908,6 @@ Widget _previewStep() {
             ])
       ]),
       const SizedBox(height: 12),
-      _sectionCard(title: '*Owner', children: [
-        _kv('Name', ownerName.text),
-        _kv('Relation', ownerRelation),
-        _kv('Relation Person', ownerRelationPerson.text),
-        _kv('Mobile', ownerMobile.text),
-        _kv('Aadhaar', ownerAadhaar.text),
-        _kv('Address', ownerAddress.text),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Text('Aadhaar Images',style: TextStyle(color: Colors.black),),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(children: [
-          _imageTile(file: ownerAadhaarFront, url: ownerAadharFrontUrl, hint: 'Front'),
-          const SizedBox(width: 8),
-          _imageTile(file: ownerAadhaarBack, url: ownerAadharBackUrl, hint: 'Back'),
-          const Spacer(),
-        ]),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            TextButton(onPressed: () => _jumpToStep(0),style: TextButton.styleFrom(
-              foregroundColor: Colors.red, // text color
-            ), child: const Text('Edit',)),
-          ],
-        )
-
-      ]),
-      const SizedBox(height: 12),
       _sectionCard(title: '*Tenant', children: [
         _kv('Name', tenantName.text),
         _kv('Relation', tenantRelation),
@@ -3038,7 +2920,7 @@ Widget _previewStep() {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Aadhaar Images'),
+            const Text('Aadhaar Images',style: TextStyle(color: Colors.black),),
             const SizedBox(height: 8),
             Row(children: [
               _imageTile(file: tenantAadhaarFront, url: tenantAadharFrontUrl, hint: 'Front',
@@ -3051,7 +2933,7 @@ Widget _previewStep() {
               const Spacer(),
             ]),
             const SizedBox(height: 8),
-            Text('Tenant Photo'),
+            const Text('Tenant Photo',style: TextStyle(color: Colors.black),),
             const SizedBox(height: 8),
             Row(
               children: [

@@ -2,16 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
-import '../../AppLogger.dart';
-import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:lottie/lottie.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../../model/future_property_model.dart';
-import '../../ui_decoration_tools/app_images.dart';
 import 'Future_Property_Details.dart';
 
 

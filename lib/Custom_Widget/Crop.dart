@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 
-Future<File?> cropImage(String path) async {
+Future<File?> cropImage(String path,) async {
 
   final cropped = await
 

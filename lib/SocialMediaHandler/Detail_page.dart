@@ -733,7 +733,7 @@ class _View_DetailsState extends State<DetailPage> {
                                               ),
                                             ),
                                           );
-                                        },5
+                                        },
                                         child: Padding(
                                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                                           child: Container(

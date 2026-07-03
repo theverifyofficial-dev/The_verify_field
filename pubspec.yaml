@@ -114,6 +114,7 @@
     image_cropper: ^9.1.0
     image_gallery_saver_plus: ^4.0.1
     crop_your_image: ^2.0.0
+    flutter_phosphor_icons: ^0.0.1+6
 
 
   #    agora_rtc_engine: ^6.0.0

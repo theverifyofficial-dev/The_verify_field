@@ -89,11 +89,9 @@ class _AgreementCustomerState extends State<AgreementCustomer> {
 
     if (picked == null) return;
 
-    // final croppedFile = await cropImage(
-    //   context,
-    //   picked.path,
-    // );
-    final croppedFile = await cropImage(picked.path
+    final croppedFile = await cropImage(
+      context,
+      picked.path,
     );
     if (croppedFile == null) return;
 

@@ -62,11 +62,11 @@ class _TargetState extends State<Target> {
 
 
   final List<Map<String, String>> allUsers = [
-    {"name": "Sumit", "number": "9711775300", "location": "Sultanpur"},
+    // {"name": "Sumit", "number": "9711775300", "location": "Sultanpur"},
     {"name": "Ravi Kumar", "number": "9711275300", "location": "Sultanpur"},
     {"name": "Faizan Khan", "number": "9971172204", "location": "Sultanpur"},
-    // {"name": "avjit", "number": "11", "location": "Sultanpur"},
-    // {"name": "Manish", "number": "8130209217", "location": "Rajpur Khurd"},
+    {"name": "Jitesh Kumar", "number": "9211335994", "location": "Sultanpur"},
+    {"name": "Yash", "number": "9211335993", "location": "Rajpur Khurd"},
     // {"name": "Abhay", "number": "9675383184", "location": "Rajpur Khurd"},
   ];
 

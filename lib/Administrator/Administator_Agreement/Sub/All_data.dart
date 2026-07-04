@@ -88,9 +88,11 @@ class _AgreementDetailsState extends State<AllData> {
 
   // ── Field Workers List ─────────────────────────────────────────────────────
   final List<Map<String, String>> fieldWorkers = [
-    {"number": "9711775300", "name": "Sumit"},
+    //{"number": "9711775300", "name": "Sumit"},
     {"number": "9711275300", "name": "Ravi Kumar"},
     {"number": "9971172204", "name": "Faizan Khan"},
+    {"number": "9211335994", "name": "Jitesh Kumar"},
+    {"number": "9211335993", "name": "Yash"},
   ];
 
 

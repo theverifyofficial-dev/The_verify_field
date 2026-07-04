@@ -212,7 +212,13 @@ import 'package:verify_feild_worker/Administrator/AdminInsurance/Admin_insurance
     }
 
     final Map<String, List<String>> locationWorkerMap = {
-      "sultanpur": ["sumit", "ravi", "faizan","avjit"],
+      "sultanpur": [
+        // "sumit",
+        "ravi",
+        "faizan",
+
+        "jitesh kumar",
+        "yash"],
       // "rajpur": ["manish", "abhey"],
       // "chattarpur": ["manish", "abhey"],
     };
@@ -228,9 +234,11 @@ import 'package:verify_feild_worker/Administrator/AdminInsurance/Admin_insurance
     }
 
     final List<Map<String, String>> fieldWorkers = [
-      {"name": "Sumit", "id": "9711775300"},
+      //{"name": "Sumit", "id": "9711775300"},
       {"name": "Ravi", "id": "9711275300"},
       {"name": "Faizan", "id": "9971172204"},
+      {"name": "Jitesh Kumar", "id": "9211335994"},
+      {"name": "Yash", "id": "9211335993"},
     ];
     bool isLoading = true;
 

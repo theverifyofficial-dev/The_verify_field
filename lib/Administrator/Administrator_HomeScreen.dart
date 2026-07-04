@@ -981,9 +981,9 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                       width: 1.5,
                     ),
                   ),
-                  child: ClipOval(
+                  child: const ClipOval(
                     child: Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: EdgeInsets.all(8.0),
                       child: AnimatedAnalogClock(
                         size: 90,
                         hourHandColor: Colors.black,

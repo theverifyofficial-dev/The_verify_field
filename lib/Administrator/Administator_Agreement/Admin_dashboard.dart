@@ -180,44 +180,45 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
             },
             itemBuilder: (BuildContext context) => [
               // ── Tab 1: Renewal Agreement ──────────────────────────────
-              const PopupMenuItem<String>(
-                value: 'renewal',
-                child: Row(
-                  children: const [
-                    Icon(PhosphorIcons.arrow_right, color: Color(0xFF4ADE80), size: 20),
-                    SizedBox(width: 12),
-                    Text(
-                      'Renewal Agreement',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // const PopupMenuItem<String>(
+              //   value: 'renewal',
+              //   child: Row(
+              //     children: const [
+              //       Icon(PhosphorIcons.arrow_right, color: Color(0xFF4ADE80), size: 20),
+              //       SizedBox(width: 12),
+              //       Text(
+              //         'Renewal Agreement',
+              //         style: TextStyle(
+              //           color: Colors.white,
+              //           fontSize: 14,
+              //           fontWeight: FontWeight.w500,
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
 
               // ── Divider ───────────────────────────────────────────────
               const PopupMenuDivider(height: 1),
+
               // ── Tab 3: Expire Agreement ───────────────────────────────
-              const PopupMenuItem<String>(
-                value: 'expire',
-                child: Row(
-                  children: const [
-                    Icon(PhosphorIcons.prohibit, color: Color(0xFFF87171), size: 20),
-                    SizedBox(width: 12),
-                    Text(
-                      'Expire Agreement',
-                      style: TextStyle(
-                        color: Color(0xFFF87171),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              // const PopupMenuItem<String>(
+              //   value: 'expire',
+              //   child: Row(
+              //     children: const [
+              //       Icon(PhosphorIcons.prohibit, color: Color(0xFFF87171), size: 20),
+              //       SizedBox(width: 12),
+              //       Text(
+              //         'Expire Agreement',
+              //         style: TextStyle(
+              //           color: Color(0xFFF87171),
+              //           fontSize: 14,
+              //           fontWeight: FontWeight.w500,
+              //         ),
+              //       ),
+              //     ],
+              //   ),
+              // ),
               const PopupMenuDivider(height: 1),
 
               // ── Tab 2: Launch URL ─────────────────────────────────────

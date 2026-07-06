@@ -1860,10 +1860,10 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
                           const SizedBox(width: 12),
 
-                          Expanded(
+                          const Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              children: const [
+                              children:  [
 
                                 Text(
                                   "YEARLY TARGET",
@@ -2465,7 +2465,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               ),
             ),
             const SizedBox(width: 6),
-            Icon(
+            const Icon(
               Icons.lightbulb_outline,
               size: 16,
               color: Colors.amber,
@@ -2516,14 +2516,13 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       double divisor,
       int done,
       int target,
-      )
-  {
+      ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final double raw = remaining / divisor;
     final int required = raw.ceil();
 
-    final Color accent = const Color(0xFF3B82F6);
+    const Color accent = Color(0xFF3B82F6);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -2562,10 +2561,6 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           ),
 
           const SizedBox(height: 10),
-
-
-
-          /// ✅ SIMPLE INSTRUCTION
           Text(
             "Complete $required buildings every $label to reach your target.",
             style: TextStyle(

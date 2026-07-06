@@ -172,8 +172,9 @@ Future<File> generateCommercialAgreementPdf(Map<String, dynamic> data) async {
   final DateTime fullDate =
   DateTime.parse(data['current_dates'].toString());
 
-  final String formattedDate =
-  DateFormat('dd-MM-yyyy').format(fullDate);
+  final currentDate = DateTime.now();
+  final currentDateFormatted =
+      '${currentDate.day.toString().padLeft(2, '0')}/${currentDate.month.toString().padLeft(2, '0')}/${currentDate.year}';
   final DateTime endDate = add11Months(startDate);
 
   pw.TextSpan getMeterClause(Map<String, dynamic>? data) {
@@ -254,7 +255,7 @@ Future<File> generateCommercialAgreementPdf(Map<String, dynamic> data) async {
 
               pw.TextSpan(
                 text:
-                '$formattedDate',
+                '$currentDateFormatted',
                 // '23-02-2026',
                 style: pw.TextStyle(
                   fontSize: 11,

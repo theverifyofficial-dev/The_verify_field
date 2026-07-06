@@ -239,7 +239,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
                                       Expanded(
                                         child: Text(
                                           "Reason: ${log['reason']}",
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontSize: 13,
                                             fontWeight: FontWeight.w600,
                                             color: Colors.orange,
@@ -280,7 +280,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
                                     label: const Text("Update Status"),
                                     onPressed: () {
                                       Navigator.pop(context); // close logs
-                                      _showUpdateReasonSelector(flatId);
+                                      _showUpdateReasonSelector(log['id'].toString());
                                     },
                                   ),
                                 ),
@@ -299,11 +299,17 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
       },
     );
   }
+
   Future<void> _updateBuildingStatus(String id, String reason) async {
     const url =
         "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/calling_update_building.php";
 
     try {
+      print("========== UPDATE BUILDING STATUS ==========");
+      print("URL: $url");
+      print("ID: $id");
+      print("Reason: $reason");
+
       final response = await http.post(
         Uri.parse(url),
         body: {
@@ -312,9 +318,14 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
         },
       );
 
-      //AppLogger.log("Update Status Response: ${response.body}");
-    } catch (e) {
-      //AppLogger.log("Update Status Error: $e");
+      print("Status Code: ${response.statusCode}");
+      print("Response Body: ${response.body}");
+      print("==========================================");
+    } catch (e, stackTrace) {
+      print("========== UPDATE BUILDING STATUS ERROR ==========");
+      print("Error: $e");
+      print("StackTrace: $stackTrace");
+      print("=================================================");
     }
   }
 
@@ -360,7 +371,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
     required String reason,
   })
   async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance() ;
     final FName = prefs.getString('name') ?? "";
     final FNum = prefs.getString('number') ?? "";
     print(FName);
@@ -1087,6 +1098,8 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
                     );
                   },
                 ),
+
+
 
               if (widget.caretakerNumber != null &&
                   widget.caretakerNumber!.isNotEmpty)

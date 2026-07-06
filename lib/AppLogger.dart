@@ -12,10 +12,10 @@ class AppLogger {
     return enableReleaseLogs;
   }
 
+
   static void log(String message, {String tag = 'APP'}) {
     if (_shouldLog) debugPrint('[$tag] $message');
   }
-
   static void api(String message) {
     if (_shouldLog) debugPrint('[API] $message');
   }

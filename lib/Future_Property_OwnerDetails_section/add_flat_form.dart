@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -12,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../ui_decoration_tools/app_images.dart';
+import 'package:http/http.dart' as http;
 
 
 
@@ -276,9 +276,10 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
   final List<String> yesNoOptions = ['Yes', 'No'];
   final List<String> registryOptions = ['Registry', 'GPA'];
 
-  Future<void> uploadImageWithTitle(File imageFile) async {
 
-    // this is for API current date & available date
+
+  Future<void> uploadImageWithTitle(File imageFile) async {
+    // Date formatting
     final DateFormat dateOnlyFormatter = DateFormat('dd-MMMM-yyyy');
     final DateFormat dateTimeFormatter = DateFormat('dd-MMMM-yyyy HH:mm:ss');
 
@@ -286,102 +287,115 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
         ? dateOnlyFormatter.format(_availableDate!)
         : '';
 
-    // Current Date
     String currentDateTime = dateTimeFormatter.format(DateTime.now());
 
+    String uploadUrl =
+        'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/add_flat_in_future_property.php';
 
-    String uploadUrl = 'https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/add_flat_in_future_property.php';
     print('🚀 Starting upload to: $uploadUrl');
 
-    FormData formData = FormData();
-
-    print('📸 Primary Image: ${imageFile.path}');
-    formData.files.add(MapEntry(
-      "property_photo",
-      await MultipartFile.fromFile(imageFile.path, filename: imageFile.path.split('/').last),
-    ));
-
-    // 🔍 Multiple Images
-    for (int i = 0; i < _multipleImages.length; i++) {
-      var image = _multipleImages[i];
-      print('🖼️ Multiple Image $i: ${image.path}');
-      formData.files.add(MapEntry(
-        "images[]",
-        await MultipartFile.fromFile(image.path, filename: image.path.split('/').last),
-      ));
-    }
-
-    List<MapEntry<String, String>> fields = [
-      MapEntry("owner_name", _Ownername.text.trim() ?? ''),
-      MapEntry("Balcony", balcony.toString()),
-      MapEntry("Flat_number", _FlatNumber.text),
-      MapEntry("owner_number", _Owner_number.text ?? ''),
-      MapEntry("care_taker_name", _CareTaker_name.text.trim() ?? ''),
-      MapEntry("care_taker_number", _CareTaker_number.text ?? ''),
-      MapEntry("video_link", _videoLink.text ?? ''),
-      MapEntry("locations", widget.place),
-      MapEntry("Buy_Rent", _selectedItem1 ?? ''),
-      MapEntry("Residence_Commercial", widget.Residence_commercial ?? ''),
-      MapEntry("Typeofproperty", selectedPropertyType ?? ''),
-      MapEntry("Bhk", selectedBHK ?? ''),
-      MapEntry("Floor_", _floor1 ?? ''),
-      MapEntry("Total_floor", widget.totalFloor),
-      MapEntry("squarefit", _sqft.text),
-      MapEntry("maintance", (_maintenance == "Custom" ? _customMaintenance ?? '' : _maintenance) ?? ''),
-      MapEntry("Apartment_name", (_furnished == 'Semi Furnished' || _furnished == 'Fully Furnished')
-          ? (_selectedFurniture.entries.map((e) => '${e.key}(${e.value})').join(', '))
-          : (_furnished ?? ''),),
-      MapEntry("Apartment_Address", widget.apartment_address),
-      MapEntry("fieldworkar_address", widget.field_address),
-      MapEntry("field_worker_current_location", worker_address.toString()),
-      MapEntry("parking", _selectedParking.toString()),
-      MapEntry("age_of_property", widget.age_property),
-      MapEntry("field_warkar_name", _name),
-      MapEntry("field_workar_number", _number),
-      MapEntry("current_dates", currentDateTime),
-      MapEntry(
-        "available_date",
-        _availableDate != null
-            ? DateFormat('yyyy-MM-dd').format(_availableDate!)
-            : '', // empty if not selected
-      ),
-      MapEntry("Longitude", _Longitude.text),
-      MapEntry("Latitude", _Latitude.text),
-      MapEntry("kitchen", kitchen.toString()),
-      MapEntry("bathroom", bathroom.toString()),
-      MapEntry("live_unlive", "Book"), // <-- Static value sent to API
-      MapEntry("lift", widget.lift),
-      MapEntry("Facility", widget.facility),
-      MapEntry("furnished_unfurnished", _furnished.toString()),
-      MapEntry("registry_and_gpa", _registry.toString()),
-      MapEntry("loan", _loan.toString()),
-      MapEntry("show_Price", _formattedPrice),
-      MapEntry("Last_Price", _formattedLastPrice),
-      MapEntry("asking_price", _formattedAskingPrice),
-      MapEntry("Road_Size", widget.road_size),
-      MapEntry("locality_list", widget.locality_list),
-      MapEntry("metro_distance", widget.metro_name),
-      MapEntry("highway_distance", widget.metro_dis),
-      MapEntry("main_market_distance", widget.market_dis),
-      MapEntry("meter", _meter.text),
-      MapEntry("subid", widget.id),
-    ];
-
-    // Add fields to formData
-    formData.fields.addAll(fields);
-
-    // 🔍 Print all fields for debugging
-    print('📝 Fields going to API:');
-    for (var field in fields) {
-      print('➡️ ${field.key}: ${field.value}');
-    }
-
-    Dio dio = Dio();
-
     try {
-      Response response = await dio.post(uploadUrl, data: formData);
-      print('✅ Status Code: ${response.statusCode}');
-      print('🔁 Response from API: ${response.data}');
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse(uploadUrl),
+      );
+
+      // Primary Image
+      print('📸 Primary Image: ${imageFile.path}');
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'property_photo',
+          imageFile.path,
+        ),
+      );
+
+      // Multiple Images
+      for (int i = 0; i < _multipleImages.length; i++) {
+        var image = _multipleImages[i];
+        print('🖼️ Multiple Image $i: ${image.path}');
+
+        request.files.add(
+          await http.MultipartFile.fromPath(
+            'images[]',
+            image.path,
+          ),
+        );
+      }
+
+      // Fields
+      request.fields.addAll({
+        "owner_name": _Ownername.text.trim(),
+        "Balcony": balcony.toString(),
+        "Flat_number": _FlatNumber.text,
+        "owner_number": _Owner_number.text,
+        "care_taker_name": _CareTaker_name.text.trim(),
+        "care_taker_number": _CareTaker_number.text,
+        "video_link": _videoLink.text,
+        "locations": widget.place,
+        "Buy_Rent": _selectedItem1 ?? '',
+        "Residence_Commercial": widget.Residence_commercial,
+        "Typeofproperty": selectedPropertyType ?? '',
+        "Bhk": selectedBHK ?? '',
+        "Floor_": _floor1 ?? '',
+        "Total_floor": widget.totalFloor,
+        "squarefit": _sqft.text,
+        "maintance": (_maintenance == "Custom"
+            ? _customMaintenance ?? ''
+            : _maintenance) ??
+            '',
+        "Apartment_name": (_furnished == 'Semi Furnished' ||
+            _furnished == 'Fully Furnished')
+            ? _selectedFurniture.entries
+            .map((e) => '${e.key}(${e.value})')
+            .join(', ')
+            : (_furnished ?? ''),
+        "Apartment_Address": widget.apartment_address,
+        "fieldworkar_address": widget.field_address,
+        "field_worker_current_location": worker_address.toString(),
+        "parking": _selectedParking.toString(),
+        "age_of_property": widget.age_property,
+        "field_warkar_name": _name,
+        "field_workar_number": _number,
+        "current_dates": currentDateTime,
+        "available_date": _availableDate != null
+            ? DateFormat('yyyy-MM-dd').format(_availableDate!)
+            : '',
+        "Longitude": _Longitude.text,
+        "Latitude": _Latitude.text,
+        "kitchen": kitchen.toString(),
+        "bathroom": bathroom.toString(),
+        "live_unlive": "Book",
+        "lift": widget.lift,
+        "Facility": widget.facility,
+        "furnished_unfurnished": _furnished.toString(),
+        "registry_and_gpa": _registry.toString(),
+        "loan": _loan.toString(),
+        "show_Price": _formattedPrice,
+        "Last_Price": _formattedLastPrice,
+        "asking_price": _formattedAskingPrice,
+        "Road_Size": widget.road_size,
+        "locality_list": widget.locality_list,
+        "metro_distance": widget.metro_name,
+        "highway_distance": widget.metro_dis,
+        "main_market_distance": widget.market_dis,
+        "meter": _meter.text,
+        "subid": widget.id,
+      });
+
+      // Print fields
+      print("📝 Fields going to API:");
+      request.fields.forEach((key, value) {
+        print("➡️ $key : $value");
+      });
+
+      // Send request
+      var streamedResponse = await request.send();
+
+      // Read response
+      var response = await http.Response.fromStream(streamedResponse);
+
+      print("✅ Status Code: ${response.statusCode}");
+      print("🔁 Response: ${response.body}");
 
       if (response.statusCode == 200) {
         showSnack("Property Added Successfully");
@@ -400,7 +414,6 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
       }
     }
   }
-
 
   @override
   void dispose() {
@@ -2059,51 +2072,4 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
      );
    }
  }
-Widget _buildInputDecoration(String label, TextEditingController controller, BuildContext context, {IconData? icon}) {
-  final isDark = Theme.of(context).brightness == Brightness.dark;
 
-  return TextFormField(
-    controller: controller,
-    style: TextStyle(
-      color: isDark ? Colors.white : Colors.black, // typing text color
-    ),
-    decoration: InputDecoration(
-      labelText: label,
-      hintText: 'Enter $label',
-      hintStyle: TextStyle(
-        color: isDark ? Colors.grey.shade400 : Colors.grey.shade500,
-      ),
-      labelStyle: TextStyle(
-        fontWeight: FontWeight.w600,
-        fontSize: 15,
-        color: isDark ? Colors.grey.shade300 : Colors.black54,
-      ),
-      prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(
-            color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(
-            color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(
-            color: isDark ? Colors.blue.shade200 : Colors.blue.shade300,
-            width: 2),
-      ),
-      contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-      filled: true,
-      fillColor: isDark ? Colors.grey.shade900 : Colors.white,
-    ),
-    validator: (value) {
-      if (value == null || value.trim().isEmpty) {
-        return 'Please enter $label';
-      }
-      return null;
-    },
-  );
-}

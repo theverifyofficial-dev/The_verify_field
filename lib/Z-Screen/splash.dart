@@ -11,17 +11,20 @@ import '../Administrator/SubAdmin/SubAdminAccountant_Home.dart';
 import '../SocialMediaHandler/video_home.dart';
 import '../ui_decoration_tools/app_images.dart';
 import '../../AppLogger.dart';
+import 'FieldApplication.dart';
 
 class User {
   final String F_Name;
   final String F_Number;
   final String F_AadhaarCard;
   final String? FCM;
+  final String status;
 
   User({
     required this.F_Name,
     required this.F_Number,
     required this.F_AadhaarCard,
+    required this.status,
     this.FCM,
   });
 
@@ -30,6 +33,7 @@ class User {
       F_Name: json['FName'],
       F_Number: json['FNumber'],
       F_AadhaarCard: json['FAadharCard'],
+      status: json['status'], // <-- NEW
       FCM: json['FCM'],
     );
   }
@@ -111,27 +115,69 @@ class _SplashState extends State<Splash> {
       if (!mounted) return;
 
       if (result.isNotEmpty) {
-        String role = result.first.F_AadhaarCard;
-        if (role == "Administrator") {
+
+        User user = result.first;
+
+        String role = user.F_AadhaarCard;
+        String applicationStatus = user.status;
+
+        if (role == "FieldWorkar") {
+
+          if (applicationStatus == "Pending") {
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const WaitingApprovalScreen(),
+              ),
+            );
+
+          } else if (applicationStatus == "Accepted") {
+
+            Navigator.of(context).pushReplacementNamed(Home_Screen.route);
+
+          } else if (applicationStatus == "Rejected") {
+
+            Navigator.of(context).pushReplacementNamed(Login_page.route);
+
+          } else {
+
+            Navigator.of(context).pushReplacementNamed(Login_page.route);
+
+          }
+
+        }
+        else if (role == "Administrator") {
+
           Navigator.of(context)
               .pushReplacementNamed(AdministratorHome_Screen.route);
-        } else if (role == "Sub Administrator") {
-          Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => SubAdminHomeScreen()));
-        } else if (role == "Editor") {
-          Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => VideoHomepage()));
-        } else if (role == "FieldWorkar") {
-          Navigator.of(context).pushReplacementNamed(Home_Screen.route);
-        } else {
-          Navigator.of(context).pushReplacementNamed(Login_page.route);
+
         }
-      } else {
-        Navigator.of(context).pushReplacementNamed(Login_page.route);
+        else if (role == "Sub Administrator") {
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => SubAdminHomeScreen(),
+            ),
+          );
+
+        }
+        else if (role == "Editor") {
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => VideoHomepage(),
+            ),
+          );
+
+        }
+        else {
+
+          Navigator.of(context).pushReplacementNamed(Login_page.route);
+
+        }
       }
     } catch (e) {
       // ❌ Network error → show retry UI

@@ -1,7 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../AppLogger.dart';
-import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'dart:convert';
@@ -13,6 +13,7 @@ import '../Home_Screen.dart';
 import '../SocialMediaHandler/video_home.dart';
 import '../Custom_Widget/constant.dart';
 import '../model/user_model.dart';
+import 'FieldApplication.dart';
 
 
 class Login_page extends StatefulWidget {
@@ -44,161 +45,202 @@ class _Login_pageState extends State<Login_page> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Center(
-              child: Image.asset(
-                AppImages.verify,
-                height: 170,
-                width: 250,
-              ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Sign In!',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-                fontFamily: 'Poppins',
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Hey, Login or Signup to enter the Verify App',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[400],
-                fontFamily: 'Poppins',
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 40),
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+        backgroundColor: Colors.black,
+        body: SingleChildScrollView(
+            child: Column(
                 children: [
-
-                  // Phone Number TextField
+                  Center(
+                    child: Image.asset(
+                      AppImages.verify,
+                      height: 170,
+                      width: 250,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Sign In!',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                      fontFamily: 'Poppins',
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Hey, Sign in to your existing account or apply to become a Verify Field Agent.',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey[400],
+                      fontFamily: 'Poppins',
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 40),
                   Container(
-                    margin: EdgeInsets.only(bottom: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.white12,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.white30),
-                    ),
-                    child: TextField(
-                      style: TextStyle(color: Colors.white),
-                      controller: _mobileController,
-                      keyboardType: TextInputType.phone,
-                      decoration: InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        border: InputBorder.none,
-                        hintText: "Phone Number",
-                        hintStyle: TextStyle(color: Colors.grey[600]),
-                        prefixIcon: Icon(Iconsax.call, color: Colors.white70),
-                      ),
-                    ),
-                  ),
+                    margin: EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
 
-                  // Password TextField
-
-                Container(
-                  margin: EdgeInsets.only(bottom: 30),
-                  decoration: BoxDecoration(
-                    color: Colors.white12,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white30),
-                  ),
-                  child: TextField(
-                    style: TextStyle(color: Colors.white),
-                    controller: _passController,
-                    obscureText: !_isPasswordVisible,
-                    decoration: InputDecoration(
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                      border: InputBorder.none,
-                      hintText: "Password",
-                      hintStyle: TextStyle(color: Colors.grey[600]),
-                      prefixIcon:
-                          Icon(Iconsax.password_check, color: Colors.white70),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _isPasswordVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                          color: Colors.white70,
+                        // Phone Number TextField
+                        Container(
+                          margin: EdgeInsets.only(bottom: 20),
+                          decoration: BoxDecoration(
+                            color: Colors.white12,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white30),
+                          ),
+                          child: TextField(
+                            style: TextStyle(color: Colors.white),
+                            controller: _mobileController,
+                            keyboardType: TextInputType.phone,
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              border: InputBorder.none,
+                              hintText: "Phone Number",
+                              hintStyle: TextStyle(color: Colors.grey[600]),
+                              prefixIcon: Icon(Iconsax.call, color: Colors.white70),
+                            ),
+                          ),
                         ),
-                        onPressed: () {
-                          setState(() {
-                            _isPasswordVisible = !_isPasswordVisible;
-                          });
-                        },
-                      ),
-                    ),
-                  ),
-                ),
 
-                  // Login Button
-                  GestureDetector(
-                    onTap: _isLoading
-                        ? null
-                        : () async {
-                      setState(() {
-                        _isLoading = true;
-                      });
+                        // Password TextField
 
-                      final number = _mobileController.text.trim();
-                      final password = _passController.text.trim();
+                        Container(
+                          margin: EdgeInsets.only(bottom: 30),
+                          decoration: BoxDecoration(
+                            color: Colors.white12,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.white30),
+                          ),
+                          child: TextField(
+                            style: TextStyle(color: Colors.white),
+                            controller: _passController,
+                            obscureText: !_isPasswordVisible,
+                            decoration: InputDecoration(
+                              contentPadding:
+                              EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              border: InputBorder.none,
+                              hintText: "Password",
+                              hintStyle: TextStyle(color: Colors.grey[600]),
+                              prefixIcon:
+                              Icon(Iconsax.password_check, color: Colors.white70),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isPasswordVisible
+                                      ? Icons.visibility
+                                      : Icons.visibility_off,
+                                  color: Colors.white70,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isPasswordVisible = !_isPasswordVisible;
+                                  });
+                                },
+                              ),
+                            ),
+                          ),
+                        ),
 
-                      await loginUser(context, number, password);
+                        // Login Button
+                        GestureDetector(
+                          onTap: _isLoading
+                              ? null
+                              : () async {
+                            setState(() {
+                              _isLoading = true;
+                            });
 
-                      setState(() {
-                        _isLoading = false;
-                      });
-                    },
-                    child: Container(
-                      height: 50,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        gradient: const LinearGradient(
-                          colors: [
-                            Color.fromRGBO(143, 148, 251, 1),
-                            Color.fromRGBO(143, 148, 251, .6),
+                            final number = _mobileController.text.trim();
+                            final password = _passController.text.trim();
+
+                            await loginUser(context, number, password);
+
+                            if (mounted) {
+                              setState(() {
+                                _isLoading = false;
+                              });
+                            }
+                          },
+                          child: Container(
+                            height: 50,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              gradient: const LinearGradient(
+                                colors: [
+                                  Color.fromRGBO(143, 148, 251, 1),
+                                  Color.fromRGBO(143, 148, 251, .6),
+                                ],
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 6,
+                                  offset: Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: Center(
+                              child: _isLoading
+                                  ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                                  : const Text(
+                                "Login",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+
+                            Text(
+                              "Don't have an account?",
+                              style: TextStyle(
+                                color: Colors.grey[400],
+                                fontSize: 15,
+                              ),
+                            ),
+
+                            TextButton(
+                              onPressed: () {
+
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const FieldAgentRegisterScreen(),
+                                  ),
+                                );
+
+                              },
+                              child: const Text(
+                                "Apply as Field Agent",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blueAccent,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+
                           ],
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 6,
-                            offset: Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: _isLoading
-                            ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                            : const Text(
-                          "Login",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
+
+                      ],
                     ),
-                  ),
-                ],
-              ),
+                  )
+                ]
             )
-       ]
-        )
-    ));
+        ));
   }
 
 
@@ -206,7 +248,6 @@ class _Login_pageState extends State<Login_page> {
   Future<void> loginUser(BuildContext context, String number, String password) async {
     try {
       // Get FCM Token
-      FirebaseMessaging messaging = FirebaseMessaging.instance;
       String? fcmToken;
 
       try {
@@ -215,34 +256,47 @@ class _Login_pageState extends State<Login_page> {
         //print("⚠️ FCM failed, continuing login...");
         fcmToken = "";
       }
+      fcmToken ??= "";
       AppLogger.log("🔑 FCM Token: $fcmToken");
 
-
       // API call with number, password, and token
-      final response = await http.get(Uri.parse(
-        "https://verifyrealestateandservices.in/WebService4.asmx/new_login_api_for_field_and_admin?FNumber=$number&Password=$password&FCM=$fcmToken",
-      ));
+      final uri = Uri.parse(
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Field%20Application/Login_Api_Field_application.php",
+      ).replace(queryParameters: {
+        "FNumber": number,
+        "FPassword": password,
+        "FCM": fcmToken,
+      });
+
+      final response = await http.get(uri);
 
       AppLogger.log("📩 Raw Response: ${response.body}");
 
-      final data = json.decode(response.body);
+      final Map<String, dynamic> resBody = json.decode(response.body);
+      final String apiStatus = (resBody["status"] ?? "").toString().trim();
+      final String apiMessage = resBody["message"]?.toString() ?? "";
 
-      if (data is List && data.isNotEmpty && data[0]["status"] == "success") {
-        final user = data[0];
+      if (apiStatus == "success" && resBody["data"] != null) {
+        final Map<String, dynamic> user =
+        Map<String, dynamic>.from(resBody["data"]);
 
         // Save data in SharedPreferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        prefs.setInt('id', user["id"]);
-        prefs.setString('name', user["FName"]);
-        prefs.setString('number', user["FNumber"]);
-        prefs.setString('post', user["FAadharCard"]);
-        prefs.setString('location', user["F_Location"] ?? "");
-        prefs.setString('fcmToken', fcmToken ?? "");
+        await prefs.setInt('id', user["id"] is int
+            ? user["id"]
+            : int.tryParse(user["id"].toString()) ?? 0);
+        await prefs.setString('name', user["FName"]?.toString() ?? "");
+        await prefs.setString('number', user["FNumber"]?.toString() ?? "");
+        await prefs.setString('post', user["FAadharCard"]?.toString() ?? "");
+        await prefs.setString('location', user["F_Location"]?.toString() ?? "");
+        await prefs.setString('fcmToken', fcmToken ?? "");
 
         AppLogger.log("Saved Local FCM: ${prefs.getString('fcmToken')}");
 
+        if (!context.mounted) return;
+
         Fluttertoast.showToast(
-          msg: user["message"] ?? "Login Successful ✅",
+          msg: apiMessage.isNotEmpty ? apiMessage : "Login Successful ✅",
           backgroundColor: Colors.green,
           textColor: Colors.white,
         );
@@ -272,9 +326,35 @@ class _Login_pageState extends State<Login_page> {
             textColor: Colors.white,
           );
         }
+      } else if (apiStatus == "error") {
+        // API itself blocks login for pending/rejected accounts and sends
+        // a human-readable message, e.g.:
+        // "Your account has been rejected. Please contact the administrator."
+        // "Your account is pending approval. Please wait for admin approval."
+        Fluttertoast.showToast(
+          msg: apiMessage.isNotEmpty ? apiMessage : "Login failed.",
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          toastLength: Toast.LENGTH_LONG,
+        );
+
+        if (!context.mounted) return;
+        final String lowerMsg = apiMessage.toLowerCase();
+
+        if (lowerMsg.contains("reject")) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const RejectedScreen()),
+          );
+        } else if (lowerMsg.contains("pending")) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const WaitingApprovalScreen()),
+          );
+        }
+        // else: a plain invalid-number/password message under the same
+        // "error" status — toast above is enough, stay on the login screen.
       } else {
         Fluttertoast.showToast(
-          msg: "Invalid Number or Password ❌",
+          msg: apiMessage.isNotEmpty ? apiMessage : "Invalid Number or Password ❌",
           backgroundColor: Colors.red,
           textColor: Colors.white,
         );

@@ -1,23 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../Custom_Widget/build_count.dart';
 import '../../Custom_Widget/constant.dart';
-import '../../Rent Agreement/Renewal_Agreement.dart';
 import '../Administrator_HomeScreen.dart';
-import 'Admin_Expire_agreement.dart';
-import 'Admin_Renewal_Agreement.dart';
 import 'Sub/Admin_accepted.dart';
 import 'Sub/All_data.dart';
 import 'Sub/Admin_pending.dart';
 import 'customer_data.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
-// enum AppBarMenuOption {
-//   _launchURL,
-//   viewDetail, launchUrl,
-// }
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -91,11 +83,11 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
                 );
               }
             },
-          child: const Row(
+          child:  Row(
             children: [
-              SizedBox(width: 3),
+              const SizedBox(width: 3),
               Icon(
-                PhosphorIcons.caret_left_bold,
+                PhosphorIcons.caretLeft(),
                 color: Colors.white,
                 size: 30,
               ),
@@ -222,13 +214,13 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
               const PopupMenuDivider(height: 1),
 
               // ── Tab 2: Launch URL ─────────────────────────────────────
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'launch',
                 child: Row(
-                  children: const [
-                    Icon(PhosphorIcons.share, color: Color(0xFF60A5FA), size: 20),
-                    SizedBox(width: 12),
-                    Text(
+                  children: [
+                    Icon(PhosphorIcons.share(), color: const Color(0xFF60A5FA), size: 20),
+                    const SizedBox(width: 12),
+                    const Text(
                       'Launch URL',
                       style: TextStyle(
                         color: Colors.white,
@@ -244,13 +236,13 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
               const PopupMenuDivider(height: 1),
 
               // ── Tab 3: Expire Agreement ───────────────────────────────
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'View',
                 child: Row(
-                  children: const [
-                    Icon(PhosphorIcons.file_doc, color: Color(0xFFAC06F4), size: 20),
-                    SizedBox(width: 12),
-                    Text(
+                  children:  [
+                    Icon(PhosphorIcons.fileDoc(), color: const Color(0xFFAC06F4), size: 20),
+                    const SizedBox(width: 12),
+                    const Text(
                       'View Details',
                       style: TextStyle(
                         color: Color(0xFFFFFFFF),

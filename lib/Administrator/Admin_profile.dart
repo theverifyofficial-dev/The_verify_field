@@ -1,6 +1,6 @@
-import '../../AppLogger.dart';
-import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:get/get.dart';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -10,6 +10,7 @@ import 'package:verify_feild_worker/Administrator/Account_registeration.dart';
 import '../APK_VERSION/ApkVersionScreen.dart';
 import '../Z-Screen/Login_page.dart';
 import '../model/Profile_model.dart';
+import 'FieldAgentAccount.dart';
 
 class AdminProfile extends StatefulWidget {
   const AdminProfile({super.key});
@@ -67,7 +68,6 @@ class _ProfilePageState extends State<AdminProfile> {
     }
   }
 
-  // Call this when logging out
   void _logout(BuildContext context) async {
     // Clear any saved login/session data
     final prefs = await SharedPreferences.getInstance();
@@ -88,8 +88,6 @@ class _ProfilePageState extends State<AdminProfile> {
           (Route<dynamic> route) => false, // remove all previous routes
     );
   }
-
-
 
   Future<void> _checkLoginAndFetch() async {
     final prefs = await SharedPreferences.getInstance();
@@ -121,42 +119,6 @@ class _ProfilePageState extends State<AdminProfile> {
     _checkLoginAndFetch();
   }
 
-  Future<void> _logoutFromAllDevices() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? number = prefs.getString("number");
-
-    if (number == null || number.isEmpty) return;
-
-    try {
-      final response = await http.post(
-        Uri.parse(
-          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/logout_device.php",
-        ),
-        body: {
-          "FNumber": number,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        //print("Logout All Response: ${response.body}");
-
-        await prefs.clear();
-
-        // 🔥 Important
-        Get.reset();
-
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const Login_page()),
-              (route) => false,
-        );
-      } else {
-        //print("Server error: ${response.statusCode}");
-      }
-    } catch (e) {
-      //print("Logout All Devices Error: $e");
-    }
-  }
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -176,16 +138,78 @@ class _ProfilePageState extends State<AdminProfile> {
             color: isDark ? Colors.white : Colors.black,
           ),
         ),
-        actions: [
-          IconButton(
-            icon:  Icon(Icons.download_for_offline_rounded,
-              color:  isDark ? Colors.white : const Color(0xFF1A1A1A), size: 30,),
-            onPressed:() {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ApkVersionScreen()),
-              );
+
+        actions:  [
+          PopupMenuButton<String>(
+            icon: const Icon(
+                Icons.more_vert,
+                color: Colors.white, size: 28),
+            color: const Color(0xFF1E1E2E),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            offset: const Offset(0, 50),
+            onSelected: (value) {
+              switch (value) {
+                case 'accounts':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AdminAccountsScreen()),
+                  );
+                  break;
+                case 'APK':
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const ApkVersionScreen()),
+                  );
+                  break;
+              }
             },
+            itemBuilder: (BuildContext context) => [
+
+              const PopupMenuDivider(height: 1),
+
+
+              const PopupMenuItem<String>(
+                value: 'accounts',
+                child: Row(
+                  children: [
+                    Icon(Icons.person, color: Color(0xFF60A5FA), size: 20),
+                    SizedBox(width: 12),
+                    Text(
+                      'Manage Accounts',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // ── Divider ───────────────────────────────────────────────
+              const PopupMenuDivider(height: 1),
+
+              // ── Tab 3: Expire Agreement ───────────────────────────────
+              const PopupMenuItem<String>(
+                value: 'APK',
+                child: Row(
+                  children:  [
+                    Icon(Icons.download_for_offline_rounded, color: Color(0xFFAC06F4), size: 20),
+                    SizedBox(width: 12),
+                    Text(
+                      'APK',
+                      style: TextStyle(
+                        color: Color(0xFFFFFFFF),
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

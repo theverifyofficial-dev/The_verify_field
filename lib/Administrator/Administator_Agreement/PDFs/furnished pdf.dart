@@ -498,7 +498,6 @@ Future<File> generateFurnishedAgreementPdf(Map<String, dynamic> data) async {
               pw.Text('1', style: boldStyle),
               pw.SizedBox(height: 4),
               pw.Text('Name: $companyName', style: boldStyle),
-              pw.Text('${getIdLabel(ownerAadhaar)} $ownerAadhaar', style: baseStyle),
               pw.SizedBox(height: 12),
               pw.Text('FIRST PARTY/OWNER', style: baseStyle),
             ]),

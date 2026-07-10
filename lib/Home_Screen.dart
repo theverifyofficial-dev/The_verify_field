@@ -1280,17 +1280,17 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
     // Card gradients with premium colors
     final List<LinearGradient> cardGradients = [
-      LinearGradient(colors: [const Color(0xFF3B82F6), const Color(0xFF1D4ED8)]),
-      LinearGradient(colors: [const Color(0xFF10B981), const Color(0xFF047857)]),
-      LinearGradient(colors: [const Color(0xFFF59E0B), const Color(0xFFDC2626)]),
-      LinearGradient(colors: [const Color(0xFF8B5CF6), const Color(0xFF7C3AED)]),
-      LinearGradient(colors: [const Color(0xFFEF4444), const Color(0xFFDC2626)]),
-      LinearGradient(colors: [const Color(0xFF06B6D4), const Color(0xFF0891B2)]),
-      LinearGradient(colors: [const Color(0xFF6366F1), const Color(0xFF4F46E5)]),
-      LinearGradient(colors: [const Color(0xFF1D4ED8), const Color(0xFFDC2626)]),
-      LinearGradient(colors: [const Color(0xFFDC2626), const Color(0xFF06B6D4)]),
-      LinearGradient(colors: [ Colors.blue,  Colors.purple]),
-      LinearGradient(colors: [ Colors.blueAccent,  Colors.blue.shade800]),
+      const LinearGradient(colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)]),
+      const LinearGradient(colors: [Color(0xFF10B981), Color(0xFF047857)]),
+      const LinearGradient(colors: [Color(0xFFF59E0B), Color(0xFFDC2626)]),
+      const LinearGradient(colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)]),
+      const LinearGradient(colors: [Color(0xFFEF4444), Color(0xFFDC2626)]),
+      const LinearGradient(colors: [Color(0xFF06B6D4), Color(0xFF0891B2)]),
+      const LinearGradient(colors: [Color(0xFF6366F1), Color(0xFF4F46E5)]),
+      const LinearGradient(colors: [Color(0xFF1D4ED8), Color(0xFFDC2626)]),
+      const LinearGradient(colors: [Color(0xFFDC2626), Color(0xFF06B6D4)]),
+      const LinearGradient(colors: [ Colors.blue,  Colors.purple]),
+      const LinearGradient(colors: [ Colors.blueAccent,  Colors.blue]),
     ];
 
     final List<Map<String, dynamic>> cardData = [

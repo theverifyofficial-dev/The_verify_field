@@ -46,6 +46,11 @@ class Administater_Assignd_Tenant_details extends StatefulWidget {
 
 class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assignd_Tenant_details> {
 
+  bool _ascending = false; // false = new to old, true = old to new
+
+
+  late Future<List<Demand_model>> _future;   // <-- add this
+
   Future<List<Demand_model>> fetchData() async {
     var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/show_assign_tanant_demand_2nd_table');
     final responce = await http.get(url);
@@ -53,14 +58,10 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
       List listresponce = json.decode(responce.body);
       listresponce.sort((a, b) => b['id'].compareTo(a['id']));
       return listresponce.map((data) => Demand_model.FromJson(data)).toList();
-    }
-    else {
+    } else {
       throw Exception('Unexpected error occured!');
     }
   }
-
-
-
 
   String _num = '';
   String _na = '';
@@ -68,6 +69,7 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
   @override
   void initState() {
     super.initState();
+    _future = fetchData();   // <-- call ONCE here
     _loaduserdata();
   }
 
@@ -76,19 +78,23 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
     return Scaffold(
       backgroundColor: Colors.black,
 
+
       body: SingleChildScrollView(
         child: FutureBuilder<List<Demand_model>>(
-            future: fetchData(),
+            future: _future,      // <-- use the stored future, not fetchData()
             builder: (context,abc) {
               if(abc.connectionState == ConnectionState.waiting){
                 return Center(child: CircularProgressIndicator());
               }
               else if(abc.hasError){
-                return Text('${abc.error}');
+                return Text(
+                  '${abc.error}',
+                  style: const TextStyle(color: Colors.white, fontSize: 16),
+                );
               }
               else if (abc.data == null || abc.data!.isEmpty) {
                 // If the list is empty, show an empty image
-                return Center(
+                return const Center(
                   child: Column(
                     children: [
                       // Lottie.asset("assets/images/no data.json",width: 450),
@@ -98,34 +104,18 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
                 );
               }
               else {
+                List<Demand_model> displayList = _ascending
+                    ? abc.data!.reversed.toList()
+                    : abc.data!;
+
                 return ListView.builder(
-                    itemCount: abc.data!.length,
+                    itemCount: displayList.length,
                     shrinkWrap: true,
                     physics: NeverScrollableScrollPhysics(),
                     itemBuilder: (BuildContext context,int len){
-                      int displayIndex = abc.data!.length - len;
+                      int displayIndex = displayList.length - len;
                         return GestureDetector(
                           onTap: () async {
-                            //fetchdata_accpte('${abc.data![len].id}', _na, _num);
-                            // print("object_hellooo");
-                            //  int itemId = abc.data![len].id;
-                            //int iiid = abc.data![len].PropertyAddress
-                            /*SharedPreferences prefs = await SharedPreferences.getInstance();
-                              prefs.setString('id_Document', abc.data![len].id.toString());*/
-                            /*SharedPreferences prefs = await SharedPreferences.getInstance();
-                              prefs.setInt('id_Building', abc.data![len].id);
-                              prefs.setString('id_Longitude', abc.data![len].Longitude.toString());
-                              prefs.setString('id_Latitude', abc.data![len].Latitude.toString());
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute
-                                    (builder: (context) => Tenant_Demands_details())
-                              );*/
-                            /*Navigator.push(
-                                  context,
-                                  MaterialPageRoute
-                                    (builder: (context) => Add_Assigned_TenantDemands())
-                              );*/
                           },
                           child: Column(
                             children: [
@@ -171,8 +161,8 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
                                                   children: [
                                                     // Icon(Iconsax.sort_copy,size: 15,),
                                                     //SizedBox(width: 10,),
-                                                    Text(""+abc.data![len].buy_rent/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                      style: TextStyle(
+                                                    Text(displayList[len].buy_rent,
+                                                      style: const TextStyle(
                                                           fontSize: 15,
                                                           color: Colors.black,
                                                           fontWeight: FontWeight.w500,
@@ -206,8 +196,8 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
                                                   children: [
                                                     // Icon(Iconsax.sort_copy,size: 15,),
                                                     //SizedBox(width: 10,),
-                                                    Text(""+abc.data![len].BHK/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                      style: TextStyle(
+                                                    Text(displayList[len].BHK,
+                                                      style: const TextStyle(
                                                           fontSize: 15,
                                                           color: Colors.black,
                                                           fontWeight: FontWeight.w500,
@@ -264,8 +254,8 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
                                                     children: [
                                                       // Icon(Iconsax.sort_copy,size: 15,),
                                                       //w SizedBox(width: 10,),
-                                                      Text(""+abc.data![len].demand_name/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                        style: TextStyle(
+                                                      Text(displayList[len].demand_name,
+                                                        style: const TextStyle(
                                                             fontSize: 14,
                                                             color: Colors.black,
                                                             fontWeight: FontWeight.w500,
@@ -287,8 +277,8 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
                                                   showDialog<bool>(
                                                     context: context,
                                                     builder: (context) => AlertDialog(
-                                                      title: Text("Call "+abc.data![len].demand_name),
-                                                      content: Text('Do you really want to Call? '+abc.data![len].demand_name ),
+                                                      title: Text("Call ${displayList[len].demand_name}"),
+                                                      content: Text('Do you really want to Call? ${displayList[len].demand_name}' ),
                                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                                                       actions: <Widget>[
                                                         ElevatedButton(
@@ -297,7 +287,7 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
                                                         ),
                                                         ElevatedButton(
                                                           onPressed: () async {
-                                                            FlutterPhoneDirectCaller.callNumber('${abc.data![len].demand_number}');
+                                                            FlutterPhoneDirectCaller.callNumber(displayList[len].demand_number);
                                                           },
                                                           child: Text('Yes'),
                                                         ),
@@ -321,10 +311,10 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
                                                   ),
                                                   child: Row(
                                                     children: [
-                                                      Icon(Iconsax.call,size: 15,color: Colors.red,),
+                                                      const Icon(Iconsax.call,size: 15,color: Colors.red,),
                                                       SizedBox(width: 4,),
-                                                      Text(""+abc.data![len].demand_number/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                        style: TextStyle(
+                                                      Text(displayList[len].demand_number,
+                                                        style: const TextStyle(
                                                             fontSize: 14,
                                                             color: Colors.black,
                                                             fontWeight: FontWeight.w500,
@@ -364,8 +354,8 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
                                                   children: [
                                                     // Icon(Iconsax.sort_copy,size: 15,),
                                                     //w SizedBox(width: 10,),
-                                                    Text(""+abc.data![len].place,maxLines: 3,/*+abc.data![len].Building_Name.toUpperCase()*/
-                                                      style: TextStyle(
+                                                    Text(displayList[len].place,maxLines: 3,
+                                                      style: const TextStyle(
                                                           fontSize: 13,
                                                           color: Colors.black,
                                                           fontWeight: FontWeight.w500,
@@ -403,8 +393,8 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
                                                   children: [
                                                     // Icon(Iconsax.sort_copy,size: 15,),
                                                     //SizedBox(width: 10,),
-                                                    Text(""+abc.data![len].fieldworkar_number/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                      style: TextStyle(
+                                                    Text(displayList[len].fieldworkar_number,
+                                                      style: const TextStyle(
                                                           fontSize: 14,
                                                           color: Colors.black,
                                                           fontWeight: FontWeight.w500,
@@ -438,8 +428,8 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
                                                   children: [
                                                     // Icon(Iconsax.sort_copy,size: 15,),
                                                     //SizedBox(width: 10,),
-                                                    Text(""+abc.data![len].fieldworkar_name/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                      style: TextStyle(
+                                                    Text(displayList[len].fieldworkar_name,
+                                                      style: const TextStyle(
                                                           fontSize: 14,
                                                           color: Colors.black,
                                                           fontWeight: FontWeight.w500,
@@ -477,8 +467,8 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
                                               children: [
                                                 // Icon(Iconsax.sort_copy,size: 15,),
                                                 //w SizedBox(width: 10,),-
-                                                Text("Demand No = $displayIndex"/* ${len + 1} or +abc.data![len].id.toString()*//*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                  style: TextStyle(
+                                                Text("Demand No = $displayIndex",
+                                                  style: const TextStyle(
                                                       fontSize: 13,
                                                       color: Colors.black,
                                                       fontWeight: FontWeight.w500,
@@ -489,20 +479,16 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
                                             ),
                                           ),
 
-                                          SizedBox(
+                                          const SizedBox(
                                             height: 10,
                                           ),
 
                                           GestureDetector(
                                             onTap: () {
-
-                                              //print("object_hellooo");
-                                              //fetchdata_accpte('${abc.data![len].id}', _na, _num);
-                                              //print("object_hellooo");
                                               Navigator.push(
                                                 context,
                                                 MaterialPageRoute
-                                                  (builder: (context) => Edit_Optionin_Demand(id: '${abc.data![len].id.toString()}', name: '${abc.data![len].demand_name}', number: '${abc.data![len].demand_number}', info: '${abc.data![len].info}', buy: '${abc.data![len].buy_rent}', referenc: '${abc.data![len].refrence}'))
+                                                  (builder: (context) => Edit_Optionin_Demand(id: displayList[len].id.toString(), name: displayList[len].demand_name, number: displayList[len].demand_number, info: displayList[len].info, buy: displayList[len].buy_rent, referenc: displayList[len].refrence))
                                             );
                                               //Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Persnol_Assignd_Tenant_details(),), (route) => route.isFirst);
                                             },
@@ -517,7 +503,7 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
                                                         bottomRight: Radius.circular(10),
                                                         bottomLeft: Radius.circular(10)),
                                                     color: Colors.red.withOpacity(0.8)),
-                                                child: Center(
+                                                child: const Center(
                                                   child: Text(
                                                     "Edit",
                                                     style: TextStyle(
@@ -560,6 +546,22 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              FloatingActionButton.extended(
+                heroTag: "sortToggle1",
+                onPressed: () {
+                  setState(() {
+                    _ascending = !_ascending;
+                  });
+                },
+                icon: Icon(_ascending ? Icons.arrow_upward : Icons.arrow_downward),
+                label: Text(_ascending ? "Old to New" : "New to Old"),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10,),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [

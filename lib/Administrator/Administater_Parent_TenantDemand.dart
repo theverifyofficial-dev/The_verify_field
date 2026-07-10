@@ -87,7 +87,7 @@ class _Administater_parent_TenandDemandState extends State<Administater_parent_T
               ),
             ),
 
-            Expanded(
+            const Expanded(
               child: TabBarView(children: [
                 Administater_Assignd_Tenant_details(),
                 AdmiinistaterAssignd_Tenant_details(),

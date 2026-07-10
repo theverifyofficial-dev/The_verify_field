@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../../AppLogger.dart';
 import 'package:flutter/material.dart';
@@ -44,6 +46,10 @@ class _Login_pageState extends State<Login_page> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+// Responsive font size (min 10, max 12)
+    final buttonFontSize = math.min(12.0, math.max(10.0, screenWidth * 0.03));
     return Scaffold(
         backgroundColor: Colors.black,
         body: SingleChildScrollView(
@@ -199,41 +205,42 @@ class _Login_pageState extends State<Login_page> {
 
                         const SizedBox(height: 20),
 
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            "Don't have an account?",
+            style: TextStyle(
+              color: Colors.grey[400],
+              fontSize: 15,
+            ),
+          ),
 
-                            Text(
-                              "Don't have an account?",
-                              style: TextStyle(
-                                color: Colors.grey[400],
-                                fontSize: 15,
-                              ),
-                            ),
-
-                            TextButton(
-                              onPressed: () {
-
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const FieldAgentRegisterScreen(),
-                                  ),
-                                );
-
-                              },
-                              child: const Text(
-                                "Apply as Field Agent",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blueAccent,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-
-                          ],
-                        ),
+          Flexible(
+            child: TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FieldAgentRegisterScreen(),
+                  ),
+                );
+              },
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  "Apply as Field Agent",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blueAccent,
+                    fontSize: buttonFontSize,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      )
 
                       ],
                     ),

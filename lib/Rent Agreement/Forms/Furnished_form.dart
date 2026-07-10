@@ -816,10 +816,10 @@ Future<void> _submitAll() async {
 
     // 🔹 Prepare text fields (safe null handling)
     final Map<String, dynamic> textFields = {
-      "owner_name": ownerName.text,
+      "owner_name": 'SWAVEN REALTY PRIVATE LIMITED',
       "owner_relation": ownerRelation ?? '',
       "relation_person_name_owner": ownerRelationPerson.text,
-      "parmanent_addresss_owner": ownerAddress.text,
+      "parmanent_addresss_owner": 'H NO-75, 2ND FLOOR, KH NO-365, VILLAGE SULTANPUR, SOUTH DELHI, DELHI-110030',
       "owner_mobile_no": ownerMobile.text,
       "owner_addhar_no": ownerAadhaar.text,
       "tenant_name": tenantName.text,

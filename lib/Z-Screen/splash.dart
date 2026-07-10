@@ -132,7 +132,7 @@ class _SplashState extends State<Splash> {
               ),
             );
 
-          } else if (applicationStatus == "Accepted") {
+          } else if (applicationStatus == "Approved") {
 
             Navigator.of(context).pushReplacementNamed(Home_Screen.route);
 

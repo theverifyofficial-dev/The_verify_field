@@ -14,9 +14,7 @@ import '../PDFs/Commercial_PDF.dart';
 import '../PDFs/PDF.dart';
 import '../PDFs/furnished pdf.dart';
 
-// ─────────────────────────────────────────────
-//  Color theme per section
-// ─────────────────────────────────────────────
+
 class _SectionTheme {
   final Color titleBg;
   final Color titleText;
@@ -34,60 +32,60 @@ class _SectionTheme {
 }
 
 final Map<String, _SectionTheme> _sectionThemes = {
-  "Agreement Details": _SectionTheme(
-    titleBg: const Color(0xFF7C3AED),
+  "Agreement Details": const _SectionTheme(
+    titleBg: Color(0xFF7C3AED),
     titleText: Colors.white,
-    borderColor: const Color(0xFF7C3AED),
-    cardBg: const Color(0xFFF5F0FF),
+    borderColor: Color(0xFF7C3AED),
+    cardBg: Color(0xFFF5F0FF),
     icon: Icons.description_outlined,
   ),
-  "Owner Details": _SectionTheme(
-    titleBg: const Color(0xFF0F766E),
+  "Owner Details": const _SectionTheme(
+    titleBg: Color(0xFF0F766E),
     titleText: Colors.white,
-    borderColor: const Color(0xFF0F766E),
-    cardBg: const Color(0xFFE6FFFA),
+    borderColor: Color(0xFF0F766E),
+    cardBg: Color(0xFFE6FFFA),
     icon: Icons.person_outlined,
   ),
-  "Tenant Details": _SectionTheme(
-    titleBg: const Color(0xFF1D4ED8),
+  "Tenant Details": const _SectionTheme(
+    titleBg: Color(0xFF1D4ED8),
     titleText: Colors.white,
-    borderColor: const Color(0xFF1D4ED8),
-    cardBg: const Color(0xFFEFF6FF),
+    borderColor: Color(0xFF1D4ED8),
+    cardBg: Color(0xFFEFF6FF),
     icon: Icons.people_outlined,
   ),
-  "Director Details": _SectionTheme(
-    titleBg: const Color(0xFF1D4ED8),
+  "Director Details": const _SectionTheme(
+    titleBg: Color(0xFF1D4ED8),
     titleText: Colors.white,
-    borderColor: const Color(0xFF1D4ED8),
-    cardBg: const Color(0xFFEFF6FF),
+    borderColor: Color(0xFF1D4ED8),
+    cardBg: Color(0xFFEFF6FF),
     icon: Icons.business_center_outlined,
   ),
-  "Additional Tenant": _SectionTheme(
-    titleBg: const Color(0xFFC2410C),
+  "Additional Tenant": const _SectionTheme(
+    titleBg: Color(0xFFC2410C),
     titleText: Colors.white,
-    borderColor: const Color(0xFFC2410C),
-    cardBg: const Color(0xFFFFF7ED),
+    borderColor: Color(0xFFC2410C),
+    cardBg: Color(0xFFFFF7ED),
     icon: Icons.group_add_outlined,
   ),
-  "Additional Director": _SectionTheme(
-    titleBg: const Color(0xFFC2410C),
+  "Additional Director": const _SectionTheme(
+    titleBg: Color(0xFFC2410C),
     titleText: Colors.white,
-    borderColor: const Color(0xFFC2410C),
-    cardBg: const Color(0xFFFFF7ED),
+    borderColor: Color(0xFFC2410C),
+    cardBg: Color(0xFFFFF7ED),
     icon: Icons.group_add_outlined,
   ),
-  "Field Worker": _SectionTheme(
-    titleBg: const Color(0xFFB45309),
+  "Field Worker": const _SectionTheme(
+    titleBg: Color(0xFFB45309),
     titleText: Colors.white,
-    borderColor: const Color(0xFFB45309),
-    cardBg: const Color(0xFFFFFBEB),
+    borderColor: Color(0xFFB45309),
+    cardBg: Color(0xFFFFFBEB),
     icon: Icons.engineering_outlined,
   ),
-  "Property Address": _SectionTheme(
-    titleBg: const Color(0xFF0369A1),
+  "Property Address": const _SectionTheme(
+    titleBg: Color(0xFF0369A1),
     titleText: Colors.white,
-    borderColor: const Color(0xFF0369A1),
-    cardBg: const Color(0xFFE0F2FE),
+    borderColor: Color(0xFF0369A1),
+    cardBg: Color(0xFFE0F2FE),
     icon: Icons.location_on_outlined,
   ),
 };
@@ -126,9 +124,6 @@ final  Map<String, IconData> _fieldIcons = {
   'Number': Icons.phone_outlined,
 };
 
-// ─────────────────────────────────────────────
-//  Main Page
-// ─────────────────────────────────────────────
 class AllDataDetailsPage extends StatefulWidget {
   final String agreementId;
   const AllDataDetailsPage({super.key, required this.agreementId});
@@ -151,8 +146,6 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     super.initState();
     _loadAllData();
   }
-
-  // ── Network calls ──────────────────────────
 
   Future<void> fetchPropertyCard() async {
     final propertyId = agreement?["property_id"];

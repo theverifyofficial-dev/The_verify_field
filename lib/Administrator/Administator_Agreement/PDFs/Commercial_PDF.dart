@@ -1,12 +1,9 @@
 import 'dart:io';
-import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:path_provider/path_provider.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
-/* -------------------- AMOUNT HELPERS -------------------- */
 
 String numberToWords(int number) {
   if (number == 0) return 'ZERO';
@@ -160,17 +157,14 @@ Future<File> generateCommercialAgreementPdf(Map<String, dynamic> data) async {
   final monthlyRentRaw = data['monthly_rent']?.toString() ?? '';
   final customMeterUnit = data['custom_meter_unit']?.toString().trim() ?? '';
   final securityRaw = data['securitys']?.toString() ?? '';
-
-
-
+  final Reference_Number = data['Reference_Number']?.toString() ?? '';
+  final eStamping_Certificate_No = data['eStamping_Certificate_No']?.toString() ?? '';
   final rawCompanyName = data['company_name']?.toString().trim() ?? '';
   final rawGstType = data['gst_type']?.toString().trim() ?? '';
   final rawGstNo = data['gst_no']?.toString().trim() ?? '';
 
-
   final DateTime startDate = DateTime.parse(data['shifting_date'].toString());
-  final DateTime fullDate =
-  DateTime.parse(data['current_dates'].toString());
+  final DateTime fullDate = DateTime.parse(data['current_dates'].toString());
 
   final currentDate = DateTime.now();
   final currentDateFormatted =
@@ -208,6 +202,74 @@ Future<File> generateCommercialAgreementPdf(Map<String, dynamic> data) async {
     );
   }
 
+  pw.Widget _buildHeaderWithReference(
+      String referenceNumber,
+      String eStampingCertificateNo,
+      ) {
+    return pw.Container(
+      margin: const pw.EdgeInsets.only(bottom: 10),
+
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: pw.CrossAxisAlignment.start,
+
+        children: [
+
+          // LEFT
+          if (eStampingCertificateNo.isNotEmpty)
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: [
+
+                pw.Text(
+                  'eStamping Certificate:',
+                  style: pw.TextStyle(fontSize: 9),
+                ),
+
+                pw.SizedBox(height: 2),
+
+                pw.Text(
+                  eStampingCertificateNo,
+                  style: pw.TextStyle(
+                    fontSize: 8,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ],
+            )
+          else
+            pw.SizedBox(),
+
+          // RIGHT
+          if (referenceNumber.isNotEmpty)
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.end,
+              children: [
+
+                pw.Text(
+                  'Reference ID',
+                  style: pw.TextStyle(fontSize: 9),
+                ),
+
+                pw.SizedBox(height: 2),
+
+                pw.Text(
+                  referenceNumber,
+                  style: pw.TextStyle(
+                    fontSize: 8,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ],
+            )
+          else
+            pw.SizedBox(),
+        ],
+      ),
+    );
+  }
+
+
 
   List<Map<String, dynamic>> additionalTenants = [];
   try {
@@ -238,6 +300,12 @@ Future<File> generateCommercialAgreementPdf(Map<String, dynamic> data) async {
     pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.all(28),
+
+      header: (_) => _buildHeaderWithReference(
+        Reference_Number,
+        eStamping_Certificate_No,
+      ),
+
       footer: (c) => pw.Center(child: pw.Text('Page ${c.pageNumber} of ${c.pagesCount}', style: pw.TextStyle(fontSize: 9))),
       build: (_) => [
 

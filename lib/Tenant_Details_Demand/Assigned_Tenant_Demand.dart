@@ -56,6 +56,9 @@ class Assignd_Tenant_details extends StatefulWidget {
 
 class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
 
+  bool _ascending = false;
+
+
   String _date = '';
   String _Time = '';
 
@@ -130,6 +133,17 @@ class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          setState(() {
+            _ascending = !_ascending;
+          });
+        },
+        icon: Icon(_ascending ? Icons.arrow_upward : Icons.arrow_downward),
+        label: Text(_ascending ? "Old to New" : "New to Old"),
+      ),
+
       body: SingleChildScrollView(
         child: FutureBuilder<List<Catid>>(
             future: fetchData(),
@@ -152,34 +166,18 @@ class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
                 );
               }
               else {
+                List<Catid> displayList = _ascending
+                    ? abc.data!.reversed.toList()
+                    : abc.data!;
+
                 return ListView.builder(
-                    itemCount: abc.data!.length,
+                    itemCount: displayList.length,
                     shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
+                    physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (BuildContext context,int len){
-                      int displayIndex = abc.data!.length - len;
+                      int displayIndex = displayList.length - len;
                       return GestureDetector(
                         onTap: () async {
-                          //fetchdata_accpte('${abc.data![len].id}', _na, _num);
-                          // print("object_hellooo");
-                          //  int itemId = abc.data![len].id;
-                          //int iiid = abc.data![len].PropertyAddress
-                          /*SharedPreferences prefs = await SharedPreferences.getInstance();
-                              prefs.setString('id_Document', abc.data![len].id.toString());*/
-                          /*SharedPreferences prefs = await SharedPreferences.getInstance();
-                              prefs.setInt('id_Building', abc.data![len].id);
-                              prefs.setString('id_Longitude', abc.data![len].Longitude.toString());
-                              prefs.setString('id_Latitude', abc.data![len].Latitude.toString());
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute
-                                    (builder: (context) => Tenant_Demands_details())
-                              );*/
-                          /*Navigator.push(
-                                  context,
-                                  MaterialPageRoute
-                                    (builder: (context) => Add_Assigned_TenantDemands())
-                              );*/
                         },
                         child: Column(
                           children: [
@@ -244,7 +242,7 @@ class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
                                             children: [
                                               // Icon(Iconsax.sort_copy,size: 15,),
                                               //w SizedBox(width: 10,),
-                                              Text(""+abc.data![len].demand_name/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                              Text(""+displayList[len].demand_name/*+abc.data![len].Building_Name.toUpperCase()*/,
                                                 style: TextStyle(
                                                     fontSize: 18,
                                                     color: Colors.black,
@@ -360,7 +358,7 @@ class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
                                                 children: [
                                                   // Icon(Iconsax.sort_copy,size: 15,),
                                                   //SizedBox(width: 10,),
-                                                  Text(""+abc.data![len].buy_rent/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                  Text(""+displayList[len].buy_rent/*+abc.data![len].Building_Name.toUpperCase()*/,
                                                     style: TextStyle(
                                                         fontSize: 16,
                                                         color: Colors.black,
@@ -395,7 +393,7 @@ class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
                                                 children: [
                                                   // Icon(Iconsax.sort_copy,size: 15,),
                                                   //SizedBox(width: 10,),
-                                                  Text(""+abc.data![len].BHK/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                  Text(""+displayList[len].BHK/*+abc.data![len].Building_Name.toUpperCase()*/,
                                                     style: TextStyle(
                                                         fontSize: 16,
                                                         color: Colors.black,
@@ -438,7 +436,7 @@ class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
                                                 children: [
                                                   // Icon(Iconsax.sort_copy,size: 15,),
                                                   //w SizedBox(width: 10,),
-                                                  Text(""+abc.data![len].place,maxLines: 3,/*+abc.data![len].Building_Name.toUpperCase()*/
+                                                  Text(""+displayList[len].place,maxLines: 3,/*+abc.data![len].Building_Name.toUpperCase()*/
                                                     style: TextStyle(
                                                         fontSize: 15,
                                                         color: Colors.black,
@@ -477,7 +475,7 @@ class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
                                                 children: [
                                                   // Icon(Iconsax.sort_copy,size: 15,),
                                                   //SizedBox(width: 10,),
-                                                  Text(""+abc.data![len].fieldworkar_number/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                  Text(""+displayList[len].fieldworkar_number/*+abc.data![len].Building_Name.toUpperCase()*/,
                                                     style: TextStyle(
                                                         fontSize: 14,
                                                         color: Colors.black,
@@ -512,7 +510,7 @@ class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
                                                 children: [
                                                   // Icon(Iconsax.sort_copy,size: 15,),
                                                   //SizedBox(width: 10,),
-                                                  Text(""+abc.data![len].fieldworkar_name/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                  Text(""+displayList[len].fieldworkar_name/*+abc.data![len].Building_Name.toUpperCase()*/,
                                                     style: TextStyle(
                                                         fontSize: 14,
                                                         color: Colors.black,
@@ -553,7 +551,7 @@ class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
                                                 children: [
                                                   // Icon(Iconsax.sort_copy,size: 15,),
                                                   //SizedBox(width: 10,),
-                                                  Text(""+abc.data![len].location_/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                  Text(""+displayList[len].location_/*+abc.data![len].Building_Name.toUpperCase()*/,
                                                     style: TextStyle(
                                                         fontSize: 14,
                                                         color: Colors.black,
@@ -615,17 +613,10 @@ class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
                                             formattedTime = "${now.hour}:${now.minute}:${now.second}";
                                             _generateDateTime();
 
-                                            insurtMaintable(_na,_num,abc.data![len].demand_name,abc.data![len].demand_number,abc.data![len].buy_rent,abc.data![len].place,abc.data![len].refrance,abc.data![len].BHK,_date,_Time);
+                                            insurtMaintable(_na,_num,displayList[len].demand_name,displayList[len].demand_number,displayList[len].buy_rent,displayList[len].place,displayList[len].refrance,displayList[len].BHK,_date,_Time);
 
-                                            Deletedemand(abc.data![len].id);
+                                            Deletedemand(displayList[len].id);
                                             Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => parent_TenandDemand(),), (route) => route.isFirst);
-                                            //fetchdata_accpte('${abc.data![len].id}', _na, _num);
-                                            //print("object_hellooo");
-                                            /*Navigator.push(
-                                                context,
-                                                MaterialPageRoute
-                                                  (builder: (context) => Edit_Optionin_Demand(id: '${abc.data![len].id.toString()}', name: '${abc.data![len].demand_name}', number: '${abc.data![len].demand_number}', info: '${abc.data![len].info}', buy: '${abc.data![len].buy_rent}', referenc: '${abc.data![len].refrence}'))
-                                            );*/
                                           },
                                           child: Center(
                                             child: Container(
@@ -638,7 +629,7 @@ class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
                                                       bottomRight: Radius.circular(10),
                                                       bottomLeft: Radius.circular(10)),
                                                   color: Colors.red.withOpacity(0.8)),
-                                              child: Center(
+                                              child: const Center(
                                                 child: Text(
                                                   "Accept",
                                                   style: TextStyle(

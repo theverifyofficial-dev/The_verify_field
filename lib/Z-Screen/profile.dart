@@ -1,9 +1,6 @@
-import '../../AppLogger.dart';
-import '../../AppLogger.dart';
 import 'package:flutter/material.dart';import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../APK_VERSION/ApkVersionScreen.dart';
 import 'Login_page.dart';
 import '../model/Profile_model.dart';
 import '../main.dart';
@@ -18,6 +15,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   UserProfile? _user;
   bool _isLoading = true;
+  bool isDeleting = false;
 
   Future<String?> getUserNumber() async {
     final prefs = await SharedPreferences.getInstance();
@@ -63,6 +61,63 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> deleteAccount() async {
+    final prefs = await SharedPreferences.getInstance();
+    final number = prefs.getInt("id").toString();
+
+    if (number == null) return;
+
+    setState(() {
+      isDeleting = true;
+    });
+
+
+    try {
+      final response = await http.post(
+        Uri.parse(
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Field%20Application/delete_fieldworkar_account.php",
+        ),
+        body: {
+          "id": number, // using ID not number
+        },
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (data["status"] == "true") {
+        await prefs.clear();
+
+        if (!mounted) return;
+
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const Login_page(),
+          ),
+              (route) => false,
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(data["message"]),
+          ),
+        );
+      }
+    } catch (e) {
+      print(e);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Unable to delete account"),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          isDeleting = false;
+        });
+      }
+    }
+  }
   void _logout(BuildContext context) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
@@ -248,7 +303,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 ],
               ),
               child: ElevatedButton(
-                onPressed: () => _showLogoutDialog(context),
+                onPressed: isDeleting
+                    ? null
+                    : () => _showLogoutDialog(context),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.redAccent,
                   foregroundColor: Colors.white,
@@ -260,6 +317,42 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 child: const Text(
                   "Logout",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    fontFamily: "PoppinsBold",
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: 16.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.redAccent.withOpacity(0.3),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: ElevatedButton(
+                onPressed: () => _showDeleteDialog(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  "Delete Account",
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 15,
@@ -510,6 +603,115 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       child: const Text(
                         "Logout",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontFamily: "PoppinsBold",
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteDialog(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => Dialog(
+        backgroundColor: isDark ? Colors.grey[900] : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: [Colors.redAccent.withOpacity(0.1), Colors.red.withOpacity(0.05)]),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.delete_forever, color: Colors.redAccent, size: 40),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Delete Account",
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontFamily: "PoppinsBold",
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "Deleting your account will permanently remove your Verify Field account and all associated data. This action cannot be undone.",
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontFamily: "Poppins",
+                  color: isDark ? Colors.grey[400] : const Color(0xFF6B7280),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        "Cancel",
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[400] : const Color(0xFF6B7280),
+                          fontFamily: "Poppins",
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: isDeleting
+                          ? null
+                          : () {
+                        Navigator.pop(context);
+                        deleteAccount();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: isDeleting
+                          ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                          : const Text(
+                        "Delete",
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontFamily: "PoppinsBold",

@@ -24,7 +24,7 @@ import 'Feedback_Details_Page.dart';
 import 'Feild_Accpte_TenantDemand.dart';
 import 'MainPage_Tenantdemand_Portal.dart';
 import 'Parent_class_TenantDemand.dart';
-import 'Perant_Class_Accpte_Demand.dart';
+import 'package:android_intent_plus/android_intent.dart';
 
 class Catid {
   final int id;
@@ -359,6 +359,46 @@ class _Feedback_DetailsState extends State<Feedback_Details> {
       print('Failed Registration');
     }
 
+  }
+
+  Future<void> _launchWhatsAppWithFallback(String phone, String message) async {
+    final encodedMessage = Uri.encodeComponent(message);
+    final waUrl = "https://wa.me/$phone?text=$encodedMessage";
+
+    if (Platform.isAndroid) {
+      // 1. Try WhatsApp Business
+      try {
+        final intent = AndroidIntent(
+          action: 'action_view',
+          data: waUrl,
+          package: 'com.whatsapp.w4b',
+        );
+        await intent.launch();
+        return;
+      } catch (e) {
+        print('WhatsApp Business not installed: $e');
+      }
+
+      // 2. Fallback to normal WhatsApp
+      try {
+        final intent = AndroidIntent(
+          action: 'action_view',
+          data: waUrl,
+          package: 'com.whatsapp',
+        );
+        await intent.launch();
+        return;
+      } catch (e) {
+        print('WhatsApp not installed: $e');
+      }
+
+      // 3. Final fallback — let OS decide / open browser
+      await launchUrl(Uri.parse(waUrl));
+    } else {
+      // iOS can't distinguish WA Business vs normal via package name,
+      // both register the same whatsapp:// scheme
+      await launchUrl(Uri.parse(waUrl));
+    }
   }
 
   @override
@@ -1184,22 +1224,11 @@ class _Feedback_DetailsState extends State<Feedback_Details> {
                                                               formattedTime = "${now.hour}:${now.minute}:${now.second}";
                                                               fetchdata_add_responce('Try to contact on Whatsapp', widget.id, 'Date: $formattedDate Time: $formattedTime');
 
-                                                              String phone = "+91${abc.data![len].demand_number}"; // Ensure phone number is in international format without '+'
-                                                              String message = Uri.encodeComponent(
-                                                                  "Looking for a ${abc.data![len].BHK} $nextWord for ${abc.data![len].buy_rent} in Sultanpur? "
-                                                                      "Feel free to contact us for further details.\n\nRegards,\nVerify Properties"
-                                                              );
-                                                              String url;
+                                                              String phone = "+91${abc.data![len].demand_number}";
+                                                              String message = "Looking for a ${abc.data![len].BHK} $nextWord for ${abc.data![len].buy_rent} in Sultanpur? "
+                                                                  "Feel free to contact us for further details.\n\nRegards,\nVerify Properties";
 
-                                                              if(Platform.isAndroid){
-                                                                //String url = 'whatsapp://send?phone="+91${abc.data![len].demand_number}"&text="Hello"';
-                                                                url = "https://wa.me/$phone?text=$message";
-                                                                await launchUrl(Uri.parse(url));
-                                                              }else {
-                                                                String url = 'https://wa.me/${abc.data![len].demand_number}';
-                                                                await launchUrl(Uri.parse(url));
-                                                              }
-
+                                                              await _launchWhatsAppWithFallback(phone, message);
                                                             },
                                                             style: ElevatedButton.styleFrom(
                                                               backgroundColor: Colors.grey.shade800,

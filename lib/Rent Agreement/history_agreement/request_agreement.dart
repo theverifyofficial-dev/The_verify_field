@@ -10,6 +10,7 @@ import 'package:verify_feild_worker/Rent%20Agreement/Forms/Verification_form.dar
 import '../../model/agrement_model.dart';
 import '../Dashboard_screen.dart';
 import '../Forms/Agreement_Form.dart';
+import '../Forms/External_Commercial.dart';
 import '../Forms/External_Form.dart';
 import '../Forms/Furnish_owner.dart';
 import '../Forms/Furnished_form.dart';
@@ -79,6 +80,9 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
         break;
       case "external rental agreement":
         page = ExternalWizardPage(agreementId: agreement.id, rewardStatus: reward);
+        break;
+        case "external commercial agreement":
+        page = ExternalCommercialWizardPage(agreementId: agreement.id, rewardStatus: reward);
         break;
       case "renewal agreement":
         page = RenewalForm(agreementId: agreement.id, rewardStatus: reward);

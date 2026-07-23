@@ -882,24 +882,15 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
   Future<void> _refreshPage() async {
     await autofillFormFields(); // re-fetch API
   }
+
   Future<void> saveImageToGallery({
     File? file,
     String? imageUrl,
   }) async {
     try {
-      // Android permission
-      if (Platform.isAndroid) {
-        final status = await Permission.photos.request();
-        if (!status.isGranted) {
-          Fluttertoast.showToast(msg: "Permission denied");
-          return;
-        }
-      }
-
       if (file != null) {
         await Gal.putImage(file.path);
-      }
-      else if (imageUrl != null && imageUrl.isNotEmpty) {
+      } else if (imageUrl != null && imageUrl.isNotEmpty) {
         final response = await Dio().get(
           imageUrl,
           options: Options(responseType: ResponseType.bytes),
@@ -908,10 +899,9 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
         await Gal.putImageBytes(response.data);
       }
 
-      Fluttertoast.showToast(msg: "Image saved to gallery");
+      Fluttertoast.showToast(msg: "Image saved");
     } catch (e) {
       Fluttertoast.showToast(msg: "Failed to save image");
-      //AppLogger.log("Save image error: $e");
     }
   }
 

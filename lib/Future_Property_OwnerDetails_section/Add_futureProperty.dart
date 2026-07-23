@@ -165,6 +165,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     '2.5+ km'
   ];
   final List<String> Age_Options = [
+    'Under Construction',
+    'New Construction',
     '1 years',
     '2 years',
     '3 years',
@@ -176,7 +178,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     '9 years',
     '10 years',
     '10+ years',
-    ''
   ];
   List<String> allFacilities = [
     'CCTV Camera',

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
-import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
+import 'package:gal/gal.dart';
 import '../../Custom_Widget/constant.dart';
 import '../../utilities/bug_founder_fuction.dart';
 import 'package:image_picker/image_picker.dart';
@@ -84,9 +84,10 @@ class _AgreementCustomerState extends State<AgreementCustomer> {
 
     final picked = await _picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 85,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      imageQuality: 80,
     );
-
     if (picked == null) return;
 
     final croppedFile = await cropImage(
@@ -662,51 +663,26 @@ class _AgreementCustomerState extends State<AgreementCustomer> {
   }
 }
 
-Future<void> downloadAndSaveImage(
-    String imageUrl,
-    ) async {
-
+Future<void> downloadAndSaveImage(String imageUrl) async {
   try {
-
     final response = await Dio().get(
       imageUrl,
-
-      options: Options(
-        responseType: ResponseType.bytes,
-      ),
+      options: Options(responseType: ResponseType.bytes),
     );
 
-    final result =
-    await ImageGallerySaverPlus.saveImage(
+    final bytes = Uint8List.fromList(response.data);
 
-      Uint8List.fromList(response.data),
-
-      quality: 100,
-
-      name:
-      "agreement_${DateTime.now().millisecondsSinceEpoch}",
+    await Gal.putImageBytes(
+      bytes,
+      name: "agreement_${DateTime.now().millisecondsSinceEpoch}.jpg",
     );
-
-    if (result['isSuccess'] == true ||
-        result['filePath'] != null) {
-
-      Fluttertoast.showToast(
-        msg: "Image saved to gallery ✅",
-      );
-
-    } else {
-
-      Fluttertoast.showToast(
-        msg: "Save failed ❌",
-      );
-    }
-
-  } catch (e) {
-
-    print(e);
 
     Fluttertoast.showToast(
-      msg: e.toString(),
+      msg: "Image saved to gallery ✅",
+    );
+  } catch (e) {
+    Fluttertoast.showToast(
+      msg: "Failed to save image\n$e",
     );
   }
 }

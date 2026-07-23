@@ -17,6 +17,7 @@ import '../model/Additional_agreement_tenants.dart';
 import 'Dashboard_screen.dart';
 import 'Forms/Agreement_Form.dart';
 import 'Forms/Commercial_Form.dart';
+import 'Forms/External_Commercial.dart';
 import 'Forms/External_Form.dart';
 import 'Forms/Furnished_form.dart';
 import 'Forms/Renewal_form.dart';
@@ -329,6 +330,8 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>
       page = RentalWizardPage(agreementId: id, rewardStatus: reward);
     } else if (type.contains("external rental agreement")) {
       page = ExternalWizardPage(agreementId: id, rewardStatus: reward);
+    } else if (type.contains("external commercial agreement")) {
+      page = ExternalCommercialWizardPage(agreementId: id, rewardStatus: reward);
     } else if (type.contains("commercial agreement")) {
       page = CommercialWizardPage(agreementId: id, rewardStatus: reward);
     } else if (type.contains("furnished agreement")) {

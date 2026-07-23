@@ -422,8 +422,15 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   }
 
   Future<void> _pickImage(String which) async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      imageQuality: 80,
+    );
     if (picked == null) return;
+
+
 
 
     final croppedFile = await cropImage(
@@ -483,7 +490,12 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   }
 
   Future<void> _pickTenantDoc(int index, bool isFront) async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      imageQuality: 80,
+    );
     if (picked == null) return;
 
     final croppedFile = await cropImage(
@@ -541,7 +553,11 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
 
   Future<void> _pickTenantPhoto(int index) async {
     final picked = await _picker.pickImage(
-        source: ImageSource.gallery, imageQuality: 75);
+      source: ImageSource.gallery,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      imageQuality: 80,
+    );
     if (picked == null) return;
 
     final croppedFile = await cropImage(

@@ -15,7 +15,7 @@
 -keepattributes SourceFile,LineNumberTable
 
 # Your app models (API response classes)
--keep class com.example.new_verify_feild_worker.** { *; }
+-keep class com.verifyrealestate.fieldworker.** { *; }
 # Play Core (Flutter deferred components)
 -dontwarn com.google.android.play.core.**
 -keep class com.google.android.play.core.** { *; }

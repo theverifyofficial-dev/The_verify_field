@@ -479,7 +479,12 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
   }
 
   Future<void> _pickDirectorAadhaar(int index, bool isFront) async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      imageQuality: 80,
+    );
     if (picked == null) return;
     final croppedFile = await cropImage(
       context,
@@ -510,10 +515,11 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
   Future<void> _pickDirectorPhoto(int index) async {
     final picked = await _picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 75,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      imageQuality: 80,
     );
     if (picked == null) return;
-
     setState(() {
       directors[index].photo = File(picked.path);
     });
@@ -522,7 +528,9 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
   Future<void> _pickDirectorGST(int index) async {
     final picked = await _picker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 75,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      imageQuality: 80,
     );
     if (picked == null) return;
 
@@ -532,7 +540,12 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
   }
 
   Future<void> _pickDirectorPAN(int index) async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      imageQuality: 80,
+    );
     if (picked == null) return;
     final croppedFile = await cropImage(
       context,
@@ -871,7 +884,12 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
       child: const Icon(Icons.zoom_in, color: Colors.white, size: 16));
 
   Future<void> _pickImage(String which) async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      imageQuality: 80,
+    );
     if (picked == null) return;
 
     final croppedFile = await cropImage(

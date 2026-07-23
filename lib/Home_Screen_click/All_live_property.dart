@@ -21,6 +21,9 @@ class _AllLiveProperty extends State<AllLiveProperty> {
   List<NewRealEstateShowDateModel> _filteredProperties = [];
   TextEditingController _searchController = TextEditingController();
 
+  bool _filterNoVideo = false;
+  bool _filterIncompleteData = false;
+
   bool _isLoading = true;
   String _number = '';
   int propertyCount = 0;
@@ -34,43 +37,47 @@ class _AllLiveProperty extends State<AllLiveProperty> {
     super.dispose();
   }
 
-  void _onSearchChanged() {
+  void _applyFilters() {
     final query = _searchController.text.toLowerCase().trim();
+    var list = applyRoleBasedFilter(_allProperties);
 
-    final baseList = applyRoleBasedFilter(_allProperties);
+    if (_filterNoVideo) {
+      list = list.where((p) => _blank(p.video)).toList();
+    }
 
+    if (_filterIncompleteData) {
+      list = list.where((p) => _missingFieldsFor(p).isNotEmpty).toList();
+    }
 
-    final filtered = baseList.where((item) {
-      final values = [
-        item.pId?.toString(),
-        item.locations,
-        item.ownerName,
-        item.ownerNumber,
-        item.careTakerName,
-        item.careTakerNumber,
-        item.buyRent,
-        item.apartmentAddress,
-        item.fieldWorkerAddress,
-        item.fieldWorkerName,
-        item.fieldWorkerNumber,
-        item.bhk?.toString(),
-        item.floor?.toString(),
-        item.typeOfProperty,
-        item.flatNumber?.toString(),
-        item.sId?.toString(),
-        item.sourceId?.toString(),
-        item.showPrice?.toString(),
-      ];
-
-      return values.any(
-            (v) => v != null && v.toLowerCase().contains(query),
-      );
-    }).toList();
-
+    if (query.isNotEmpty) {
+      list = list.where((item) {
+        final values = [
+          item.pId?.toString(),
+          item.locations,
+          item.ownerName,
+          item.ownerNumber,
+          item.careTakerName,
+          item.careTakerNumber,
+          item.buyRent,
+          item.apartmentAddress,
+          item.fieldWorkerAddress,
+          item.fieldWorkerName,
+          item.fieldWorkerNumber,
+          item.bhk?.toString(),
+          item.floor?.toString(),
+          item.typeOfProperty,
+          item.flatNumber?.toString(),
+          item.sId?.toString(),
+          item.sourceId?.toString(),
+          item.showPrice?.toString(),
+        ];
+        return values.any((v) => v != null && v.toLowerCase().contains(query));
+      }).toList();
+    }
 
     setState(() {
-      _filteredProperties = filtered;
-      propertyCount = filtered.length;
+      _filteredProperties = list;
+      propertyCount = list.length;
     });
   }
 
@@ -108,12 +115,46 @@ class _AllLiveProperty extends State<AllLiveProperty> {
         .toList();
   }
 
+  List<String> _missingFieldsFor(NewRealEstateShowDateModel property) {
+    final Map<String, String?> fields = {
+      "Images": property.propertyPhoto,
+      "Owner Name": property.ownerName,
+      "Owner Number": property.ownerNumber,
+      "Caretaker Name": property.careTakerName,
+      "Caretaker Number": property.careTakerNumber,
+      "Place": property.locations,
+      "Buy/Rent": property.buyRent,
+      "Property Name/Address": property.apartmentAddress,
+      "Property Address (Fieldworker)": property.fieldWorkerAddress,
+      "Field Worker Name": property.fieldWorkerName,
+      "Field Worker Number": property.fieldWorkerNumber,
+      "Current Date": property.currentDates,
+      "Longitude": property.longitude,
+      "Latitude": property.latitude,
+      "Road Size": property.roadSize,
+      "Metro Distance": property.metroDistance,
+      "Metro Name": property.highwayDistance,
+      "Main Market Distance": property.mainMarketDistance,
+      "Age of Property": property.ageOfProperty,
+      "Lift": property.lift,
+      "Parking": property.parking,
+      "Total Floor": property.totalFloor,
+      "Residence/Commercial": property.typeOfProperty,
+      "Facility": property.facility,
+      "Video": property.video,
+    };
+    return fields.entries
+        .where((e) => _blank(e.value))
+        .map((e) => e.key)
+        .toList();
+  }
+
   @override
   void initState() {
     super.initState();
 
-    _searchController.addListener(_onSearchChanged);
-    _loaduserdata(); // ONLY THIS
+    _searchController.addListener(_applyFilters);
+    _loaduserdata();
   }
 
   final Map<String, List<String>> fieldWorkersByLocation = {
@@ -153,16 +194,9 @@ class _AllLiveProperty extends State<AllLiveProperty> {
 
     try {
       final data = await fetchData(_number);
-
-      final filtered = applyRoleBasedFilter(data);
-
-
-      setState(() {
-        _allProperties = data;
-        _filteredProperties = filtered;
-        propertyCount = filtered.length;
-        _isLoading = false;
-      });
+      _allProperties = data;
+      _isLoading = false;
+      _applyFilters();
     } catch (e) {
       print("❌ Error: $e");
       setState(() => _isLoading = false);
@@ -207,6 +241,7 @@ class _AllLiveProperty extends State<AllLiveProperty> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       body: _isLoading
           ? Center(child: Image.asset(AppImages.loader, height: 50,))
@@ -264,24 +299,129 @@ class _AllLiveProperty extends State<AllLiveProperty> {
               ),
             ),
           ),
-          // if (propertyCount > 0 && _isSearchActive)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
+
+          Builder(builder: (context) {
+            final base = applyRoleBasedFilter(_allProperties);
+            final noVideoCount = base.where((p) => _blank(p.video)).length;
+            final incompleteCount = base.where((p) => _missingFieldsFor(p).isNotEmpty).length;
+            final anyFilterActive = _filterNoVideo || _filterIncompleteData;
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
-                  const SizedBox(width: 6),
-                  Text(
-                    "Total : $propertyCount",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Row(
+                      children: [
+                        Icon(Icons.tune_rounded, size: 14, color: theme.hintColor),
+                        const SizedBox(width: 4),
+                        Text(
+                          'FILTERS',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
+                            color: theme.hintColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  SizedBox(
+                    height: 40,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      children: [
+                        _FilterToggleChip(
+                          label: 'No Video',
+                          count: noVideoCount,
+                          icon: Icons.videocam_off_rounded,
+                          color: Colors.redAccent,
+                          selected: _filterNoVideo,
+                          onTap: () {
+                            setState(() => _filterNoVideo = !_filterNoVideo);
+                            _applyFilters();
+                          },
+                        ),
+                        const SizedBox(width: 10),
+                        _FilterToggleChip(
+                          label: 'Empty Data',
+                          count: incompleteCount,
+                          icon: Icons.warning_rounded,
+                          color: Colors.orange,
+                          selected: _filterIncompleteData,
+                          onTap: () {
+                            setState(() => _filterIncompleteData = !_filterIncompleteData);
+                            _applyFilters();
+                          },
+                        ),
+                        if (anyFilterActive) ...[
+                          const SizedBox(width: 10),
+                          Container(height: 24, width: 1, color: theme.dividerColor),
+                          const SizedBox(width: 10),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _filterNoVideo = false;
+                                _filterIncompleteData = false;
+                              });
+                              _applyFilters();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.close_rounded, size: 14, color: theme.hintColor),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Clear',
+                                    style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: theme.hintColor),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ],
               ),
+            );
+          }),
+
+          const SizedBox(height: 4),
+
+
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              children: [
+                Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
+                const SizedBox(width: 6),
+                Text(
+                  "Total : $propertyCount",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                  ),
+                ),
+              ],
             ),
+          ),
+
+          const SizedBox(height: 4),
+
           _filteredProperties.isEmpty
               ? Expanded(
             child: Center(
@@ -318,40 +458,12 @@ class _AllLiveProperty extends State<AllLiveProperty> {
                 itemBuilder: (context, index) {
                   final property = _filteredProperties[index];
 
-                  final Map<String, String?> fields = {
-                    "Images": property.propertyPhoto,
-                    "Owner Name": property.ownerName,
-                    "Owner Number": property.ownerNumber,
-                    "Caretaker Name": property.careTakerName,
-                    "Caretaker Number": property.careTakerNumber,
-                    "Place": property.locations,
-                    "Buy/Rent": property.buyRent,
-                    "Property Name/Address": property.apartmentAddress,
-                    "Property Address (Fieldworker)": property.fieldWorkerAddress,
-                    "Field Worker Name": property.fieldWorkerName,
-                    "Field Worker Number": property.fieldWorkerNumber,
-                    "Current Date": property.currentDates,
-                    "Longitude": property.longitude,
-                    "Latitude": property.latitude,
-                    "Road Size": property.roadSize,
-                    "Metro Distance": property.metroDistance,
-                    "Metro Name": property.highwayDistance,
-                    "Main Market Distance": property.mainMarketDistance,
-                    "Age of Property": property.ageOfProperty,
-                    "Lift": property.lift,
-                    "Parking": property.parking,
-                    "Total Floor": property.totalFloor,
-                    "Residence/Commercial": property.typeOfProperty,
-                    "Facility": property.facility,
-                    "Video": property.video,
-                  };
 
-                  final missingFields = fields.entries
-                      .where((entry) => _blank(entry.value))
-                      .map((entry) => entry.key)
-                      .toList();
 
+                  final missingFields = _missingFieldsFor(property);
                   final hasMissingFields = missingFields.isNotEmpty;
+
+
 
                   return _buildCard(property, missingFields, hasMissingFields, context);
                 },
@@ -741,6 +853,99 @@ class _AllLiveProperty extends State<AllLiveProperty> {
   }
 }
 
+class _FilterToggleChip extends StatelessWidget {
+  final String label;
+  final int count;
+  final IconData icon;
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _FilterToggleChip({
+    required this.label,
+    required this.count,
+    required this.icon,
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        decoration: BoxDecoration(
+          color: selected ? color : (isDark ? theme.colorScheme.surface : Colors.white),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: selected ? color : color.withOpacity(0.4),
+            width: 1.4,
+          ),
+          boxShadow: selected
+              ? [
+            BoxShadow(
+              color: color.withOpacity(0.35),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ]
+              : [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 4,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: selected ? Colors.white : color,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: selected ? Colors.white : theme.textTheme.bodyMedium?.color,
+                letterSpacing: 0.1,
+              ),
+            ),
+            if (count > 0) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: selected ? Colors.white.withOpacity(0.25) : color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$count',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    color: selected ? Colors.white : color,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
 class _DetailRow extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -825,68 +1030,4 @@ Color _getPropertyTypeColor(String? type) {
     default:
       return Colors.blue;
   }
-}
-
-Widget _buildFeatureItem({
-  required BuildContext context,
-  required String text,
-  required Color borderColor,
-  IconData? icon,
-  Color? backgroundColor,
-  Color? textColor,
-  Color? shadowColor,
-}) {
-  final width = MediaQuery.of(context).size.width;
-
-  double fontSize = width < 350 ? 10 : (width < 500 ? 12 : 14);
-  double horizontalPadding = width < 350 ? 8 : (width < 500 ? 12 : 14);
-  double verticalPadding = width < 350 ? 6 : (width < 500 ? 8 : 12);
-  double iconSize = width < 350 ? 14 : (width < 500 ? 16 : 18);
-
-  return Container(
-    padding: EdgeInsets.symmetric(
-      horizontal: horizontalPadding,
-      vertical: verticalPadding,
-    ),
-    margin: const EdgeInsets.all(6),
-    decoration: BoxDecoration(
-      color: backgroundColor ?? Colors.transparent,
-      border: Border.all(color: borderColor, width: 2),
-      borderRadius: BorderRadius.circular(10),
-      boxShadow: [
-        BoxShadow(
-          color: (shadowColor ?? borderColor).withOpacity(0.10),
-          blurRadius: 6,
-          spreadRadius: 2,
-          offset: const Offset(0, 3),
-        ),
-      ],
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (icon != null) ...[
-          Icon(
-            icon,
-            size: iconSize,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.black
-                : (textColor ?? Colors.black),
-          ),
-          const SizedBox(width: 4),
-        ],
-        Text(
-          text,
-          style: TextStyle(
-            fontSize: fontSize,
-            fontWeight: FontWeight.bold,
-            fontFamily: "Poppins",
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.black
-                : (textColor ?? Colors.black),
-          ),
-        ),
-      ],
-    ),
-  );
 }

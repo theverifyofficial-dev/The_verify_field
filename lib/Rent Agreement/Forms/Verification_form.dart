@@ -394,7 +394,12 @@ class _VerificationWizardPageState extends State<VerificationWizardPage> with Ti
       child: const Icon(Icons.zoom_in, color: Colors.white, size: 16));
 
   Future<void> _pickImage(String which) async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      imageQuality: 80,
+    );
     if (picked == null) return;
     final croppedFile = await cropImage(
       context,
@@ -427,7 +432,12 @@ class _VerificationWizardPageState extends State<VerificationWizardPage> with Ti
   }
 
   Future<void> _pickTenantDoc(int index, bool isFront) async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      imageQuality: 80,
+    );
     if (picked == null) return;
     final croppedFile = await cropImage(
       context,
@@ -457,7 +467,12 @@ class _VerificationWizardPageState extends State<VerificationWizardPage> with Ti
   }
 
   Future<void> _pickTenantPhoto(int index) async {
-    final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    final picked = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1600,
+      maxHeight: 1600,
+      imageQuality: 80,
+    );
     if (picked == null) return;
 
 

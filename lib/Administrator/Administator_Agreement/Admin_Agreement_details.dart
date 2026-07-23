@@ -8,6 +8,7 @@ import '../../Custom_Widget/constant.dart';
 import '../../Rent Agreement/Dashboard_screen.dart';
 import '../../Rent Agreement/Forms/Agreement_Form.dart';
 import '../../Rent Agreement/Forms/Commercial_Form.dart';
+import '../../Rent Agreement/Forms/External_Commercial.dart';
 import '../../Rent Agreement/Forms/External_Form.dart';
 import '../../Rent Agreement/Forms/Furnish_owner.dart';
 import '../../Rent Agreement/Forms/Furnished_form.dart';
@@ -1206,6 +1207,8 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
       page = RentalWizardPage(agreementId: id,rewardStatus: reward);
     } else if (type.contains("external rental agreement")) {
       page = ExternalWizardPage(agreementId: id,rewardStatus: reward);
+    } else if (type.contains("external commercial agreement")) {
+      page = ExternalCommercialWizardPage(agreementId: id, rewardStatus: reward);
     } else if (type.contains("commercial agreement")) {
       page = CommercialWizardPage(agreementId: id,rewardStatus: reward);
     } else if (type.contains("furnished agreement")) {

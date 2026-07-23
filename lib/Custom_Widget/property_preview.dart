@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
+import 'package:gal/gal.dart';
 
 class PropertyPreview extends StatefulWidget {
 
@@ -22,52 +22,30 @@ class PropertyPreview extends StatefulWidget {
 class _PropertyPreviewState
     extends State<PropertyPreview> {
   bool downloading = false;
-  Future<void> downloadAndSaveImage() async {
+
+  Future<void> downloadAndSaveImage(String imageUrl) async {
     try {
-      setState(() => downloading = true);
-      final response = await Dio().get(widget.ImageUrl,
-        options: Options(
-          responseType: ResponseType.bytes,
-        ),
-      );
-      final result = await ImageGallerySaverPlus.saveImage(
-
-        Uint8List.fromList(response.data),
-
-        quality: 100,
-
-        name:
-        "property_${DateTime.now().millisecondsSinceEpoch}",
+      final response = await Dio().get(
+        imageUrl,
+        options: Options(responseType: ResponseType.bytes),
       );
 
-      if (result['isSuccess'] == true ||
-          result['filePath'] != null) {
+      final bytes = Uint8List.fromList(response.data);
 
-        Fluttertoast.showToast(
-          msg: "Image saved to gallery ✅",
-        );
-
-      } else {
-
-        Fluttertoast.showToast(
-          msg: "Save failed ❌",
-        );
-      }
-
-    } catch (e) {
+      await Gal.putImageBytes(
+        bytes,
+        name: "agreement_${DateTime.now().millisecondsSinceEpoch}.jpg",
+      );
 
       Fluttertoast.showToast(
-        msg: e.toString(),
+        msg: "Image saved to gallery ✅",
       );
-
-    } finally {
-
-      if (mounted) {
-        setState(() => downloading = false);
-      }
+    } catch (e) {
+      Fluttertoast.showToast(
+        msg: "Failed to save image\n$e",
+      );
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -92,7 +70,7 @@ class _PropertyPreviewState
             ),
           )
               : IconButton(
-            onPressed: downloadAndSaveImage,
+            onPressed: () =>  downloadAndSaveImage,
             icon: const Icon(
               Icons.download,
               color: Colors.white,

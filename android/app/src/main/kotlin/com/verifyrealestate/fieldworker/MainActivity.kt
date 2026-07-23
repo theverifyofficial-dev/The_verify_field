@@ -1,9 +1,9 @@
-package com.example.new_verify_feild_worker
+package com.verifyrealestate.fieldworker
 
 import android.graphics.BitmapFactory
-import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
+import com.google.mlkit.vision.common.InputImage
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel

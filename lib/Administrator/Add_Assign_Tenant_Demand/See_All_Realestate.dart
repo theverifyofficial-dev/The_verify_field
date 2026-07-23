@@ -306,6 +306,9 @@ class See_All_Realestate extends StatefulWidget {
 
 class _See_All_RealestateState extends State<See_All_Realestate> {
 
+  bool _filterNoVideo = false;
+  bool _filterIncompleteData = false;
+
   Future<void> _loadData() async {
     try {
       final url = Uri.parse(
@@ -361,15 +364,6 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
       AppLogger.api("fetchData error: $e");
     }
   }
-  String _formatDate(String? dateString) {
-    if (dateString == null || dateString.isEmpty) return "-";
-    try {
-      DateTime date = DateTime.parse(dateString); // expects yyyy-MM-dd or full ISO format
-      return DateFormat('dd/MMM/yyyy').format(date); // Example: 29-08-2025
-    } catch (e) {
-      return dateString; // fallback if parsing fails
-    }
-  }
   TextEditingController _searchController = TextEditingController();
   List<SeeALLModel> _allData = [];   // full fetched data
   List<SeeALLModel> _filteredData = []; // filtered list
@@ -380,55 +374,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
   void initState() {
     super.initState();
     _loadData();
-    // _prefetchAllPropertyData(); // Commented out as it fetches live/unlive data
   }
-
-  // Future<void> _prefetchAllPropertyData() async { // Commented out entire method
-  //   final allProperties = _allData;
-  //   if (allProperties.isEmpty) return;
-  //   final uniqueSubids = <int>{};
-  //   for (var p in allProperties) {
-  //     uniqueSubids.add(p.subid);
-  //   }
-  //   final futures = uniqueSubids.map((sid) async {
-  //     try {
-  //       // Fetch total flats
-  //       final response2 = await http.get(Uri.parse(
-  //         'https://verifyrealestateandservices.in/WebService4.asmx/count_api_for_avability_for_building?subid=$sid',
-  //       ));
-  //       String totalStr = "0";
-  //       if (response2.statusCode == 200) {
-  //         final body = jsonDecode(response2.body);
-  //         if (body is List && body.isNotEmpty) {
-  //           totalStr = body[0]['logg'].toString();
-  //         }
-  //       }
-  //       _totalFlatsMap[sid] = totalStr;
-  //       // Fetch live count
-  //       final response3 = await http.get(Uri.parse(
-  //         'https://verifyrealestateandservices.in/WebService4.asmx/live_unlive_flat_under_building?subid=$sid',
-  //       ));
-  //       int liveC = 0;
-  //       if (response3.statusCode == 200) {
-  //         final body3 = jsonDecode(response3.body);
-  //         if (body3 is List && body3.isNotEmpty) {
-  //           for (var item in body3) {
-  //             if (item['live_unlive'] == 'Live') {
-  //               liveC = (item['logs'] as num?)?.toInt() ?? 0;
-  //               break;
-  //             }
-  //           }
-  //         }
-  //       }
-  //       _liveCountMap[sid] = liveC;
-  //     } catch (_) {
-  //       _totalFlatsMap[sid] = "0";
-  //       _liveCountMap[sid] = 0;
-  //     }
-  //   }).toList();
-  //   await Future.wait(futures);
-  //   if (mounted) setState(() {});
-  // }
 
   bool _blank(String? s) => s == null || s.trim().isEmpty;
 
@@ -446,6 +392,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
       "Available Date": i.availableDate,
       "Caretaker Name": i.careTakerName,
       "Caretaker Number": i.careTakerNumber,
+      "Video": i.videoLink,   // ← add this
     };
     checks.forEach((k, v) { if (_blank(v)) m.add(k); });
     return m;
@@ -509,9 +456,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
     required double multiImgHeight,
     required bool isTablet,
   }) {
-    // final int liveCount = status['liveCount'] ?? 0; // Commented out
-    // final Color liveColor = liveCount > 0 ? Colors.green : Colors.red; // Commented out
-    // final String liveLabel = liveCount > 0 ? "Live: $liveCount" : "Unlive: 0"; // Commented out
+
 
     Widget imageWidget;
     if (images.isEmpty) {
@@ -908,69 +853,78 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
     );
   }
 
-  void _searchData(String query) {
-    final input = query.toLowerCase();
 
-    final results = _allData.where((item) {
-      // Convert whole object into a big searchable string
-      final combined = [
-        item.id.toString(),
-        item.propertyPhoto,
-        item.locations,
-        item.flatNumber,
-        item.buyRent,
-        item.residenceCommercial,
-        item.apartmentName,
-        item.apartmentAddress,
-        item.typeOfProperty,
-        item.bhk,
-        item.showPrice,
-        item.lastPrice,
-        item.askingPrice,
-        item.floor,
-        item.totalFloor,
-        item.balcony,
-        item.squareFit,
-        item.maintance,
-        item.parking,
-        item.ageOfProperty,
-        item.fieldWorkerAddress,
-        item.roadSize,
-        item.metroDistance,
-        item.highwayDistance,
-        item.mainMarketDistance,
-        item.meter,
-        item.ownerName,
-        item.ownerNumber,
-        item.currentDates,
-        item.availableDate,
-        item.kitchen,
-        item.bathroom,
-        item.lift,
-        item.facility,
-        item.furnishedUnfurnished,
-        item.fieldWorkerName,
-        item.liveUnlive,
-        item.fieldWorkerNumber,
-        item.registryAndGpa,
-        item.loan,
-        item.longitude,
-        item.latitude,
-        item.videoLink,
-        item.fieldWorkerCurrentLocation,
-        item.careTakerName,
-        item.careTakerNumber,
-        item.subid.toString(),
-      ].join(" ").toLowerCase();
+  void _applyFilters() {
+    final query = _searchController.text.toLowerCase().trim();
+    var list = List<SeeALLModel>.from(_allData);
 
-      return combined.contains(input);
-    }).toList();
+    if (_filterNoVideo) {
+      list = list.where((p) => _blank(p.videoLink)).toList();
+    }
+
+    if (_filterIncompleteData) {
+      list = list.where((p) => _missingFieldsFor(p).isNotEmpty).toList();
+    }
+
+    if (query.isNotEmpty) {
+      list = list.where((item) {
+        final combined = [
+          item.id.toString(),
+          item.propertyPhoto,
+          item.locations,
+          item.flatNumber,
+          item.buyRent,
+          item.residenceCommercial,
+          item.apartmentName,
+          item.apartmentAddress,
+          item.typeOfProperty,
+          item.bhk,
+          item.showPrice,
+          item.lastPrice,
+          item.askingPrice,
+          item.floor,
+          item.totalFloor,
+          item.balcony,
+          item.squareFit,
+          item.maintance,
+          item.parking,
+          item.ageOfProperty,
+          item.fieldWorkerAddress,
+          item.roadSize,
+          item.metroDistance,
+          item.highwayDistance,
+          item.mainMarketDistance,
+          item.meter,
+          item.ownerName,
+          item.ownerNumber,
+          item.currentDates,
+          item.availableDate,
+          item.kitchen,
+          item.bathroom,
+          item.lift,
+          item.facility,
+          item.furnishedUnfurnished,
+          item.fieldWorkerName,
+          item.liveUnlive,
+          item.fieldWorkerNumber,
+          item.registryAndGpa,
+          item.loan,
+          item.longitude,
+          item.latitude,
+          item.videoLink,
+          item.fieldWorkerCurrentLocation,
+          item.careTakerName,
+          item.careTakerNumber,
+          item.subid.toString(),
+        ].join(" ").toLowerCase();
+        return combined.contains(query);
+      }).toList();
+    }
 
     setState(() {
-      _filteredData = results;
+      _filteredData = list;
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -1000,21 +954,6 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
               ],
             ),
           ),
-          // actions:  [
-          //   GestureDetector(
-          //     onTap: () {
-          //       // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MyHomePage()));
-          //     },
-          //     child: const Icon(
-          //       PhosphorIcons.image(),
-          //       color: Colors.black,
-          //       size: 30,
-          //     ),
-          //   ),
-          //   const SizedBox(
-          //     width: 20,
-          //   ),
-          // ],
         ),
 
         body: Column(
@@ -1030,22 +969,119 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                onChanged: _searchData, // call search on typing
+                onChanged: (_) => _applyFilters(),
               ),
             ),
-            if (_searchController.text.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Results found: ${_filteredData.length}",
-                    style: TextStyle(fontWeight: FontWeight.w500),
-                  ),
-                ),
-              ),
+            Builder(builder: (context) {
+              final theme = Theme.of(context);
+              final noVideoCount = _allData.where((p) => _blank(p.videoLink)).length;
+              final incompleteCount = _allData.where((p) => _missingFieldsFor(p).isNotEmpty).length;
+              final anyFilterActive = _filterNoVideo || _filterIncompleteData;
 
-            // Now ListView.builder will use _filteredData
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Row(
+                      children: [
+                        Icon(Icons.tune_rounded, size: 14, color: theme.hintColor),
+                        const SizedBox(width: 4),
+                        Text(
+                          'FILTERS',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
+                            color: theme.hintColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  SizedBox(
+                    height: 40,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      children: [
+                        _FilterToggleChip(
+                          label: 'No Video',
+                          count: noVideoCount,
+                          icon: Icons.videocam_off_rounded,
+                          color: Colors.redAccent,
+                          selected: _filterNoVideo,
+                          onTap: () {
+                            setState(() => _filterNoVideo = !_filterNoVideo);
+                            _applyFilters();
+                          },
+                        ),
+                        const SizedBox(width: 10),
+                        _FilterToggleChip(
+                          label: 'Empty Data',
+                          count: incompleteCount,
+                          icon: Icons.warning_rounded,
+                          color: Colors.orange,
+                          selected: _filterIncompleteData,
+                          onTap: () {
+                            setState(() => _filterIncompleteData = !_filterIncompleteData);
+                            _applyFilters();
+                          },
+                        ),
+                        if (anyFilterActive) ...[
+                          const SizedBox(width: 10),
+                          Container(height: 24, width: 1, color: theme.dividerColor),
+                          const SizedBox(width: 10),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _filterNoVideo = false;
+                                _filterIncompleteData = false;
+                              });
+                              _applyFilters();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.surfaceVariant.withOpacity(0.5),
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.close_rounded, size: 14, color: theme.hintColor),
+                                  const SizedBox(width: 4),
+                                  Text('Clear', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: theme.hintColor)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    child: Row(
+                      children: [
+                        Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
+                        const SizedBox(width: 6),
+                        Text(
+                          "Total : ${_filteredData.length}",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: theme.textTheme.bodyLarge?.color,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }),
             Expanded(
               child: ListView.builder(
 
@@ -1200,6 +1236,85 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+}
+
+class _FilterToggleChip extends StatelessWidget {
+  final String label;
+  final int count;
+  final IconData icon;
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _FilterToggleChip({
+    required this.label,
+    required this.count,
+    required this.icon,
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        decoration: BoxDecoration(
+          color: selected ? color : (isDark ? theme.colorScheme.surface : Colors.white),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: selected ? color : color.withOpacity(0.4),
+            width: 1.4,
+          ),
+          boxShadow: selected
+              ? [BoxShadow(color: color.withOpacity(0.35), blurRadius: 8, offset: const Offset(0, 3))]
+              : [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 4, offset: const Offset(0, 1))],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 16, color: selected ? Colors.white : color),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: selected ? Colors.white : theme.textTheme.bodyMedium?.color,
+                letterSpacing: 0.1,
+              ),
+            ),
+            if (count > 0) ...[
+              const SizedBox(width: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                decoration: BoxDecoration(
+                  color: selected ? Colors.white.withOpacity(0.25) : color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  '$count',
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w800,
+                    color: selected ? Colors.white : color,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

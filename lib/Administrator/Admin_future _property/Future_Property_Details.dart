@@ -1129,11 +1129,11 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            const Row(
               children: [
                 Icon(Icons.business, color: Colors.blue, size: 20),
-                const SizedBox(width: 8),
-                const Text(
+                SizedBox(width: 8),
+                Text(
                   "Building Details",
                   style: TextStyle(
                     fontSize: 16,
@@ -1304,7 +1304,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
                 crossAxisCount: crossAxisCount,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 2.5,
+                childAspectRatio: 1.8,
               ),
               itemCount: specifications.length,
               itemBuilder: (context, index) {

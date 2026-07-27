@@ -70,7 +70,7 @@ class _PropertyPreviewState
             ),
           )
               : IconButton(
-            onPressed: () =>  downloadAndSaveImage,
+            onPressed: () => downloadAndSaveImage(widget.ImageUrl),
             icon: const Icon(
               Icons.download,
               color: Colors.white,

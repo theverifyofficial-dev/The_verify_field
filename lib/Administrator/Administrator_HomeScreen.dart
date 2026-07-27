@@ -337,7 +337,11 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
         ],
       ),
       body: SingleChildScrollView(
-        child: AnimationLimiter(
+        child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+             _AddTenantCard(),                 // <-- add this line
+        AnimationLimiter(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: AnimationConfiguration.toStaggeredList(
@@ -624,8 +628,9 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
             ),
           ),
         ),
+        ]
       ),
-    );
+    ));
   }
 
   Widget _TargetHeaderCard(BuildContext context) {
@@ -1275,5 +1280,268 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
     } catch (e) {
       AppLogger.api("🔥 ERROR IN ADMIN fetchTodayData: $e");
     }
+  }
+}
+
+class _AddTenantCard extends StatefulWidget {
+  const _AddTenantCard();
+
+  @override
+  State<_AddTenantCard> createState() => _AddTenantCardState();
+}
+
+class _AddTenantCardState extends State<_AddTenantCard> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameCtrl = TextEditingController();
+  final _numberCtrl = TextEditingController();
+  final _priceCtrl = TextEditingController();
+
+  String? _bhk;
+  String _buyRent = 'Rent';
+  bool _loading = false;
+
+  final List<String> _bhkOptions = ['1 RK', '1 BHK', '2 BHK', '3 BHK', '4 BHK+'];
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _numberCtrl.dispose();
+    _priceCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_bhk == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select BHK')),
+      );
+      return;
+    }
+
+    setState(() => _loading = true);
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final fn = prefs.getString('name') ?? '';
+      final fno = prefs.getString('number') ?? '';
+
+      final addInfo = 'Budget: ₹${_priceCtrl.text.trim()} | call par baat ho gyi hai deal handle karo';
+
+      final url = Uri.parse(
+        'https://verifyrealestateandservices.in/WebService4.asmx/add_assign_tanant_demand_2nd_table'
+            '?fieldworkar_name=${Uri.encodeComponent(fn)}'
+            '&fieldworkar_number=${Uri.encodeComponent(fno)}'
+            '&demand_name=${Uri.encodeComponent(_nameCtrl.text.trim())}'
+            '&demand_number=${Uri.encodeComponent(_numberCtrl.text.trim())}'
+            '&buy_rent=${Uri.encodeComponent(_buyRent)}'
+            '&add_info=${Uri.encodeComponent(addInfo)}'
+            '&location_=Sultanpur'
+            '&reference=Call'
+            '&feedback=Pending'
+            '&looking_type=Blank'
+            '&bhk=${Uri.encodeComponent(_bhk!)}',
+      );
+
+      final response = await http.get(url);
+
+      if (!mounted) return;
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Tenant demand added successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        _formKey.currentState!.reset();
+        _nameCtrl.clear();
+        _numberCtrl.clear();
+        _priceCtrl.clear();
+        setState(() => _bhk = null);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed: ${response.statusCode}')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  InputDecoration _decoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, size: 20),
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      filled: true,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: isDark
+                ? [const Color(0xFF1E1E1E), const Color(0xFF2C2C2C)]
+                : [Colors.white, Colors.grey.shade50],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.4 : 0.1),
+              blurRadius: 15,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      gradient: AppGradients.indigo(),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.person_add_alt_1, color: Colors.white, size: 18),
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    'Add Tenant Demand',
+                    style: TextStyle(
+                      fontFamily: "PoppinsBold",
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: _nameCtrl,
+                      decoration: _decoration('Name', Icons.person_outline),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) return 'Required';
+                        if (v.trim().length < 3) return 'Too short';
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: TextFormField(
+                      controller: _numberCtrl,
+                      keyboardType: TextInputType.phone,
+                      maxLength: 10,
+                      buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
+                      decoration: _decoration('Number', Icons.call_outlined),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) return 'Required';
+                        if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v.trim())) return 'Invalid number';
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _bhk,
+                      decoration: _decoration('BHK', Icons.house_outlined),
+                      items: _bhkOptions
+                          .map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 13))))
+                          .toList(),
+                      onChanged: (v) => setState(() => _bhk = v),
+                      validator: (v) => v == null ? 'Required' : null,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _buyRent,
+                      decoration: _decoration('Buy/Rent', Icons.swap_horiz),
+                      items: ['Rent', 'Buy']
+                          .map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 13))))
+                          .toList(),
+                      onChanged: (v) => setState(() => _buyRent = v ?? 'Rent'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+
+              TextFormField(
+                controller: _priceCtrl,
+                keyboardType: TextInputType.number,
+                decoration: _decoration('Price / Budget', Icons.currency_rupee),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Required';
+                  if (double.tryParse(v.trim()) == null) return 'Numbers only';
+                  return null;
+                },
+              ),
+
+              const SizedBox(height: 16),
+
+              SizedBox(
+                width: double.infinity,
+                height: 46,
+                child: ElevatedButton(
+                  onPressed: _loading ? null : _submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6366F1),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                  child: _loading
+                      ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  )
+                      : const Text(
+                    'Add Tenant',
+                    style: TextStyle(color: Colors.white, fontFamily: "PoppinsMedium", fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

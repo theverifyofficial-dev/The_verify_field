@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../main.dart';
+import '../Administrator/Admin_future _property/Administater_Future_Tabbar.dart';
 import '../Z-Screen/profile.dart';
 import '../../ui_decoration_tools/app_images.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -96,11 +97,23 @@ class _VideoHomepage_ScreenState extends State<VideoHomepage> with TickerProvide
         },
 
       {
+        "image": AppImages.propertysale,
+        "title": "Future\nInventory/Property",
+        "onTap": () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => const AdministaterPropertyTabPage()),
+          );
+        },
+      },
+
+      {
         'image': AppImages.ads,
         'title': "Advertisement",
         'onTap': () {
           Navigator.push(context, MaterialPageRoute(
-              builder: (context) => AdvertisePage()));
+              builder: (context) => const AdvertisePage()));
         }
       },
     ];

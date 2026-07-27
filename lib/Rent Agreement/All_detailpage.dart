@@ -8,6 +8,10 @@ import '../Administrator/imagepreviewscreen.dart';
 import '../Custom_Widget/constant.dart';
 import '../AppLogger.dart';
 import '../model/Additional_agreement_tenants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../Rent Agreement/history_tab.dart' show RewardStatus;
+import 'Dashboard_screen.dart';
+import 'Forms/Renewal_form.dart';
 
 
 class _SectionTheme {
@@ -27,60 +31,60 @@ class _SectionTheme {
 }
 
 final Map<String, _SectionTheme> _sectionThemes = {
-  "Agreement Details": _SectionTheme(
-    titleBg: const Color(0xFF7C3AED),
+  "Agreement Details": const _SectionTheme(
+    titleBg: Color(0xFF7C3AED),
     titleText: Colors.white,
-    borderColor: const Color(0xFF7C3AED),
-    cardBg: const Color(0xFFF5F0FF),
+    borderColor: Color(0xFF7C3AED),
+    cardBg: Color(0xFFF5F0FF),
     icon: Icons.description_outlined,
   ),
-  "Owner Details": _SectionTheme(
-    titleBg: const Color(0xFF0F766E),
+  "Owner Details": const _SectionTheme(
+    titleBg: Color(0xFF0F766E),
     titleText: Colors.white,
-    borderColor: const Color(0xFF0F766E),
-    cardBg: const Color(0xFFE6FFFA),
+    borderColor: Color(0xFF0F766E),
+    cardBg: Color(0xFFE6FFFA),
     icon: Icons.person_outlined,
   ),
-  "Tenant Details": _SectionTheme(
-    titleBg: const Color(0xFF1D4ED8),
+  "Tenant Details": const _SectionTheme(
+    titleBg: Color(0xFF1D4ED8),
     titleText: Colors.white,
-    borderColor: const Color(0xFF1D4ED8),
-    cardBg: const Color(0xFFEFF6FF),
+    borderColor: Color(0xFF1D4ED8),
+    cardBg: Color(0xFFEFF6FF),
     icon: Icons.people_outlined,
   ),
-  "Director Details": _SectionTheme(
-    titleBg: const Color(0xFF1D4ED8),
+  "Director Details": const _SectionTheme(
+    titleBg: Color(0xFF1D4ED8),
     titleText: Colors.white,
-    borderColor: const Color(0xFF1D4ED8),
-    cardBg: const Color(0xFFEFF6FF),
+    borderColor: Color(0xFF1D4ED8),
+    cardBg: Color(0xFFEFF6FF),
     icon: Icons.business_center_outlined,
   ),
-  "Additional Tenant": _SectionTheme(
-    titleBg: const Color(0xFFC2410C),
+  "Additional Tenant": const _SectionTheme(
+    titleBg: Color(0xFFC2410C),
     titleText: Colors.white,
-    borderColor: const Color(0xFFC2410C),
-    cardBg: const Color(0xFFFFF7ED),
+    borderColor: Color(0xFFC2410C),
+    cardBg: Color(0xFFFFF7ED),
     icon: Icons.group_add_outlined,
   ),
-  "Additional Director": _SectionTheme(
-    titleBg: const Color(0xFFC2410C),
+  "Additional Director": const _SectionTheme(
+    titleBg: Color(0xFFC2410C),
     titleText: Colors.white,
-    borderColor: const Color(0xFFC2410C),
-    cardBg: const Color(0xFFFFF7ED),
+    borderColor: Color(0xFFC2410C),
+    cardBg: Color(0xFFFFF7ED),
     icon: Icons.group_add_outlined,
   ),
-  "Field Worker": _SectionTheme(
-    titleBg: const Color(0xFFB45309),
+  "Field Worker": const _SectionTheme(
+    titleBg: Color(0xFFB45309),
     titleText: Colors.white,
-    borderColor: const Color(0xFFB45309),
-    cardBg: const Color(0xFFFFFBEB),
+    borderColor: Color(0xFFB45309),
+    cardBg: Color(0xFFFFFBEB),
     icon: Icons.engineering_outlined,
   ),
-  "Property Address": _SectionTheme(
-    titleBg: const Color(0xFF0369A1),
+  "Property Address": const _SectionTheme(
+    titleBg: Color(0xFF0369A1),
     titleText: Colors.white,
-    borderColor: const Color(0xFF0369A1),
-    cardBg: const Color(0xFFE0F2FE),
+    borderColor: Color(0xFF0369A1),
+    cardBg: Color(0xFFE0F2FE),
     icon: Icons.location_on_outlined,
   ),
 };
@@ -232,6 +236,55 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
   _launchURL(String pdfUrl) async {
     final Uri url = Uri.parse(pdfUrl);
     if (!await launchUrl(url)) throw Exception('Could not launch $url');
+  }
+
+  bool get _isAgreementExpired {
+    // TODO: confirm exact key + value your API sends for expiry
+    final status = agreement?["status"]?.toString().trim().toLowerCase();
+    return status == "expired";
+  }
+
+  Future<RewardStatus> _fetchRewardStatus() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final number = prefs.getString("number");
+      if (number == null || number.isEmpty) {
+        return RewardStatus(totalAgreements: 0, isDiscounted: false);
+      }
+      final res = await http.get(Uri.parse(
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/count_api_for_all_agreement_with_reword.php"
+              "?Fieldwarkarnumber=$number"));
+      final data = jsonDecode(res.body);
+      if (data["status"] == true) {
+        final total = int.tryParse(data["total_agreement"].toString()) ?? 0;
+        return RewardStatus(totalAgreements: total, isDiscounted: total >= 20);
+      }
+    } catch (e) {
+      debugPrint("Reward fetch error: $e");
+    }
+    return RewardStatus(totalAgreements: 0, isDiscounted: false);
+  }
+
+  Future<void> _openRenewalForm() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    final rewardStatus = await _fetchRewardStatus();
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pop();
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RenewalForm(
+          agreementId: widget.agreementId,
+          rewardStatus: rewardStatus,
+        ),
+      ),
+    );
   }
 
   // ── Reusable widgets (exact copy from AllDataDetailsPage) ──────────────────
@@ -1092,33 +1145,21 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
 
             const SizedBox(height: 20),
 
-            SizedBox(height: 20,),
+            if (_isAgreementExpired)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: _pillButton(
+                  label: 'Renew Agreement',
+                  icon: Icons.autorenew,
+                  colors: const [Color(0xFF16A34A), Color(0xFF15803D)],
+                  onPressed: _openRenewalForm,
+                ),
+              ),
+
+            const SizedBox(height: 20,),
 
             if (policeTenants.isNotEmpty)
               _buildPoliceNotice(policeTenants),
-            // ── Police note ──
-            // if (withPolice)
-            //   Container(
-            //     padding: const EdgeInsets.all(12),
-            //     decoration: BoxDecoration(
-            //         color: Colors.red.shade50,
-            //         borderRadius: BorderRadius.circular(10),
-            //         border: Border.all(color: Colors.redAccent)),
-            //     child: Row(
-            //       children: const [
-            //         Icon(Icons.info_outline, color: Colors.redAccent),
-            //         SizedBox(width: 8),
-            //         Expanded(
-            //           child: Text(
-            //             'Note: Police verification must be created by Admin for this agreement.',
-            //             style: TextStyle(
-            //                 color: Colors.redAccent,
-            //                 fontWeight: FontWeight.w600),
-            //           ),
-            //         ),
-            //       ],
-            //     ),
-            //   ),
 
             const SizedBox(height: 20),
 

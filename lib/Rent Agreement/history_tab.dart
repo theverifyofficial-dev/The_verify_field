@@ -28,6 +28,7 @@ class _HistoryTabState extends State<HistoryTab> with SingleTickerProviderStateM
   late TabController _tabController;
   RewardStatus? _rewardStatus;
   bool _loadingReward = true;
+
   static const int monthlyTarget = 20;
   static const bool debugForceDiscount = false;
   int allCount = 0;

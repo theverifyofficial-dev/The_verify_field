@@ -32,24 +32,80 @@ class TenantModel {
         required this.Parking, required this.Gadi_Number, required this.FeildWorker_Name, required this.FeildWorker_Number,
         required this.Current__Date,required this.Family_Members,required this.buyrent});
 
-  factory TenantModel.FromJson(Map<String, dynamic>json){
-    return TenantModel(id: json['VTD_id'],
-        V_name: json['V_name'],
-        V_number: json['V_number'],
-        bhk: json['bhk'],
-        budget: json['budget'],
-        place: json['place'],
-        floor_option: json['floor_option'],
-        Additional_Info: json['Additional_Info'],
-        Shifting_date: json['Shifting_date'],
-        Current_date: json['Current__Date'],
-        Parking: json['Parking'],
-        Gadi_Number: json['Gadi_Number'],
-        FeildWorker_Name: json['FeildWorker_Name'],
-        FeildWorker_Number: json['FeildWorker_Number'],
-        Current__Date: json['Current__Date'],
-        Family_Members: json['Family_Members'],
-        buyrent: json['Buy_rent']);
+  factory TenantModel.FromJson(Map<String, dynamic> json) {
+    return TenantModel(
+      id: int.tryParse(json["VTD_id"].toString()) ?? 0,
+      V_name: json["V_name"] ?? "",
+      V_number: json["V_number"] ?? "",
+      bhk: json["bhk"] ?? "",
+      budget: json["budget"] ?? "",
+      place: json["place"] ?? "",
+      floor_option: json["floor_option"] ?? "",
+      Additional_Info: json["Additional_Info"] ?? "",
+      Shifting_date: json["Shifting_date"] ?? "",
+      Current_date: json["Current__Date"] ?? "",
+      Parking: json["Parking"] ?? "",
+      Gadi_Number: json["Gadi_Number"] ?? "",
+      FeildWorker_Name: json["FeildWorker_Name"] ?? "",
+      FeildWorker_Number: json["FeildWorker_Number"] ?? "",
+      Current__Date: json["Current__Date"] ?? "",
+      Family_Members: json["Family_Members"] ?? "",
+      buyrent: json["Buy_rent"] ?? "",
+    );
+  }
+
+}
+
+class TenantDemand2Model {
+  final int id;
+  final String fieldworkarName;
+  final String fieldworkarNumber;
+  final String demandName;
+  final String demandNumber;
+  final String buyRent;
+  final String addInfo;
+  final String location;
+  final String reference;
+  final String feedback;
+  final String lookingType;
+  final String bhk;
+  final String dates;
+  final String times;
+
+  TenantDemand2Model({
+    required this.id,
+    required this.fieldworkarName,
+    required this.fieldworkarNumber,
+    required this.demandName,
+    required this.demandNumber,
+    required this.buyRent,
+    required this.addInfo,
+    required this.location,
+    required this.reference,
+    required this.feedback,
+    required this.lookingType,
+    required this.bhk,
+    required this.dates,
+    required this.times,
+  });
+
+  factory TenantDemand2Model.fromJson(Map<String, dynamic> json) {
+    return TenantDemand2Model(
+      id: json['id'] ?? 0,
+      fieldworkarName: json['fieldworkar_name']?.toString() ?? '',
+      fieldworkarNumber: json['fieldworkar_number']?.toString() ?? '',
+      demandName: json['demand_name']?.toString() ?? '',
+      demandNumber: json['demand_number']?.toString() ?? '',
+      buyRent: json['buy_rent']?.toString() ?? '',
+      addInfo: json['add_info']?.toString() ?? '',
+      location: json['location_']?.toString() ?? '',
+      reference: json['reference']?.toString() ?? '',
+      feedback: json['feedback']?.toString() ?? '',
+      lookingType: json['looking_type']?.toString() ?? '',
+      bhk: json['bhk']?.toString() ?? '',
+      dates: json['dates']?.toString() ?? '',
+      times: json['times']?.toString() ?? '',
+    );
   }
 }
 
@@ -166,9 +222,9 @@ class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_dema
                           bottomRight: Radius.circular(10),
                           bottomLeft: Radius.circular(10)),
                       color: Colors.red.withOpacity(0.8)),
-                  child: Center(
+                  child: const Center(
                     child: Text(
-                      " All Tenant Demands",
+                      "All Tenant Demands",
                       style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
@@ -180,7 +236,7 @@ class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_dema
               ),
             ),
 
-            SizedBox(height: 10,),
+            const SizedBox(height: 10,),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextField(

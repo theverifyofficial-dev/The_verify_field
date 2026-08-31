@@ -18,8 +18,10 @@ import 'Add_Rented_Flat_New/Add_Rented_Flat_Tabbar_New.dart';
 import 'Calender/CalenderForFieldWorker.dart';
 import 'Demand_2/Tabbar.dart';
 import 'Custom_Widget/Card_Demand.dart';
+import 'Easy_Demand/DemandDashBoard.dart';
 import 'Future_Property_OwnerDetails_section/Future_Property_Tabbar.dart';
 import 'Insurance/InsuranceShowListPage.dart';
+import 'Paid Visit/Visit_Screen.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
 import 'Rent Agreement/history_tab.dart';
 import 'Tenant_Details_Demand/Parent_class_TenantDemand.dart';
@@ -1375,6 +1377,17 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         },
         "gradient": cardGradients[9],
       },
+      {
+        "image": AppImages.money,
+        "title": "Paid Visits",
+        "onTap": () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) =>  const FieldVisitHistoryPage()));
+        },
+        "gradient": cardGradients[4],
+      },
     ];
 
     return Scaffold(
@@ -1486,7 +1499,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
               ),
             ),
 
-
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.all(screenWidth * 0.05),
@@ -1513,14 +1525,13 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const Tabbar()),
+                          MaterialPageRoute(builder: (_) => CustomerDemandDashboard(fieldworkerName: userName ?? '',)),
                         );
                       },
                     ),
 
                     const SizedBox(height: 10),
 
-                    // Feature Grid
                     GridView.builder(
                       physics: const NeverScrollableScrollPhysics(),
                       shrinkWrap: true,

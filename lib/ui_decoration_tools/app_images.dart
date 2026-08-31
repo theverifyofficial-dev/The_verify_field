@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppImages{
   static const documents = "assets/images/Documenthundred.png";
+  static const money = "assets/images/money.png";
   static const accounts = "assets/images/account.png";
   static const pay = "assets/images/pay.png";
   static const demand_2 = "assets/images/public-relation.png";

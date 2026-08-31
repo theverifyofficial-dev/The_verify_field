@@ -1591,8 +1591,11 @@ Future<File> generateAgreementPdf(
           ...additionalTenants.asMap().entries.map((entry) {
             final index = entry.key + 2;
             final t = entry.value;
+            final coTenantAddress = safeString(t, 'tenant_address').isNotEmpty
+                ? safeString(t, 'tenant_address')
+                : tenantPermAddress;
             return pw.Text(
-              '$index. ${t['tenant_name']} - $tenantPermAddress',
+              '$index. ${t['tenant_name']} - $coTenantAddress',
               style: boldStyle,
             );
           }).toList(),

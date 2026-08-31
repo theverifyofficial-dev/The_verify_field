@@ -1060,7 +1060,9 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>
     final a = agreement!;
     final bool withPolice = a['is_Police']?.toString() == "true";
     final bool isPolice = a["agreement_type"] == "Police Verification";
-    final bool isCom = a["agreement_type"] == "Commercial Agreement";
+    final bool isCom =
+        agreement?["agreement_type"] == "Commercial Agreement" ||
+            agreement?["agreement_type"] == "External Commercial Agreement";
     final String D_or_T = isCom ? "Director" : "Tenant";
     final bool isRejected =
     (a['status']?.toString().toLowerCase().contains('reject') ?? false);

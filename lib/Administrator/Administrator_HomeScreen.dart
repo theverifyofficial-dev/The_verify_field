@@ -11,6 +11,7 @@ import '../Adminisstrator_Target_details/Targets.dart';
 import '../AppLogger.dart';
 import '../Calender/CalenderForAdmin.dart';
 import '../Home_Screen.dart' hide AgreementTaskResponse, FuturePropertyResponse, WebsiteVisitResponse;
+import '../Paid Visit/Visit_Screen.dart';
 import '../Web_query/web_query.dart' hide SlideAnimation;
 import '../Z-Screen/Social_Media_links.dart';
 import '../main.dart';
@@ -486,7 +487,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 8,
+                        itemCount: 9,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
@@ -518,7 +519,8 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                             {
                               "image": AppImages.police,
                               "title": "All Rented Flat",
-                              "gradient": AppGradients.red(),
+                              "gradient": AppGradients.cyan
+                                (),
                               "onTap": () {
                                 Navigator.push(
                                   context,
@@ -531,7 +533,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                             {
                               "image": AppImages.websiteIssue,
                               "title": "Web \nQuery",
-                              "gradient": AppGradients.cyan(),
+                              "gradient": AppGradients.red(),
                               "onTap": () {
                                 Navigator.push(
                                   context,
@@ -553,19 +555,6 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                               },
                               "count": 0,
                             },
-                            // {
-                            //   "image": AppImages.calendar,
-                            //   "title": "Task Calendar",
-                            //   "gradient": AppGradients.blueRed(),
-                            //   "onTap": () {
-                            //     Navigator.push(
-                            //       context,
-                            //       MaterialPageRoute(
-                            //           builder: (_) => const CalendarTaskPageForAdmin()),
-                            //     );
-                            //   },
-                            //   "count": 0,
-                            // },
                             {
                               "image": AppImages.demand_2,
                               "title": "Costumer Demands",
@@ -605,6 +594,20 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                               "count": 0,
 
                             },
+
+                            {
+                              "image": AppImages.money,
+                              "title": "Paid Visits",
+                              "onTap": () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) =>  const FieldVisitHistoryPage()));
+                              },
+                              "gradient": AppGradients.red(),
+                              "count": 0,
+                            },
+
                           ];
 
                           final item = featureItems[index];
@@ -1291,6 +1294,123 @@ class _AddTenantCard extends StatefulWidget {
 }
 
 class _AddTenantCardState extends State<_AddTenantCard> {
+  void _openAddTenantSheet(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, // so it can grow above keyboard
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(sheetContext).viewInsets.bottom,
+        ),
+        child: DraggableScrollableSheet(
+          initialChildSize: 0.6,
+          minChildSize: 0.4,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) => Container(
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: SingleChildScrollView(
+              controller: scrollController,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.white24 : Colors.black12,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                  ),
+                  const _AddTenantForm(),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      child: GestureDetector(
+        onTap: () => _openAddTenantSheet(context),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              colors: isDark
+                  ? [const Color(0xFF1E1E1E), const Color(0xFF2C2C2C)]
+                  : [Colors.white, Colors.grey.shade50],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(isDark ? 0.4 : 0.1),
+                blurRadius: 15,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: AppGradients.indigo(),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.person_add_alt_1, color: Colors.white, size: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Add Tenant Demand',
+                  style: TextStyle(
+                    fontFamily: "PoppinsBold",
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: isDark ? Colors.white70 : Colors.black45,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AddTenantForm extends StatefulWidget {
+  const _AddTenantForm();
+
+  @override
+  State<_AddTenantForm> createState() => _AddTenantFormState();
+}
+
+class _AddTenantFormState extends State<_AddTenantForm> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _numberCtrl = TextEditingController();
@@ -1326,7 +1446,7 @@ class _AddTenantCardState extends State<_AddTenantCard> {
       final fn = prefs.getString('name') ?? '';
       final fno = prefs.getString('number') ?? '';
 
-      final addInfo = 'Budget: ₹${_priceCtrl.text.trim()} | call par baat ho gyi hai deal handle karo';
+      final addInfo = 'Budget: ${_priceCtrl.text.trim()} | call par baat ho gyi hai deal handle karo';
 
       final url = Uri.parse(
         'https://verifyrealestateandservices.in/WebService4.asmx/add_assign_tanant_demand_2nd_table'
@@ -1359,6 +1479,7 @@ class _AddTenantCardState extends State<_AddTenantCard> {
         _numberCtrl.clear();
         _priceCtrl.clear();
         setState(() => _bhk = null);
+        Navigator.of(context).pop();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed: ${response.statusCode}')),
@@ -1375,17 +1496,23 @@ class _AddTenantCardState extends State<_AddTenantCard> {
     }
   }
 
-  InputDecoration _decoration(String label, IconData icon) {
+  InputDecoration _decoration(String label, IconData icon, bool isDark) {
     return InputDecoration(
       labelText: label,
-      prefixIcon: Icon(icon, size: 20),
+      labelStyle: TextStyle(
+        fontFamily: "PoppinsMedium",
+        color: isDark ? Colors.white60 : Colors.grey.shade600,
+        fontSize: 13,
+      ),
+      prefixIcon: Icon(icon, size: 20, color: const Color(0xFF6366F1)),
       isDense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         borderSide: BorderSide.none,
       ),
       filled: true,
+      fillColor: isDark ? Colors.white.withOpacity(0.06) : Colors.grey.shade100,
     );
   }
 
@@ -1393,154 +1520,223 @@ class _AddTenantCardState extends State<_AddTenantCard> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            colors: isDark
-                ? [const Color(0xFF1E1E1E), const Color(0xFF2C2C2C)]
-                : [Colors.white, Colors.grey.shade50],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.4 : 0.1),
-              blurRadius: 15,
-              offset: const Offset(0, 6),
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          /// -------- GRADIENT HEADER BANNER (matches _TargetHeaderCard) --------
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [const Color(0xFF1E1E1E), const Color(0xFF2C2C2C)]
+                    : [Colors.grey.shade100, Colors.white],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark
+                      ? Colors.white.withOpacity(0.08)
+                      : Colors.black.withOpacity(0.10),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             ),
-          ],
-        ),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      gradient: AppGradients.indigo(),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.person_add_alt_1, color: Colors.white, size: 18),
+            child: Row(
+              children: [
+                Container(
+                  height: 54,
+                  width: 54,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: AppGradients.indigo(),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF6366F1).withOpacity(0.4),
+                        blurRadius: 12,
+                        spreadRadius: 1,
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Add Tenant Demand',
-                    style: TextStyle(
-                      fontFamily: "PoppinsBold",
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : Colors.black87,
+                  child: const Icon(Icons.person_add_alt_1, color: Colors.white, size: 26),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Add Tenant Demand",
+                        style: TextStyle(
+                          fontFamily: "PoppinsBold",
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        "Fill in the details below",
+                        style: TextStyle(
+                          fontFamily: "PoppinsMedium",
+                          fontSize: 12.5,
+                          color: (isDark ? Colors.white : Colors.black).withOpacity(0.6),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          /// -------- FORM FIELDS CARD --------
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              color: isDark ? Colors.white.withOpacity(0.04) : Colors.grey.shade50,
+              border: Border.all(
+                color: isDark ? Colors.white.withOpacity(0.08) : Colors.black.withOpacity(0.05),
+              ),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextFormField(
+                        controller: _nameCtrl,
+                        style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 13.5),
+                        decoration: _decoration('Name', Icons.person_outline, isDark),
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return 'Required';
+                          if (v.trim().length < 3) return 'Too short';
+                          return null;
+                        },
+                      ),
                     ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: TextFormField(
+                        controller: _numberCtrl,
+                        keyboardType: TextInputType.phone,
+                        style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 13.5),
+                        decoration: _decoration('Number', Icons.call_outlined, isDark),
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return 'Required';
+                          final cleaned = v.trim().replaceAll(RegExp(r'[\s-]'), '');
+                          // accepts: 9876543210 | +919876543210 | 919876543210
+                          if (!RegExp(r'^(\+?91)?[6-9]\d{9}$').hasMatch(cleaned)) {
+                            return 'Invalid number';
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _bhk,
+                        style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 13.5),
+                        dropdownColor: isDark ? const Color(0xFF2C2C2C) : Colors.white,
+                        decoration: _decoration('BHK', Icons.house_outlined, isDark),
+                        items: _bhkOptions
+                            .map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 13))))
+                            .toList(),
+                        onChanged: (v) => setState(() => _bhk = v),
+                        validator: (v) => v == null ? 'Required' : null,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: DropdownButtonFormField<String>(
+                        value: _buyRent,
+                        style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 13.5),
+                        dropdownColor: isDark ? const Color(0xFF2C2C2C) : Colors.white,
+                        decoration: _decoration('Buy/Rent', Icons.swap_horiz, isDark),
+                        items: ['Rent', 'Buy']
+                            .map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 13))))
+                            .toList(),
+                        onChanged: (v) => setState(() => _buyRent = v ?? 'Rent'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _priceCtrl,
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 13.5),
+                  decoration: _decoration('Price / Budget', Icons.currency_rupee, isDark),
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) return 'Required';
+                    if (double.tryParse(v.trim()) == null) return 'Numbers only';
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          /// -------- GRADIENT SUBMIT BUTTON (matches home screen gradient cards) --------
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                gradient: AppGradients.indigo(),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF6366F1).withOpacity(0.35),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _nameCtrl,
-                      decoration: _decoration('Name', Icons.person_outline),
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Required';
-                        if (v.trim().length < 3) return 'Too short';
-                        return null;
-                      },
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: _loading ? null : _submit,
+                  child: Center(
+                    child: _loading
+                        ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                        : const Text(
+                      'Add Tenant',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontFamily: "PoppinsMedium",
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _numberCtrl,
-                      keyboardType: TextInputType.phone,
-                      maxLength: 10,
-                      buildCounter: (_, {required currentLength, required isFocused, maxLength}) => null,
-                      decoration: _decoration('Number', Icons.call_outlined),
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Required';
-                        if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v.trim())) return 'Invalid number';
-                        return null;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _bhk,
-                      decoration: _decoration('BHK', Icons.house_outlined),
-                      items: _bhkOptions
-                          .map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 13))))
-                          .toList(),
-                      onChanged: (v) => setState(() => _bhk = v),
-                      validator: (v) => v == null ? 'Required' : null,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _buyRent,
-                      decoration: _decoration('Buy/Rent', Icons.swap_horiz),
-                      items: ['Rent', 'Buy']
-                          .map((e) => DropdownMenuItem(value: e, child: Text(e, style: const TextStyle(fontSize: 13))))
-                          .toList(),
-                      onChanged: (v) => setState(() => _buyRent = v ?? 'Rent'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              TextFormField(
-                controller: _priceCtrl,
-                keyboardType: TextInputType.number,
-                decoration: _decoration('Price / Budget', Icons.currency_rupee),
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Required';
-                  if (double.tryParse(v.trim()) == null) return 'Numbers only';
-                  return null;
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              SizedBox(
-                width: double.infinity,
-                height: 46,
-                child: ElevatedButton(
-                  onPressed: _loading ? null : _submit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF6366F1),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    elevation: 0,
-                  ),
-                  child: _loading
-                      ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                  )
-                      : const Text(
-                    'Add Tenant',
-                    style: TextStyle(color: Colors.white, fontFamily: "PoppinsMedium", fontWeight: FontWeight.w600),
                   ),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

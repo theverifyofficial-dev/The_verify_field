@@ -1,5 +1,4 @@
 import 'dart:convert';
-import '../../AppLogger.dart';
 import 'package:flutter/material.dart';import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
@@ -37,6 +36,76 @@ class Demand_model {
   }
 }
 
+class DemandModel2 {
+  final int id;
+  final String time;
+  final String date;
+  final String demandName;
+  final String demandNumber;
+  final String buyRent;
+  final String addInfo;
+  final String location;
+  final String reference;
+  final String feedback;
+  final String lookingType;
+  final String bhk;
+
+  DemandModel2({
+    required this.id,
+    required this.time,
+    required this.date,
+    required this.demandName,
+    required this.demandNumber,
+    required this.buyRent,
+    required this.addInfo,
+    required this.location,
+    required this.reference,
+    required this.feedback,
+    required this.lookingType,
+    required this.bhk,
+  });
+
+  factory DemandModel2.fromJson(Map<String, dynamic> json) {
+    return DemandModel2(
+      id: int.tryParse(
+        json['id']?.toString() ?? '',
+      ) ??
+          0,
+
+      time: json['fieldworkar_name']?.toString() ?? '',
+
+      date: json['fieldworkar_number']?.toString() ?? '',
+
+      demandName:
+      json['demand_name']?.toString() ?? '',
+
+      demandNumber:
+      json['demand_number']?.toString() ?? '',
+
+      buyRent:
+      json['buy_rent']?.toString() ?? '',
+
+      addInfo:
+      json['add_info']?.toString() ?? '',
+
+      location:
+      json['location_']?.toString() ?? '',
+
+      reference:
+      json['reference']?.toString() ?? '',
+
+      feedback:
+      json['feedback']?.toString() ?? '',
+
+      lookingType:
+      json['looking_type']?.toString() ?? '',
+
+      bhk:
+      json['bhk']?.toString() ?? '',
+    );
+  }
+}
+
 class Administater_Assignd_Tenant_details extends StatefulWidget {
   const Administater_Assignd_Tenant_details({super.key});
 
@@ -46,20 +115,63 @@ class Administater_Assignd_Tenant_details extends StatefulWidget {
 
 class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assignd_Tenant_details> {
 
-  bool _ascending = false; // false = new to old, true = old to new
 
 
-  late Future<List<Demand_model>> _future;   // <-- add this
+  late Future<List<DemandModel2>> _future;   // <-- add this
 
-  Future<List<Demand_model>> fetchData() async {
-    var url = Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/show_assign_tanant_demand_2nd_table');
-    final responce = await http.get(url);
-    if (responce.statusCode == 200) {
-      List listresponce = json.decode(responce.body);
-      listresponce.sort((a, b) => b['id'].compareTo(a['id']));
-      return listresponce.map((data) => Demand_model.FromJson(data)).toList();
-    } else {
-      throw Exception('Unexpected error occured!');
+  Future<List<DemandModel2>> fetchData() async {
+    final url = Uri.parse(
+      'https://verifyrealestateandservices.in/'
+          'WebService4.asmx/'
+          'show_assign_tanant_demand_2nd_table',
+    );
+
+    try {
+      final response = await http.get(url);
+
+      debugPrint(
+        "API STATUS: ${response.statusCode}",
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception(
+          'API Error: ${response.statusCode}',
+        );
+      }
+
+      final decoded = jsonDecode(response.body);
+
+      if (decoded is! List) {
+        throw Exception(
+          'Unexpected API response format',
+        );
+      }
+
+      final List<DemandModel2> result = [];
+
+      for (final item in decoded) {
+        if (item is Map<String, dynamic>) {
+          result.add(
+            DemandModel2.fromJson(item),
+          );
+        }
+      }
+
+      result.sort(
+            (a, b) => a.id.compareTo(b.id), // ascending: oldest first, newest at bottom
+      );
+
+      return result;
+    } catch (e, stackTrace) {
+      debugPrint(
+        "FETCH ERROR: $e",
+      );
+
+      debugPrint(
+        "STACK: $stackTrace",
+      );
+
+      rethrow;
     }
   }
 
@@ -79,395 +191,271 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
       backgroundColor: Colors.black,
 
 
-      body: SingleChildScrollView(
-        child: FutureBuilder<List<Demand_model>>(
-            future: _future,      // <-- use the stored future, not fetchData()
-            builder: (context,abc) {
-              if(abc.connectionState == ConnectionState.waiting){
-                return Center(child: CircularProgressIndicator());
-              }
-              else if(abc.hasError){
-                return Text(
-                  '${abc.error}',
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                );
-              }
-              else if (abc.data == null || abc.data!.isEmpty) {
-                // If the list is empty, show an empty image
-                return const Center(
-                  child: Column(
-                    children: [
-                      // Lottie.asset("assets/images/no data.json",width: 450),
-                      Text("No Data Found!",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 0),),
-                    ],
-                  ),
-                );
-              }
-              else {
-                List<Demand_model> displayList = _ascending
-                    ? abc.data!.reversed.toList()
-                    : abc.data!;
+      body: FutureBuilder<List<DemandModel2>>(
+          future: _future,      // <-- use the stored future, not fetchData()
+          builder: (context,abc) {
+            if(abc.connectionState == ConnectionState.waiting){
+              return Center(child: CircularProgressIndicator());
+            }
+            else if(abc.hasError){
+              return Text(
+                '${abc.error}',
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+              );
+            }
+            else if (abc.data == null || abc.data!.isEmpty) {
+              // If the list is empty, show an empty image
+              return const Center(
+                child: Column(
+                  children: [
+                    // Lottie.asset("assets/images/no data.json",width: 450),
+                    Text("No Data Found!",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 0),),
+                  ],
+                ),
+              );
+            }
+            else {
+              List<DemandModel2> displayList = abc.data!;
 
-                return ListView.builder(
-                    itemCount: displayList.length,
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemBuilder: (BuildContext context,int len){
-                      int displayIndex = displayList.length - len;
-                        return GestureDetector(
-                          onTap: () async {
-                          },
-                          child: Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
-                                child: Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Row(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      SizedBox(width: 5,),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        mainAxisAlignment: MainAxisAlignment.center,
+              return ListView.builder(
+                  itemCount: displayList.length,
+                  itemBuilder: (BuildContext context,int len){
+                    int displayIndex = len + 1;
+                    return GestureDetector(
+                      onTap: () async {
+                      },
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
+                            child: Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      Row(
                                         children: [
-
-                                          SizedBox(
-                                            height: 10,
-                                          ),
-                                          Row(
-                                            children: [
-
-                                              Container(
-                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(5),
-                                                  border: Border.all(width: 1, color: Colors.indigoAccent),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                        color: Colors.indigoAccent.withOpacity(0.5),
-                                                        blurRadius: 10,
-                                                        offset: Offset(0, 0),
-                                                        blurStyle: BlurStyle.outer
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    // Icon(Iconsax.sort_copy,size: 15,),
-                                                    //SizedBox(width: 10,),
-                                                    Text(displayList[len].buy_rent,
-                                                      style: const TextStyle(
-                                                          fontSize: 15,
-                                                          color: Colors.black,
-                                                          fontWeight: FontWeight.w500,
-                                                          letterSpacing: 0.5
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-
-
-                                              SizedBox(
-                                                width: 10,
-                                              ),
-
-                                              Container(
-                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(5),
-                                                  border: Border.all(width: 1, color: Colors.greenAccent),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                        color: Colors.greenAccent.withOpacity(0.5),
-                                                        blurRadius: 10,
-                                                        offset: Offset(0, 0),
-                                                        blurStyle: BlurStyle.outer
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    // Icon(Iconsax.sort_copy,size: 15,),
-                                                    //SizedBox(width: 10,),
-                                                    Text(displayList[len].BHK,
-                                                      style: const TextStyle(
-                                                          fontSize: 15,
-                                                          color: Colors.black,
-                                                          fontWeight: FontWeight.w500,
-                                                          letterSpacing: 0.5
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-
-
-                                            ],
-                                          ),
-                                          SizedBox(
-                                            height: 10,
-                                          ),
-
-                                          Row(
-                                            children: [
-                                              Icon(Iconsax.location_copy,size: 12,color: Colors.red,),
-                                              SizedBox(width: 2,),
-                                              Text(" Name | Number",
-                                                overflow: TextOverflow.ellipsis,
-                                                maxLines: 2,
-                                                style: TextStyle(
-                                                    fontSize: 11,
-                                                    color: Colors.black,
-                                                    fontWeight: FontWeight.w600),
-                                              ),
-                                            ],
-                                          ),
-                                          SizedBox(
-                                            height: 5,
-                                          ),
-                                          Row(
-                                            children: [
-                                              SizedBox(width: 10,),
-                                              Expanded(
-                                                child: Container(
-                                                  padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                  decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.circular(5),
-                                                    border: Border.all(width: 1, color: Colors.blueAccent),
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                          color: Colors.blueAccent.withOpacity(0.5),
-                                                          blurRadius: 10,
-                                                          offset: Offset(0, 0),
-                                                          blurStyle: BlurStyle.outer
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  child: Row(
-                                                    children: [
-                                                      // Icon(Iconsax.sort_copy,size: 15,),
-                                                      //w SizedBox(width: 10,),
-                                                      Text(displayList[len].demand_name,
-                                                        style: const TextStyle(
-                                                            fontSize: 14,
-                                                            color: Colors.black,
-                                                            fontWeight: FontWeight.w500,
-                                                            letterSpacing: 0.5
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-
-                                              SizedBox(
-                                                width: 10,
-                                              ),
-
-                                              GestureDetector(
-                                                onTap: (){
-
-                                                  showDialog<bool>(
-                                                    context: context,
-                                                    builder: (context) => AlertDialog(
-                                                      title: Text("Call ${displayList[len].demand_name}"),
-                                                      content: Text('Do you really want to Call? ${displayList[len].demand_name}' ),
-                                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                                      actions: <Widget>[
-                                                        ElevatedButton(
-                                                          onPressed: () => Navigator.of(context).pop(false),
-                                                          child: Text('No'),
-                                                        ),
-                                                        ElevatedButton(
-                                                          onPressed: () async {
-                                                            FlutterPhoneDirectCaller.callNumber(displayList[len].demand_number);
-                                                          },
-                                                          child: Text('Yes'),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ) ?? false;
-                                                },
-                                                child: Container(
-                                                  padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                  decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.circular(5),
-                                                    border: Border.all(width: 1, color: Colors.pinkAccent),
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                          color: Colors.pinkAccent.withOpacity(0.5),
-                                                          blurRadius: 10,
-                                                          offset: Offset(0, 0),
-                                                          blurStyle: BlurStyle.outer
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  child: Row(
-                                                    children: [
-                                                      const Icon(Iconsax.call,size: 15,color: Colors.red,),
-                                                      SizedBox(width: 4,),
-                                                      Text(displayList[len].demand_number,
-                                                        style: const TextStyle(
-                                                            fontSize: 14,
-                                                            color: Colors.black,
-                                                            fontWeight: FontWeight.w500,
-                                                            letterSpacing: 0.5
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-
-                                          SizedBox(
-                                            height: 10,
-                                          ),
-
-                                          Row(
-                                            children: [
-                                              SizedBox(width: 10,),
-                                              Container(
-                                                width: 300,
-                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(5),
-                                                  border: Border.all(width: 1, color: Colors.orangeAccent),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                        color: Colors.orangeAccent.withOpacity(0.5),
-                                                        blurRadius: 10,
-                                                        offset: Offset(0, 0),
-                                                        blurStyle: BlurStyle.outer
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: Column(
-                                                  children: [
-                                                    // Icon(Iconsax.sort_copy,size: 15,),
-                                                    //w SizedBox(width: 10,),
-                                                    Text(displayList[len].place,maxLines: 3,
-                                                      style: const TextStyle(
-                                                          fontSize: 13,
-                                                          color: Colors.black,
-                                                          fontWeight: FontWeight.w500,
-                                                          letterSpacing: 0.5
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-
-                                          SizedBox(
-                                            height: 10,
-                                          ),
-
-                                          Row(
-                                            children: [
-
-                                              Container(
-                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(5),
-                                                  border: Border.all(width: 1, color: Colors.indigoAccent),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                        color: Colors.indigoAccent.withOpacity(0.5),
-                                                        blurRadius: 10,
-                                                        offset: Offset(0, 0),
-                                                        blurStyle: BlurStyle.outer
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    // Icon(Iconsax.sort_copy,size: 15,),
-                                                    //SizedBox(width: 10,),
-                                                    Text(displayList[len].fieldworkar_number,
-                                                      style: const TextStyle(
-                                                          fontSize: 14,
-                                                          color: Colors.black,
-                                                          fontWeight: FontWeight.w500,
-                                                          letterSpacing: 0.5
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-
-
-                                              SizedBox(
-                                                width: 10,
-                                              ),
-
-                                              Container(
-                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(5),
-                                                  border: Border.all(width: 1, color: Colors.greenAccent),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                        color: Colors.greenAccent.withOpacity(0.5),
-                                                        blurRadius: 10,
-                                                        offset: Offset(0, 0),
-                                                        blurStyle: BlurStyle.outer
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    // Icon(Iconsax.sort_copy,size: 15,),
-                                                    //SizedBox(width: 10,),
-                                                    Text(displayList[len].fieldworkar_name,
-                                                      style: const TextStyle(
-                                                          fontSize: 14,
-                                                          color: Colors.black,
-                                                          fontWeight: FontWeight.w500,
-                                                          letterSpacing: 0.5
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-
-
-                                            ],
-                                          ),
-
-                                          SizedBox(
-                                            height: 10,
-                                          ),
 
                                           Container(
                                             padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
                                             decoration: BoxDecoration(
                                               borderRadius: BorderRadius.circular(5),
-                                              border: Border.all(width: 1, color: Colors.green),
+                                              border: Border.all(width: 1, color: Colors.indigoAccent),
                                               boxShadow: [
                                                 BoxShadow(
-                                                    color: Colors.green.withOpacity(0.5),
+                                                    color: Colors.indigoAccent.withOpacity(0.5),
                                                     blurRadius: 10,
                                                     offset: Offset(0, 0),
                                                     blurStyle: BlurStyle.outer
                                                 ),
                                               ],
                                             ),
-
                                             child: Row(
                                               children: [
                                                 // Icon(Iconsax.sort_copy,size: 15,),
-                                                //w SizedBox(width: 10,),-
-                                                Text("Demand No = $displayIndex",
+                                                //SizedBox(width: 10,),
+                                                Text(displayList[len].buyRent,
+                                                  style: const TextStyle(
+                                                      fontSize: 15,
+                                                      color: Colors.black,
+                                                      fontWeight: FontWeight.w500,
+                                                      letterSpacing: 0.5
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+
+
+                                          SizedBox(
+                                            width: 10,
+                                          ),
+
+                                          Container(
+                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(5),
+                                              border: Border.all(width: 1, color: Colors.greenAccent),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                    color: Colors.greenAccent.withOpacity(0.5),
+                                                    blurRadius: 10,
+                                                    offset: Offset(0, 0),
+                                                    blurStyle: BlurStyle.outer
+                                                ),
+                                              ],
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                //SizedBox(width: 10,),
+                                                Text(displayList[len].bhk,
+                                                  style: const TextStyle(
+                                                      fontSize: 15,
+                                                      color: Colors.black,
+                                                      fontWeight: FontWeight.w500,
+                                                      letterSpacing: 0.5
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+
+
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+
+                                      Row(
+                                        children: [
+                                          Icon(Iconsax.location_copy,size: 12,color: Colors.red,),
+                                          SizedBox(width: 2,),
+                                          Text(" Name | Number",
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 2,
+                                            style: TextStyle(
+                                                fontSize: 11,
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w600),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: 5,
+                                      ),
+                                      Row(
+                                        children: [
+                                          SizedBox(width: 10,),
+                                          Expanded(
+                                            child: Container(
+                                              padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(5),
+                                                border: Border.all(width: 1, color: Colors.blueAccent),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                      color: Colors.blueAccent.withOpacity(0.5),
+                                                      blurRadius: 10,
+                                                      offset: Offset(0, 0),
+                                                      blurStyle: BlurStyle.outer
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  // Icon(Iconsax.sort_copy,size: 15,),
+                                                  //w SizedBox(width: 10,),
+                                                  Text(displayList[len].demandName,
+                                                    style: const TextStyle(
+                                                        fontSize: 14,
+                                                        color: Colors.black,
+                                                        fontWeight: FontWeight.w500,
+                                                        letterSpacing: 0.5
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+
+                                          SizedBox(
+                                            width: 10,
+                                          ),
+
+                                          GestureDetector(
+                                            onTap: (){
+
+                                              showDialog<bool>(
+                                                context: context,
+                                                builder: (context) => AlertDialog(
+                                                  title: Text("Call ${displayList[len].demandName}"),
+                                                  content: Text('Do you really want to Call? ${displayList[len].demandName}' ),
+                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                                  actions: <Widget>[
+                                                    ElevatedButton(
+                                                      onPressed: () => Navigator.of(context).pop(false),
+                                                      child: Text('No'),
+                                                    ),
+                                                    ElevatedButton(
+                                                      onPressed: () async {
+                                                        FlutterPhoneDirectCaller.callNumber(displayList[len].demandName);
+                                                      },
+                                                      child: Text('Yes'),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ) ?? false;
+                                            },
+                                            child: Container(
+                                              padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(5),
+                                                border: Border.all(width: 1, color: Colors.pinkAccent),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                      color: Colors.pinkAccent.withOpacity(0.5),
+                                                      blurRadius: 10,
+                                                      offset: Offset(0, 0),
+                                                      blurStyle: BlurStyle.outer
+                                                  ),
+                                                ],
+                                              ),
+                                              child: Row(
+                                                children: [
+                                                  const Icon(Iconsax.call,size: 15,color: Colors.red,),
+                                                  SizedBox(width: 4,),
+                                                  Text(displayList[len].demandNumber,
+                                                    style: const TextStyle(
+                                                        fontSize: 14,
+                                                        color: Colors.black,
+                                                        fontWeight: FontWeight.w500,
+                                                        letterSpacing: 0.5
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+
+                                      Row(
+                                        children: [
+                                          SizedBox(width: 10,),
+                                          Container(
+                                            width: 300,
+                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(5),
+                                              border: Border.all(width: 1, color: Colors.orangeAccent),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                    color: Colors.orangeAccent.withOpacity(0.5),
+                                                    blurRadius: 10,
+                                                    offset: Offset(0, 0),
+                                                    blurStyle: BlurStyle.outer
+                                                ),
+                                              ],
+                                            ),
+                                            child: Column(
+                                              children: [
+                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                //w SizedBox(width: 10,),
+                                                Text(displayList[len].location,maxLines: 3,
                                                   style: const TextStyle(
                                                       fontSize: 13,
                                                       color: Colors.black,
@@ -478,42 +466,78 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
                                               ],
                                             ),
                                           ),
+                                        ],
+                                      ),
 
-                                          const SizedBox(
-                                            height: 10,
-                                          ),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
 
-                                          GestureDetector(
-                                            onTap: () {
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute
-                                                  (builder: (context) => Edit_Optionin_Demand(id: displayList[len].id.toString(), name: displayList[len].demand_name, number: displayList[len].demand_number, info: displayList[len].info, buy: displayList[len].buy_rent, referenc: displayList[len].refrence))
-                                            );
-                                              //Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Persnol_Assignd_Tenant_details(),), (route) => route.isFirst);
-                                            },
-                                            child: Center(
-                                              child: Container(
-                                                height: 40,
-                                                padding: const EdgeInsets.symmetric(horizontal: 40),
-                                                decoration: BoxDecoration(
-                                                    borderRadius: const BorderRadius.only(
-                                                        topLeft: Radius.circular(10),
-                                                        topRight: Radius.circular(10),
-                                                        bottomRight: Radius.circular(10),
-                                                        bottomLeft: Radius.circular(10)),
-                                                    color: Colors.red.withOpacity(0.8)),
-                                                child: const Center(
-                                                  child: Text(
-                                                    "Edit",
-                                                    style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontWeight: FontWeight.bold,
-                                                        letterSpacing: 0.8,
-                                                        fontSize: 18),
+                                      Row(
+                                        children: [
+
+                                          Container(
+                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(5),
+                                              border: Border.all(width: 1, color: Colors.indigoAccent),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                    color: Colors.indigoAccent.withOpacity(0.5),
+                                                    blurRadius: 10,
+                                                    offset: Offset(0, 0),
+                                                    blurStyle: BlurStyle.outer
+                                                ),
+                                              ],
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                //SizedBox(width: 10,),
+                                                Text(displayList[len].date,
+                                                  style: const TextStyle(
+                                                      fontSize: 14,
+                                                      color: Colors.black,
+                                                      fontWeight: FontWeight.w500,
+                                                      letterSpacing: 0.5
                                                   ),
                                                 ),
-                                              ),
+                                              ],
+                                            ),
+                                          ),
+
+
+                                          SizedBox(
+                                            width: 10,
+                                          ),
+
+                                          Container(
+                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(5),
+                                              border: Border.all(width: 1, color: Colors.greenAccent),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                    color: Colors.greenAccent.withOpacity(0.5),
+                                                    blurRadius: 10,
+                                                    offset: Offset(0, 0),
+                                                    blurStyle: BlurStyle.outer
+                                                ),
+                                              ],
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                //SizedBox(width: 10,),
+                                                Text(displayList[len].time,
+                                                  style: const TextStyle(
+                                                      fontSize: 14,
+                                                      color: Colors.black,
+                                                      fontWeight: FontWeight.w500,
+                                                      letterSpacing: 0.5
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
 
@@ -521,78 +545,127 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
                                         ],
                                       ),
 
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+
+                                      Container(
+                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(5),
+                                          border: Border.all(width: 1, color: Colors.green),
+                                          boxShadow: [
+                                            BoxShadow(
+                                                color: Colors.green.withOpacity(0.5),
+                                                blurRadius: 10,
+                                                offset: Offset(0, 0),
+                                                blurStyle: BlurStyle.outer
+                                            ),
+                                          ],
+                                        ),
+
+                                        child: Row(
+                                          children: [
+                                            // Icon(Iconsax.sort_copy,size: 15,),
+                                            //w SizedBox(width: 10,),-
+                                            Text("Demand No = $displayIndex",
+                                              style: const TextStyle(
+                                                  fontSize: 13,
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.w500,
+                                                  letterSpacing: 0.5
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
+                                      const SizedBox(
+                                        height: 10,
+                                      ),
+
+                                      GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute
+                                                (builder: (context) => Edit_Optionin_Demand(id: displayList[len].id.toString(), name: displayList[len].demandName, number: displayList[len].demandNumber, info: displayList[len].addInfo, buy: displayList[len].buyRent, referenc: displayList[len].reference))
+                                          );
+                                          //Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Persnol_Assignd_Tenant_details(),), (route) => route.isFirst);
+                                        },
+                                        child: Center(
+                                          child: Container(
+                                            height: 40,
+                                            padding: const EdgeInsets.symmetric(horizontal: 40),
+                                            decoration: BoxDecoration(
+                                                borderRadius: const BorderRadius.only(
+                                                    topLeft: Radius.circular(10),
+                                                    topRight: Radius.circular(10),
+                                                    bottomRight: Radius.circular(10),
+                                                    bottomLeft: Radius.circular(10)),
+                                                color: Colors.red.withOpacity(0.8)),
+                                            child: const Center(
+                                              child: Text(
+                                                "Edit",
+                                                style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                    letterSpacing: 0.8,
+                                                    fontSize: 18),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+
 
                                     ],
                                   ),
-                                ),
-                              )
-                            ],
-                          ),
-                        );
-
-                        Text("No Data Found!",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 0),);
 
 
 
-                    });
-              }
+                            ),
+                          )
+                        ],
+                      ),
+                    );
+
+                    Text("No Data Found!",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 0),);
 
 
+
+                  });
             }
 
+
+          }
+
+      ),
+
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 20),
+        child: ElevatedButton(
+          style: const ButtonStyle(
+            padding: MaterialStatePropertyAll(
+              EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            ),
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => add_repet_num()),
+            );
+          },
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.add_circle),
+              SizedBox(width: 5),
+              Text("New Demand", style: TextStyle(fontSize: 15)),
+            ],
+          ),
         ),
       ),
-
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              FloatingActionButton.extended(
-                heroTag: "sortToggle1",
-                onPressed: () {
-                  setState(() {
-                    _ascending = !_ascending;
-                  });
-                },
-                icon: Icon(_ascending ? Icons.arrow_upward : Icons.arrow_downward),
-                label: Text(_ascending ? "Old to New" : "New to Old"),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10,),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              ElevatedButton(
-                style: const ButtonStyle(
-                  padding: MaterialStatePropertyAll(EdgeInsets.symmetric(vertical: 10,horizontal: 10)),
-
-                ),
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute
-                        (builder: (context) =>
-                          add_repet_num())
-                  );
-                  // Navigator.of(context).push(
-                  //     MaterialPageRoute(builder: (context) => Provider.value(value: bloc,child: AddTenant(type: widget.type),)));
-                },
-                child:  Row(
-                  children: [
-                    const Icon(Icons.add_circle),
-                    const SizedBox(width: 5,),
-                    Text("Assigned Demand",style: const TextStyle(fontSize: 15),),
-                  ],
-                ),),
-            ],
-          ),
-          const SizedBox(height: 30,)
-        ],
-      ),
-
     );
   }
 

@@ -1668,9 +1668,11 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
       return const Scaffold(body: Center(child: Text("No details found")));
     }
 
-    final D_or_T = agreement?["agreement_type"] == "Commercial Agreement"
-        ? "Director"
-        : "Tenant";
+    final bool isCommercial =
+        agreement?["agreement_type"] == "Commercial Agreement" ||
+            agreement?["agreement_type"] == "External Commercial Agreement";
+
+    final D_or_T = isCommercial ? "Director" : "Tenant";
 
     return Scaffold(
       appBar: AppBar(
@@ -1816,7 +1818,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                           _kvRow("Mobile", agreement?["tenant_mobile_no"],
                               "Aadhar", agreement?["tenant_addhar_no"]),
 
-                          if (agreement!["agreement_type"] == "Commercial Agreement") ...[
+                          if (isCommercial) ...[
                             const Divider(),
                             _kvRow("Company Name", agreement!["company_name"],
                                 "DOC Type", agreement!["gst_type"]),

@@ -1271,12 +1271,11 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
           body: Center(child: Text("No details found")));
     }
 
-    final D_or_T = agreement?["agreement_type"] == "Commercial Agreement"
-        ? "Director"
-        : "Tenant";
+    final bool isCommercial =
+        agreement?["agreement_type"] == "Commercial Agreement" ||
+            agreement?["agreement_type"] == "External Commercial Agreement";
 
-    final bool isCom =
-        agreement?["agreement_type"] == "Commercial Agreement"; // ← yeh add karo
+    final D_or_T = isCommercial ? "Director" : "Tenant";
 
     final bool isPolice =
         agreement?["agreement_type"] == "Police Verification";
@@ -1352,8 +1351,8 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                           children: [
                             Expanded(
                               child: _kvCompact(
-                                isCom ? "Sqft" : "BHK",
-                                isCom ? (agreement?["Sqft"] ?? "") : (agreement?["Bhk"] ?? ""),
+                                isCommercial ? "Sqft" : "BHK",
+                                isCommercial ? (agreement?["Sqft"] ?? "") : (agreement?["Bhk"] ?? ""),
                                 Icons.home,
                               ),
                             ),
@@ -1419,8 +1418,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                       _kvRow("Mobile", agreement?["tenant_mobile_no"],
                           "Aadhar", agreement?["tenant_addhar_no"]),
 
-                      if (agreement?["agreement_type"] ==
-                          "Commercial Agreement") ...[
+                      if (isCommercial)...[
                         const Divider(height: 20),
                         const Text("Company Details",
                             style: TextStyle(
@@ -1559,8 +1557,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                     _docImage(agreement?["tenant_image"]),
                   ]),
                 ],
-                if (agreement?["agreement_type"] ==
-                    "Commercial Agreement") ...[
+                if (isCommercial)...[
                   const SizedBox(height: 12),
                   const Text("Company Documents",
                       style: TextStyle(

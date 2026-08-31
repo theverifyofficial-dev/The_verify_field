@@ -803,6 +803,7 @@ class _MyAppState extends State<MyApp> {
                 themeMode: _themeMode,
                 toggleTheme: _toggleTheme,
                 child: child ?? const SizedBox.shrink(),
+
               ),
             );
           },

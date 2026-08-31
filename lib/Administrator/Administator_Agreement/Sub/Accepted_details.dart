@@ -1303,8 +1303,7 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
   }
 
   Widget _buildAgreementCard() {
-    final bool isCommercial =
-        agreement?["agreement_type"] == "Commercial Agreement";
+
     return _buildCard(
       title: "Agreement Details",
       children: [
@@ -1377,7 +1376,8 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
         _kvFull("Address", agreement?["permanent_address_tenant"]),
         _kvRow("Mobile", agreement?["tenant_mobile_no"],
         "Aadhar", agreement?["tenant_addhar_no"]),
-        if (agreement!["agreement_type"] == "Commercial Agreement") ...[
+        if (agreement!["agreement_type"] == "Commercial Agreement"  ||
+            agreement?["agreement_type"] == "External Commercial Agreement") ...[
           const Divider(),
           _kvRow("Company Name", agreement!["company_name"],
           "DOC Type", agreement!["gst_type"]),
@@ -1391,7 +1391,8 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
             _docImage(agreement?["tenant_aadhar_front"]),
             _docImage(agreement?["tenant_aadhar_back"]),
             _docImage(agreement?["tenant_image"]),
-            if (agreement!["agreement_type"] == "Commercial Agreement") ...[
+            if (agreement!["agreement_type"] == "Commercial Agreement" ||
+                agreement?["agreement_type"] == "External Commercial Agreement") ...[
               _docImage(agreement?["gst_photo"]),
               _docImage(agreement?["pan_photo"]),
             ],
@@ -1762,10 +1763,11 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
         agreement?["agreement_type"] == "Police Verification";
     final bool withPolice =
         agreement?['is_Police']?.toString() == "true";
-    final String D_or_T =
-    agreement?["agreement_type"] == "Commercial Agreement"
-        ? "Director"
-        : "Tenant";
+    final bool isCommercial =
+        agreement?["agreement_type"] == "Commercial Agreement" ||
+            agreement?["agreement_type"] == "External Commercial Agreement";
+
+    final D_or_T = isCommercial ? "Director" : "Tenant";
 
     // Compute police tenants
     final List<int> policeTenants = [];

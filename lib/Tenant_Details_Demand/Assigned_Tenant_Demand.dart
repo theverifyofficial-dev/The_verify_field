@@ -56,9 +56,6 @@ class Assignd_Tenant_details extends StatefulWidget {
 
 class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
 
-  bool _ascending = false;
-
-
   String _date = '';
   String _Time = '';
 
@@ -134,16 +131,6 @@ class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
     return Scaffold(
       backgroundColor: Colors.black,
 
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          setState(() {
-            _ascending = !_ascending;
-          });
-        },
-        icon: Icon(_ascending ? Icons.arrow_upward : Icons.arrow_downward),
-        label: Text(_ascending ? "Old to New" : "New to Old"),
-      ),
-
       body: SingleChildScrollView(
         child: FutureBuilder<List<Catid>>(
             future: fetchData(),
@@ -166,9 +153,7 @@ class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
                 );
               }
               else {
-                List<Catid> displayList = _ascending
-                    ? abc.data!.reversed.toList()
-                    : abc.data!;
+                List<Catid> displayList = abc.data!.reversed.toList();
 
                 return ListView.builder(
                     itemCount: displayList.length,

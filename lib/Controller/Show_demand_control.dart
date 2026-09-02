@@ -63,7 +63,7 @@ class TenantController extends GetxController {
         //print("✅ Decoded JSON length: ${data.length}");
 
         tenantList.value = data
-            .map((json) => Cat_id.FromJson(json))
+            .map((json) => Cat_id.fromJson(json))
             .toList()
             .reversed
             .toList();

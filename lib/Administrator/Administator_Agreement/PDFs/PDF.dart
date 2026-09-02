@@ -4,7 +4,6 @@ import 'package:pdf/pdf.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:verify_feild_worker/Home_Screen.dart';
 
 String numberToWords(int number) {
   if (number == 0) return 'ZERO';
@@ -413,6 +412,7 @@ Future<File> generateAgreementPdf(
         final decoded1 = jsonDecode(response1.body);
 
         if (decoded1["success"] == true &&
+            decoded1["data"] != null &&
             decoded1["data"] != null &&
             decoded1["data"].isNotEmpty) {
           additionalTenants =
@@ -1585,8 +1585,7 @@ Future<File> generateAgreementPdf(
           pw.Text('1. $tenantName - $tenantPermAddress',
               style: boldStyle),
           pw.Text('Mobile Number: $tenantMobile',
-              style: pw.TextStyle(
-                  fontWeight: pw.FontWeight.bold)),
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
           pw.SizedBox(height: 6),
           ...additionalTenants.asMap().entries.map((entry) {
             final index = entry.key + 2;
@@ -1594,15 +1593,28 @@ Future<File> generateAgreementPdf(
             final coTenantAddress = safeString(t, 'tenant_address').isNotEmpty
                 ? safeString(t, 'tenant_address')
                 : tenantPermAddress;
-            return pw.Text(
-              '$index. ${t['tenant_name']} - $coTenantAddress',
-              style: boldStyle,
+            final coTenantMobile = safeString(t, 'tenant_mobile');
+            return pw.Padding(
+              padding: const pw.EdgeInsets.only(bottom: 6),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    '$index. ${t['tenant_name']} - $coTenantAddress',
+                    style: boldStyle,
+                  ),
+                    pw.Text(
+                      'Mobile Number: $coTenantMobile',
+                      style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    ),
+                ],
+              ),
             );
           }).toList(),
         ],
-        pw.Text('Mobile Number: $tenantMobile',
-            style:
-            pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+        if (additionalTenants.isEmpty)
+          pw.Text('Mobile Number: $tenantMobile',
+              style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
         pw.SizedBox(height: 12),
         pw.Text(
             'Job Details/Designation: ________________________________________________',

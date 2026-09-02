@@ -1,12 +1,11 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Custom_Widget/constant.dart';
 import 'package:intl/intl.dart';
+import 'Parent_class_TenantDemand.dart';
 import 'Show_TenantDemands.dart';
 
 class Add_TenantDemands extends StatefulWidget {
@@ -89,81 +88,122 @@ class _Add_TenantDemandsState extends State<Add_TenantDemands> {
 
   }
 
-  Future<void> uploadImageWithTitle(String V_name, String V_number, String bhk, String budget, String place, String floor_option, String Family_Members, String Additional_Info, String Shifting_date,
-      String Parking, String Gadi_Number, String FeildWorker_Name, String FeildWorker_Number,
-      String Current__Date,String Buy_rent,String pending_sub_id) async {
-    String uploadUrl = 'https://verifyrealestateandservices.in/PHP_Files/add_verify_tenant_demand/insert.php'; // Replace with your API endpoint
 
-    FormData formData = FormData.fromMap({
-      "V_name": V_name,
-      "V_number": V_number,
-      "bhk": bhk,
-      "budget": budget,
-      "place": place,
-      "floor_option": floor_option,
-      "Family_Members": Family_Members,
-      "Additional_Info": Additional_Info,
-      "Shifting_date": Shifting_date,
-      "Parking": Parking,
-      "Gadi_Number": Gadi_Number,
-      "FeildWorker_Name": FeildWorker_Name,
-      "FeildWorker_Number": FeildWorker_Number,
-      "Current__Date": Current__Date,
-      "Buy_rent": Buy_rent,
-      "pending_sub_id": pending_sub_id,
+  Future<void> uploadImageWithTitle(
+      String V_name,
+      String V_number,
+      String bhk,
+      String budget,
+      String place,
+      String floor_option,
+      String Family_Members,
+      String Additional_Info,
+      String Shifting_date,
+      String Parking,
+      String Gadi_Number,
+      String FeildWorker_Name,
+      String FeildWorker_Number,
+      String Current__Date,
+      String Buy_rent,
+      String pending_sub_id,
+      ) async {
+    const String uploadUrl =
+        'https://verifyrealestateandservices.in/PHP_Files/add_verify_tenant_demand/insert.php';
+
+    setState(() {
+      _isLoading = true;
     });
 
-    Dio dio = Dio();
-
     try {
-      Response response = await dio.post(uploadUrl, data: formData);
+      final response = await http.post(
+        Uri.parse(uploadUrl),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          "V_name": V_name,
+          "V_number": V_number,
+          "bhk": bhk,
+          "budget": budget,
+          "place": place,
+          "floor_option": floor_option,
+          "Family_Members": Family_Members,
+          "Additional_Info": Additional_Info,
+          "Shifting_date": Shifting_date,
+          "Parking": Parking,
+          "Gadi_Number": Gadi_Number,
+          "FeildWorker_Name": FeildWorker_Name,
+          "FeildWorker_Number": FeildWorker_Number,
+          "Current__Date": Current__Date,
+          "Buy_rent": Buy_rent,
+          "pending_sub_id": pending_sub_id,
+        },
+      );
+
+      // Print complete response
+      print('========== UPLOAD RESPONSE ==========');
+      print('Status Code: ${response.statusCode}');
+      print('Response Headers: ${response.headers}');
+      print('Response Body: ${response.body}');
+      print('=====================================');
+
       if (response.statusCode == 200) {
-        Fluttertoast.showToast(
-            msg: "Upload successful",
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.grey,
-            textColor: Colors.white,
-            fontSize: 16.0
-        );
-        Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Tenant_demands(),), (route) => route.isFirst);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload successful')),
-        );
+        if (!mounted) return;
+
         setState(() {
           _isLoading = false;
         });
-        print('Upload successful: ${response.data}');
-      } else {
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload failed: ${response.statusCode}')),
+          const SnackBar(
+            content: Text('Demand uploaded successfully'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
         );
-        Fluttertoast.showToast(
-            msg: "Error",
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.grey,
-            textColor: Colors.white,
-            fontSize: 16.0
+
+        // Navigate only after successful upload
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => parent_TenandDemand(),
+          ),
+              (route) => route.isFirst,
         );
-        print('Upload failed: ${response.statusCode}');
+      } else {
+        if (!mounted) return;
+
+        setState(() {
+          _isLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Upload failed',
+            ),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
+          ),
+        );
       }
     } catch (e) {
+      print('========== UPLOAD ERROR ==========');
+      print(e);
+      print('==================================');
+
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error occurred: $e')),
+        SnackBar(
+          content: Text('Error occurred: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+        ),
       );
-      Fluttertoast.showToast(
-          msg: "Error",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.grey,
-          textColor: Colors.white,
-          fontSize: 16.0
-      );
-      print('Error occurred: $e');
     }
   }
 
@@ -734,7 +774,7 @@ class _Add_TenantDemandsState extends State<Add_TenantDemands> {
                           // boxShadow: K.boxShadow,
                         ),
                         child: TextField(
-                          style: TextStyle(color: Colors.black,fontSize: 22),
+                          style: TextStyle(color: Colors.black,fontSize: 16),
                           controller: _vehicleno,
                           decoration: InputDecoration(
                               hintText: "Vehicle No..",

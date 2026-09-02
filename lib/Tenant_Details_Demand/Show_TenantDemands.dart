@@ -261,37 +261,37 @@ class _Tenant_demandsState extends State<Tenant_demands> {
     );
       }
       ),
-        floatingActionButton:
-        Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ElevatedButton(
-                  style: const ButtonStyle(
-                    padding: MaterialStatePropertyAll(
-                        EdgeInsets.symmetric(vertical: 10, horizontal: 10)),
-
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => add_Tenant_num()));
-                  },
-                  child: Row(
-                    children: [
-                      const Icon(Icons.add_circle),
-                      const SizedBox(width: 5,),
-                      Text("Add Demand", style: const TextStyle(fontSize: 15),),
-                    ],
-                  ),),
-              ],
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 20, right: 8),
+        child: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => add_Tenant_num(),
+              ),
+            );
+          },
+          backgroundColor: Colors.redAccent,
+          foregroundColor: Colors.white,
+          elevation: 8,
+          icon: const Icon(
+            Icons.add_rounded,
+            size: 24,
+          ),
+          label: const Text(
+            "Add Demand",
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.2,
             ),
-            const SizedBox(height: 30,)
-          ],
-        )
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ),
         );
   }
 

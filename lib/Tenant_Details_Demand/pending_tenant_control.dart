@@ -34,7 +34,7 @@ class TenantController extends GetxController {
     try {
       if (response.statusCode == 200) {
         final List data = jsonDecode(response.body);
-        tenantList.value = data.map((json) => Cat_id.FromJson(json)).toList();
+        tenantList.value = data.map((json) => Cat_id.fromJson(json)).toList();
       } else {
         Get.snackbar('Error', 'Failed to fetch tenant data');
       }

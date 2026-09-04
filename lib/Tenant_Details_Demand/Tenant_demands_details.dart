@@ -30,39 +30,56 @@ class Catid {
   final String floor_option;
   final String Additional_Info;
   final String Shifting_date;
-  final String Current_date;
+  final String Current_Date;
   final String Parking;
   final String Gadi_Number;
   final String FeildWorker_Name;
   final String FeildWorker_Number;
-  final String Current__Date;
   final String Family_Members;
   final String buyrent;
 
-  Catid(
-      {required this.id, required this.V_name, required this.V_number, required this.bhk, required this.budget,
-        required this.place, required this.floor_option, required this.Additional_Info, required this.Shifting_date,required this.Current_date,
-        required this.Parking, required this.Gadi_Number, required this.FeildWorker_Name, required this.FeildWorker_Number,
-        required this.Current__Date,required this.Family_Members,required this.buyrent});
+  Catid({
+    required this.id,
+    required this.V_name,
+    required this.V_number,
+    required this.bhk,
+    required this.budget,
+    required this.place,
+    required this.floor_option,
+    required this.Additional_Info,
+    required this.Shifting_date,
+    required this.Current_Date,
+    required this.Parking,
+    required this.Gadi_Number,
+    required this.FeildWorker_Name,
+    required this.FeildWorker_Number,
+    required this.Family_Members,
+    required this.buyrent,
+  });
 
-  factory Catid.FromJson(Map<String, dynamic>json){
-    return Catid(id: json['VTD_id'],
-        V_name: json['V_name'],
-        V_number: json['V_number'],
-        bhk: json['bhk'],
-        budget: json['budget'],
-        place: json['place'],
-        floor_option: json['floor_option'],
-        Additional_Info: json['Additional_Info'],
-        Shifting_date: json['Shifting_date'],
-        Current_date: json['Current__Date'],
-        Parking: json['Parking'],
-        Gadi_Number: json['Gadi_Number'],
-        FeildWorker_Name: json['FeildWorker_Name'],
-        FeildWorker_Number: json['FeildWorker_Number'],
-        Current__Date: json['Current__Date'],
-        Family_Members: json['Family_Members'],
-        buyrent: json['Buy_rent']);
+  factory Catid.fromJson(Map<String, dynamic> json) {
+    return Catid(
+      id: json['VTD_id'] ?? 0,
+
+      V_name: json['V_name']?.toString() ?? '',
+      V_number: json['V_number']?.toString() ?? '',
+      bhk: json['bhk']?.toString() ?? '',
+      budget: json['budget']?.toString() ?? '',
+      place: json['place']?.toString() ?? '',
+      floor_option: json['floor_option']?.toString() ?? '',
+      Additional_Info: json['Additional_Info']?.toString() ?? '',
+      Shifting_date: json['Shifting_date']?.toString() ?? '',
+
+      Current_Date: json['Current__Date']?.toString() ?? '',
+
+      Parking: json['Parking']?.toString() ?? '',
+      Gadi_Number: json['Gadi_Number']?.toString() ?? '',
+      FeildWorker_Name: json['FeildWorker_Name']?.toString() ?? '',
+      FeildWorker_Number: json['FeildWorker_Number']?.toString() ?? '',
+      Family_Members: json['Family_Members']?.toString() ?? '',
+
+      buyrent: json['Buy_rent']?.toString() ?? '',
+    );
   }
 }
 
@@ -164,7 +181,7 @@ class _Tenant_Demands_detailsState extends State<Tenant_Demands_details> {
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
       listresponce.sort((a, b) => b['VTD_id'].compareTo(a['VTD_id']));
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
+      return listresponce.map((data) => Catid.fromJson(data)).toList();
     }
     else {
       throw Exception('Unexpected error occured!');
@@ -302,7 +319,7 @@ class _Tenant_Demands_detailsState extends State<Tenant_Demands_details> {
           MaterialPageRoute
             (builder: (context) => Edit_TenantDemands(id: '${result.first.id}', V_name: '${result.first.V_name}', V_number: '${result.first.V_number}', bhk: '${result.first.bhk}',
             budget: '${result.first.budget}', place: '${result.first.place}', floor_option: '${result.first.floor_option}', Family_Members: '${result.first.Family_Members}', Shifting_date: '${result.first.Shifting_date}', Parking: '${result.first.Parking}'
-            , Gadi_Number: '${result.first.Gadi_Number}', FeildWorker_Name: '${result.first.FeildWorker_Name}', FeildWorker_Number: '${result.first.FeildWorker_Number}', Current__Date: '${result.first.Current__Date}', buyrent: '${result.first.buyrent}',))
+            , Gadi_Number: '${result.first.Gadi_Number}', FeildWorker_Name: '${result.first.FeildWorker_Name}', FeildWorker_Number: '${result.first.FeildWorker_Number}', Current__Date: '${result.first.Current_Date}', buyrent: '${result.first.buyrent}',))
       );
     }
   }
@@ -1275,8 +1292,8 @@ class _Tenant_Demands_detailsState extends State<Tenant_Demands_details> {
                                                       children: [
                                                         // Icon(Iconsax.sort_copy,size: 15,),
                                                         //w SizedBox(width: 10,),
-                                                        Text(""+abc.data![len].Current_date.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                          style: TextStyle(
+                                                        Text(""+abc.data![len].Current_Date.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                          style: const TextStyle(
                                                               fontSize: 13,
                                                               color: Colors.black,
                                                               fontWeight: FontWeight.w500,

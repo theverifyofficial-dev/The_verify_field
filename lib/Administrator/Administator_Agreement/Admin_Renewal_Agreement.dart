@@ -76,10 +76,8 @@ class _AdminDocumentsScreenState
   List<Map<String, String>> _allowedWorkers = [];
 
   final List<Map<String, String>> fieldWorkers = [
-    {"name": "Sumit Kasaniya", "id": "9711775300"},
     {"name": "Ravi Kumar",     "id": "9711275300"},
     {"name": "Faizan Khan",    "id": "9971172204"},
-    {"name": "Jitesh Kumar",   "id": "9211335994"},
     {"name": "Yash",           "id": "9211335993"},
   ];
 
@@ -119,7 +117,6 @@ class _AdminDocumentsScreenState
             loc.contains('chattar')        ||
             loc.contains('chhattar')) {
           _allowedWorkers = fieldWorkers.where((fw) =>
-          fw['name']!.toLowerCase().contains('jitesh') ||
               fw['name']!.toLowerCase().contains('yash')).toList();
         } else {
           _allowedWorkers = [];

@@ -205,10 +205,8 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
   String _post = '';
 
   List<Map<String, String>> fieldWorkers = [
-   // {"name": "Sumit Kasaniya", "id": "9711775300"},
     {"name": "Ravi Kumar", "id": "9711275300"},
     {"name": "Faizan Khan", "id": "9971172204"},
-    {"name": "Jitesh Kumar", "id": "9211335994"},
     {"name": "Yash", "id": "9211335993"},
   ];
 
@@ -290,10 +288,8 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
     } else if (loc.contains("sultanpur")) {
       allowedWorkers = fieldWorkers
           .where((fw) =>
-      fw['name']!.toLowerCase().contains("sumit") ||
           fw['name']!.toLowerCase().contains("ravi") ||
           fw['name']!.toLowerCase().contains("faizan") ||
-          fw['name']!.toLowerCase().contains("jitesh kumar") ||   // ✅ lowercase, "kumar" bhi hata diya (partial match ke liye)
           fw['name']!.toLowerCase().contains("yash")
       ).toList();
     } else if (loc.contains("rajpur") ||
@@ -301,7 +297,6 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
         loc.contains("chattar") ||
         loc.contains("chhattar")) {
       allowedWorkers = fieldWorkers.where((fw) =>
-      fw['name']!.toLowerCase().contains("jitesh") ||
           fw['name']!.toLowerCase().contains("yash")
       ).toList();
     }
@@ -766,17 +761,15 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
         : fieldWorkers.where((fw) {
       final nameLower = fw['name']!.toLowerCase();
       if (loc.contains("sultanpur")) {
-        return nameLower.contains("sumit") ||
+        return
             nameLower.contains("ravi") ||
             nameLower.contains("faizan") ||
-            nameLower.contains("jitesh") ||
             nameLower.contains("yash");
       }
       if (loc.contains("rajpur") ||
           loc.contains("chhattarpur") ||
           loc.contains("chattar")) {
-        return nameLower.contains("jitesh") ||   // <-- Yahan "return" add kar do
-            nameLower.contains("yash");
+        return nameLower.contains("yash");
       }
       return false;
     }).toList();

@@ -1008,7 +1008,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     final fw = normalizeFW(fieldWorkerName);
 
     //const shivaniWorkers = {'abhay', 'manish'};
-    const saurabhWorkers = {'faizan', 'ravi', 'sumit', 'Jitesh Kumar', 'Yash'};
+    const saurabhWorkers = {'faizan', 'ravi', 'Yash'};
 
     // if (uname == 'shivani' || uname == 'shivani joshi') {
     //   return shivaniWorkers.contains(fw);

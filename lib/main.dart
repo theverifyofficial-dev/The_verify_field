@@ -737,7 +737,7 @@ class _MyAppState extends State<MyApp> {
           arguments: {
             "fromNotification": true,
             "buildingId": buildingId,
-            "flatId": flatId,
+              "flatId": flatId,
           },
         );
       }

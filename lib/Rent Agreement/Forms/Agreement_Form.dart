@@ -138,7 +138,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   final rentAmount = TextEditingController();
   final Bhk = TextEditingController();
   final floor = TextEditingController();
-
   final securityAmount = TextEditingController();
   bool securityInstallment = false;
   final installmentAmount = TextEditingController();
@@ -160,8 +159,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   String meterInfo = 'As per Govt. Unit';
   String rentAmountInWords = '';
   String securityAmountInWords = '';
-
-
   String installmentAmountInWords = '';
   String customUnitAmountInWords = '';
   String customMaintanceAmountInWords = '';

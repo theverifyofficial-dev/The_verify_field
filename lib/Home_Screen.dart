@@ -10,12 +10,12 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/Home_Screen_click/live_tabbar.dart';
-import 'package:verify_feild_worker/Target_details/Yearly_Target.dart';
+import 'package:verify_feild_worker/Target_And_Tasks/target_and_tasks_home.dart';
 import 'package:verify_feild_worker/Upcoming/Parent_Upcoming.dart';
 import 'package:verify_feild_worker/Z-Screen/profile.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 import 'Add_Rented_Flat_New/Add_Rented_Flat_Tabbar_New.dart';
-import 'Calender/CalenderForFieldWorker.dart';
+import 'Calender/CalenderForAdmin.dart';
 import 'Demand_2/Tabbar.dart';
 import 'Custom_Widget/Card_Demand.dart';
 import 'Easy_Demand/DemandDashBoard.dart';
@@ -26,7 +26,6 @@ import 'Propert_verigication_Document/Show_tenant.dart';
 import 'Rent Agreement/history_tab.dart';
 import 'Tenant_Details_Demand/Parent_class_TenantDemand.dart';
 import 'Z-Screen/Social_Media_links.dart';
-import 'Target_details/Monthly_target.dart';
 
 class TodayCounts {
   final int agreements;
@@ -416,7 +415,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     }
   }
 
-  Widget _todayCard(bool isDark) {
+  Widget _tasksAndTargetsCard(bool isDark) {
     final today = DateTime.now();
     final tomorrow = today.add(const Duration(days: 1));
 
@@ -471,14 +470,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
     int totalToday = todayCounts!.agreements + todayCounts!.websiteVisits;
 
-    return GestureDetector(
-      onTap: (){
-        Navigator.push(
-            context, MaterialPageRoute(
-            builder: (_) => const CalendarTaskPage()));
-
-      },
-      child: Container(
+    return Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -531,6 +523,52 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  /// ---------------- TARGETS (merged Target Section) ----------------
+                  Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Colors.cyan, Colors.purpleAccent],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        "Tasks & Targets",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  // ---------------------------------------------------------
+                  // SINGLE NAVIGATION ELEMENT for the whole "Tasks & Targets"
+                  // card. This used to be three separate tap targets (a
+                  // "Monthly Target" button, a "Yearly Target" button, and
+                  // this calendar preview) each opening a different screen.
+                  // All three destinations are now one merged screen
+                  // (`TargetAndTasksHome`), so there is exactly one thing to
+                  // tap here — the whole card below, preview included.
+                  // ---------------------------------------------------------
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const TargetAndTasksHome()),
+                      );
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                   /// ---------------- HEADER ----------------
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -870,16 +908,21 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                       ),
                     ),
                   ]
+                      ],
+                    ),
+                  ),
 
                 ],
               ),
             ),
           ],
         ),
-      ),
     );
   }
 
+
+  /// Compact quick-link button used by the merged Tasks & Targets card
+  /// (replaces the old, header-only _TargetProgressCircle animated dial).
   Color _getEventColor(String eventType) {
     switch (eventType.toLowerCase()) {
       case 'agreement':
@@ -988,7 +1031,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
           FuturePropertyResponse.fromRawJson(res[1].body).data;
 
       final tomorrowFuture = allFuture.where((e) {
-        return e.date.substring(0, 10) == tomorrow;
+        return e.currentDate.substring(0, 10) == tomorrow;
       }).toList();
 
 
@@ -1264,8 +1307,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     final isTablet = screenWidth > 600;
 
     // Dynamic expanded height to prevent overflow on small screens
-    final expandedHeight = (screenHeight * 0.28).clamp(220.0, 350.0);
-
+    final expandedHeight = (screenHeight * 0.20).clamp(170.0, 270.0);
     // Get current theme
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -1278,6 +1320,18 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );
+
+    String getGreeting() {
+      final hour = DateTime.now().hour;
+
+      if (hour < 12) {
+        return 'Good Morning,';
+      } else if (hour < 17) {
+        return 'Good Afternoon,';
+      } else {
+        return 'Good Evening,';
+      }
+    }
 
     // Card gradients with premium colors
     final List<LinearGradient> cardGradients = [
@@ -1459,39 +1513,36 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                             ],
                           ),
                         ),
-                        SizedBox(height: screenHeight * 0.01),
-                        // Dual Target Progress Indicators - Use Wrap for responsiveness
-                        Expanded(
-                          child: Wrap(
-                            spacing: screenWidth * 0.15,
-                            runSpacing: screenHeight * 0.2,
-                            alignment: WrapAlignment.spaceEvenly,
-                            children: [
-                              _TargetProgressCircle(
-
-                                title: 'Monthly Target',
-                                icon: Icons.track_changes_rounded,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => const MonthlyTargetScreen()),
-                                  );
-                                },
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            const SizedBox(width: 20),
+                            Text(
+                              getGreeting(),
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.75),
+                                fontFamily: "PoppinsMedium",
+                                fontSize: (screenWidth * 0.055).clamp(20.0, 26.0),
+                                fontWeight: FontWeight.w500,
                               ),
-                              _TargetProgressCircle(
+                            ),
 
-                                title: 'Yearly Target',
-                                icon: Icons.calendar_today_rounded,
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (_) => const YearlyTargetScreen()),
-                                  );
-                                },
+                            const SizedBox(width: 6),
+
+                            Flexible(
+                              child: Text(
+                                '$userName.',
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontFamily: "PoppinsMedium",
+                                  fontSize: (screenWidth * 0.065).clamp(20.0, 26.0),
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ],
-                          ),
-                        ),
+                            ),
+                          ],
+                        )
                       ],
                     ),
                   ),
@@ -1506,7 +1557,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
 
-                    _todayCard(isDark),
+                    _tasksAndTargetsCard(isDark),
 
                     const SizedBox(height: 8),
 
@@ -1572,301 +1623,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         ),
       ),
     );
-  }
-}
-
-class _TargetProgressCircle extends StatefulWidget {
-  // final double progress;
-  // final String percentage;
-  final String title;
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _TargetProgressCircle({
-    // required this.progress,
-    // required this.percentage,
-    required this.title,
-    required this.icon,
-    required this.onTap,
-  });
-
-  @override
-  State<_TargetProgressCircle> createState() => _TargetProgressCircleState();
-}
-
-class _TargetProgressCircleState extends State<_TargetProgressCircle> with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    );
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.05,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeInOut,
-    ));
-    _pulseController.repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    // Enhanced dynamic sizing for premium feel
-    final double baseSize = screenWidth < 360 ? 70.0 : screenWidth < 500 ? 85.0 : 100.0;
-    final double iconSize = baseSize * 0.40;
-    final double textSize = baseSize * 0.18;
-    final double titleSize = (screenWidth * 0.032).clamp(11.0, 13.0);
-
-    // Premium gradient for progress ring
-    final progressGradient = LinearGradient(
-      colors: [
-        Colors.cyan.shade300.withOpacity(0.8),
-        Colors.purple.shade400.withOpacity(0.8),
-        Colors.indigo.shade300.withOpacity(0.8),
-      ],
-      stops: const [0.0, 0.5, 1.0],
-    );
-
-    return
-      GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedBuilder(
-          animation: _pulseAnimation,
-          builder: (context, child) {
-            return Transform.scale(
-              scale: _pulseAnimation.value,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(baseSize * 0.08), // Added padding for premium spacing
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Colors.white.withOpacity(0.1),
-                          Colors.transparent,
-                        ],
-                        center: Alignment.center,
-                        radius: 1.2,
-                      ),
-                      boxShadow: [
-                        // Multi-layer shadows for depth
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
-                          blurRadius: 12,
-                          spreadRadius: -2,
-                          offset: const Offset(0, 4),
-                        ),
-                        BoxShadow(
-                          color: Colors.white.withOpacity(0.05),
-                          blurRadius: 20,
-                          spreadRadius: 2,
-                          offset: const Offset(0, -4),
-                        ),
-                      ],
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Outer glow ring
-                        Container(
-                          width: baseSize + 10,
-                          height: baseSize + 10,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.cyan.shade100.withOpacity(0.3),
-                                Colors.purple.shade200.withOpacity(0.3),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: progressGradient.colors.first.withOpacity(0.4),
-                                blurRadius: baseSize * 0.2,
-                                spreadRadius: 2,
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Main progress container
-                        Container(
-                          width: baseSize,
-                          height: baseSize,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.white.withOpacity(0.2),
-                                Colors.white.withOpacity(0.05),
-                              ],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            ),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.25),
-                              width: 1.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: ClipOval(
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // Background progress ring (thin)
-                                SizedBox(
-                                  width: baseSize - 8,
-                                  height: baseSize - 8,
-                                  child: CircularProgressIndicator(
-                                    value: 1.0,
-                                    strokeWidth: baseSize * 0.05,
-                                    backgroundColor: Colors.white.withOpacity(0.15),
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white.withOpacity(0.2),
-                                    ),
-                                  ),
-                                ),
-                                // Foreground progress ring with gradient sweep
-                                // SizedBox(
-                                //   width: baseSize - 8,
-                                //   height: baseSize - 8,
-                                //   child: CustomPaint(
-                                //     painter: _ProgressPainter(
-                                //       progress: widget.progress,
-                                //       strokeWidth: baseSize * 0.08,
-                                //       gradient: progressGradient,
-                                //     ),
-                                //   ),
-                                // ),
-                                // Inner content with glassmorphism
-                                Container(
-                                  width: baseSize * 0.75,
-                                  height: baseSize * 0.75,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.white.withOpacity(0.1),
-                                        Colors.white.withOpacity(0.05),
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    border: Border.all(
-                                      color: Colors.white.withOpacity(0.3),
-                                      width: 1,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.05),
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 1),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        widget.icon,
-                                        color: Colors.white.withOpacity(0.9),
-                                        size: iconSize,
-                                        shadows: [
-                                          Shadow(
-                                            color: Colors.black.withOpacity(0.2),
-                                            blurRadius: 2,
-                                            offset: const Offset(0, 1),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: baseSize * 0.04),
-                                      // FittedBox(
-                                      //   fit: BoxFit.scaleDown,
-                                      //   child: Text(
-                                      //     widget.percentage,
-                                      //     style: TextStyle(
-                                      //       color: Colors.white,
-                                      //       fontSize: textSize,
-                                      //       fontWeight: FontWeight.bold,
-                                      //       shadows: [
-                                      //         Shadow(
-                                      //           color: Colors.black.withOpacity(0.3),
-                                      //           blurRadius: 2,
-                                      //           offset: const Offset(0, 1),
-                                      //         ),
-                                      //       ],
-                                      //     ),
-                                      //   ),
-                                      // ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: screenHeight * 0.015),
-                  // Enhanced title with gradient text effect
-                  ShaderMask(
-                    shaderCallback: (bounds) => LinearGradient(
-                      colors: [Colors.white.withOpacity(0.95), Colors.white.withOpacity(0.8)],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ).createShader(bounds),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        widget.title,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: titleSize,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 2,
-                              offset: const Offset(0, 1),
-                            ),
-                          ],
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      );
   }
 }
 

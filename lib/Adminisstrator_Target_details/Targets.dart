@@ -6,6 +6,7 @@ import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 import '../../Target_details/Monthly_Tab/Monthly_police_verification.dart';
 import '../Target_details/Monthly_Tab/Monthly_under_detail/Monthly_Building.dart';
 import '../Target_details/history_target.dart';
+import 'OwnerCallsHistoryScreen.dart';
 import 'Monthly_Tab/Book_Rent.dart';
 import 'Monthly_Tab/Live_Commercial.dart';
 import 'Monthly_Tab/Monthly_LiveBuy.dart';
@@ -818,6 +819,21 @@ class _TargetState extends State<Target> {
         title: Image.asset(AppImages.transparent, height: 40),
         centerTitle: true,
         backgroundColor: Colors.black,
+        actions: [
+          // NEW: admin-wide "Building Owner Calls" view across every
+          // field worker (grouped by worker) — see
+          // `OwnerCallsHistoryScreen`'s doc comment. This is the only
+          // change made to this existing AppBar/screen for that feature;
+          // everything else here is untouched.
+          IconButton(
+            tooltip: 'Building Owner Calls',
+            icon: const Icon(Icons.call_rounded),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const OwnerCallsHistoryScreen()),
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [

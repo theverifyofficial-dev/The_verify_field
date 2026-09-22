@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../models/agent_task.dart';
 
 /// Dedicated card for "call the building owner" tasks — deliberately NOT
@@ -35,6 +36,8 @@ class OwnerCallCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    final buildingImage = task.raw['_building_image']?.toString() ?? '';
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
@@ -56,8 +59,44 @@ class OwnerCallCard extends StatelessWidget {
           onTap: onLogTap,
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Building photo, when the `due_calls.php` record for
+                // this task had one (see `OwnerCallDue.buildingImage`'s
+                // doc comment) -- added 2026-09-21 per explicit request.
+                // Skipped entirely when empty rather than a placeholder
+                // box, since this field's real key is still unconfirmed.
+                if (buildingImage.isNotEmpty) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: CachedNetworkImage(
+                      imageUrl: buildingImage,
+                      height: 110,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => Container(
+                        height: 110,
+                        alignment: Alignment.center,
+                        color: _accent.withOpacity(0.08),
+                        child: const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                      errorWidget: (_, __, ___) => Container(
+                        height: 110,
+                        alignment: Alignment.center,
+                        color: _accent.withOpacity(0.08),
+                        child: Icon(Icons.broken_image_outlined, color: _accent.withOpacity(0.6), size: 26),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                Row(
+                  children: [
                 Container(
                   width: 42,
                   height: 42,
@@ -110,6 +149,8 @@ class OwnerCallCard extends StatelessWidget {
                       child: Icon(Icons.call_rounded, color: Colors.white, size: 20),
                     ),
                   ),
+                ),
+                ],
                 ),
               ],
             ),

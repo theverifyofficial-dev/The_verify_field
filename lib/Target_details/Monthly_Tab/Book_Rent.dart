@@ -190,12 +190,10 @@ class BookRentMonthlyModel {
   }
 }
 
-Future<List<BookRentMonthlyModel>> fetchMonthlyRentBooked() async {
-  final prefs = await SharedPreferences.getInstance();
-  final FNumber = prefs.getString('number') ?? "";
-  print(FNumber);
+Future<List<BookRentMonthlyModel>> fetchMonthlyRentBooked(String number) async {
+  print(number);
   final url = Uri.parse(
-    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/book_monthly_show.php?field_workar_number=$FNumber",
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/book_monthly_show.php?field_workar_number=$number",
   );
 
   final res = await http.get(url);
@@ -216,7 +214,9 @@ Future<List<BookRentMonthlyModel>> fetchMonthlyRentBooked() async {
 }
 
 class MonthlyBookRentScreen extends StatefulWidget {
-  const MonthlyBookRentScreen({super.key});
+  final String? number;
+
+  const MonthlyBookRentScreen({super.key, this.number});
 
   @override
   State<MonthlyBookRentScreen> createState() => _MonthlyBookRentScreenState();
@@ -228,7 +228,23 @@ class _MonthlyBookRentScreenState extends State<MonthlyBookRentScreen> {
   @override
   void initState() {
     super.initState();
-    futureData = fetchMonthlyRentBooked();
+    _initLoad();
+  }
+
+  Future<void> _initLoad() async {
+    String numberToUse;
+    if (widget.number != null && widget.number!.isNotEmpty) {
+      numberToUse = widget.number!;
+    } else {
+      final prefs = await SharedPreferences.getInstance();
+      numberToUse = prefs.getString('number') ?? "";
+    }
+    if (numberToUse.isEmpty) {
+      futureData = Future.error("Field Worker Number Missing");
+    } else {
+      futureData = fetchMonthlyRentBooked(numberToUse);
+    }
+    if (mounted) setState(() {});
   }
 
   @override

@@ -142,13 +142,10 @@ class AgreementMonthlyModel {
 /// =======================
 /// API FETCH
 /// =======================
-Future<List<AgreementMonthlyModel>> fetchAgreementMonthly() async {
-
-  final prefs = await SharedPreferences.getInstance();
-  final FNumber = prefs.getString('number') ?? "";
-  print(FNumber);
+Future<List<AgreementMonthlyModel>> fetchAgreementMonthly(String number) async {
+  print(number);
   final url = Uri.parse(
-    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/agreement_external_monthly_show.php?Fieldwarkarnumber=$FNumber",
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/agreement_external_monthly_show.php?Fieldwarkarnumber=$number",
   );
 
   final res = await http.get(url);
@@ -169,7 +166,9 @@ Future<List<AgreementMonthlyModel>> fetchAgreementMonthly() async {
 /// UI SCREEN (SAME STYLE)
 /// =======================
 class MonthlyAgreementExternalScreen extends StatefulWidget {
-  const MonthlyAgreementExternalScreen({super.key});
+  final String? number;
+
+  const MonthlyAgreementExternalScreen({super.key, this.number});
 
   @override
   State<MonthlyAgreementExternalScreen> createState() =>
@@ -183,7 +182,23 @@ class _MonthlyAgreementExternalScreenState
   @override
   void initState() {
     super.initState();
-    futureData = fetchAgreementMonthly();
+    _initLoad();
+  }
+
+  Future<void> _initLoad() async {
+    String numberToUse;
+    if (widget.number != null && widget.number!.isNotEmpty) {
+      numberToUse = widget.number!;
+    } else {
+      final prefs = await SharedPreferences.getInstance();
+      numberToUse = prefs.getString('number') ?? "";
+    }
+    if (numberToUse.isEmpty) {
+      futureData = Future.error("Field Worker Number Missing");
+    } else {
+      futureData = fetchAgreementMonthly(numberToUse);
+    }
+    if (mounted) setState(() {});
   }
 
   @override
@@ -415,7 +430,7 @@ class _MonthlyAgreementExternalScreenState
                                         MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
-                                            "Security Deposit",
+                                            "Security",
                                             style: TextStyle(
                                               fontSize: 11.5,
                                               color: subText,

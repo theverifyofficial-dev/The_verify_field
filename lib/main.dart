@@ -26,7 +26,6 @@ import 'Internet_Connectivity/NetworkListener.dart';
 import 'SocialMediaHandler/SocialMediaHomePage.dart';
 import 'SocialMediaHandler/VideoSubmitPage.dart';
 import 'dart:async';
-import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

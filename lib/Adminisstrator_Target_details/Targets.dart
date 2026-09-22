@@ -48,6 +48,14 @@ class UserCounts {
 
 
   int monthlyBuildings = 0;
+
+  // Added 2026-09-21 per explicit request ("show the 'today' data of all
+  // agent to admin as a other like monthly & yearly") -- mirrors the
+  // field-worker-facing `TargetService._fetchToday`'s own 2-card Today
+  // scope (Buildings + Agreement only; no other metric has a
+  // today-scoped source at all).
+  int todayBuildings = 0;
+  int todayAgreement = 0;
 }
 
 /* ================= STATE ================= */
@@ -387,6 +395,51 @@ class _TargetState extends State<Target> {
     }
   }
 
+  /// ===== TODAY (per-agent) =====
+  /// Reuses the exact same task-list endpoints `TaskFeedService`/
+  /// `TargetService._fetchToday` already call for a field worker's own
+  /// Today tab (see `project_target_and_tasks_merge.md` Pass 18), just
+  /// looped over every agent here instead of the single logged-in one --
+  /// added 2026-09-21 per explicit request ("show the 'today' data of all
+  /// agent to admin"). Parsed with the same lenient list-length rule
+  /// (`data`/`result`/`results`/`tasks`, or a bare top-level list) as
+  /// `TargetService._taskListLength`, since these are literally the same
+  /// endpoints.
+  int _taskListLength(dynamic decoded) {
+    if (decoded is List) return decoded.length;
+    if (decoded is! Map) return 0;
+    for (final key in ['data', 'result', 'results', 'tasks']) {
+      final value = decoded[key];
+      if (value is List) return value.length;
+    }
+    return 0;
+  }
+
+  String _todayDateString() {
+    final now = DateTime.now();
+    return "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+  }
+
+  Future<void> _fetchBuildingToday(String number) async {
+    final d = _todayDateString();
+    final uri = Uri.parse(
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/task_for_building.php?current_date_=$d&fieldworkarnumber=$number",
+    );
+    final res = await http.get(uri);
+    if (res.statusCode != 200) return;
+    userData[number]!.todayBuildings = _taskListLength(jsonDecode(res.body));
+  }
+
+  Future<void> _fetchAgreementToday(String number) async {
+    final d = _todayDateString();
+    final uri = Uri.parse(
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$d&Fieldwarkarnumber=$number",
+    );
+    final res = await http.get(uri);
+    if (res.statusCode != 200) return;
+    userData[number]!.todayAgreement = _taskListLength(jsonDecode(res.body));
+  }
+
 
   /// ===== TARGETS =====
   final Map<String, int> monthlyTargets = {
@@ -406,6 +459,15 @@ class _TargetState extends State<Target> {
     "Police Verification": 300,
     "Commercial": 60,
     "Building": 250,
+  };
+
+  // Same 2-metric, same numbers as the field-worker-facing
+  // `TargetService.dailyTargets` (Pass 15/18 in
+  // `project_target_and_tasks_merge.md`) -- kept identical rather than
+  // re-guessed so "today" means the same quota everywhere in the app.
+  final Map<String, int> dailyTargets = {
+    "Agreement External": 3,
+    "Building": 1,
   };
 
   /// ===== USER DATA =====
@@ -508,6 +570,11 @@ class _TargetState extends State<Target> {
             _safeCall(() => _fetchPoliceYearly(num)),
             _safeCall(() => _fetchCommercialYearly(num)),
             _safeCall(() => _fetchBuildingYearly(num)),
+          ]);
+        } else if (activeTab == "Today") {
+          allFutures.addAll([
+            _safeCall(() => _fetchBuildingToday(num)),
+            _safeCall(() => _fetchAgreementToday(num)),
           ]);
         } else {
           allFutures.addAll([
@@ -860,6 +927,8 @@ class _TargetState extends State<Target> {
                   ? _buildMonthlyByUser()
                   : activeTab == "Yearly"
                   ? _buildYearlyByUser()
+                  : activeTab == "Today"
+                  ? _buildTodayByUser()
                   : _buildOverviewByUser(),
             ),
 
@@ -940,6 +1009,7 @@ class _TargetState extends State<Target> {
       child: Row(
         children: [
           _tabButton("Overview", isDark),
+          _tabButton("Today", isDark),
           _tabButton("Monthly", isDark),
           _tabButton("Yearly", isDark),
         ],
@@ -1019,6 +1089,21 @@ class _TargetState extends State<Target> {
           u["name"]!,
           u["number"]!,
           _yearlyCards(u["number"]!),
+        );
+      },
+    );
+  }
+
+  Widget _buildTodayByUser() {
+    return ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: users.length,
+      itemBuilder: (_, i) {
+        final u = users[i];
+        return _userSection(
+          u["name"]!,
+          u["number"]!,
+          _todayCards(u["number"]!),
         );
       },
     );
@@ -1307,6 +1392,46 @@ class _TargetState extends State<Target> {
           context,
           MaterialPageRoute(
             builder: (_) => YearlyBuilding(number: number),
+          ),
+        ),
+      ),
+    ];
+  }
+
+  /// Same 2-card scope (Agreement, Building) as the field-worker-facing
+  /// Today tab -- see `TargetService._fetchToday`/`dailyTargets` --
+  /// reusing that same tab's own detail-screen destinations
+  /// (`MonthlyAgreementExternal`/`BuildingMonthlyListScreen`) since
+  /// there's no dedicated "today" detail screen for either metric, same
+  /// as on the field-worker side.
+  List<Widget> _todayCards(String number) {
+    final d = userData[number]!;
+
+    return [
+      TargetMetricCard(
+        title: "Agreement",
+        done: d.todayAgreement,
+        total: dailyTargets["Agreement External"]!,
+        icon: metricIcon("Agreement"),
+        color: metricColor("Agreement"),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => MonthlyAgreementExternal(number: number),
+          ),
+        ),
+      ),
+
+      TargetMetricCard(
+        title: "Buildings",
+        done: d.todayBuildings,
+        total: dailyTargets["Building"]!,
+        icon: metricIcon("Building"),
+        color: metricColor("Building"),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BuildingMonthlyListScreen(number: number),
           ),
         ),
       ),

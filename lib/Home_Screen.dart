@@ -15,17 +15,15 @@ import 'package:verify_feild_worker/Upcoming/Parent_Upcoming.dart';
 import 'package:verify_feild_worker/Z-Screen/profile.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 import 'Add_Rented_Flat_New/Add_Rented_Flat_Tabbar_New.dart';
-import 'Calender/CalenderForAdmin.dart';
-import 'Demand_2/Tabbar.dart';
 import 'Custom_Widget/Card_Demand.dart';
 import 'Easy_Demand/DemandDashBoard.dart';
 import 'Future_Property_OwnerDetails_section/Future_Property_Tabbar.dart';
 import 'Insurance/InsuranceShowListPage.dart';
-import 'Paid Visit/Visit_Screen.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
 import 'Rent Agreement/history_tab.dart';
 import 'Tenant_Details_Demand/Parent_class_TenantDemand.dart';
 import 'Z-Screen/Social_Media_links.dart';
+import 'model/FutureBuilding_model.dart';
 
 class TodayCounts {
   final int agreements;
@@ -470,7 +468,14 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
     int totalToday = todayCounts!.agreements + todayCounts!.websiteVisits;
 
-    return Container(
+    return  GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const TargetAndTasksHome()),
+          );
+        },
+        child: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -559,14 +564,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                   // (`TargetAndTasksHome`), so there is exactly one thing to
                   // tap here — the whole card below, preview included.
                   // ---------------------------------------------------------
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const TargetAndTasksHome()),
-                      );
-                    },
-                    child: Column(
+                  Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                   /// ---------------- HEADER ----------------
@@ -910,14 +908,13 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                   ]
                       ],
                     ),
-                  ),
 
                 ],
               ),
             ),
           ],
         ),
-    );
+    ));
   }
 
 
@@ -1307,7 +1304,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     final isTablet = screenWidth > 600;
 
     // Dynamic expanded height to prevent overflow on small screens
-    final expandedHeight = (screenHeight * 0.20).clamp(170.0, 270.0);
+    final expandedHeight = (screenHeight * 0.15).clamp(160.0, 260.0);
     // Get current theme
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -1431,17 +1428,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         },
         "gradient": cardGradients[9],
       },
-      {
-        "image": AppImages.money,
-        "title": "Paid Visits",
-        "onTap": () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) =>  const FieldVisitHistoryPage()));
-        },
-        "gradient": cardGradients[4],
-      },
     ];
 
     return Scaffold(
@@ -1513,6 +1499,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                             ],
                           ),
                         ),
+                        SizedBox(height: screenHeight * 0.01),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [

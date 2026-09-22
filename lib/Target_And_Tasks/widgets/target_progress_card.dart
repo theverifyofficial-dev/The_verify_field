@@ -18,22 +18,35 @@ class TargetProgressCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDark ? const Color(0xFF1F2937) : Colors.white;
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 168,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: cardColor,
+    // Converted from a bare `GestureDetector` to `Material` + `InkWell`
+    // (2026-09-21) per explicit request that the whole card's tap
+    // navigation work "fully, not in specific area of the card" -- the
+    // GestureDetector already wrapped this entire Container, so every
+    // pixel was already tappable, but this makes that guarantee explicit
+    // and gives it the same visible ripple feedback every other tappable
+    // card in this feature already has (`OwnerCallCard`, `TaskTile`).
+    return Container(
+      width: 168,
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black45 : Colors.black12,
+            blurRadius: 10,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(18),
+        child: InkWell(
           borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: isDark ? Colors.black45 : Colors.black12,
-              blurRadius: 10,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
+          onTap: onTap,
+          child: Padding(
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -96,6 +109,8 @@ class TargetProgressCard extends StatelessWidget {
               ),
             ),
           ],
+        ),
+          ),
         ),
       ),
     );

@@ -43,4 +43,4 @@ class TargetProgress {
       );
 }
 
-enum TargetPeriod { monthly, yearly }
+enum TargetPeriod { monthly, yearly, today }

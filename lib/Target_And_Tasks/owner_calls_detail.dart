@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/main.dart' show navigatorKey;
+import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/Future_property_details.dart';
 
 import 'models/owner_call_due.dart';
 import 'models/owner_call_history.dart';
@@ -110,10 +112,12 @@ class _OwnerCallsDetailScreenState extends State<OwnerCallsDetailScreen> with Wi
     }
   }
 
-  static String _monthKey() {
-    final now = DateTime.now();
-    return 'owner_calls_done_${now.year}_${now.month.toString().padLeft(2, '0')}';
-  }
+  // Uses `TargetService`'s shared key generators (added 2026-09-21
+  // alongside the Tasks screen's new Today/Week tabs) rather than a
+  // hand-rolled monthly-only key, so a call logged from this screen keeps
+  // the daily/weekly counters in sync too -- see the increment site below
+  // and `TargetService.monthlyOwnerCallsKey`'s doc comment.
+  static String _monthKey() => TargetService.monthlyOwnerCallsKey();
 
   Future<void> _load() async {
     final requestId = ++_requestId;
@@ -304,7 +308,7 @@ class _OwnerCallsDetailScreenState extends State<OwnerCallsDetailScreen> with Wi
                             if (!dialogContext.mounted) return;
                             if (ok) {
                               final prefs = await SharedPreferences.getInstance();
-                              final key = _monthKey();
+                              final key = TargetService.monthlyOwnerCallsKey();
                               await prefs.setInt(key, (prefs.getInt(key) ?? 0) + 1);
                               Navigator.of(dialogContext).pop();
                               if (!mounted) return;
@@ -469,10 +473,60 @@ class _OwnerCallsDetailScreenState extends State<OwnerCallsDetailScreen> with Wi
                             borderRadius: BorderRadius.circular(14),
                             child: InkWell(
                               borderRadius: BorderRadius.circular(14),
-                              onTap: () => _logCall(context, call),
+                              onTap: () async {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        Future_Property_details(idd: call.propertyId.toString()),
+                                  ),
+                                );
+                                if (mounted) _load();
+                              },
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                                child: Row(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Building photo, when `due_calls.php`
+                                    // provided one for this record (see
+                                    // `OwnerCallDue.buildingImage`'s doc
+                                    // comment) -- added 2026-09-21 per
+                                    // explicit request. This is the actual
+                                    // due-calls card this screen shows (not
+                                    // the separate, currently-unused
+                                    // `OwnerCallCard` widget), so this is
+                                    // where the photo belongs.
+                                    if (call.buildingImage.isNotEmpty) ...[
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(11),
+                                        child: CachedNetworkImage(
+                                          imageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${call.buildingImage}",
+                                          height: 120,
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                          placeholder: (_, __) => Container(
+                                            height: 120,
+                                            alignment: Alignment.center,
+                                            color: isDark ? const Color(0xFF1B2029) : const Color(0xFFF1F4F9),
+                                            child: const SizedBox(
+                                              height: 22,
+                                              width: 22,
+                                              child: CircularProgressIndicator(strokeWidth: 2),
+                                            ),
+                                          ),
+                                          errorWidget: (_, __, ___) => Container(
+                                            height: 120,
+                                            alignment: Alignment.center,
+                                            color: isDark ? const Color(0xFF1B2029) : const Color(0xFFF1F4F9),
+                                            child: Icon(Icons.broken_image_outlined,
+                                                color: isDark ? Colors.white24 : Colors.black26, size: 26),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                    ],
+                                    Row(
                                   children: [
                                     Container(
                                       width: 38,
@@ -526,6 +580,8 @@ class _OwnerCallsDetailScreenState extends State<OwnerCallsDetailScreen> with Wi
                                         ),
                                       ),
                                     ),
+                                  ],
+                                ),
                                   ],
                                 ),
                               ),
@@ -711,6 +767,41 @@ class _OwnerCallsDetailScreenState extends State<OwnerCallsDetailScreen> with Wi
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Building photo, when `call_history.php` provided one for this
+          // record (see `OwnerCallHistory.buildingImage`'s doc comment) --
+          // added 2026-09-21 per explicit request. Skipped entirely when
+          // empty rather than showing a placeholder box, since most
+          // historical records won't have this field until the backend
+          // starts sending it consistently.
+          if (call.buildingImage.isNotEmpty) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: CachedNetworkImage(
+                imageUrl: call.buildingImage,
+                height: 130,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                placeholder: (_, __) => Container(
+                  height: 130,
+                  alignment: Alignment.center,
+                  color: isDark ? const Color(0xFF1B2029) : const Color(0xFFF1F4F9),
+                  child: const SizedBox(
+                    height: 26,
+                    width: 26,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+                errorWidget: (_, __, ___) => Container(
+                  height: 130,
+                  alignment: Alignment.center,
+                  color: isDark ? const Color(0xFF1B2029) : const Color(0xFFF1F4F9),
+                  child: Icon(Icons.broken_image_outlined,
+                      color: isDark ? Colors.white24 : Colors.black26, size: 28),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
           Row(
             children: [
               Container(

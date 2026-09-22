@@ -200,6 +200,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
   }
 
   Future<void> _fetchAgreementDetail() async {
+    print(widget.agreementId);
     try {
       final response = await http.get(Uri.parse(
           "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/detail_page_main_agreement.php?id=${widget.agreementId}"));

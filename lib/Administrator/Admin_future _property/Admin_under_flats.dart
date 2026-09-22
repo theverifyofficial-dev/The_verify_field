@@ -11,6 +11,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../ui_decoration_tools/app_images.dart';
 import '../../../model/realestateSlider.dart';
+import '../../Custom_Widget/Swipe_preview.dart';
 import '../../Custom_Widget/property_preview.dart';
 
 class Property {
@@ -1527,10 +1528,16 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
                                         builder: (BuildContext context) {
                                           return GestureDetector(
                                             onTap: () {
+                                              final imageUrls = images
+                                                  .map((e) =>
+                                              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${e.rimg}")
+                                                  .toList();
+
                                               Navigator.of(context).push(
                                                 MaterialPageRoute(
-                                                  builder: (context) => PropertyPreview(
-                                                    ImageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.rimg}",
+                                                  builder: (context) => SwipePreview(
+                                                    imageUrls: imageUrls,
+                                                    initialIndex: entry.key,
                                                   ),
                                                 ),
                                               );

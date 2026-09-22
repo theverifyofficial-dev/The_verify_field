@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 
@@ -401,6 +402,39 @@ class _OwnerCallsHistoryScreenState extends State<OwnerCallsHistoryScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Building photo, when `call_history.php` provided one for this
+          // record -- see `OwnerCallHistory.buildingImage`'s doc comment.
+          // Mirrors the same addition made to `owner_calls_detail.dart`'s
+          // own `_callHistoryCard` the same day, for a consistent look.
+          if (call.buildingImage.isNotEmpty) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: CachedNetworkImage(
+                imageUrl: call.buildingImage,
+                height: 120,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                placeholder: (_, __) => Container(
+                  height: 120,
+                  alignment: Alignment.center,
+                  color: isDark ? const Color(0xFF1B2029) : const Color(0xFFF1F4F9),
+                  child: const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+                errorWidget: (_, __, ___) => Container(
+                  height: 120,
+                  alignment: Alignment.center,
+                  color: isDark ? const Color(0xFF1B2029) : const Color(0xFFF1F4F9),
+                  child: Icon(Icons.broken_image_outlined,
+                      color: isDark ? Colors.white24 : Colors.black26, size: 26),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
           Row(
             children: [
               Container(

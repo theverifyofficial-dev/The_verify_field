@@ -9,6 +9,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../model/realestateSlider.dart';
+import '../../Custom_Widget/Swipe_preview.dart';
 import '../../Custom_Widget/property_preview.dart';
 import 'Edit_flat.dart';
 import 'add_image_under_futureproperty.dart'; // Note: Fix filename if 'Futureproipoerty' is a typo
@@ -2157,13 +2158,17 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                             (BuildContext
                                         context) {
                                           return GestureDetector(
-                                            onTap:
-                                                () {
-                                              Navigator.of(context)
-                                                  .push(
+                                            onTap: () {
+                                              final imageUrls = images
+                                                  .map((e) =>
+                                              "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${e.rimg}")
+                                                  .toList();
+
+                                              Navigator.of(context).push(
                                                 MaterialPageRoute(
-                                                  builder: (context) => PropertyPreview(
-                                                    ImageUrl: "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate/${item.rimg}",
+                                                  builder: (context) => SwipePreview(
+                                                    imageUrls: imageUrls,
+                                                    initialIndex: entry.key,
                                                   ),
                                                 ),
                                               );

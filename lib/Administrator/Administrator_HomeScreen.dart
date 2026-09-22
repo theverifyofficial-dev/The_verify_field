@@ -1,17 +1,12 @@
 import 'dart:convert';
-
 import 'package:animated_analog_clock/animated_analog_clock.dart';
 import '../../AppLogger.dart';
-import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Administrator/Admin_upcoming.dart';
-import '../Adminisstrator_Target_details/Targets.dart';
-import '../AppLogger.dart';
-import '../Calender/CalenderForAdmin.dart';
+import '../Admin_Target_And_Tasks/admin_target_and_tasks_home.dart';
 import '../Home_Screen.dart' hide AgreementTaskResponse, FuturePropertyResponse, WebsiteVisitResponse;
-import '../Paid Visit/Visit_Screen.dart';
 import '../Web_query/web_query.dart' hide SlideAnimation;
 import '../Z-Screen/Social_Media_links.dart';
 import '../main.dart';
@@ -95,6 +90,8 @@ class AdministratorHome_Screen extends StatefulWidget {
   @override
   State<AdministratorHome_Screen> createState() => _AdministratorHome_ScreenState();
 }
+
+
 
 class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> with TickerProviderStateMixin {
   int _currentIndex = 0;
@@ -252,93 +249,21 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
         .primaryColor;
 
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        surfaceTintColor: Colors.black,
-        backgroundColor: Colors.black,
-        title: Image.asset(AppImages.verify, height: 70),
-        leading: Container(
-          margin: const EdgeInsets.only(left: 8),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: () =>
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => AdminProfile()),
-                ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                // Important for proper centering
-                children: [
-                  Icon(
-                    PhosphorIcons.userCircle(),
-                    color: Colors.white,
-                    size: 28, // Slightly reduced for better proportion
-                  ),
-                  if (userName != null && userName!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      // Small top padding
-                      child: Text(
-                        userName!.length > 10
-                            ? '${userName!.substring(0, 10)}..'
-                            : userName!,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          height: 1.2,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        leadingWidth: 80,
-        // Fixed width for consistent spacing
-        actions:  [
-          IconButton(
-            icon: Icon(
-                ThemeSwitcher.of(context)?.themeMode == ThemeMode.dark
-                    ? Icons.light_mode
-                    : Icons.dark_mode,
-                color: Colors.yellow
-
-            ),
-            onPressed: () {
-              ThemeSwitcher.of(context)?.toggleTheme();
-            },
-          ),
-          SizedBox(width: 5,),
-          GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context)=> LinksPage()));
-            },
+      body: CustomScrollView(
+        slivers: [
+          // Rebuilt 2026-09-21 per explicit follow-up ("remove the admin
+          // & sub-admin's home screen's appbar & header & target task
+          // cards & add new one"): this replaces BOTH the old plain
+          // black `AppBar` (profile icon, theme toggle, web-link button)
+          // AND the separate greeting banner added in the previous pass
+          // with ONE combined, collapsing gradient `SliverAppBar` --
+          // matching `Home_Screen.dart`'s (field worker) own top header
+          // shape exactly, instead of two stacked headers. All three of
+          // the old AppBar's actions (profile nav, theme toggle, web
+          // link) are preserved, just moved into this header's row.
+          _buildTopHeader(context, isDarkMode),
+          SliverToBoxAdapter(
             child: Column(
-              children: [
-                SizedBox(height: 10,),
-                Row(
-                  children: [
-                    const Text('🌐'),
-                  ],
-                ),
-                const Text('Web', style: TextStyle(
-                      fontFamily: "PoppinsMedium",color: Colors.white),),
-              ],
-            ),
-          ),
-          const SizedBox(
-            width: 10,
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
              _AddTenantCard(),                 // <-- add this line
@@ -449,10 +374,15 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                   ),
                 ),
 
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                  child: _TargetHeaderCard(context),
-                ),
+                // Rebuilt 2026-09-22 per explicit follow-up ("remove
+                // the current admin home screen's target & task card &
+                // update the below calender UI & navigation to same as
+                // fieldworkers target & task card"): the separate
+                // `_taskAndTargetCard` this screen used to show above
+                // the calendar-preview card is gone -- `_todayCard`
+                // below is now itself titled/styled as the "Tasks &
+                // Targets" card (see that method's doc comment) and is
+                // the only entry point into `AdminTargetAndTasksHome`.
                 _todayCard(isDarkMode),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -487,7 +417,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 9,
+                        itemCount: 8,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
@@ -594,20 +524,6 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                               "count": 0,
 
                             },
-
-                            {
-                              "image": AppImages.money,
-                              "title": "Paid Visits",
-                              "onTap": () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (_) =>  const FieldVisitHistoryPage()));
-                              },
-                              "gradient": AppGradients.red(),
-                              "count": 0,
-                            },
-
                           ];
 
                           final item = featureItems[index];
@@ -633,118 +549,145 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
         ),
         ]
       ),
-    ));
-  }
-
-  Widget _TargetHeaderCard(BuildContext context) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => Target()),
-        );
-      },
-      child: Container(
-        width: double.infinity,
-        margin: const EdgeInsets.symmetric(vertical: 18),
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          gradient: LinearGradient(
-            colors: isDark?
-            [Color(0xFF1E1E1E), Color(0xFF2C2C2C)]
-                :
-            [Colors.grey.shade100, Colors.white],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: isDark
-                  ? Colors.white.withOpacity(0.08)
-                  : Colors.black.withOpacity(0.12),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            // 🔥 Animated Glow with Image
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(seconds: 2),
-                  curve: Curves.easeInOut,
-                  height: 70,
-                  width: 70,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: isDark
-                            ? Colors.blueAccent.withOpacity(0.4)
-                            : Colors.blue.withOpacity(0.4),
-                        blurRadius: 15,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                ),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(50),
-                  child: Image.asset(
-                    AppImages.target, // your target image asset here
-                    height: 55,
-                    width: 55,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(width: 18),
-
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Target",
-                      style: TextStyle(
-                      fontFamily: "PoppinsMedium",
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    "Tap to view progress",
-                      style: TextStyle(
-                      fontFamily: "PoppinsMedium",
-                      fontSize: 13.5,
-                      color: (isDark ? Colors.white : Colors.black).withOpacity(0.75),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 18,
-              color: isDark ? Colors.white70 : Colors.black54,
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
 
+  /// Small helper used by `_buildTopHeader` below -- mirrors
+  /// `Home_Screen.dart`'s (field worker) own local `getGreeting()`
+  /// closure, copied rather than shared since that one lives inline
+  /// inside a `build()` method, not as an exported function.
+  String _greetingText() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good Morning,';
+    if (hour < 17) return 'Good Afternoon,';
+    return 'Good Evening,';
+  }
+
+  /// Rebuilt 2026-09-21 per explicit follow-up ("remove the admin &
+  /// sub-admin's home screen's appbar & header & target task cards &
+  /// add new one"): ONE collapsing gradient `SliverAppBar`, styled like
+  /// `Home_Screen.dart`'s (field worker) own top header, replacing BOTH
+  /// the plain black `AppBar` this screen used to have AND the separate
+  /// greeting banner added in the previous pass. The old `AppBar`'s three
+  /// pieces of real functionality -- profile nav, theme toggle, web link
+  /// -- are preserved here, just rearranged into this header's own row
+  /// instead of `leading`/`actions`.
+  Widget _buildTopHeader(BuildContext context, bool isDark) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final expandedHeight = (MediaQuery.of(context).size.height * 0.15).clamp(160.0, 250.0);
+
+    return SliverAppBar(
+      expandedHeight: expandedHeight,
+      collapsedHeight: 64,
+      floating: true,
+      pinned: true,
+      elevation: 10,
+      backgroundColor: Colors.black,
+      automaticallyImplyLeading: false,
+      flexibleSpace: FlexibleSpaceBar(
+        collapseMode: CollapseMode.parallax,
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple.shade700, Colors.indigo.shade800, Colors.blue.shade900],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(40),
+              bottomRight: Radius.circular(40),
+            ),
+          ),
+          child: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04, vertical: 6),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      InkWell(
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context) => AdminProfile()),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.account_circle, color: Colors.white, size: 30),
+                            if (userName != null && userName!.isNotEmpty)
+                              Text(
+                                userName!.length > 10 ? '${userName!.substring(0, 10)}..' : userName!,
+                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                          ],
+                        ),
+                      ),
+                      Image.asset(AppImages.transparent, height: 36),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              ThemeSwitcher.of(context)?.themeMode == ThemeMode.dark
+                                  ? Icons.light_mode
+                                  : Icons.dark_mode,
+                              color: Colors.yellow,
+                            ),
+                            onPressed: () => ThemeSwitcher.of(context)?.toggleTheme(),
+                          ),
+                          IconButton(
+                            onPressed: () => Navigator.of(context)
+                                .push(MaterialPageRoute(builder: (context) => LinksPage())),
+                            icon: const Text('🌐', style: TextStyle(fontSize: 20)),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+                  child: Row(
+                    children: [
+                      Text(
+                        _greetingText(),
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.75),
+                          fontFamily: "PoppinsMedium",
+                          fontSize: 22,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          '${userName ?? ''}.',
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontFamily: "PoppinsMedium",
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildFeatureCard({
     required BuildContext context,
@@ -857,6 +800,22 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
       ),
     );
   }
+  /// Admin's "Tasks & Targets" card -- previously a plain "Today's
+  /// Events" calendar teaser navigating to `CalendarTaskPageForAdmin`
+  /// (`CalenderForAdmin.dart`). Rebuilt 2026-09-22 per explicit request
+  /// ("update the below calender UI & navigation to same as
+  /// fieldworkers target & task card"): gained the same cyan/purple
+  /// "Tasks & Targets" accent-bar header the field worker's own
+  /// `_tasksAndTargetsCard` (`Home_Screen.dart`) shows above its
+  /// date/today's-counts content, and now navigates to
+  /// `AdminTargetAndTasksHome` instead of the old calendar screen --
+  /// this card is now the ONLY "Tasks & Targets" entry point on this
+  /// home screen (the separate card that used to sit above it is gone).
+  /// The field worker's card also has a "Tomorrow's events" preview
+  /// below its today's-counts section; that's deliberately NOT
+  /// replicated here -- there's no existing admin-wide API for
+  /// tomorrow's events, and guessing one would risk showing wrong data,
+  /// per explicit decision to skip it rather than guess.
   Widget _todayCard(bool isDark) {
     final today = DateTime.now();
 
@@ -878,7 +837,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const CalendarTaskPageForAdmin()),
+          MaterialPageRoute(builder: (_) => const AdminTargetAndTasksHome()),
         );
       },
       child: Container(
@@ -913,6 +872,36 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
+            /// -------- "TASKS & TARGETS" HEADER (2026-09-22) --------
+            /// Same accent-bar + title treatment as the field worker's
+            /// own `_tasksAndTargetsCard` in `Home_Screen.dart`.
+            Row(
+              children: [
+                Container(
+                  width: 4,
+                  height: 20,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Colors.cyan, Colors.purpleAccent],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Text(
+                  "Tasks & Targets",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
 
             /// -------- HEADER --------
             Row(

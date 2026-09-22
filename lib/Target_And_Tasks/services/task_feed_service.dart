@@ -51,8 +51,10 @@ class TaskFeedService {
           '$_base/accept_agreement_task.php?current_dates=$d&Fieldwarkarnumber=$fieldWorkerNumber')),
       _get(Uri.parse(
           '$_base/tenant_demand_for_field_task.php?fieldworker_assigned_at=$d&assigned_fieldworker_name=${Uri.encodeComponent(fieldWorkerName)}')),
-      _get(Uri.parse(
-          '$_base/live_property_task_for_fieldworkar.php?field_workar_number=$fieldWorkerNumber&date_for_target=$d')),
+      // `live_property_task_for_fieldworkar.php` (Live Rent/Live Buy task
+      // data) REMOVED from this list entirely per explicit request
+      // (2026-09-21) -- was `results[6]`; every index below shifted down
+      // by one to close the gap.
       _get(Uri.parse(
           '$_base/book_visit_in_tenant_demand_for_fields.php?visiting_dates=$d&assigned_fieldworker_name=${Uri.encodeComponent(fieldWorkerName)}')),
       _get(Uri.parse(
@@ -73,10 +75,9 @@ class TaskFeedService {
     tasks.addAll(_parsePendingAgreements(results[3], date));
     tasks.addAll(_parseAcceptedAgreements(results[4], date));
     tasks.addAll(_parseTenantDemand(results[5], date));
-    tasks.addAll(_parseLiveProperty(results[6], date));
-    tasks.addAll(_parseBookedVisits(results[7], date));
-    tasks.addAll(_parseUpcomingFlats(results[8], date));
-    tasks.addAll(_parseAddFlats(results[9], date));
+    tasks.addAll(_parseBookedVisits(results[6], date));
+    tasks.addAll(_parseUpcomingFlats(results[7], date));
+    tasks.addAll(_parseAddFlats(results[8], date));
 
     // Owner-call tasks: the new `due_calls.php` feed. Unlike the other
     // feeds above, this one isn't per-date (the redesign spec's endpoint
@@ -108,16 +109,12 @@ class TaskFeedService {
               '_owner_name': c.ownerName,
               '_building_address': c.buildingAddress,
               '_property_id': c.propertyId,
+              '_building_image': c.buildingImage,
             },
           ),
         ),
       );
-
-      print(
-        '[TASK FEED] Owner calls added: ${dueCalls.length}',
-      );
     } catch (e, stack) {
-      print('[TASK FEED] Owner call feed failed: $e');
       print(stack);
     }
 
@@ -170,7 +167,7 @@ class TaskFeedService {
       return AgentTask(
         id: 'building_${j['id']}',
         type: AgentTaskType.buildingFollowUp,
-        title: j['propertyname_address'] ?? 'Building follow-up',
+        title: j['propertyname_address'] ?? 'New Building',
         subtitle: '${j['place'] ?? ''} · caretaker ${j['caretakername'] ?? ''}',
         dueDate: date,
         raw: Map<String, dynamic>.from(j),
@@ -245,21 +242,6 @@ class TaskFeedService {
     }).toList();
   }
 
-  /// Field names confirmed against `LiveFlat.fromJson` in
-  /// `CalenderForFieldWorker.dart`.
-  List<AgentTask> _parseLiveProperty(dynamic decoded, DateTime date) {
-    final list = _dataList(decoded);
-    return list.map((j) {
-      return AgentTask(
-        id: 'live_${j['P_id']}',
-        type: AgentTaskType.liveProperty,
-        title: '${j['Apartment_name'] ?? 'Live property'} — ${j['Flat_number'] ?? ''}',
-        subtitle: '${j['Buy_Rent'] ?? ''} · ${j['locations'] ?? ''}',
-        dueDate: date,
-        raw: Map<String, dynamic>.from(j),
-      );
-    }).toList();
-  }
 
   /// `book_visit_in_tenant_demand_for_fields.php` — field names confirmed
   /// against `BookedTenantVisit.fromJson`. Never fetched before this pass;
@@ -273,7 +255,7 @@ class TaskFeedService {
       return AgentTask(
         id: 'book_visit_${j['id']}',
         type: AgentTaskType.bookVisit,
-        title: 'Booked visit — ${j['Tname'] ?? ''}',
+        title: 'visit Booked— ${j['Tname'] ?? ''}',
         subtitle: '${j['Bhk'] ?? ''} · ${j['Location'] ?? ''}',
         dueDate: _tryParseDate(j['Date']) ?? date,
         raw: Map<String, dynamic>.from(j),
@@ -295,6 +277,20 @@ class TaskFeedService {
     }).toList();
   }
 
+  /// `task_for_add_flat_in_future_property.php` -- title/subtitle no
+  /// longer read `Apartment_name` (2026-09-22 fix, per explicit request
+  /// "don't show furnishing items in the task card"): that field is
+  /// overloaded by the add-flat form itself (see
+  /// `add_flat_form.dart`'s own `"Apartment_name":` write, and
+  /// `Duplicate_Property.dart`'s matching read) -- when the flat is
+  /// Semi/Fully Furnished, the backend is sent the selected FURNITURE
+  /// ITEMS list (e.g. "Bed(2), Sofa(1)") in this field instead of an
+  /// actual name, so the task card was literally showing furniture
+  /// items where an apartment name should be. `Flat_number` (already
+  /// used the same way by `_parseUpcomingFlats` below) and
+  /// `Apartment_Address` are real identifying fields for this record
+  /// (confirmed against `flat_edit_model.dart`'s `Property1.fromJson`)
+  /// and never carry furnishing data, so they replace it here.
   List<AgentTask> _parseAddFlats(
       dynamic decoded,
       DateTime date,
@@ -306,9 +302,9 @@ class TaskFeedService {
         id: 'add_flat_${j['P_id']}',
         type: AgentTaskType.addFlat,
         title:
-        'Add Flat — ${j['Flat_number'] ?? ''}',
+        'Flat Added — ${j['Flat_number'] ?? j['Apartment_Address'] ?? ''}',
         subtitle:
-        '${j['Apartment_name'] ?? ''} · '
+        '${j['Apartment_Address'] ?? ''} · '
             '${j['locations'] ?? ''} · '
             '${j['Bhk'] ?? ''}',
         dueDate:
@@ -373,19 +369,11 @@ class TaskFeedService {
   }
 
   Future<dynamic> _get(Uri uri) async {
-    print('');
-    print('========================================');
-    print('[TASK FEED] GET');
-    print(uri);
-    print('========================================');
 
     try {
       final res = await http
           .get(uri)
           .timeout(const Duration(seconds: 15));
-
-      print('[TASK FEED] Status: ${res.statusCode}');
-      print('[TASK FEED] Body: ${res.body}');
 
       if (res.statusCode != 200) {
         print(

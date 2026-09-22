@@ -220,7 +220,7 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
               return ListView.builder(
                   itemCount: displayList.length,
                   itemBuilder: (BuildContext context,int len){
-                    int displayIndex = len + 1;
+                    int displayIndex = displayList.length - len;
                     return GestureDetector(
                       onTap: () async {
                       },

@@ -37,32 +37,31 @@ class Cat_id {
     required this.buyrent,
   });
 
+  /// null, missing keys and the literal string "null" all become ''.
+  static String _s(dynamic v) {
+    final t = v?.toString().trim() ?? '';
+    return t.toLowerCase() == 'null' ? '' : t;
+  }
+
   factory Cat_id.fromJson(Map<String, dynamic> json) {
     return Cat_id(
-      id: json['VTD_id'] ?? 0,
-
-      V_name: json['V_name']?.toString() ?? '',
-      V_number: json['V_number']?.toString() ?? '',
-      bhk: json['bhk']?.toString() ?? '',
-      budget: json['budget']?.toString() ?? '',
-      place: json['place']?.toString() ?? '',
-      floor_option: json['floor_option']?.toString() ?? '',
-      Additional_Info: json['Additional_Info']?.toString() ?? '',
-      Shifting_date: json['Shifting_date']?.toString() ?? '',
-
-      Current_date: json['Current__Date']?.toString() ?? '',
-
-      Parking: json['Parking']?.toString() ?? '',
-      Gadi_Number: json['Gadi_Number']?.toString() ?? '',
-
-      FeildWorker_Name: json['FeildWorker_Name']?.toString() ?? '',
-      FeildWorker_Number: json['FeildWorker_Number']?.toString() ?? '',
-
-      Current__Date: json['Current__Date']?.toString() ?? '',
-
-      Family_Members: json['Family_Members']?.toString() ?? '',
-
-      buyrent: json['Buy_rent']?.toString() ?? '',
+      id: int.tryParse(_s(json['VTD_id'])) ?? 0,
+      V_name: _s(json['V_name']),
+      V_number: _s(json['V_number']),
+      bhk: _s(json['bhk']),
+      budget: _s(json['budget']),
+      place: _s(json['place']),
+      floor_option: _s(json['floor_option']),
+      Additional_Info: _s(json['Additional_Info']),
+      Shifting_date: _s(json['Shifting_date']),
+      Current_date: _s(json['Current__Date']),
+      Parking: _s(json['Parking']),
+      Gadi_Number: _s(json['Gadi_Number']),
+      FeildWorker_Name: _s(json['FeildWorker_Name']),
+      FeildWorker_Number: _s(json['FeildWorker_Number']),
+      Current__Date: _s(json['Current__Date']),
+      Family_Members: _s(json['Family_Members']),
+      buyrent: _s(json['Buy_rent']),
     );
   }
 }

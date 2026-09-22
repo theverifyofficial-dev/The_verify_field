@@ -187,12 +187,10 @@ class MonthlyCommercialModel {
 }
 
 
-Future<List<MonthlyCommercialModel>> fetchMonthlyCommercial() async {
-  final prefs = await SharedPreferences.getInstance();
-  final FNumber = prefs.getString('number') ?? "";
-  print(FNumber);
+Future<List<MonthlyCommercialModel>> fetchMonthlyCommercial(String number) async {
+  print(number);
   final url = Uri.parse(
-    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/commercial_month.php?field_workar_number=$FNumber",
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/commercial_month.php?field_workar_number=$number",
   );
 
   final res = await http.get(url);
@@ -210,7 +208,9 @@ Future<List<MonthlyCommercialModel>> fetchMonthlyCommercial() async {
 }
 
 class MonthlyCommercialScreen extends StatefulWidget {
-  const MonthlyCommercialScreen({super.key});
+  final String? number;
+
+  const MonthlyCommercialScreen({super.key, this.number});
 
   @override
   State<MonthlyCommercialScreen> createState() =>
@@ -223,7 +223,23 @@ class _MonthlyCommercialScreenState extends State<MonthlyCommercialScreen> {
   @override
   void initState() {
     super.initState();
-    futureData = fetchMonthlyCommercial();
+    _initLoad();
+  }
+
+  Future<void> _initLoad() async {
+    String numberToUse;
+    if (widget.number != null && widget.number!.isNotEmpty) {
+      numberToUse = widget.number!;
+    } else {
+      final prefs = await SharedPreferences.getInstance();
+      numberToUse = prefs.getString('number') ?? "";
+    }
+    if (numberToUse.isEmpty) {
+      futureData = Future.error("Field Worker Number Missing");
+    } else {
+      futureData = fetchMonthlyCommercial(numberToUse);
+    }
+    if (mounted) setState(() {});
   }
 
   @override

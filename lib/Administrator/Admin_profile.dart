@@ -1,13 +1,10 @@
-
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';import 'package:get/get.dart';
+import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Administrator/Account_registeration.dart';
-
-import '../APK_VERSION/ApkVersionScreen.dart';
 import '../Z-Screen/Login_page.dart';
 import '../model/Profile_model.dart';
 import 'FieldAgentAccount.dart';
@@ -158,10 +155,6 @@ class _ProfilePageState extends State<AdminProfile> {
                   );
                   break;
                 case 'APK':
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const ApkVersionScreen()),
-                  );
                   break;
               }
             },

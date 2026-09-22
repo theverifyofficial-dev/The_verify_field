@@ -169,6 +169,8 @@ class _Feedback_DetailsState extends State<Feedback_Details> {
       String Current__Date,String Buy_rent,String pending_sub_id) async {
     String uploadUrl = 'https://verifyrealestateandservices.in/PHP_Files/add_verify_tenant_demand/insert.php'; // Replace with your API endpoint
 
+    print(Current__Date);
+
     FormData formData = FormData.fromMap({
       "V_name": V_name,
       "V_number": V_number,
@@ -192,6 +194,8 @@ class _Feedback_DetailsState extends State<Feedback_Details> {
 
     try {
       Response response = await dio.post(uploadUrl, data: formData);
+
+      print(response);
       if (response.statusCode == 200) {
         Fluttertoast.showToast(
             msg: "Upload successful",
@@ -2991,6 +2995,7 @@ class _Feedback_DetailsState extends State<Feedback_Details> {
                             onPressed: () async {
                               fetchData(widget.id);
                               final result_tenant = await fetchData(widget.id);
+                              print(result_tenant.first.Current__Date);
 
                               uploadImageWithTitle(result_tenant.first.V_name, result_tenant.first.V_number, result_tenant.first.bhk, result_tenant.first.budget, result_tenant.first.place, result_tenant.first.floor_option, result_tenant.first.Family_Members, result_tenant.first.Additional_Info, result_tenant.first.Shifting_date, result_tenant.first.Parking, result_tenant.first.Gadi_Number, result_tenant.first.FeildWorker_Name, result_tenant.first.FeildWorker_Number, result_tenant.first.Current_date, result_tenant.first.buyrent, widget.id);
 

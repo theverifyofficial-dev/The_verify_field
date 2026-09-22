@@ -135,6 +135,26 @@ DateTime add11Months(DateTime d) {
 
 /* -------------------- PDF GENERATOR -------------------- */
 
+DateTime parseApiDate(dynamic value) {
+  if (value == null) {
+    throw const FormatException('Date value is null');
+  }
+
+  // API sometimes returns:
+  // {"date":"2026-09-23 00:00:00.000000", ...}
+  if (value is Map) {
+    value = value['date'];
+  }
+
+  final dateString = value.toString().trim();
+
+  if (dateString.isEmpty) {
+    throw const FormatException('Date value is empty');
+  }
+
+  return DateTime.parse(dateString);
+}
+
 Future<File> generateCommercialAgreementPdf(Map<String, dynamic> data) async {
   final pdf = pw.Document();
 
@@ -163,8 +183,8 @@ Future<File> generateCommercialAgreementPdf(Map<String, dynamic> data) async {
   final rawGstType = data['gst_type']?.toString().trim() ?? '';
   final rawGstNo = data['gst_no']?.toString().trim() ?? '';
 
-  final DateTime startDate = DateTime.parse(data['shifting_date'].toString());
-  final DateTime fullDate = DateTime.parse(data['current_dates'].toString());
+  final DateTime startDate = parseApiDate(data['shifting_date']);
+  final DateTime fullDate = parseApiDate(data['current_dates']);
 
   final currentDate = DateTime.now();
   final currentDateFormatted =

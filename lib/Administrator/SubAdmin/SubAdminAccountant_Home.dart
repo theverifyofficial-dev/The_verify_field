@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:animated_analog_clock/animated_analog_clock.dart';
 import '../../AppLogger.dart';
 import '../../AppLogger.dart';
 import 'package:flutter/material.dart';import 'package:phosphor_flutter/phosphor_flutter.dart';
@@ -8,8 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Z-Screen/Login_page.dart';
 import '../../Adminisstrator_Target_details/Targets.dart';
+import '../../Admin_Target_And_Tasks/admin_target_and_tasks_home.dart';
 import '../../Administrator/Administator_Agreement/Admin_dashboard.dart';
-import '../../Calender/CalenderForAdmin.dart';
 import '../../Demand_2/Tabbar.dart';
 import '../../Future_Property_OwnerDetails_section/Future_Property.dart';
 import '../../Future_Property_OwnerDetails_section/Future_Property_Tabbar.dart';
@@ -44,6 +45,8 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
   int BookCount = 0;
   String? userName;
   String? userNumber;
+  int? _todayAgreements;
+  int? _todayWebsiteVisits;
 
   late AnimationController _shineController;
   late Animation<double> _shineAnimation;
@@ -54,6 +57,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
     loadUserName();
     fetchAgreementCount(); // must exist
     fetchBookCount(); // must exist
+    fetchTodayData();
     _shineController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
@@ -163,96 +167,22 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
         .primaryColor;
 
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        surfaceTintColor: Colors.black,
-        backgroundColor: Colors.black,
-        title: Image.asset(AppImages.verify, height: 70),
-        leading: Container(
-          margin: const EdgeInsets.only(left: 8),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: () =>
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => ProfilePage()),
-                ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                // Important for proper centering
-                children: [
-                  Icon(
-                    PhosphorIcons.userCircle(),
-                    color: Colors.white,
-                    size: 28, // Slightly reduced for better proportion
-                  ),
-                  if (userName != null && userName!.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      // Small top padding
-                      child: Text(
-                        userName!.length > 10
-                            ? '${userName!.substring(0, 10)}..'
-                            : userName!,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 10, // Reduced font size
-                          fontWeight: FontWeight.bold,
-                          height: 1.2, // Line height adjustment
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        leadingWidth: 80,
-        // Fixed width for consistent spacing
-        actions:  [
-          // IconButton(
-          //   icon: Icon(
-          //       ThemeSwitcher.of(context)?.themeMode == ThemeMode.dark
-          //           ? Icons.light_mode
-          //           : Icons.dark_mode,
-          //       color: Colors.yellow
-          //
-          //   ),
-          //   onPressed: () {
-          //     ThemeSwitcher.of(context)?.toggleTheme();
-          //   },
-          // ),
-          //SizedBox(width: 5,),
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => LinksPage()),
-              );
-            },
+      body: CustomScrollView(
+        slivers: [
+          // Rebuilt 2026-09-21 per explicit follow-up ("remove the admin
+          // & sub-admin's home screen's appbar & header & target task
+          // cards & add new one"): replaces BOTH the old plain black
+          // `AppBar` (profile icon, web-link button -- the theme toggle
+          // here was already commented out/disabled before this pass)
+          // AND the separate greeting banner added in the previous pass
+          // with ONE combined, collapsing gradient `SliverAppBar`,
+          // mirroring `Administrator_HomeScreen.dart`'s own identical
+          // rebuild in the same pass.
+          _buildTopHeader(context, isDarkMode),
+          SliverToBoxAdapter(
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Text('🌐'),
-                Text('Web',
-                    style:
-                    TextStyle(
-                        color: Colors.white,
-                        fontSize: 12)),
-              ],
-            ),
-          ),
-          //const SizedBox(width: 12),
-          const SizedBox(
-            width: 10,
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: AnimationLimiter(
+          children: [
+            AnimationLimiter(
           child: Column(
             children: [
               Column(
@@ -363,9 +293,19 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                       ),
 
                     ),
+                    // Rebuilt 2026-09-22 per explicit follow-up ("remove
+                    // the current admin home screen's target & task card
+                    // & update the below calender UI & navigation to
+                    // same as fieldworkers target & task card ... also
+                    // applied it for sub admin"): the separate
+                    // `_taskAndTargetCard` this screen used to show
+                    // above the grid is gone -- `_todayCard` below is
+                    // now itself titled/styled as the "Tasks & Targets"
+                    // card (see that method's doc comment) and is the
+                    // only entry point into `AdminTargetAndTasksHome`.
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                      child: _TargetHeaderCard(context),
+                      child: _todayCard(isDarkMode),
                     ),
                     const SizedBox(height: 10),
                     // Grid of Feature Cards
@@ -391,15 +331,6 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                   context,
                                   MaterialPageRoute(builder: (_) => const AdminDashboard())),
                               "count": pendingCount,
-                            },
-                            {
-                              "image": AppImages.calendar,
-                              "title": "Task Calendar",
-                              "onTap": () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) => const CalendarTaskPageForAdmin())),
-                              "count": 0,
                             },
                             {
                               "image": AppImages.propertysale,
@@ -586,195 +517,17 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                         ),
                       ),
                     ]
-
-
-
                   ],
                 ),
               ),
-              // Column(
-              //   children: [
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 16),
-              //       child: AnimatedBuilder(
-              //         animation: _shineAnimation,
-              //         builder: (context, child) {
-              //           return Container(
-              //             decoration: BoxDecoration(
-              //               borderRadius: BorderRadius.circular(16),
-              //               gradient: LinearGradient(
-              //                 colors: [
-              //                   const Color(0xFF00C6FF),
-              //                   primaryColor.withOpacity(0.25 + 0.4 * _shineAnimation.value),
-              //                   const Color(0xFF0072FF),
-              //                 ],
-              //                 stops: const [0.0, 0.5, 1.0],
-              //                 begin: Alignment(
-              //                     -1.0 + (2.0 * _shineAnimation.value), -1.0),
-              //                 end: Alignment(
-              //                     1.0 - (2.0 * _shineAnimation.value), 1.0),
-              //               ),
-              //             ),
-              //             child: Card(
-              //               color: isDarkMode ? Colors.white10 : Colors.white,
-              //               shape: RoundedRectangleBorder(
-              //                 borderRadius: BorderRadius.circular(16),
-              //                 side: BorderSide(
-              //                   color: primaryColor.withOpacity(
-              //                       0.3 * _shineAnimation.value),
-              //                   width: 1.5,
-              //                 ),
-              //               ),
-              //               elevation: 6,
-              //               shadowColor: primaryColor.withOpacity(0.2),
-              //               child: InkWell(
-              //                 // onTap: () =>
-              //                 //     Navigator.push(
-              //                 //       context,
-              //                 //       MaterialPageRoute(
-              //                 //         builder: (
-              //                 //             context) =>
-              //                 //         const ADministaterShow_realestete(),
-              //                 //       ),
-              //                 //     ),
-              //                 borderRadius: BorderRadius.circular(16),
-              //                 child: Padding(
-              //                   padding: const EdgeInsets.all(16.0),
-              //                   child: Row(
-              //                     crossAxisAlignment: CrossAxisAlignment.center,
-              //                     children: [
-              //                       Container(
-              //                         height: 50,
-              //                         width: 50,
-              //                         decoration: BoxDecoration(
-              //                           borderRadius: BorderRadius.circular(12),
-              //                           boxShadow: [
-              //                             BoxShadow(
-              //                               color: Colors.black.withOpacity(0.1),
-              //                               blurRadius: 8,
-              //                               offset: const Offset(2, 4),
-              //                             ),
-              //                           ],
-              //                         ),
-              //                         child: ClipRRect(
-              //                           borderRadius: BorderRadius.circular(12),
-              //                           child: Image.asset(
-              //                             AppImages.dividend,
-              //                             fit: BoxFit.cover,
-              //                           ),
-              //                         ),
-              //                       ),
-              //                       const SizedBox(width: 16),
-              //                       Expanded(
-              //                         child: Text(
-              //                           "Manage Accounts",
-              //                           style: Theme
-              //                               .of(context)
-              //                               .textTheme
-              //                               .titleLarge
-              //                               ?.copyWith(
-              //                             color: isDarkMode
-              //                                 ? Colors.white
-              //                                 : Colors.grey.shade700,
-              //                             fontWeight: FontWeight.w700,
-              //                             fontFamily: "PoppinsBold",
-              //                           ),
-              //                         ),
-              //                       ),
-              //                     ],
-              //                   ),
-              //                 ),
-              //               ),
-              //             ),
-              //           );
-              //         },
-              //       ),
-              //
-              //     ),
-              //     const SizedBox(height: 10),
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 16),
-              //       child: LayoutBuilder(
-              //         builder: (context, constraints) {
-              //           final screenWidth = MediaQuery
-              //               .of(context)
-              //               .size
-              //               .width;
-              //           final screenHeight = MediaQuery
-              //               .of(context)
-              //               .size
-              //               .height;
-              //
-              //           // Dynamic grid calculation
-              //           final crossAxisCount = screenWidth > 800 ? 4 :
-              //           screenWidth > 600 ? 3 : 2;
-              //
-              //           // Calculate item width based on available space
-              //           final availableWidth = constraints.maxWidth;
-              //           final itemWidth = (availableWidth -
-              //               ((crossAxisCount - 1) * 16)) / crossAxisCount;
-              //           final childAspectRatio = itemWidth /
-              //               (itemWidth * 1.1); // Height is 10% more than width
-              //
-              //           return GridView.builder(
-              //             shrinkWrap: true,
-              //             physics: const NeverScrollableScrollPhysics(),
-              //             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              //               crossAxisCount: crossAxisCount,
-              //               childAspectRatio: childAspectRatio,
-              //               crossAxisSpacing: 16,
-              //               mainAxisSpacing: 16,
-              //             ),
-              //             itemCount: 2,
-              //             itemBuilder: (context, index) {
-              //               final List<Map<String, dynamic>> featureItems = [
-              //                 {
-              //                   "image": AppImages.agreement,
-              //                   "title": "Company \nExpenses",
-              //                   "onTap": () async {
-              //                     Navigator.push(
-              //                       context,
-              //                       MaterialPageRoute(
-              //                         builder: (_) => const TabbarControl(),
-              //                       ),
-              //                     );
-              //                   },
-              //                 },
-              //                 {
-              //                   'image': AppImages.pay,
-              //                   'title': "Salary \nExpenses",
-              //                   'onTap': () {
-              //                     Navigator.push(context, MaterialPageRoute(
-              //                         builder: (
-              //                             context) => const Salary_TabbarControl()));
-              //                   }
-              //                 },
-              //               ];
-              //
-              //               final item = featureItems[index];
-              //
-              //               return _buildFeatureCard(
-              //                 context: context,
-              //                 imagePath: item['image'],
-              //                 title: item['title'],
-              //                 onTap: item['onTap'],
-              //                 shineAnimation: _shineAnimation,
-              //                 itemWidth: itemWidth,
-              //               );
-              //             },
-              //           );
-              //         },
-              //       ),
-              //     ),
-              //     const SizedBox(height: 40),
-              //   ],
-              // ),
-
             ],
           ),
         ),
+      ],
+          ),
       ),
-
+        ],
+      ),
     );
   }
 
@@ -891,106 +644,351 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
     );
   }
 
-  Widget _TargetHeaderCard(BuildContext context) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+  /// Small helper used by `_buildTopHeader` below -- mirrors
+  /// `Administrator_HomeScreen.dart`'s identically-named helper, added in
+  /// the same pass.
+  String _greetingText() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good Morning,';
+    if (hour < 17) return 'Good Afternoon,';
+    return 'Good Evening,';
+  }
+
+  /// Rebuilt 2026-09-21 per explicit follow-up ("remove the admin &
+  /// sub-admin's home screen's appbar & header & target task cards &
+  /// add new one"): ONE collapsing gradient `SliverAppBar`, mirroring
+  /// `Administrator_HomeScreen.dart`'s own identical rebuild in the same
+  /// pass, replacing BOTH the old plain black `AppBar` (profile icon,
+  /// web-link button -- the theme toggle was already commented out
+  /// before this pass, so it is NOT re-added here) AND the separate
+  /// greeting banner from the previous pass.
+  Widget _buildTopHeader(BuildContext context, bool isDark) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final expandedHeight = (MediaQuery.of(context).size.height * 0.15).clamp(160.0, 250.0);
+
+    return SliverAppBar(
+      expandedHeight: expandedHeight,
+      collapsedHeight: 64,
+      floating: true,
+      pinned: true,
+      elevation: 10,
+      backgroundColor: Colors.black,
+      automaticallyImplyLeading: false,
+      flexibleSpace: FlexibleSpaceBar(
+        collapseMode: CollapseMode.parallax,
+        background: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.purple.shade700, Colors.indigo.shade800, Colors.blue.shade900],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(40),
+              bottomRight: Radius.circular(40),
+            ),
+          ),
+          child: SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.04, vertical: 6),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      InkWell(
+                        borderRadius: BorderRadius.circular(20),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context) => ProfilePage()),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.account_circle, color: Colors.white, size: 30),
+                            if (userName != null && userName!.isNotEmpty)
+                              Text(
+                                userName!.length > 10 ? '${userName!.substring(0, 10)}..' : userName!,
+                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                          ],
+                        ),
+                      ),
+                      Image.asset(AppImages.transparent, height: 36),
+                      IconButton(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => LinksPage()),
+                        ),
+                        icon: const Text('🌐', style: TextStyle(fontSize: 20)),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+                  child: Row(
+                    children: [
+                      Text(
+                        _greetingText(),
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.75),
+                          fontFamily: "PoppinsMedium",
+                          fontSize: 22,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          '${userName ?? ''}.',
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontFamily: "PoppinsMedium",
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Sub-admin's "Tasks & Targets" card -- previously a small grid tile
+  /// ("Task Calendar" in `mainItems`) navigating to
+  /// `CalendarTaskPageForAdmin`. Rebuilt 2026-09-22 per explicit request
+  /// ("remove the current admin home screen's target & task card &
+  /// update the below calender UI & navigation to same as fieldworkers
+  /// target & task card ... also applied it for sub admin"): this is now
+  /// a full-width card with the same cyan/purple "Tasks & Targets"
+  /// accent-bar header + date/today's-counts layout as
+  /// `Administrator_HomeScreen.dart`'s own `_todayCard` (itself matching
+  /// the field worker's `_tasksAndTargetsCard` in `Home_Screen.dart`),
+  /// and it navigates to `AdminTargetAndTasksHome` instead of the old
+  /// calendar screen. The old "Task Calendar" grid tile is removed from
+  /// `mainItems` below, and the separate `_taskAndTargetCard` this
+  /// screen used to show above the grid is gone -- this card is now the
+  /// ONLY "Tasks & Targets" entry point. No "Tomorrow's events" preview
+  /// (same explicit decision as the admin screen -- no existing
+  /// sub-admin-wide API for it, and guessing one risks showing wrong
+  /// data).
+  Widget _todayCard(bool isDark) {
+    final today = DateTime.now();
+
+    final monthNames = [
+      "Jan","Feb","Mar","Apr","May","Jun",
+      "Jul","Aug","Sep","Oct","Nov","Dec"
+    ];
+
+    final weekNames = [
+      "MON","TUE","WED","THU","FRI","SAT","SUN"
+    ];
+
+    final agreements = _todayAgreements ?? 0;
+    final websiteVisits = _todayWebsiteVisits ?? 0;
+    final totalToday = agreements + websiteVisits;
 
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => Target()),
+          MaterialPageRoute(builder: (_) => const AdminTargetAndTasksHome()),
         );
       },
       child: Container(
         width: double.infinity,
-        margin: const EdgeInsets.symmetric(vertical: 18),
-        padding: const EdgeInsets.all(18),
+        margin: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
           gradient: LinearGradient(
-            colors: isDark?
-            [Color(0xFF1E1E1E), Color(0xFF2C2C2C)]
-                :
-            [Colors.grey.shade100, Colors.white],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDark
+                ? [
+              Colors.grey.shade900,
+              Colors.black87,
+              Colors.grey.shade900,
+            ]
+                : [
+              Colors.white,
+              Colors.white,
+            ],
           ),
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
-              color: isDark
-                  ? Colors.white.withOpacity(0.08)
-                  : Colors.black.withOpacity(0.12),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
+              blurRadius: 25,
+              spreadRadius: 1,
+              offset: const Offset(0, 12),
             ),
           ],
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🔥 Animated Glow with Image
-            Stack(
-              alignment: Alignment.center,
+
+            /// -------- "TASKS & TARGETS" HEADER --------
+            /// Same accent-bar + title treatment as the field worker's
+            /// own `_tasksAndTargetsCard` in `Home_Screen.dart` and
+            /// `Administrator_HomeScreen.dart`'s `_todayCard`.
+            Row(
               children: [
-                AnimatedContainer(
-                  duration: const Duration(seconds: 2),
-                  curve: Curves.easeInOut,
-                  height: 70,
-                  width: 70,
+                Container(
+                  width: 4,
+                  height: 20,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: isDark
-                            ? Colors.blueAccent.withOpacity(0.4)
-                            : Colors.blue.withOpacity(0.4),
-                        blurRadius: 15,
-                        spreadRadius: 2,
+                    gradient: const LinearGradient(
+                      colors: [Colors.cyan, Colors.purpleAccent],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Text(
+                  "Tasks & Targets",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+
+            /// -------- DATE / CLOCK --------
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        weekNames[today.weekday - 1],
+                        style: const TextStyle(
+                          fontFamily: "PoppinsMedium",
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        today.day.toString(),
+                        style: const TextStyle(
+                          fontFamily: "PoppinsMedium",
+                          color: Colors.white,
+                          fontSize: 30,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        monthNames[today.month - 1],
+                        style: const TextStyle(
+                          fontFamily: "PoppinsMedium",
+                          color: Colors.white70,
+                          fontSize: 11,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(50),
-                  child: Image.asset(
-                    AppImages.target, // your target image asset here
-                    height: 55,
-                    width: 55,
-                    fit: BoxFit.cover,
+                const Spacer(),
+                Container(
+                  width: 90,
+                  height: 90,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [Colors.white, Colors.blueGrey.shade100],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                    border: Border.all(color: Colors.blueGrey.shade200, width: 1.5),
+                  ),
+                  child: const ClipOval(
+                    child: Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: AnimatedAnalogClock(
+                        size: 90,
+                        hourHandColor: Colors.black,
+                        minuteHandColor: Colors.black87,
+                        secondHandColor: Colors.redAccent,
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
 
-            const SizedBox(width: 18),
+            const SizedBox(height: 20),
 
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+            /// -------- TODAY'S COUNTS --------
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  totalToday == 0 ? "No Events Today" : "Today's Events",
+                  style: TextStyle(
+                    fontFamily: "PoppinsMedium",
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.white : Colors.black,
+                  ),
+                ),
+                if (totalToday > 0)
                   Text(
-                    "Target",
+                    "$totalToday Total",
                     style: TextStyle(
-                      fontSize: 18,
+                      fontFamily: "PoppinsMedium",
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : Colors.black,
+                      color: isDark ? Colors.greenAccent : Colors.green.shade700,
                     ),
                   ),
-                  const SizedBox(height: 6),
-                  Text(
-                    "Tap to view progress",
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      color: (isDark ? Colors.white : Colors.black).withOpacity(0.75),
-                    ),
-                  ),
-                ],
-              ),
+              ],
             ),
 
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 18,
-              color: isDark ? Colors.white70 : Colors.black54,
+            const SizedBox(height: 16),
+
+            Row(
+              children: [
+                Expanded(
+                  child: _modernCountCard("Agreements", agreements, const Color(0xFFEF4444), isDark),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _modernCountCard("Web Visit", websiteVisits, const Color(0xFF10B981), isDark),
+                ),
+              ],
             ),
           ],
         ),
@@ -998,4 +996,87 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
     );
   }
 
+  Widget _modernCountCard(String title, int count, Color color, bool isDark) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      decoration: BoxDecoration(
+        color: isDark ? color.withOpacity(0.15) : color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Text(
+            count.toString(),
+            style: TextStyle(
+              fontFamily: "PoppinsMedium",
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontFamily: "PoppinsMedium",
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _todayString() {
+    final t = DateTime.now();
+    return "${t.year}-${t.month.toString().padLeft(2, '0')}-${t.day.toString().padLeft(2, '0')}";
+  }
+
+  /// Same admin-wide "today" endpoints `Administrator_HomeScreen.dart`
+  /// already calls for its own `_todayCard` (agreement + website-visit
+  /// counts only -- the "future/building" count it also fetches is never
+  /// shown on that card, so it's not duplicated here). Duplicated rather
+  /// than shared, matching this project's existing pattern of
+  /// per-screen-duplicated data/constants (see `Targets.dart`'s agent
+  /// list and `AdminTargetAndTasksHome`'s own doc comment).
+  Future<void> fetchTodayData() async {
+    final today = _todayString();
+    try {
+      final agreementUrl =
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/task_agreement_for_admin.php?current_dates=$today";
+      final websiteUrl =
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Calender/web_visit_for_admin.php?dates=$today";
+
+      final responses = await Future.wait([
+        http.get(Uri.parse(agreementUrl)),
+        http.get(Uri.parse(websiteUrl)),
+      ]);
+
+      int agreements = 0;
+      int website = 0;
+
+      final agreementDecoded = jsonDecode(responses[0].body);
+      if (agreementDecoded is Map && agreementDecoded["data"] is List) {
+        agreements = (agreementDecoded["data"] as List).length;
+      }
+
+      final websiteDecoded = jsonDecode(responses[1].body);
+      if (websiteDecoded is Map &&
+          websiteDecoded["status"] != "error" &&
+          websiteDecoded["data"] is List) {
+        website = (websiteDecoded["data"] as List).length;
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _todayAgreements = agreements;
+        _todayWebsiteVisits = website;
+      });
+    } catch (e) {
+      AppLogger.api("ERROR IN SUB-ADMIN fetchTodayData: $e");
+    }
+  }
 }

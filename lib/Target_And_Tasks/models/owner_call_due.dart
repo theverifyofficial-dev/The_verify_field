@@ -28,6 +28,24 @@ class OwnerCallDue {
   final String? reason;
   final Map<String, dynamic> raw;
 
+  /// Added 2026-09-21 per explicit request to show the building's photo
+  /// on the owner-call card. Same defensive multi-key lookup as every
+  /// other uncertain field on this class (see the class doc comment) --
+  /// this endpoint's real image key was never confirmed live.
+  String get buildingImage => _firstNonEmpty(raw, [
+        'building_image',
+        'property_image',
+        'image',
+        'images',
+        'image_url',
+        'photo',
+        'photo_url',
+        'building_photo',
+        'Apartment_Image',
+        'apartment_image',
+        'img',
+      ]);
+
   const OwnerCallDue({
     required this.propertyId,
     required this.buildingAddress,

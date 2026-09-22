@@ -75,20 +75,28 @@ class _Add_Moredetails_for_assigndemandState extends State<Add_Moredetails_for_a
   // Format the date as you like
   late String formattedDate;
 
-  Future<void> fetchdata(Name,Number,BHK,Budget,Place,Floor_option,Family_Members,Additional_Info,Shifting_date,Parking,Gadi_Number,FeildWorker_Name,FeildWorker_Number,Current__Date,Buy_rent,subid) async{
-    final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService4.asmx/add_verify_pending_visit_tenant_demand?V_name=$Name&V_number=$Number&bhk=$BHK&budget=$Budget&place=$Place&floor_option=$Floor_option&family_members=$Family_Members&additional_info=$Additional_Info&shifting_date=$Shifting_date&parking=$Parking&Gadi_Number=$Gadi_Number&FeildWorkar_Name=$FeildWorker_Name&FeildWorkar_Number=$FeildWorker_Number&Current_Dates=$Current__Date&Buy_rent=$Buy_rent&sub_id=$subid'));
-    //final responce = await http.get(Uri.parse('https://verifyrealestateandservices.in/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+  Future<void> fetchdata(Name,Number,BHK,Budget,Place,Floor_option,Family_Members,Additional_Info,Shifting_date,Parking,Gadi_Number,FeildWorker_Name,FeildWorker_Number,Current__Date,Buy_rent,subid) async {
+    final url = 'https://verifyrealestateandservices.in/WebService4.asmx/add_verify_pending_visit_tenant_demand?V_name=$Name&V_number=$Number&bhk=$BHK&budget=$Budget&place=$Place&floor_option=$Floor_option&family_members=$Family_Members&additional_info=$Additional_Info&shifting_date=$Shifting_date&parking=$Parking&Gadi_Number=$Gadi_Number&FeildWorkar_Name=$FeildWorker_Name&FeildWorkar_Number=$FeildWorker_Number&Current_Dates=$Current__Date&Buy_rent=$Buy_rent&sub_id=$subid';
 
-    if(responce.statusCode == 200){
-      print(responce.body);
-      Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Feedback_Details(id: '${widget.iddd}',),), (route) => route.isFirst);
+    debugPrint('REQUEST URL  : $url');
+    debugPrint('PARSED QUERY : ${Uri.parse(url).queryParameters}');
 
-      //SharedPreferences prefs = await SharedPreferences.getInstance();
+    try {
+      final responce = await http.get(Uri.parse(url));
+      debugPrint('STATUS : ${responce.statusCode}');
+      debugPrint('BODY   : ${responce.body}');
 
-    } else {
-      print('Failed Registration');
+      if (responce.statusCode == 200) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => Feedback_Details(id: '${widget.iddd}')),
+              (route) => route.isFirst,
+        );
+      } else {
+        debugPrint('Failed Registration');
+      }
+    } catch (e, st) {
+      debugPrint('SUBMIT ERROR: $e\n$st');
     }
-
   }
 
   @override
@@ -702,16 +710,25 @@ class _Add_Moredetails_for_assigndemandState extends State<Add_Moredetails_for_a
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red
                     ),
-                    onPressed: (){
+                    onPressed: () {
+                      // compute directly instead of relying on setState timing
 
-                      _generateDateTime();
+                      final date = DateFormat('yyyy-M-d').format(DateTime.now());
+                      _date = date;
 
-                      //data = _email.toString();
-                      fetchdata(_name.text, _number.text, _bhk.toString(), _budget.text, _selectedItem.toString(), _floor.text, _FamilyMembers.text, _Building_information.text, _Seifting_date.text, _Parking.toString(), _vehicleno.text, _na, _num, _date,_buyrent.toString(),widget.iddd);
+                      debugPrint('Current__Date = "$date"');   // e.g. 2026-9-19
+                      debugPrint('===== SUBMIT PRESSED =====');
+                      debugPrint('Current__Date  = "$date"');
+                      debugPrint('name="${_name.text}" number="${_number.text}" bhk=$_bhk budget="${_budget.text}"');
+                      debugPrint('place=$_selectedItem floor="${_floor.text}" family="${_FamilyMembers.text}"');
+                      debugPrint('info="${_Building_information.text}" shifting="${_Seifting_date.text}"');
+                      debugPrint('parking=$_Parking vehicle="${_vehicleno.text}" buyrent=$_buyrent');
+                      debugPrint('worker="$_na" workerNum="$_num" subid=${widget.iddd}');
 
-                      //Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Tenant_demands(),), (route) => route.isFirst);
-
-
+                      fetchdata(_name.text, _number.text, _bhk.toString(), _budget.text,
+                          _selectedItem.toString(), _floor.text, _FamilyMembers.text,
+                          _Building_information.text, _Seifting_date.text, _Parking.toString(),
+                          _vehicleno.text, _na, _num, date, _buyrent.toString(), widget.iddd);
                     }, child: Text("Submit", style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold, ),
                   ),
                   ),

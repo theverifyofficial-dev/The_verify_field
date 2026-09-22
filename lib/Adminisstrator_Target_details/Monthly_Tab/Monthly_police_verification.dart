@@ -172,12 +172,10 @@ class PoliceMonthlyModel {
 /// =======================
 /// API FETCH
 /// =======================
-Future<List<PoliceMonthlyModel>> fetchPoliceMonthly() async {
-  final prefs = await SharedPreferences.getInstance();
-  final FNumber = prefs.getString('number') ?? "";
-  print(FNumber);
+Future<List<PoliceMonthlyModel>> fetchPoliceMonthly(String number) async {
+  print(number);
   final url = Uri.parse(
-    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/police_verification_monthly.php?Fieldwarkarnumber=$FNumber",
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/police_verification_monthly.php?Fieldwarkarnumber=$number",
   );
 
   final res = await http.get(url);
@@ -198,7 +196,9 @@ Future<List<PoliceMonthlyModel>> fetchPoliceMonthly() async {
 /// UI SCREEN
 /// =======================
 class MonthlyPoliceVerificationScreen extends StatefulWidget {
-  const MonthlyPoliceVerificationScreen({super.key});
+  final String? number;
+
+  const MonthlyPoliceVerificationScreen({super.key, this.number});
 
   @override
   State<MonthlyPoliceVerificationScreen> createState() =>
@@ -212,7 +212,23 @@ class _MonthlyPoliceVerificationScreenState
   @override
   void initState() {
     super.initState();
-    futureData = fetchPoliceMonthly();
+    _initLoad();
+  }
+
+  Future<void> _initLoad() async {
+    String numberToUse;
+    if (widget.number != null && widget.number!.isNotEmpty) {
+      numberToUse = widget.number!;
+    } else {
+      final prefs = await SharedPreferences.getInstance();
+      numberToUse = prefs.getString('number') ?? "";
+    }
+    if (numberToUse.isEmpty) {
+      futureData = Future.error("Field Worker Number Missing");
+    } else {
+      futureData = fetchPoliceMonthly(numberToUse);
+    }
+    if (mounted) setState(() {});
   }
 
   @override

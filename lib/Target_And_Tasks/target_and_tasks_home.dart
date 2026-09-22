@@ -14,6 +14,7 @@ import 'widgets/target_progress_card.dart';
 import 'widgets/task_tile.dart';
 import 'widgets/owner_call_card.dart';
 import 'widgets/owner_call_outcome_chip.dart';
+import 'owner_calls_detail.dart';
 
 // ---------------------------------------------------------------------
 // Every one of these is the SAME detail screen the original per-feed
@@ -28,7 +29,10 @@ import 'package:verify_feild_worker/Rent Agreement/details_agreement.dart'; // p
 import 'package:verify_feild_worker/Rent Agreement/history_tab.dart'; // accepted agreement
 import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/Future_property_details.dart'; // building follow-up
 import 'package:verify_feild_worker/Demand_2/Demand_detail.dart'; // tenant demand + booked visit
-import 'package:verify_feild_worker/Home_Screen_click/View_All_Details.dart'; // live property
+// `Home_Screen_click/View_All_Details.dart` (View_Details) import removed
+// 2026-09-21: it was only used by the `liveProperty` task case, which was
+// removed from the task list entirely per explicit request -- see
+// `task_feed_service.dart`'s `fetchTasksForDate` doc comment.
 import 'package:verify_feild_worker/Upcoming/Upcoming_details.dart'; // upcoming flat
 
 /// The merged "Targets & Tasks" section — the single screen an agent now
@@ -68,7 +72,7 @@ class _TargetAndTasksHomeState extends State<TargetAndTasksHome> with WidgetsBin
   String? _fieldWorkerNumber;
   String? _fieldWorkerName;
 
-  TargetPeriod _period = TargetPeriod.monthly;
+  TargetPeriod _period = TargetPeriod.today;
   bool _loadingTargets = true;
   List<TargetProgress> _targets = [];
 
@@ -126,7 +130,6 @@ class _TargetAndTasksHomeState extends State<TargetAndTasksHome> with WidgetsBin
   /// Defaults to collapsed/hidden — the section still always shows its
   /// header (with the count badge) so the field worker knows calls are
   /// due without the list itself taking up space until they ask for it.
-  bool _ownerCallsExpanded = false;
 
   /// Guards `_openOwnerCallSheet` against being opened a second time
   /// while it's already showing. The resume-after-call path below and a
@@ -342,7 +345,18 @@ class _TargetAndTasksHomeState extends State<TargetAndTasksHome> with WidgetsBin
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
           children: [
-            _sectionHeader(context, 'Your targets', trailing: _periodToggle()),
+            // The period toggle moved to its own row below the title
+            // (2026-09-21, once it grew from 2 pills to 4 for Today/Week)
+            // rather than living in `_sectionHeader`'s `trailing` slot -- a
+            // `Row` gives an inflexible trailing child UNBOUNDED width, and
+            // `_periodToggle`'s internal horizontal `SingleChildScrollView`
+            // needs a BOUNDED width to lay out at all (an unbounded
+            // horizontal viewport is a hard Flutter layout error, not just an
+            // overflow warning) -- putting it on its own line under the full-
+            // width `ListView` gives it one.
+            _sectionHeader(context, 'Your targets'),
+            const SizedBox(height: 10),
+            _periodToggle(),
             const SizedBox(height: 10),
             _loadingTargets
                 ? const _InlineLoading()
@@ -356,10 +370,21 @@ class _TargetAndTasksHomeState extends State<TargetAndTasksHome> with WidgetsBin
                         final t = _targets[i];
                         return TargetProgressCard(
                           data: t,
+                          // Refresh this row on return (2026-09-21) -- this is
+                          // the root cause behind "I added a building but the
+                          // Buildings count didn't update": `_loadTargets()`
+                          // previously only ran on initial load, a period-tab
+                          // tap, or a manual pull-to-refresh, never after
+                          // coming back from a detail screen where a field
+                          // worker could have just added/changed a record.
+                          // Applies to every quota card, not just Buildings,
+                          // since they all share this one navigation site.
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(builder: t.detailBuilder),
-                          ),
+                          ).then((_) {
+                            if (mounted) _loadTargets();
+                          }),
                         );
                       },
                     ),
@@ -413,86 +438,113 @@ class _TargetAndTasksHomeState extends State<TargetAndTasksHome> with WidgetsBin
   /// action (place the call) rather than just "navigate to a detail
   /// screen", so it earns its own visual identity instead of blending
   /// into the generic list.
-  /// Header + optional list for the owner-calls section.
+  /// Header + button for the owner-calls section.
   ///
-  /// The list defaults to collapsed (`_ownerCallsExpanded` starts `false`)
-  /// so the header — title, red due-count badge, and toggle arrow — is
-  /// always visible even when the list itself isn't, per the field
-  /// worker's request to hide the list by default and only show it on
-  /// demand. Tapping the arrow flips `_ownerCallsExpanded`;
-  /// `AnimatedRotation` spins the arrow to point up when expanded so the
-  /// toggle state reads at a glance.
+  /// Redesigned (2026-09-21) per explicit request: the due-calls list no
+  /// longer renders inline on this screen at all (it used to, behind a
+  /// show/hide arrow -- see git history for that version). This section
+  /// is now just the header (title + red due-count badge) plus a single
+  /// button that navigates to `OwnerCallsDetailScreen` -- the same detail
+  /// screen the Target section's "Owner Calls" quota card already opens
+  /// -- so there is one screen for owner-calling instead of two.
   Widget _ownerCallsSection(BuildContext context, bool isDark) {
+    // Redesigned (2026-09-21) per explicit follow-up: a single full-width
+    // gradient button, not a header line plus a separate plain button --
+    // everything (title, due-count badge, chevron) now lives inside the
+    // one gradient surface. Same gradient accent already used for the
+    // "Owner Calls" icon avatar on `OwnerCallsDetailScreen`'s summary card
+    // (`[Color(0xFF2F6FED), Color(0xFF5B8DEF)]`), reused here so the two
+    // screens read as the same feature.
     final calls = _ownerCallTasks;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _sectionHeader(
-          context,
-          'Building Owner Calls',
-          trailing: InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: () => setState(() => _ownerCallsExpanded = !_ownerCallsExpanded),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 2),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (calls.isNotEmpty)
-                    Container(
-                      margin: const EdgeInsets.only(right: 6),
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: const BoxDecoration(
-                        color: Colors.redAccent,
-                        borderRadius: BorderRadius.all(Radius.circular(20)),
-                      ),
-                      child: Text(
-                        '${calls.length}',
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white),
-                      ),
-                    ),
-                  AnimatedRotation(
-                    turns: _ownerCallsExpanded ? 0.5 : 0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Icon(
-                      Icons.keyboard_arrow_down,
-                      color: isDark ? Colors.white70 : Colors.black54,
-                    ),
-                  ),
-                ],
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          if (_fieldWorkerNumber == null || _fieldWorkerNumber!.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Missing field worker credentials — please log in again.')),
+            );
+            return;
+          }
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => OwnerCallsDetailScreen(
+                fieldWorkerNumber: _fieldWorkerNumber!,
+                fieldWorkerName: _fieldWorkerName ?? '',
               ),
             ),
+          );
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF2F6FED), Color(0xFF5B8DEF)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle),
+                child: const Icon(Icons.call_rounded, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Building Owner Calls',
+                      style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700, color: Colors.white),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      calls.isEmpty
+                          ? 'No owner calls due right now.'
+                          : "View and log this month's owner calls",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 11.5, color: Colors.white70),
+                    ),
+                  ],
+                ),
+              ),
+              if (calls.isNotEmpty)
+                Container(
+                  margin: const EdgeInsets.only(left: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                  decoration: const BoxDecoration(
+                    color: Colors.redAccent,
+                    borderRadius: BorderRadius.all(Radius.circular(20)),
+                  ),
+                  child: Text(
+                    '${calls.length}',
+                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.white),
+                  ),
+                ),
+              const SizedBox(width: 4),
+              const Icon(Icons.chevron_right_rounded, color: Colors.white70),
+            ],
           ),
         ),
-        if (_ownerCallsExpanded) ...[
-          const SizedBox(height: 10),
-          if (_loadingTasks)
-            const _InlineLoading()
-          else if (calls.isEmpty)
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 18),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF171B22) : Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: isDark ? const Color(0xFF2A3040) : const Color(0xFFDDE3EC)),
-              ),
-              child: Text(
-                'No owner calls due right now.',
-                style: TextStyle(fontSize: 12.5, color: isDark ? Colors.white54 : Colors.black45),
-              ),
-            )
-          else
-            ...calls.map((task) => OwnerCallCard(
-                  task: task,
-                  onCallTap: () => _callOwner(task, task.raw['ownernumber']?.toString() ?? ''),
-                  onLogTap: () => _openOwnerCallSheet(context, task),
-                )),
-        ],
-      ],
+      ),
     );
   }
 
+  /// Extended 2026-09-21 with Today/Week pills (per explicit request) --
+  /// now 4 pills instead of 2, so this wraps the row in a horizontal
+  /// scroll view rather than risk a `RenderFlex` overflow on a narrow
+  /// screen once this sits as `_sectionHeader`'s trailing widget next to
+  /// the "Your targets" title.
   Widget _periodToggle() {
     return Container(
       padding: const EdgeInsets.all(3),
@@ -500,18 +552,26 @@ class _TargetAndTasksHomeState extends State<TargetAndTasksHome> with WidgetsBin
         color: Colors.blueAccent.withOpacity(0.12),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        _pill('Monthly', selected: _period == TargetPeriod.monthly, onTap: () {
-          if (_period == TargetPeriod.monthly) return;
-          setState(() => _period = TargetPeriod.monthly);
-          _loadTargets();
-        }),
-        _pill('Yearly', selected: _period == TargetPeriod.yearly, onTap: () {
-          if (_period == TargetPeriod.yearly) return;
-          setState(() => _period = TargetPeriod.yearly);
-          _loadTargets();
-        }),
-      ]),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          _pill('Today', selected: _period == TargetPeriod.today, onTap: () {
+            if (_period == TargetPeriod.today) return;
+            setState(() => _period = TargetPeriod.today);
+            _loadTargets();
+          }),
+          _pill('Monthly', selected: _period == TargetPeriod.monthly, onTap: () {
+            if (_period == TargetPeriod.monthly) return;
+            setState(() => _period = TargetPeriod.monthly);
+            _loadTargets();
+          }),
+          _pill('Yearly', selected: _period == TargetPeriod.yearly, onTap: () {
+            if (_period == TargetPeriod.yearly) return;
+            setState(() => _period = TargetPeriod.yearly);
+            _loadTargets();
+          }),
+        ]),
+      ),
     );
   }
 
@@ -863,8 +923,17 @@ class _TargetAndTasksHomeState extends State<TargetAndTasksHome> with WidgetsBin
           // Original: `_buildFuturePropertyCard` -> Future_Property_details(idd: f.id)
           final id = task.raw['id'];
           if (id == null) break;
+          // Refresh on return (2026-09-21, same root cause as the
+          // Buildings quota card's fix above): this building-follow-up
+          // task's own detail screen is exactly where a field worker
+          // would add/update the building, so the task list needs to
+          // reload after they come back, not just sit on what was
+          // fetched when the date was first selected.
           Navigator.push(context,
-              MaterialPageRoute(builder: (_) => Future_Property_details(idd: id.toString())));
+                  MaterialPageRoute(builder: (_) => Future_Property_details(idd: id.toString())))
+              .then((_) {
+            if (mounted) _loadTasks();
+          });
           return;
         }
 
@@ -895,15 +964,6 @@ class _TargetAndTasksHomeState extends State<TargetAndTasksHome> with WidgetsBin
           if (id == null) break;
           Navigator.push(
               context, MaterialPageRoute(builder: (_) => DemandDetail(demandId: id.toString())));
-          return;
-        }
-
-      case AgentTaskType.liveProperty:
-        {
-          // Original: `_buildLivePropertyCard` -> View_Details(id: f.propertyId)
-          final id = int.tryParse(task.raw['P_id']?.toString() ?? '');
-          if (id == null) break;
-          Navigator.push(context, MaterialPageRoute(builder: (_) => View_Details(id: id)));
           return;
         }
 
@@ -1179,16 +1239,17 @@ class _TargetAndTasksHomeState extends State<TargetAndTasksHome> with WidgetsBin
   /// card to read. This local counter is per-device, not synced across a
   /// field worker's devices or visible to Admin — flagged as a real
   /// limitation, not a hidden shortcut.
+  /// Back to the single monthly counter (2026-09-21) -- Owner Calls
+  /// briefly had day/week-scoped sibling keys for the Today/Week tabs,
+  /// but both tabs later dropped Owner Calls entirely per explicit
+  /// follow-up, so there's nothing left that reads a day-scoped count.
+  /// Still goes through `TargetService.monthlyOwnerCallsKey()` rather
+  /// than a hand-rolled key here, so this and `owner_calls_detail.dart`'s
+  /// equivalent increment can never drift apart on the key format.
   Future<void> _recordOwnerCallDone() async {
     final prefs = await SharedPreferences.getInstance();
-    final key = _ownerCallsDoneKey();
-    final current = prefs.getInt(key) ?? 0;
-    await prefs.setInt(key, current + 1);
-  }
-
-  static String _ownerCallsDoneKey() {
-    final now = DateTime.now();
-    return 'owner_calls_done_${now.year}_${now.month.toString().padLeft(2, '0')}';
+    final key = TargetService.monthlyOwnerCallsKey();
+    await prefs.setInt(key, (prefs.getInt(key) ?? 0) + 1);
   }
 }
 

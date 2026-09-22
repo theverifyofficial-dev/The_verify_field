@@ -27,7 +27,7 @@ class TenantController extends GetxController {
     String? savedNum = prefs.getString('number');
     String? savedName = prefs.getString('name');
 
-    //print("✅ SharedPreferences (raw) number: $savedNum, name: $savedName");
+    print("✅ SharedPreferences (raw) number: $savedNum, name: $savedName");
 
     _num.value = savedNum ?? '';
     _na.value = savedName ?? '';
@@ -37,7 +37,7 @@ class TenantController extends GetxController {
 
     // ✅ Only call fetchTenants after _num is loaded
     if (_num.value.isNotEmpty) {
-      //print("🚀 Fetching tenants for number: ${_num.value}");
+      print("🚀 Fetching tenants for number: ${_num.value}");
       fetchTenants(_num.value);
     } else {
       //print("❌ No number found in SharedPreferences");
@@ -48,6 +48,8 @@ class TenantController extends GetxController {
   Future<void> fetchTenants(String num) async {
     final url =
         'https://verifyrealestateandservices.in/WebService4.asmx/filter_tenant_demand_by_feildworkar_number_?FeildWorker_Number=$num';
+
+    print(num);
 
     //print("🌐 API request to: $url");
 

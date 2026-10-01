@@ -20,7 +20,7 @@ import 'Forms/Commercial_Form.dart';
 import 'Forms/External_Commercial.dart';
 import 'Forms/External_Form.dart';
 import 'Forms/Furnished_form.dart';
-import 'Forms/Renewal_form.dart';
+import 'Forms/Furnish_owner.dart';
 import 'Forms/Verification_form.dart';
 
 // ─── Section Theme Map ────────────────────────────────────────────────────────
@@ -326,18 +326,30 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>
     final reward = await fetchRewardStatus();
 
     Widget? page;
-    if (type.contains("rental agreement")) {
-      page = RentalWizardPage(agreementId: id, rewardStatus: reward);
-    } else if (type.contains("external rental agreement")) {
+    // Ordered so "external ..."/more-specific checks run before the
+    // generic checks they'd otherwise also match as a substring (e.g.
+    // "external rental agreement" contains "rental agreement"), and each
+    // now also matches its Renewal-mode counterpart (e.g. "rental renewal")
+    // so a rejected renewal can be edited/resubmitted like any other type.
+    if (type.contains("external rental agreement") || type.contains("external rental renewal")) {
       page = ExternalWizardPage(agreementId: id, rewardStatus: reward);
-    } else if (type.contains("external commercial agreement")) {
+    } else if (type.contains("rental agreement") || type.contains("rental renewal")) {
+      page = RentalWizardPage(agreementId: id, rewardStatus: reward);
+    } else if (type.contains("external commercial agreement") || type.contains("external commercial renewal")) {
       page = ExternalCommercialWizardPage(agreementId: id, rewardStatus: reward);
-    } else if (type.contains("commercial agreement")) {
+    } else if (type.contains("commercial agreement") || type.contains("commercial renewal")) {
       page = CommercialWizardPage(agreementId: id, rewardStatus: reward);
-    } else if (type.contains("furnished agreement")) {
+    } else if (type.contains("furnished by owner")) {
+      page = FurnishOwner(agreementId: id, rewardStatus: reward);
+    } else if (type.contains("furnished agreement") || type.contains("furnished renewal")) {
       page = FurnishedForm(agreementId: id, rewardStatus: reward);
     } else if (type.contains("renewal agreement")) {
-      page = RenewalForm(agreementId: id, rewardStatus: reward);
+      // The standalone Renewal Form was removed; these are legacy agreements
+      // created before that removal via the old quick-renew screens, which
+      // hardcoded this generic type tag. Renewal_form.dart itself mirrored
+      // RentalWizardPage's shape (single tenant, 4-step), so route edits of
+      // these legacy records there.
+      page = RentalWizardPage(agreementId: id, rewardStatus: reward);
     } else if (type.contains("police verification")) {
       page = VerificationWizardPage(agreementId: id, rewardStatus: reward);
     } else {
@@ -1062,7 +1074,9 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>
     final bool isPolice = a["agreement_type"] == "Police Verification";
     final bool isCom =
         agreement?["agreement_type"] == "Commercial Agreement" ||
-            agreement?["agreement_type"] == "External Commercial Agreement";
+            agreement?["agreement_type"] == "External Commercial Agreement" ||
+            agreement?["agreement_type"] == "Commercial Renewal" ||
+            agreement?["agreement_type"] == "External Commercial Renewal";
     final String D_or_T = isCom ? "Director" : "Tenant";
     final bool isRejected =
     (a['status']?.toString().toLowerCase().contains('reject') ?? false);
@@ -1127,7 +1141,13 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>
                 ],
 
                 // ── Status section ────────────────────────────────────────
-                if (!isPolice && a['status'] != null)
+                // Shown for every agreement type, including Police Verification
+                // (previously hidden here only -- history_agreement/request_agreement.dart
+                // already shows status/reason for Police Verification unconditionally,
+                // and _navigateToEditForm below already has a working
+                // "police verification" branch, so a rejected Police Verification
+                // agreement was reachable to view/edit from one screen but not this one).
+                if (a['status'] != null)
                   _sectionCard(
                     title: "Agreement Status",
                     children: [
@@ -1352,14 +1372,18 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>
                   ),
                 ),
 
-                // // ── Police residential address ────────────────────────────
-                // if (isPolice)
-                //   _sectionCard(
-                //     title: "Property Residential Address",
-                //     children: [
-                //       _kv("Property Address", a["rented_address"]),
-                //     ],
-                //   ),
+                // ── Police residential address ────────────────────────────
+                // Re-enabled: this was dead/commented-out code referencing
+                // the correct live field (rented_address, as submitted by
+                // Verification_form.dart), restored for consistency with
+                // the Agreement Status section fix above.
+                if (isPolice)
+                  _sectionCard(
+                    title: "Property Residential Address",
+                    children: [
+                      _kv("Property Address", a["rented_address"]),
+                    ],
+                  ),
 
                 const SizedBox(height: 30),
               ],

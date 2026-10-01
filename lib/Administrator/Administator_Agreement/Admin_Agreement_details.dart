@@ -1,9 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import '../../AppLogger.dart';
-import '../../AppLogger.dart';
-import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
-import '../../Custom_Widget/Custom_backbutton.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../../Custom_Widget/constant.dart';
 import '../../Rent Agreement/Dashboard_screen.dart';
 import '../../Rent Agreement/Forms/Agreement_Form.dart';
@@ -12,7 +11,6 @@ import '../../Rent Agreement/Forms/External_Commercial.dart';
 import '../../Rent Agreement/Forms/External_Form.dart';
 import '../../Rent Agreement/Forms/Furnish_owner.dart';
 import '../../Rent Agreement/Forms/Furnished_form.dart';
-import '../../Rent Agreement/Forms/Renewal_form.dart';
 import '../../Rent Agreement/Forms/Verification_form.dart';
 import '../../model/Additional_agreement_tenants.dart';
 import '../imagepreviewscreen.dart';
@@ -1203,20 +1201,30 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
 
     Widget? page;
 
-    if (type.contains("rental agreement")) {
-      page = RentalWizardPage(agreementId: id,rewardStatus: reward);
-    } else if (type.contains("external rental agreement")) {
+    // Ordered so "external ..."/more-specific checks run before the
+    // generic checks they'd otherwise also match as a substring (e.g.
+    // "external rental agreement" contains "rental agreement"), and each
+    // now also matches its Renewal-mode counterpart (e.g. "rental renewal")
+    // so a rejected renewal can be edited/resubmitted like any other type.
+    if (type.contains("external rental agreement") || type.contains("external rental renewal")) {
       page = ExternalWizardPage(agreementId: id,rewardStatus: reward);
-    } else if (type.contains("external commercial agreement")) {
+    } else if (type.contains("rental agreement") || type.contains("rental renewal")) {
+      page = RentalWizardPage(agreementId: id,rewardStatus: reward);
+    } else if (type.contains("external commercial agreement") || type.contains("external commercial renewal")) {
       page = ExternalCommercialWizardPage(agreementId: id, rewardStatus: reward);
-    } else if (type.contains("commercial agreement")) {
+    } else if (type.contains("commercial agreement") || type.contains("commercial renewal")) {
       page = CommercialWizardPage(agreementId: id,rewardStatus: reward);
-    } else if (type.contains("furnished agreement")) {
-      page = FurnishedForm(agreementId: id,rewardStatus: reward);
     } else if (type.contains("furnished by owner")) {
       page = FurnishOwner(agreementId: id,rewardStatus: reward);
+    } else if (type.contains("furnished agreement") || type.contains("furnished renewal")) {
+      page = FurnishedForm(agreementId: id,rewardStatus: reward);
     } else if (type.contains("renewal agreement")) {
-      page = RenewalForm(agreementId: id,rewardStatus: reward);
+      // The standalone Renewal Form was removed; these are legacy agreements
+      // created before that removal via the old quick-renew screens, which
+      // hardcoded this generic type tag. Renewal_form.dart itself mirrored
+      // RentalWizardPage's shape (single tenant, 4-step), so route edits of
+      // these legacy records there.
+      page = RentalWizardPage(agreementId: id,rewardStatus: reward);
     } else if (type.contains("police verification")) {
       page = VerificationWizardPage(agreementId: id,rewardStatus: reward);
     } else {
@@ -1273,7 +1281,9 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
 
     final bool isCommercial =
         agreement?["agreement_type"] == "Commercial Agreement" ||
-            agreement?["agreement_type"] == "External Commercial Agreement";
+            agreement?["agreement_type"] == "External Commercial Agreement" ||
+            agreement?["agreement_type"] == "Commercial Renewal" ||
+            agreement?["agreement_type"] == "External Commercial Renewal";
 
     final D_or_T = isCommercial ? "Director" : "Tenant";
 
@@ -1744,57 +1754,6 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
       ),
     );
   }
-}
-
-// ─── Top-level helpers ────────────────────────────────────────────────────────
-
-Widget _statusCard({
-  required String title,
-  required String value,
-  required bool isPositive,
-  String? dateTime,
-}) {
-  String formattedTime = "";
-  if (dateTime != null && dateTime.isNotEmpty) {
-    try {
-      final dt = DateTime.parse(dateTime).toLocal();
-      formattedTime =
-      "${dt.day.toString().padLeft(2, '0')} ${_monthName(dt.month)} ${dt.year}, ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}";
-    } catch (_) {}
-  }
-  return Container(
-    constraints: const BoxConstraints(minWidth: 160),
-    padding: const EdgeInsets.all(12),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(10),
-      border: Border.all(color: Colors.grey),
-      color: const Color(0xFF1E1E2C).withOpacity(0.9),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title,
-            style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: Colors.white)),
-        const SizedBox(height: 6),
-        Text(value,
-            style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: isPositive ? Colors.green : Colors.red)),
-        if (formattedTime.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(formattedTime,
-              style: const TextStyle(
-                  fontSize: 11,
-                  color: Colors.white,
-                  fontStyle: FontStyle.italic)),
-        ],
-      ],
-    ),
-  );
 }
 
 String _monthName(int month) {

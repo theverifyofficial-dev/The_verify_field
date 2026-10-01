@@ -244,7 +244,7 @@ import 'package:flutter/material.dart';// import 'package:flutter/services.dart'
 //   String? apiImageUrl;
 //
 //
-//   final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Ghitorni','Rajpur Khurd','Mangalpuri','Dwarka Mor','Uttam Nagar','Nawada',''];
+//   final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Ghitorni','Rajpur Khurd','Manglapuri','Dwarka Mor','Uttam Nagar','Nawada',''];
 //
 //   String? _selectedItem1;
 //   final List<String> _items1 = ['Buy','Rent',''];

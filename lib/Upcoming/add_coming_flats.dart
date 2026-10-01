@@ -102,7 +102,7 @@ class _RegisterPropertyState extends State<AddComingFlats> {
   String? _parking, _houseMeter;
   String full_address = '';
 
-  final cities = ['SultanPur', 'ChhattarPur', 'Aya Nagar', 'Ghitorni', 'Rajpur Khurd','Mangalpuri','Dwarka Mor','Uttam Nagar','Nawada'];
+  final cities = ['SultanPur', 'ChhattarPur', 'Aya Nagar', 'Ghitorni', 'Rajpur Khurd','Manglapuri','Dwarka Mor','Uttam Nagar','Nawada'];
   final propertyTypes = ["Flat","Shop","Office","Godown","Farms","Plots"];
   final bhkOptions = ['1 BHK', '2 BHK', '3 BHK', '4 BHK', '1 RK', 'Commercial'];
   final floors = [

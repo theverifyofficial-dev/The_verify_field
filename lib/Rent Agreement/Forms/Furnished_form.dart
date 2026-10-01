@@ -77,8 +77,10 @@ class FlatSuggestion {
 class FurnishedForm extends StatefulWidget {
   final String? agreementId;
   final RewardStatus rewardStatus;
+  final bool isRenewal; // true = prefill like Update, but submit as a brand-new agreement
 
-  const FurnishedForm({Key? key, this.agreementId,required this.rewardStatus}) : super(key: key);
+  final Map<String, dynamic>? prefillData; // Renewal mode: reuse already-loaded agreement data instead of re-fetching
+  const FurnishedForm({Key? key, this.agreementId,required this.rewardStatus, this.isRenewal = false, this.prefillData}) : super(key: key);
 
   @override
   State<FurnishedForm> createState() => _RentalWizardPageState();
@@ -207,26 +209,41 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
     Agreement_price.text = defaultPrice.toString();
     AgreementAmountInWords = convertToWords(defaultPrice);
     _fabController = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
-    if (widget.agreementId != null) {
+    if (widget.prefillData != null) {
+      // Renewal mode: reuse already-loaded data instead of re-fetching from
+      // agreemet_details_page.php, which is scoped to PENDING submissions
+      // and does not reliably return already-accepted/final agreements.
+      _applyAgreementData(widget.prefillData!);
+      updateAgreementPrice();
+    } else if (widget.agreementId != null) {
       _fetchAgreementDetails(widget.agreementId!);
     }
   }
 
 
-  Future<void> _fetchAgreementDetails(String id) async {
-    final url = Uri.parse(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=$id");
+  Map<String, int> _safeDecodeFurniture(dynamic raw) {
+    try {
+      return Map<String, int>.from(jsonDecode(raw.toString()));
+    } catch (_) {
+      return {};
+    }
+  }
 
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final decoded = jsonDecode(response.body);
+  DateTime? _parseAgreementDate(dynamic value) {
+    if (value == null) return null;
+    if (value is String) {
+      return value.isNotEmpty ? DateTime.tryParse(value) : null;
+    }
+    if (value is Map) {
+      final dateStr = value["date"]?.toString();
+      if (dateStr != null && dateStr.isNotEmpty) {
+        return DateTime.tryParse(dateStr);
+      }
+    }
+    return null;
+  }
 
-      if (decoded["status"] == "success" && decoded["data"] != null && decoded["data"].isNotEmpty) {
-        final data = decoded["data"][0]; // 👈 Get first record
-
-        AppLogger.api("✅ Parsed Agreement Data: $data");
-
-        setState(() {
+  void _applyAgreementData(Map<String, dynamic> data) {
           // 🔹 Owner
           ownerName.text = data["owner_name"] ?? "";
           ownerRelation = data["owner_relation"] ?? "S/O";
@@ -265,13 +282,12 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
 
 
 
-          _selectedFurniture = data['furniture'] != null
-              ? Map<String, int>.from(jsonDecode(data['furniture']))
+          _selectedFurniture = (data['furniture'] != null &&
+                  data['furniture'].toString().isNotEmpty)
+              ? _safeDecodeFurniture(data['furniture'])
               : {};
 
-          shiftingDate = (data["shifting_date"] != null && data["shifting_date"].toString().isNotEmpty)
-              ? DateTime.tryParse(data["shifting_date"])
-              : null;
+          shiftingDate = _parseAgreementDate(data["shifting_date"]);
 
           // 🔹 Documents
           ownerAadharFrontUrl = data["owner_aadhar_front"] ?? "";
@@ -279,6 +295,23 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
           tenantAadharFrontUrl = data["tenant_aadhar_front"] ?? "";
           tenantAadharBackUrl  = data["tenant_aadhar_back"] ?? "";
           tenantPhotoUrl       = data["tenant_image"] ?? "";
+  }
+
+  Future<void> _fetchAgreementDetails(String id) async {
+    final url = Uri.parse(
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=$id");
+
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+
+      if (decoded["status"] == "success" && decoded["data"] != null && decoded["data"].isNotEmpty) {
+        final data = decoded["data"][0]; // 👈 Get first record
+
+        AppLogger.api("✅ Parsed Agreement Data: $data");
+
+        setState(() {
+          _applyAgreementData(data);
         });
         // 🔁 Recalculate agreement price AFTER state restore
         updateAgreementPrice();
@@ -689,7 +722,7 @@ void updateAgreementPrice() {
     }
 
     if (valid) {
-      if (_currentStep < 3) {
+      if (_currentStep < 2) {
         setState(() => _currentStep++);
         _pageController.nextPage(duration: const Duration(milliseconds: 450), curve: Curves.easeInOut);
       }
@@ -848,7 +881,7 @@ Future<void> _submitAll() async {
       "Fieldwarkarname": _name.isNotEmpty ? _name : '',
       "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
       "property_id": propertyID.text,
-      "agreement_type": "Furnished Agreement",
+      "agreement_type": widget.isRenewal ? "Furnished Renewal" : "Furnished Agreement",
       "agreement_price": Agreement_price.text ?? "--",
       "notary_price": Notary_price ?? '10 rupees',
       "is_Police": isPolice,
@@ -1287,7 +1320,7 @@ Widget build(BuildContext context) {
     appBar: AppBar(
       elevation: 0,
       backgroundColor: Colors.transparent,
-      title: Text('Furnished Agreement', style: TextStyle(fontFamily: "Poppins", fontWeight: FontWeight.w600)),
+      title: Text(widget.isRenewal ? 'Renew Furnished Agreement' : 'Furnished Agreement', style: TextStyle(fontFamily: "Poppins", fontWeight: FontWeight.w600)),
       centerTitle: true,
       leading: Padding(
         padding: const EdgeInsets.all(10),
@@ -1312,6 +1345,40 @@ Widget build(BuildContext context) {
                   ],
                 ),
               ),
+
+              if (widget.isRenewal)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFF9800), Color(0xFFFB8C00)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.orange.withOpacity(0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Row(
+                      children: [
+                        Icon(Icons.autorenew, color: Colors.white),
+                        SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'Renewing Agreement — Ye purana agreement renew ho raha hai, submit karne par naya agreement banega',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12.5),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
 
               if (widget.rewardStatus.isDiscounted)
                 Padding(
@@ -1383,18 +1450,20 @@ Widget build(BuildContext context) {
                       ),
                     const Spacer(),
                     ElevatedGradientButton(
-                      text: _currentStep == 3
-                          ? (widget.agreementId != null ? 'Update' : 'Submit')
+                      text: _currentStep == 2
+                          ? (widget.isRenewal
+                              ? 'Submit Renewal'
+                              : (widget.agreementId != null ? 'Update' : 'Submit'))
                           : 'Next',
-                      icon: _currentStep == 3
+                      icon: _currentStep == 2
                           ? Icons.cloud_upload
                           : Icons.arrow_forward,
-                      onPressed: _currentStep == 3
+                      onPressed: _currentStep == 2
                           ? () {
-                        if (widget.agreementId != null) {
+                        if (widget.agreementId != null && !widget.isRenewal) {
                           _updateAll(); // ✅ Update mode
                         } else {
-                          _submitAll(); // ✅ New submission
+                          _submitAll(); // ✅ New submission (fresh, or Renewal creating a new agreement)
                         }
                       }
                           : _goNext,
@@ -2070,7 +2139,13 @@ Widget _tenantStep() {
   return _glassContainer(
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Expanded(child: Text('Tenant Details', style: const TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black))),
+        Expanded(child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Tenant Details', style: const TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black)),
+            const Text('Kirayedar ki Jaankari', style: TextStyle(fontSize: 11, color: Colors.black54)),
+          ],
+        )),
         Container(
           decoration: BoxDecoration(
               gradient: const LinearGradient(colors: [Color(0xFF1B5E20), Color(0xFF2E7D32), Color(0xFF66BB6A)], begin: Alignment.topLeft, end: Alignment.bottomRight),
@@ -2502,10 +2577,16 @@ Widget _propertyStep() {
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
       if (fetchedData != null) _propertyCard(fetchedData!), // Card appears only after fetch
-      const Row(
+      Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('Property Details', style: TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Property Details', style: TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+              Text('Property ki Jaankari', style: TextStyle(fontSize: 11, color: Colors.black54)),
+            ],
+          ),
 
         ],
       ),
@@ -2903,7 +2984,13 @@ Widget _previewStep() {
   return _glassContainer(
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text('Preview', style: TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Preview', style: TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+            const Text('Jaanch Kar Jama Karein', style: TextStyle(fontSize: 11, color: Colors.black54)),
+          ],
+        ),
         Row(
             children: [
               IconButton(

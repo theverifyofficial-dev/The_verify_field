@@ -155,7 +155,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       );
     }
     if (value.toString() == 'Add Building Images') {
-      Navigator.push(
+      await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => FuturePropertyFileUploadPage(
@@ -163,6 +163,9 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
           ),
         ),
       );
+      if (mounted) {
+        _refreshAllData();
+      }
     }
   }
   void _showCallDialog(BuildContext context, String number, String type) {

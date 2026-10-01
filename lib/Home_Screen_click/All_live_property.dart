@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../Administrator/Administater_Realestate_Details.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'All_view_details.dart';
 import 'New_Real_Estate.dart';
@@ -39,14 +40,18 @@ class _AllLiveProperty extends State<AllLiveProperty> {
 
   void _applyFilters() {
     final query = _searchController.text.toLowerCase().trim();
-    var list = applyRoleBasedFilter(_allProperties);
+
+    // Show ALL properties to EVERY role.
+    var list = List<NewRealEstateShowDateModel>.from(_allProperties);
 
     if (_filterNoVideo) {
       list = list.where((p) => _blank(p.video)).toList();
     }
 
     if (_filterIncompleteData) {
-      list = list.where((p) => _missingFieldsFor(p).isNotEmpty).toList();
+      list = list
+          .where((p) => _missingFieldsFor(p).isNotEmpty)
+          .toList();
     }
 
     if (query.isNotEmpty) {
@@ -71,7 +76,10 @@ class _AllLiveProperty extends State<AllLiveProperty> {
           item.sourceId?.toString(),
           item.showPrice?.toString(),
         ];
-        return values.any((v) => v != null && v.toLowerCase().contains(query));
+
+        return values.any(
+              (v) => v != null && v.toLowerCase().contains(query),
+        );
       }).toList();
     }
 
@@ -80,7 +88,6 @@ class _AllLiveProperty extends State<AllLiveProperty> {
       propertyCount = list.length;
     });
   }
-
   Future<List<NewRealEstateShowDateModel>> fetchData(String number) async {
     final url = Uri.parse(
       "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_realestate_for_website/show_api_main_realestate_all_data.php?all=1",
@@ -157,18 +164,6 @@ class _AllLiveProperty extends State<AllLiveProperty> {
     _loaduserdata();
   }
 
-  final Map<String, List<String>> fieldWorkersByLocation = {
-    "sultanpur": [
-      "ravi kumar",
-      "faizan khan",
-      "sumit",
-    ],
-    "chhattarpur_group": [
-      "abhay",
-      "manish",
-    ],
-  };
-
   String _name = '';
   String _location = '';
   String _aadhar = '';
@@ -215,29 +210,6 @@ class _AllLiveProperty extends State<AllLiveProperty> {
       setState(() => _isLoading = false);
     }
   }
-
-  List<NewRealEstateShowDateModel> applyRoleBasedFilter(
-      List<NewRealEstateShowDateModel> list,
-      ) {
-    // 🔥 ADMIN → SEE EVERYTHING
-    if (isAdmin) return list;
-
-    // 🔥 SUB ADMIN RULES
-    return list.where((p) {
-      final location = (p.locations ?? '').toLowerCase();
-      final worker = (p.fieldWorkerName ?? '').toLowerCase();
-
-      // 🟢 SULTANPUR → ALL FIELD WORKERS
-      if (location.contains("sultanpur")) {
-        return true;
-      }
-
-      // 🔵 OTHER LOCATIONS → ONLY ABHAY & MANISH
-      return worker.contains("abhay") || worker.contains("manish");
-    }).toList();
-  }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -301,7 +273,7 @@ class _AllLiveProperty extends State<AllLiveProperty> {
           ),
 
           Builder(builder: (context) {
-            final base = applyRoleBasedFilter(_allProperties);
+            final base = _allProperties;
             final noVideoCount = base.where((p) => _blank(p.video)).length;
             final incompleteCount = base.where((p) => _missingFieldsFor(p).isNotEmpty).length;
             final anyFilterActive = _filterNoVideo || _filterIncompleteData;
@@ -784,7 +756,7 @@ class _AllLiveProperty extends State<AllLiveProperty> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AllViewDetails(id: property.pId ?? 0),
+              builder: (context) => Administater_View_Details(idd: property.pId.toString()),
             ),
           );
         },

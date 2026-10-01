@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/Rent%20Agreement/Forms/Commercial_Form.dart';
-import 'package:verify_feild_worker/Rent%20Agreement/Forms/Renewal_form.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/Forms/Verification_form.dart';
 
 import '../../model/agrement_model.dart';
@@ -75,25 +74,40 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
     final reward = await fetchRewardStatus();
 
     switch (agreement.Type.toLowerCase()) {
+      // switch/case is an exact match (not substring), so each Renewal-mode
+      // type string (e.g. "rental renewal") needs its own case alongside its
+      // base type's -- unlike the .contains()-based routing elsewhere, a
+      // renewal type here simply wouldn't match anything without one.
       case "rental agreement":
+      case "rental renewal":
         page = RentalWizardPage(agreementId: agreement.id, rewardStatus: reward);
         break;
       case "external rental agreement":
+      case "external rental renewal":
         page = ExternalWizardPage(agreementId: agreement.id, rewardStatus: reward);
         break;
         case "external commercial agreement":
+        case "external commercial renewal":
         page = ExternalCommercialWizardPage(agreementId: agreement.id, rewardStatus: reward);
         break;
       case "renewal agreement":
-        page = RenewalForm(agreementId: agreement.id, rewardStatus: reward);
+        // The standalone Renewal Form was removed; these are legacy agreements
+        // created before that removal via the old quick-renew screens, which
+        // hardcoded this generic type tag. Renewal_form.dart itself mirrored
+        // RentalWizardPage's shape (single tenant, 4-step), so route edits of
+        // these legacy records there.
+        page = RentalWizardPage(agreementId: agreement.id, rewardStatus: reward);
         break;
       case "commercial agreement":
+      case "commercial renewal":
         page = CommercialWizardPage(agreementId: agreement.id, rewardStatus: reward);
         break;
       case "furnished agreement":
+      case "furnished renewal":
         page = FurnishedForm(agreementId: agreement.id, rewardStatus: reward);
         break;
         case "furnished by owner":
+        case "furnished by owner renewal":
         page = FurnishOwner(agreementId: agreement.id, rewardStatus: reward);
         break;
       case "police verification":

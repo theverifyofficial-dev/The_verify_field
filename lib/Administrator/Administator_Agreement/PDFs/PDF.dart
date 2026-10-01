@@ -1706,7 +1706,11 @@ Future<File> generateAgreementPdf(
 
   pw.Widget _imgWidget(
       pw.ImageProvider? imgProvider, String label) {
-    if (imgProvider != null) {
+    // Privacy fix: is_agreement_hide previously only masked the printed
+    // Aadhaar number text -- the scanned card photo (full number, name and
+    // photo) was still embedded unmasked here regardless of the toggle.
+    // Now the photo itself is withheld too, whenever hideAgreement is true.
+    if (imgProvider != null && !hideAgreement) {
       return pw.Expanded(
         child: pw.Image(imgProvider, fit: pw.BoxFit.contain),
       );
@@ -1717,7 +1721,9 @@ Future<File> generateAgreementPdf(
         color: PdfColors.grey300,
         child: pw.Center(
           child: pw.Text(
-            '$label\nNot Available',
+            hideAgreement && imgProvider != null
+                ? '$label\nHidden for Privacy'
+                : '$label\nNot Available',
             textAlign: pw.TextAlign.center,
             style: pw.TextStyle(
                 fontSize: 10, color: PdfColors.grey700),

@@ -208,6 +208,8 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
     {"name": "Ravi Kumar", "id": "9711275300"},
     {"name": "Faizan Khan", "id": "9971172204"},
     {"name": "Yash", "id": "9211335993"},
+    {"name": "Shivam", "id": "9711775300",},
+    {"name": "Aakash", "id": "9211335994",},
   ];
 
   final Map<int, int> _liveCountMap = {};

@@ -29,6 +29,38 @@ class EditFlat extends StatefulWidget {
 
 class EditFlatState extends State<EditFlat> {
 
+  int _stepIndex = 0;
+
+  static const Color _kPrimary = Color(0xFF0F6E5C);
+  static const Color _kAccent = Color(0xFFE98A15);
+  static const Color _kSurface2 = Color(0xFFF1EEE6);
+  static const Color _kBorder = Color(0xFFE2DCCB);
+
+  static const List<String> _kStepTitlesEn = [
+    'Photo',
+    'Basic Details',
+    'Deal Type',
+    'Condition',
+    'Price & Charges',
+    'Extra Info',
+  ];
+  static const List<String> _kStepTitlesHi = [
+    'Property ki Photo',
+    'Basic Jaankari',
+    'Buy ya Rent',
+    'Property ki Condition',
+    'Price aur Charges',
+    'Baaki Jaankari',
+  ];
+  static const List<IconData> _kStepIcons = [
+    Icons.photo_camera_outlined,
+    Icons.home_work_outlined,
+    Icons.swap_horiz_outlined,
+    Icons.weekend_outlined,
+    Icons.currency_rupee_outlined,
+    Icons.info_outline,
+  ];
+
   bool _isLoading = false;
 
   final TextEditingController _FlatNumber = TextEditingController();
@@ -742,563 +774,1052 @@ class EditFlatState extends State<EditFlat> {
           ),
 
         ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: <Widget>[
-
-                  Container(
-                    margin: EdgeInsets.only(left: 20),
-                    child: Row(
-                      children: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade600),
-                          onPressed: () async {
-                            XFile? pickedImage = await pickAndCompressImage();
-                            if (pickedImage != null) {
-                              setState(() {
-                                _imageFile = File(pickedImage.path);
-                              });
-                            }
-                          },
-                          child: Text('Pick Image',style: TextStyle(color: Colors.white),),
-                        ),
-
-                        SizedBox(
-                          width: 80,
-                        ),
-
-                        Container(
-                          width: 100,
-                          height: 100,
-                          child: _imageFile != null
-                              ? Image.file(_imageFile!)
-                              : _networkImageUrl != null && _networkImageUrl!.isNotEmpty
-                              ? ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: Image.network(
-                              _networkImageUrl!,
-                              height: 100,
-                              width: 100,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                              : Center(child: Text('No image selected.',style: TextStyle(color: Colors.black),)),
-
-                        ),
-                      ],
+        body: Container(
+          color: _kSurface2,
+          child: SafeArea(
+            child: Column(
+              children: [
+                _buildProgressDots(),
+                _buildStepHeader(),
+                const SizedBox(height: 14),
+                const Divider(color: Colors.black54,),
+                const SizedBox(height: 14),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    child: Form(
+                      key: _formKey,
+                      child: _buildStepBody(),
                     ),
                   ),
-                  SizedBox(height: 20),
+                ),
+                _buildFooter(),
+              ],
+            ),
+          ),
+        ));
+  }
 
+  Widget _buildStepBody() {
+    switch (_stepIndex) {
+      case 0:
+        return _stepPhoto();
+      case 1:
+        return _stepBasicDetails();
+      case 2:
+        return _stepDealType();
+      case 3:
+        return _stepCondition();
+      case 4:
+        return _stepPriceCharges();
+      case 5:
+        return _stepExtraInfo();
+      default:
+        return _stepPhoto();
+    }
+  }
 
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildProgressDots() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(_kStepTitlesEn.length, (i) {
+          final bool active = i == _stepIndex;
+          final bool done = i < _stepIndex;
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            width: active ? 22 : 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: (active || done) ? _kPrimary : _kBorder,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  Widget _buildStepHeader() {
+    return Container(
+      color: Colors.transparent,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: _kPrimary.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(_kStepIcons[_stepIndex], color: _kPrimary, size: 20),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _kStepTitlesEn[_stepIndex],
+                  style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54),
+                ),
+                Text(
+                  _kStepTitlesHi[_stepIndex],
+                  style: TextStyle(fontSize: 11, color: Colors.black.withOpacity(0.5)),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            'Step ${_stepIndex + 1}/${_kStepTitlesEn.length}',
+            style: TextStyle(
+                fontSize: 11,
+                color: Colors.black.withOpacity(0.4),
+                fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _goBack() {
+    if (_stepIndex > 0) {
+      setState(() => _stepIndex--);
+    }
+  }
+
+  void _goNext() {
+    if (!_validateCurrentStep()) return;
+    if (_stepIndex < _kStepTitlesEn.length - 1) {
+      setState(() => _stepIndex++);
+    }
+  }
+
+  bool _validateCurrentStep() {
+    switch (_stepIndex) {
+      case 0:
+        return true;
+      case 1:
+        if (selectedPropertyType == null || selectedPropertyType!.isEmpty) {
+          Fluttertoast.showToast(msg: 'Please select a property type');
+          return false;
+        }
+        if (_FlatNumber.text.trim().isEmpty) {
+          Fluttertoast.showToast(msg: 'Please enter Flat Number');
+          return false;
+        }
+        if (selectedBHK == null || selectedBHK!.isEmpty) {
+          Fluttertoast.showToast(msg: 'Please select a BHK');
+          return false;
+        }
+        if (_floor1 == null || _floor1!.isEmpty) {
+          Fluttertoast.showToast(msg: 'Please select a floor number');
+          return false;
+        }
+        return true;
+      case 2:
+        if (_selectedItem1 == null || _selectedItem1!.isEmpty) {
+          Fluttertoast.showToast(msg: 'Please select Buy/Rent');
+          return false;
+        }
+        if (_selectedItem1 == 'Buy') {
+          if (_registry == null || _registry!.isEmpty) {
+            Fluttertoast.showToast(msg: 'Please select Register');
+            return false;
+          }
+          if (_loan == null || _loan!.isEmpty) {
+            Fluttertoast.showToast(msg: 'Please select Loan');
+            return false;
+          }
+        }
+        return true;
+      case 3:
+        if (_furnished == null || _furnished!.isEmpty) {
+          Fluttertoast.showToast(msg: 'Please select furnishing');
+          return false;
+        }
+        if (balcony == null || balcony!.isEmpty) {
+          Fluttertoast.showToast(msg: 'Please select a balcony type');
+          return false;
+        }
+        if (bathroom == null || bathroom!.isEmpty) {
+          Fluttertoast.showToast(msg: 'Please select a Bathroom type');
+          return false;
+        }
+        if (kitchen == null || kitchen!.isEmpty) {
+          Fluttertoast.showToast(msg: 'Please select a Kitchen type');
+          return false;
+        }
+        if (parking == null || parking!.isEmpty) {
+          Fluttertoast.showToast(msg: 'Please select parking type');
+          return false;
+        }
+        if (_sqft.text.trim().isEmpty) {
+          Fluttertoast.showToast(msg: 'Please enter Sqft');
+          return false;
+        }
+        return true;
+      case 4:
+        if (_showPrice.text.trim().isEmpty) {
+          Fluttertoast.showToast(msg: 'Enter price');
+          return false;
+        }
+        if (_maintenance == null || _maintenance!.isEmpty) {
+          Fluttertoast.showToast(msg: 'Select maintenance');
+          return false;
+        }
+        if (_maintenance == 'Custom' &&
+            (_customMaintenance == null || _customMaintenance!.isEmpty)) {
+          Fluttertoast.showToast(msg: 'Enter maintenance fee');
+          return false;
+        }
+        if (_houseMeter == null || _houseMeter!.isEmpty) {
+          Fluttertoast.showToast(msg: 'Select house meter type');
+          return false;
+        }
+        if (_houseMeter == 'Custom' && _meter.text.trim().isEmpty) {
+          Fluttertoast.showToast(msg: 'Please enter Custom Meter Type');
+          return false;
+        }
+        return true;
+      default:
+        return true;
+    }
+  }
+
+  Widget _fieldHeader({
+    required IconData icon,
+    required Color badgeColor,
+    required String label,
+    required String hinglish,
+    bool required = true,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8, top: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: badgeColor.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, size: 16, color: badgeColor),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black54),
+                    ),
+                    const SizedBox(width: 6),
+                    if (required)
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: const BoxDecoration(
+                            color: Colors.redAccent, shape: BoxShape.circle),
+                      )
+                    else
+                      Container(
+                        padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: _kSurface2,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: _kBorder),
+                        ),
+                        child: const Text('Optional',
+                            style: TextStyle(fontSize: 9, color: Colors.black54)),
+                      ),
+                  ],
+                ),
+                Text(
+                  hinglish,
+                  style: TextStyle(fontSize: 11, color: Colors.black.withOpacity(0.45)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _chipGroup({
+    required List<String> items,
+    required String? value,
+    required ValueChanged<String?> onChanged,
+  }) {
+    final visible = items.where((e) => e.trim().isNotEmpty).toList();
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: visible.map((item) {
+        final selected = value == item;
+        return GestureDetector(
+          onTap: () => onChanged(item),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+            decoration: BoxDecoration(
+              color: selected ? _kPrimary : Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: selected ? _kPrimary : _kBorder),
+            ),
+            child: Text(
+              item,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: selected ? Colors.white : Colors.black54,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  /// Compact tap-to-open selector row used for every chip-select field.
+  /// Shows the current value (or a muted placeholder) with a trailing
+  /// chevron, and opens the field's bottom sheet on tap.
+  Widget _bottomSheetSelector({
+    required String? value,
+    required String placeholder,
+    required VoidCallback onTap,
+  }) {
+    final bool hasValue = value != null && value.trim().isNotEmpty;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: _kBorder),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                hasValue ? value! : placeholder,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  color: hasValue ? Colors.black54 : Colors.black38,
+                ),
+              ),
+            ),
+            const Icon(Icons.keyboard_arrow_down, color: Colors.black45),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Opens a rounded bottom sheet with the field's title and its chip
+  /// options in a Wrap. Tapping a chip sets the value and closes the sheet.
+  void _openChipSheet({
+    required String title,
+    required List<String> items,
+    required String? value,
+    required ValueChanged<String?> onChanged,
+  }) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 10, 18, 22),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: _kBorder,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ),
+                Text(
+                  title,
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54),
+                ),
+                const SizedBox(height: 14),
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight: MediaQuery.of(ctx).size.height * 0.5,
+                  ),
+                  child: SingleChildScrollView(
+                    child: _chipGroup(
+                      items: items,
+                      value: value,
+                      onChanged: (v) {
+                        onChanged(v);
+                        Navigator.pop(ctx);
+                      },
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _styledTextField({
+    required TextEditingController controller,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+    String? suffixText,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      validator: validator,
+      inputFormatters: inputFormatters,
+      style: const TextStyle(
+          fontWeight: FontWeight.w600, color: Colors.black54, fontSize: 14),
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white,
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        suffixText: suffixText,
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: _kBorder)),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: _kBorder)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: _kPrimary, width: 2)),
+        errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(color: Colors.redAccent)),
+      ),
+    );
+  }
+
+  Widget _stepPhoto() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _fieldHeader(
+          icon: Icons.photo_camera_outlined,
+          badgeColor: _kPrimary,
+          label: 'Property Photo',
+          hinglish: 'Property ki Photo',
+          required: false,
+        ),
+        Center(
+          child: Column(
+            children: [
+              Container(
+                width: 160,
+                height: 160,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: _kBorder),
+                  color: Colors.white,
+                ),
+                child: _imageFile != null
+                    ? ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Image.file(_imageFile!,
+                      fit: BoxFit.cover, width: 160, height: 160),
+                )
+                    : (_networkImageUrl != null && _networkImageUrl!.isNotEmpty)
+                    ? ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Image.network(_networkImageUrl!,
+                      fit: BoxFit.cover, width: 160, height: 160),
+                )
+                    : const Center(
+                  child: Text('No image selected.',
+                      style: TextStyle(color: Colors.black54)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () async {
+                  XFile? pickedImage = await pickAndCompressImage();
+                  if (pickedImage != null) {
+                    setState(() {
+                      _imageFile = File(pickedImage.path);
+                    });
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: _kPrimary,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const SizedBox(height: 10,),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // ✅ FIX: IntrinsicHeight prevents Row children from overflowing
-                          IntrinsicHeight(
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Expanded(
-                                  child: _buildDropdownRow(
-                                    'Type of property',
-                                    _typeofproperty,
-                                    selectedPropertyType,
-                                        (val) => setState(() => selectedPropertyType = val),
-                                    validator: (val) => val == null || val.isEmpty
-                                        ? 'Please select a property type'
-                                        : null,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: _buildDropdownRow(
-                                    'Buy/Rent',
-                                    buy_rent,
-                                    _selectedItem1,
-                                        (val) => setState(() => _selectedItem1 = val),
-                                    validator: (val) => val == null || val.isEmpty
-                                        ? 'Please select Buy/Rent'
-                                        : null,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          if (_selectedItem1 == "Buy") ...[
-                            const SizedBox(width: 16),
-                            // ✅ FIX: IntrinsicHeight here too
-                            IntrinsicHeight(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Expanded(
-                                    child: _buildDropdownRegister(
-                                      'Register',
-                                      registryOptions,
-                                      _registry,
-                                          (val) => setState(() => _registry = val),
-                                      validator: (val) =>
-                                      val == null || val.isEmpty
-                                          ? 'Please select Register'
-                                          : null,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: _buildDropdownRegister(
-                                      'Loan',
-                                      yesNoOptions,
-                                      _loan,
-                                          (val) => setState(() => _loan = val),
-                                      validator: (val) =>
-                                      val == null || val.isEmpty
-                                          ? 'Please select Loan'
-                                          : null,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-
-
-
-
-                      _buildSectionCard(
-                        child: DropdownButtonFormField<String>(
-                          value: _furnished,
-                          isExpanded: true, // ✅ FIX: prevents label overflow
-                          decoration: InputDecoration(
-                            labelText: "",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                          ),
-                          items: furnishingOptions.map((option) {
-                            return DropdownMenuItem(
-                              value: option,
-                              child: Text(option,style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: (val) {
-                            setState(() {
-                              _furnished = val;
-                              if (val == 'Unfurnished') {
-                                _selectedFurniture.clear();
-                              }
-                            });
-                          },
-
-                          validator: (val) =>
-                          val == null || val.isEmpty ? 'Please select furnishing' : null,
-                        ), title: 'Furnishing',
-                      ),
-                      if (_furnished == 'Fully Furnished' || _furnished == 'Semi Furnished')
-                        _blueSectionCard(
-                          child: GestureDetector(
-                            onTap: () => _showFurnitureBottomSheet(context),
-                            child: AbsorbPointer(
-                              child: Padding(
-                                padding:  EdgeInsets.only(top: 16.0),
-                                child:
-                                TextFormField(
-                                  decoration: InputDecoration(
-                                    labelText: "Select Furniture Items",
-                                    labelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    filled: true,
-                                    fillColor: Theme.of(context).brightness==Brightness.dark?Colors.grey.shade800:Colors.white,
-                                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                                  ),
-                                  controller: TextEditingController(
-                                    text: _selectedFurniture.isEmpty
-                                        ? ''
-                                        : _selectedFurniture.entries
-                                        .map((e) => '${e.key} (${e.value})')
-                                        .join(', '),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ), title: 'Furniture Items',
-                        ),
-                      const SizedBox(height: 10,),
-                      _buildDropdownRow(
-                        'Parking',
-                        _Parking_items,
-                        parking,
-                            (val) => setState(() => parking = val),
-                        validator: (val) => val == null || val.isEmpty ? 'Please select parking type' : null,
-                      ),
-                      const SizedBox(height: 10,),
-                      // ✅ FIX: IntrinsicHeight on all 2-column rows
-                      IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child:
-                              _buildDropdownRow('Bathroom', _bathroom_items, bathroom, (val) => setState(() => bathroom = val),
-                                validator: (val) => val == null || val.isEmpty ? 'Please select a Bathroom type' : null,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildDropdownRow('Kitchen', _kitchen_items, kitchen, (val) => setState(() => kitchen = val),
-                                validator: (val) => val == null || val.isEmpty ? 'Please select a Kitchen type' : null,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 10,),
-                      IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child:
-                              _buildTextInput('Flat Number', _FlatNumber,keyboardType: TextInputType.name),
-
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildTextInput('Sqft', _sqft,keyboardType: TextInputType.phone),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child:
-                              _buildDropdownRow(
-                              'Balcony',
-                              _balcony_items,
-                              _balcony_items.contains(balcony) ? balcony : null,
-                              (val) => setState(() => balcony = val),
-                                validator: (val) => val == null || val.isEmpty ? 'Please select a balcony type' : null,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildDropdownRow('Select  BHK',bhkOptions, selectedBHK, (val) => setState(() => selectedBHK = val),
-                                validator: (val) => val == null || val.isEmpty ? 'Please select a BHK' : null,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 10,),
-
-                      IntrinsicHeight(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Expanded(
-                              child:
-                              _buildSectionCard(
-                                title: 'Available Date',
-                                child: GestureDetector(
-                                  onTap: () async {
-                                    final DateTime? picked = await showDatePicker(
-                                      context: context,
-                                      initialDate: DateTime.now(),
-                                      firstDate: DateTime(2020),
-                                      lastDate: DateTime(2100),
-                                    );
-                                    if (picked != null) {
-                                      setState(() {
-                                        _availableDate = picked;
-                                      });
-                                    }
-                                  },
-                                  child: Container(
-                                    width: double.infinity,
-                                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue.shade600,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: Text(
-                                      _availableDate != null
-                                          ? DateFormat('dd MMMM yyyy').format(_availableDate!)
-                                          : '',
-                                      style: const TextStyle(color: Colors.white),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildDropdownRow('Floor no.',_items_floor1, _floor1, (val) => setState(() => _floor1 = val),
-                                validator: (val) => val == null || val.isEmpty ? 'Please select a floor number' : null,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      TextFormField(
-                        controller: _showPrice,
-                        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText:"Show Price (₹)",
-                          floatingLabelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-
-                          suffix: _formattedPrice.isNotEmpty
-                              ? Padding(
-                            padding: EdgeInsets.only(right: 8),
-                            child: Text(
-                              _formattedPrice,
-                              style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                            ),
-                          )
-                              : null,
-
-                          labelStyle: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.grey.shade300
-                                : Colors.black54,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.grey.shade700
-                                    : Colors.grey.shade300),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.grey.shade700
-                                    : Colors.grey.shade300),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.blue.shade200
-                                    : Colors.blue.shade300,
-                                width: 2),
-                          ),
-                          contentPadding:
-                          const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-                          filled: true,
-                          fillColor: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.grey.shade900
-                              : Colors.white,
-                        ),
-                        validator: (val) => val == null || val.isEmpty ? "Enter price" : null,
-                      ),
-                      const SizedBox(height: 10,),
-                      TextFormField(
-                        controller: _lastPrice,
-                        keyboardType: TextInputType.number,
-                        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                        decoration: _buildInputDecoration(
-                          context,
-                          "Last Price (₹) by owner",
-                        ).copyWith(
-                          suffix: Text(
-                            _formattedLastPrice,
-                            style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10,),
-                      TextFormField(
-                        controller: _askingPrice,
-                        keyboardType: TextInputType.number,
-                        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                        decoration: _buildInputDecoration(
-                          context,
-                          "Asking Price (₹) by owner",
-                        ).copyWith(
-                          suffix: Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: Text(
-                              _formattedAskingPrice ?? '',
-                              style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10,),
-
-                      // ✅ FIX: Maintenance - use Column instead of Row to avoid overflow
-                      _buildReadOnlyField(
-                        label: "Maintenance",
-                        controller: _maintenanceController,
-                        onTap: () => _showBottomSheet(
-                          options: ['Included', 'Custom'],
-                          onSelected: (val) {
-                            setState(() {
-                              _maintenance = val;
-                              _maintenanceController.text = val;
-                              if (val != 'Custom') _customMaintenance = null;
-                            });
-                          },
-                        ),
-                        validator: (val) =>
-                        val == null || val.isEmpty ? "Select maintenance" : null,
-                      ),
-
-                      if (_maintenance == 'Custom') ...[
-                        const SizedBox(height: 10),
-                        TextFormField(
-                          controller: _customMaintenanceController,
-                          decoration: InputDecoration(
-                            labelText: "Enter Maintenance Fee",
-                            labelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.grey.shade700
-                                    : Colors.grey.shade300,
-                              ),
-                            ),
-                            errorStyle: const TextStyle(
-                              color: Colors.redAccent,
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            errorBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Colors.redAccent,
-                                width: 2,
-                              ),
-                            ),
-                            focusedErrorBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: const BorderSide(
-                                color: Colors.red,
-                                width: 2,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.grey.shade700
-                                    : Colors.grey.shade300,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.blue
-                                    : Colors.blue.shade300,
-                                width: 2,
-                              ),
-                            ),
-                            contentPadding:
-                            const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-                            filled: true,
-                            fillColor: Colors.blue,
-                          ),
-                          style: TextStyle(
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white
-                                : Colors.black,
-                          ),
-                          keyboardType: TextInputType.number,
-                          onChanged: (val) => _customMaintenance = val,
-                          validator: (val) => _maintenance == 'Custom' &&
-                              (val == null || val.isEmpty)
-                              ? "Enter maintenance fee"
-                              : null,
-                        ),
-                      ],
-
-
-                      const SizedBox(height: 16,),
-
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          DropdownButtonFormField<String>(
-                            value: (_houseMeter != null && _houseMeter != 'Custom')
-                                ? _houseMeter
-                                : (_meter.text.isNotEmpty ? 'Custom' : null),
-                            isExpanded: true, // ✅ FIX: prevents label overflow
-                            decoration: _buildInputDecoration(context, "House Meter Type"),
-                            items: ['Commercial', 'Govt', 'Custom'].map((option) {
-                              return DropdownMenuItem<String>(
-                                value: option,
-                                child: Text(option),
-                              );
-                            }).toList(),
-                            onChanged: (val) {
-                              setState(() {
-                                _houseMeter = val;
-                                if (val != 'Custom') {
-                                  _meter.text = val!;
-                                  print("DEBUG: Selected predefined meter = $val");
-                                } else {
-                                  _meter.clear();
-                                  print("DEBUG: Cleared for custom input");
-                                }
-                              });
-                            },
-                            validator: (val) => (val == null || val.isEmpty)
-                                ? "Select house meter type"
-                                : null,
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          if (_houseMeter == 'Custom')
-                            _blueTextInput(
-                              'Enter Custom Meter Type',
-                              _meter,
-                              keyboardType: TextInputType.text,
-                            ),
-                        ],
-                      ),
-
-
-                      buildTextInput('Video Link', _videoLink),
-                      buildTextInput('Caretaker Name (Optional)', _CareTaker_name),
-                      buildTextInput('Caretaker Mobile (Optional)', _CareTaker_number,
-                        keyboardType: TextInputType.phone,),
-                      buildTextInput('Owner Name (Optional)', _Ownername),
-                      buildTextInput('Owner Mobile (Optional)', _Owner_number,keyboardType: TextInputType.phone),
-
+                      Icon(Icons.camera_alt_outlined, size: 16, color: Colors.white),
+                      SizedBox(width: 8),
+                      Text('Change Photo',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
                     ],
                   ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
 
-                  SizedBox(height: 10),
+  Widget _stepBasicDetails() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _fieldHeader(
+            icon: Icons.apartment_outlined,
+            badgeColor: _kPrimary,
+            label: 'Type of Property',
+            hinglish: 'Property ka Type'),
+        _bottomSheetSelector(
+          value: selectedPropertyType,
+          placeholder: 'Select Property Type',
+          onTap: () => _openChipSheet(
+            title: 'Type of Property',
+            items: _typeofproperty,
+            value: selectedPropertyType,
+            onChanged: (v) => setState(() => selectedPropertyType = v),
+          ),
+        ),
+        const SizedBox(height: 18),
+        _fieldHeader(
+            icon: Icons.tag_outlined,
+            badgeColor: _kAccent,
+            label: 'Flat Number',
+            hinglish: 'Flat Number'),
+        _styledTextField(controller: _FlatNumber, keyboardType: TextInputType.name),
+        const SizedBox(height: 18),
+        _fieldHeader(
+            icon: Icons.bed_outlined,
+            badgeColor: _kPrimary,
+            label: 'BHK',
+            hinglish: 'Kitne BHK'),
+        _bottomSheetSelector(
+          value: selectedBHK,
+          placeholder: 'Select BHK',
+          onTap: () => _openChipSheet(
+            title: 'BHK',
+            items: bhkOptions,
+            value: selectedBHK,
+            onChanged: (v) => setState(() => selectedBHK = v),
+          ),
+        ),
+        const SizedBox(height: 18),
+        _fieldHeader(
+            icon: Icons.stairs_outlined,
+            badgeColor: _kAccent,
+            label: 'Floor Number',
+            hinglish: 'Kaunsi Floor'),
+        _bottomSheetSelector(
+          value: _floor1,
+          placeholder: 'Select Floor',
+          onTap: () => _openChipSheet(
+            title: 'Floor Number',
+            items: _items_floor1,
+            value: _floor1,
+            onChanged: (v) => setState(() => _floor1 = v),
+          ),
+        ),
+      ],
+    );
+  }
 
-                  GestureDetector(
+  Widget _stepDealType() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _fieldHeader(
+            icon: Icons.swap_horiz_outlined,
+            badgeColor: _kPrimary,
+            label: 'Buy/Rent',
+            hinglish: 'Buy ya Rent'),
+        _bottomSheetSelector(
+          value: _selectedItem1,
+          placeholder: 'Select Buy or Rent',
+          onTap: () => _openChipSheet(
+            title: 'Buy/Rent',
+            items: buy_rent,
+            value: _selectedItem1,
+            onChanged: (v) => setState(() => _selectedItem1 = v),
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 250),
+          child: _selectedItem1 == 'Buy'
+              ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 18),
+              _fieldHeader(
+                  icon: Icons.verified_outlined,
+                  badgeColor: _kAccent,
+                  label: 'Registry',
+                  hinglish: 'Registry ya GPA'),
+              _bottomSheetSelector(
+                value: _registry,
+                placeholder: 'Select Registry',
+                onTap: () => _openChipSheet(
+                  title: 'Registry',
+                  items: registryOptions,
+                  value: _registry,
+                  onChanged: (v) => setState(() => _registry = v),
+                ),
+              ),
+              const SizedBox(height: 18),
+              _fieldHeader(
+                  icon: Icons.account_balance_outlined,
+                  badgeColor: _kAccent,
+                  label: 'Loan',
+                  hinglish: 'Loan hai kya'),
+              _bottomSheetSelector(
+                value: _loan,
+                placeholder: 'Select Loan status',
+                onTap: () => _openChipSheet(
+                  title: 'Loan',
+                  items: yesNoOptions,
+                  value: _loan,
+                  onChanged: (v) => setState(() => _loan = v),
+                ),
+              ),
+            ],
+          )
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  Widget _stepCondition() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _fieldHeader(
+            icon: Icons.weekend_outlined,
+            badgeColor: _kPrimary,
+            label: 'Furnishing',
+            hinglish: 'Furnishing kaisi hai'),
+        _bottomSheetSelector(
+          value: _furnished,
+          placeholder: 'Select Furnishing',
+          onTap: () => _openChipSheet(
+            title: 'Furnishing',
+            items: furnishingOptions,
+            value: _furnished,
+            onChanged: (v) => setState(() {
+              _furnished = v;
+              if (v == 'Unfurnished') {
+                _selectedFurniture.clear();
+              }
+            }),
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 250),
+          child: (_furnished == 'Fully Furnished' || _furnished == 'Semi Furnished')
+              ? Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 18),
+              _fieldHeader(
+                  icon: Icons.chair_outlined,
+                  badgeColor: _kAccent,
+                  label: 'Furniture Items',
+                  hinglish: 'Kaunse Furniture hai',
+                  required: false),
+              _bottomSheetSelector(
+                value: _selectedFurniture.isEmpty
+                    ? null
+                    : _selectedFurniture.entries
+                        .map((e) => '${e.key} (${e.value})')
+                        .join(', '),
+                placeholder: 'Select Furniture Items',
+                onTap: () => _showFurnitureBottomSheet(context),
+              ),
+            ],
+          )
+              : const SizedBox.shrink(),
+        ),
+        const SizedBox(height: 18),
+        _fieldHeader(
+            icon: Icons.balcony_outlined,
+            badgeColor: _kPrimary,
+            label: 'Balcony',
+            hinglish: 'Balcony ka type'),
+        _bottomSheetSelector(
+          value: balcony,
+          placeholder: 'Select Balcony Type',
+          onTap: () => _openChipSheet(
+            title: 'Balcony',
+            items: _balcony_items,
+            value: _balcony_items.contains(balcony) ? balcony : null,
+            onChanged: (v) => setState(() => balcony = v),
+          ),
+        ),
+        const SizedBox(height: 18),
+        _fieldHeader(
+            icon: Icons.bathtub_outlined,
+            badgeColor: _kAccent,
+            label: 'Bathroom',
+            hinglish: 'Bathroom ka type'),
+        _bottomSheetSelector(
+          value: bathroom,
+          placeholder: 'Select Bathroom Type',
+          onTap: () => _openChipSheet(
+            title: 'Bathroom',
+            items: _bathroom_items,
+            value: bathroom,
+            onChanged: (v) => setState(() => bathroom = v),
+          ),
+        ),
+        const SizedBox(height: 18),
+        _fieldHeader(
+            icon: Icons.kitchen_outlined,
+            badgeColor: _kAccent,
+            label: 'Kitchen',
+            hinglish: 'Kitchen ka type'),
+        _bottomSheetSelector(
+          value: kitchen,
+          placeholder: 'Select Kitchen Type',
+          onTap: () => _openChipSheet(
+            title: 'Kitchen',
+            items: _kitchen_items,
+            value: kitchen,
+            onChanged: (v) => setState(() => kitchen = v),
+          ),
+        ),
+        const SizedBox(height: 18),
+        _fieldHeader(
+            icon: Icons.directions_car_outlined,
+            badgeColor: _kPrimary,
+            label: 'Parking',
+            hinglish: 'Parking available hai'),
+        _bottomSheetSelector(
+          value: parking,
+          placeholder: 'Select Parking',
+          onTap: () => _openChipSheet(
+            title: 'Parking',
+            items: _Parking_items,
+            value: parking,
+            onChanged: (v) => setState(() => parking = v),
+          ),
+        ),
+        const SizedBox(height: 18),
+        _fieldHeader(
+            icon: Icons.straighten_outlined,
+            badgeColor: _kAccent,
+            label: 'Sqft',
+            hinglish: 'Area Sqft mein'),
+        _styledTextField(controller: _sqft, keyboardType: TextInputType.phone),
+      ],
+    );
+  }
+
+  Widget _stepPriceCharges() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _fieldHeader(
+            icon: Icons.currency_rupee_outlined,
+            badgeColor: _kPrimary,
+            label: 'Show Price',
+            hinglish: 'Dikhane wali Price'),
+        _styledTextField(
+          controller: _showPrice,
+          keyboardType: TextInputType.number,
+          suffixText: _formattedPrice.isNotEmpty ? _formattedPrice : null,
+        ),
+        const SizedBox(height: 18),
+        _fieldHeader(
+            icon: Icons.currency_rupee_outlined,
+            badgeColor: _kAccent,
+            label: 'Last Price',
+            hinglish: 'Owner ki Last Price',
+            required: false),
+        _styledTextField(
+          controller: _lastPrice,
+          keyboardType: TextInputType.number,
+          suffixText: _formattedLastPrice.isNotEmpty ? _formattedLastPrice : null,
+        ),
+        const SizedBox(height: 18),
+        _fieldHeader(
+            icon: Icons.currency_rupee_outlined,
+            badgeColor: _kAccent,
+            label: 'Asking Price',
+            hinglish: 'Owner ki Asking Price',
+            required: false),
+        _styledTextField(
+          controller: _askingPrice,
+          keyboardType: TextInputType.number,
+          suffixText: _formattedAskingPrice.isNotEmpty ? _formattedAskingPrice : null,
+        ),
+        const SizedBox(height: 18),
+        _fieldHeader(
+            icon: Icons.build_outlined,
+            badgeColor: _kPrimary,
+            label: 'Maintenance',
+            hinglish: 'Maintenance Included ya Custom'),
+        _bottomSheetSelector(
+          value: _maintenance,
+          placeholder: 'Select Maintenance type',
+          onTap: () => _openChipSheet(
+            title: 'Maintenance',
+            items: const ['Included', 'Custom'],
+            value: _maintenance,
+            onChanged: (v) => setState(() {
+              _maintenance = v;
+              _maintenanceController.text = v ?? '';
+              if (v != 'Custom') _customMaintenance = null;
+            }),
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 250),
+          child: _maintenance == 'Custom'
+              ? Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: _styledTextField(
+              controller: _customMaintenanceController,
+              keyboardType: TextInputType.number,
+            ),
+          )
+              : const SizedBox.shrink(),
+        ),
+        const SizedBox(height: 18),
+        _fieldHeader(
+            icon: Icons.speed_outlined,
+            badgeColor: _kAccent,
+            label: 'House Meter Type',
+            hinglish: 'Meter kaunsa hai'),
+        _bottomSheetSelector(
+          value: (_houseMeter != null && _houseMeter != 'Custom')
+              ? _houseMeter
+              : (_meter.text.isNotEmpty ? 'Custom' : null),
+          placeholder: 'Select House Meter Type',
+          onTap: () => _openChipSheet(
+            title: 'House Meter Type',
+            items: const ['Commercial', 'Govt', 'Custom'],
+            value: (_houseMeter != null && _houseMeter != 'Custom')
+                ? _houseMeter
+                : (_meter.text.isNotEmpty ? 'Custom' : null),
+            onChanged: (v) => setState(() {
+              _houseMeter = v;
+              if (v != 'Custom') {
+                _meter.text = v ?? '';
+              } else {
+                _meter.clear();
+              }
+            }),
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 250),
+          child: _houseMeter == 'Custom'
+              ? Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: _styledTextField(controller: _meter, keyboardType: TextInputType.text),
+          )
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  Widget _stepExtraInfo() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _fieldHeader(
+            icon: Icons.calendar_month_outlined,
+            badgeColor: _kPrimary,
+            label: 'Available Date',
+            hinglish: 'Kab se available hai',
+            required: false),
+        GestureDetector(
+          onTap: () async {
+            final DateTime? picked = await showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: DateTime(2020),
+              lastDate: DateTime(2100),
+            );
+            if (picked != null) {
+              setState(() {
+                _availableDate = picked;
+              });
+            }
+          },
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: _kBorder),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.event, size: 18, color: _kPrimary),
+                const SizedBox(width: 10),
+                Text(
+                  _availableDate != null
+                      ? DateFormat('dd MMMM yyyy').format(_availableDate!)
+                      : 'Select date',
+                  style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black54),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 18),
+        _fieldHeader(
+            icon: Icons.videocam_outlined,
+            badgeColor: _kAccent,
+            label: 'Video Link',
+            hinglish: 'Property ka Video',
+            required: false),
+        _styledTextField(controller: _videoLink),
+        const SizedBox(height: 18),
+        _fieldHeader(
+            icon: Icons.person_outline,
+            badgeColor: _kPrimary,
+            label: 'Owner Name',
+            hinglish: 'Owner ka Naam',
+            required: false),
+        _styledTextField(controller: _Ownername),
+        const SizedBox(height: 18),
+        _fieldHeader(
+            icon: Icons.phone_outlined,
+            badgeColor: _kPrimary,
+            label: 'Owner Mobile',
+            hinglish: 'Owner ka Number',
+            required: false),
+        _styledTextField(controller: _Owner_number, keyboardType: TextInputType.phone),
+        const SizedBox(height: 18),
+        _fieldHeader(
+            icon: Icons.person_outline,
+            badgeColor: _kAccent,
+            label: 'Caretaker Name',
+            hinglish: 'Caretaker ka Naam',
+            required: false),
+        _styledTextField(controller: _CareTaker_name),
+        const SizedBox(height: 18),
+        _fieldHeader(
+            icon: Icons.phone_outlined,
+            badgeColor: _kAccent,
+            label: 'Caretaker Mobile',
+            hinglish: 'Caretaker ka Number',
+            required: false),
+        _styledTextField(controller: _CareTaker_number, keyboardType: TextInputType.phone),
+      ],
+    );
+  }
+
+  Widget _buildFooter() {
+    final bool isLast = _stepIndex == _kStepTitlesEn.length - 1;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: _kBorder)),
+      ),
+      child: Row(
+        children: [
+          if (_stepIndex > 0)
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _goBack,
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: BorderSide(color: _kBorder),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                ),
+                child: const Text('Back',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black54)),
+              ),
+            ),
+          if (_stepIndex > 0) const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: isLast ? _buildSubmitButton() : _buildNextButton(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNextButton() {
+    return GestureDetector(
+      onTap: _goNext,
+      child: Container(
+        height: 50,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: _kPrimary,
+          borderRadius: BorderRadius.circular(40),
+        ),
+        child: const Text(
+          'Next',
+          style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Poppins',
+              letterSpacing: 0.8,
+              fontSize: 18),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return                   GestureDetector(
                     onTap: _isLoading
                         ? null
                         : () async {
@@ -1475,12 +1996,7 @@ class EditFlatState extends State<EditFlat> {
                         ),
                       ),
                     ),
-                  )
-                ],
-              ),
-            ),
-          ),
-        ));
+                  );
   }
 
   Widget _buildDropdownRegister(

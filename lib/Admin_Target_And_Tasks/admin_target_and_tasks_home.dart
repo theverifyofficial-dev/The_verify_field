@@ -96,7 +96,7 @@ class _AdminTargetAndTasksHomeState extends State<AdminTargetAndTasksHome> {
     {"name": "Faizan Khan", "number": "9971172204", "location": "Sultanpur"},
     {"name": "Yash", "number": "9211335993", "location": "Sultanpur"},
     {"name": "Shivam", "number": "9711775300", "location": "Sultanpur"},
-    {"name": "Aakash", "number": "92113 35994", "location": "Sultanpur"},
+    {"name": "Aakash", "number": "9211335994", "location": "Sultanpur"},
   ];
 
   final _targetService = TargetService();

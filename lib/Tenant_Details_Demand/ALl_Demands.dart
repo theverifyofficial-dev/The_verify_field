@@ -117,8 +117,9 @@ class _Tenant_ALl_demandsState extends State<Tenant_ALl_demands>
       isLoading = true;
     });
     final url = Uri.parse(
-      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/All_Tenant_Demand.php?page=$currentPage&search=${Uri.encodeComponent(searchText)}",
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Tenant_demand/All_Tenant_Demand.php?page=$currentPage&limit=5&search=${Uri.encodeComponent(searchText)}",
     );
+    print(url);
 
     final response = await http.get(url);
 

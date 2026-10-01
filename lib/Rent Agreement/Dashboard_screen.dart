@@ -11,7 +11,6 @@ import 'Forms/External_Commercial.dart';
 import 'Forms/External_Form.dart';
 import 'Forms/Furnish_owner.dart';
 import 'Forms/Furnished_form.dart';
-import 'Forms/Renewal_form.dart';
 import 'Forms/Verification_form.dart';
 
 
@@ -179,21 +178,6 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
                     },
                     _rewardStatus?.isDiscounted == true,
                   ),
-
-                  _buildSectionItem(
-                    "Renewal",
-                    Icons.timer,
-                        () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              RenewalForm(rewardStatus: safeRewardStatus),
-                        ),
-                      );
-                    },
-                    _rewardStatus?.isDiscounted == true,
-                  ),
                 ],
               ),
 
@@ -218,7 +202,7 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
                     _rewardStatus?.isDiscounted == true,
                   ),
                   _buildSectionItem(
-                    " External Commercial",
+                    "External Commercial",
                     Icons.home_repair_service,
                         () {
                       Navigator.push(
@@ -257,7 +241,7 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
                   ),
                   _buildSectionItem(
                     "Furnished Owner",
-                    Icons.workspace_premium,
+                    Icons.villa,
                         () {
                       Navigator.push(
                         context,

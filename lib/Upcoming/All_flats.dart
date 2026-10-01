@@ -123,7 +123,9 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
     "sultanpur": [
       "ravi kumar",
       "faizan khan",
-      "sumit",
+      "yash",
+      "shivam",
+      "aakash",
     ],
     "chhattarpur_group": [
       "abhay",

@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:open_filex/open_filex.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
+import '../../../Rent Agreement/Dashboard_screen.dart';
 import '../../../model/Additional_agreement_tenants.dart';
 import '../../imagepreviewscreen.dart';
 import 'package:file_picker/file_picker.dart';
@@ -13,6 +14,13 @@ import 'package:image_picker/image_picker.dart';
 import '../PDFs/Commercial_PDF.dart';
 import '../PDFs/PDF.dart';
 import '../PDFs/furnished pdf.dart';
+import '../../../Rent Agreement/history_tab.dart' show RewardStatus;
+import '../../../Rent Agreement/Forms/Agreement_Form.dart' hide BuildingSuggestion, FlatSuggestion, ElevatedGradientButton;
+import '../../../Rent Agreement/Forms/External_Form.dart' hide BuildingSuggestion, FlatSuggestion, ElevatedGradientButton;
+import '../../../Rent Agreement/Forms/Commercial_Form.dart' hide BuildingSuggestion, FlatSuggestion, ElevatedGradientButton;
+import '../../../Rent Agreement/Forms/External_Commercial.dart' hide BuildingSuggestion, FlatSuggestion, ElevatedGradientButton;
+import '../../../Rent Agreement/Forms/Furnished_form.dart' hide BuildingSuggestion, FlatSuggestion, ElevatedGradientButton;
+import '../../../Rent Agreement/Forms/Furnish_owner.dart' hide BuildingSuggestion, FlatSuggestion, ElevatedGradientButton;
 
 
 class _SectionTheme {
@@ -226,6 +234,75 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     }
   }
 
+  // Renewal: prefill like Update (via agreementId) but submit as a brand-new
+  // agreement. Discount/price is recalculated fresh using the ORIGINAL
+  // agreement's own field worker (Fieldwarkarnumber), not the admin.
+  Future<void> _openRenewalForm() async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    RewardStatus rewardStatus = RewardStatus(totalAgreements: 0, isDiscounted: false);
+    try {
+      final fieldWorkerNumber = (agreement?["Fieldwarkarnumber"] ?? "").toString();
+      if (fieldWorkerNumber.isNotEmpty) {
+        final res = await http.get(Uri.parse(
+            "https://verifyrealestateandservices.in/Second%20PHP%20FILE/Target_New_2026/count_api_for_all_agreement_with_reword.php"
+                "?Fieldwarkarnumber=$fieldWorkerNumber"));
+        final data = json.decode(res.body);
+        if (data["status"] == true) {
+          final total = int.tryParse(data["total_agreement"].toString()) ?? 0;
+          rewardStatus = RewardStatus(totalAgreements: total, isDiscounted: total >= 20);
+        }
+      }
+    } catch (e) {
+      debugPrint("Renewal reward-status fetch error: $e");
+    }
+
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pop();
+
+    final type = (agreement?["agreement_type"] ?? "").toString();
+    Widget page;
+    // Each case also matches its own Renewal-mode output type (e.g. "Rental
+    // Renewal"), so an agreement that was itself created by a renewal can be
+    // renewed again later -- it still opens the same wizard, in Renewal mode.
+    switch (type) {
+      case "Rental Agreement":
+      case "Rental Renewal":
+        page = RentalWizardPage(agreementId: widget.agreementId, rewardStatus: rewardStatus, isRenewal: true, prefillData: agreement);
+        break;
+      case "External Rental Agreement":
+      case "External Rental Renewal":
+        page = ExternalWizardPage(agreementId: widget.agreementId, rewardStatus: rewardStatus, isRenewal: true, prefillData: agreement);
+        break;
+      case "Commercial Agreement":
+      case "Commercial Renewal":
+        page = CommercialWizardPage(agreementId: widget.agreementId, rewardStatus: rewardStatus, isRenewal: true, prefillData: agreement);
+        break;
+      case "External Commercial Agreement":
+      case "External Commercial Renewal":
+        page = ExternalCommercialWizardPage(agreementId: widget.agreementId, rewardStatus: rewardStatus, isRenewal: true, prefillData: agreement);
+        break;
+      case "Furnished Agreement":
+      case "Furnished Renewal":
+        page = FurnishedForm(agreementId: widget.agreementId, rewardStatus: rewardStatus, isRenewal: true, prefillData: agreement);
+        break;
+      case "Furnished by Owner":
+      case "Furnished by Owner Renewal":
+        page = FurnishOwner(agreementId: widget.agreementId, rewardStatus: rewardStatus, isRenewal: true, prefillData: agreement);
+        break;
+      default:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Renewal isn't available for agreement type: $type")),
+        );
+        return;
+    }
+
+    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+  }
 
   Future<void> _pickAndUploadPoliceVerification() async {
     final result = await FilePicker.platform
@@ -268,7 +345,11 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
           .toString()
           .trim();
 
-      if (type == "Furnished Agreement") {
+      // Renewal-mode agreements carry a distinguishing type suffix (e.g.
+      // "Commercial Renewal"), so the exact-match dispatch here needs those
+      // variants too or a renewed Commercial/Furnished agreement silently
+      // gets the generic PDF template instead of its correct one.
+      if (type == "Furnished Agreement" || type == "Furnished Renewal") {
 
         generatedFile =
         await generateFurnishedAgreementPdf(
@@ -276,7 +357,9 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
 
       } else if (type ==
           "Commercial Agreement" ||
-          type == "External Commercial Agreement") {
+          type == "External Commercial Agreement" ||
+          type == "Commercial Renewal" ||
+          type == "External Commercial Renewal") {
 
         generatedFile =
         await generateCommercialAgreementPdf(
@@ -1671,7 +1754,9 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
 
     final bool isCommercial =
         agreement?["agreement_type"] == "Commercial Agreement" ||
-            agreement?["agreement_type"] == "External Commercial Agreement";
+            agreement?["agreement_type"] == "External Commercial Agreement" ||
+            agreement?["agreement_type"] == "Commercial Renewal" ||
+            agreement?["agreement_type"] == "External Commercial Renewal";
 
     final D_or_T = isCommercial ? "Director" : "Tenant";
 
@@ -2053,6 +2138,23 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                   ],
                 ),
               ),
+
+            const SizedBox(height: 16),
+
+            // Renewal mode now routes to the correct per-type wizard (isRenewal: true),
+            // which submits as a brand-new agreement instead of overwriting this one.
+            // Shown unconditionally, matching the field-worker final-detail-page decision --
+            // _openRenewalForm's own switch statement handles unsupported types (e.g.
+            // Police Verification) gracefully with a SnackBar instead of navigating.
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: _pillButton(
+                label: 'Renew Agreement',
+                icon: Icons.autorenew,
+                colors: const [Color(0xFF16A34A), Color(0xFF15803D)],
+                onPressed: _openRenewalForm,
+              ),
+            ),
 
             const SizedBox(height: 30),
           ],

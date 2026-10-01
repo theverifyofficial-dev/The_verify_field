@@ -11,7 +11,12 @@ import '../model/Additional_agreement_tenants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Rent Agreement/history_tab.dart' show RewardStatus;
 import 'Dashboard_screen.dart';
-import 'Forms/Renewal_form.dart';
+import 'Forms/Agreement_Form.dart' hide BuildingSuggestion, FlatSuggestion, ElevatedGradientButton;
+import 'Forms/External_Form.dart' hide BuildingSuggestion, FlatSuggestion, ElevatedGradientButton;
+import 'Forms/Commercial_Form.dart' hide BuildingSuggestion, FlatSuggestion, ElevatedGradientButton;
+import 'Forms/External_Commercial.dart' hide BuildingSuggestion, FlatSuggestion, ElevatedGradientButton;
+import 'Forms/Furnished_form.dart' hide BuildingSuggestion, FlatSuggestion, ElevatedGradientButton;
+import 'Forms/Furnish_owner.dart' hide BuildingSuggestion, FlatSuggestion, ElevatedGradientButton;
 
 
 class _SectionTheme {
@@ -276,15 +281,46 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
     if (!mounted) return;
     Navigator.of(context, rootNavigator: true).pop();
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => RenewalForm(
-          agreementId: widget.agreementId,
-          rewardStatus: rewardStatus,
-        ),
-      ),
-    );
+    // Renewal mode: prefill like Update (via agreementId) but submit as a
+    // brand-new agreement (isRenewal: true) -- never routes through _updateAll.
+    final type = (agreement?["agreement_type"] ?? "").toString();
+    Widget page;
+    // Each case also matches its own Renewal-mode output type (e.g. "Rental
+    // Renewal"), so an agreement that was itself created by a renewal can be
+    // renewed again later -- it still opens the same wizard, in Renewal mode.
+    switch (type) {
+      case "Rental Agreement":
+      case "Rental Renewal":
+        page = RentalWizardPage(agreementId: widget.agreementId, rewardStatus: rewardStatus, isRenewal: true, prefillData: agreement);
+        break;
+      case "External Rental Agreement":
+      case "External Rental Renewal":
+        page = ExternalWizardPage(agreementId: widget.agreementId, rewardStatus: rewardStatus, isRenewal: true, prefillData: agreement);
+        break;
+      case "Commercial Agreement":
+      case "Commercial Renewal":
+        page = CommercialWizardPage(agreementId: widget.agreementId, rewardStatus: rewardStatus, isRenewal: true, prefillData: agreement);
+        break;
+      case "External Commercial Agreement":
+      case "External Commercial Renewal":
+        page = ExternalCommercialWizardPage(agreementId: widget.agreementId, rewardStatus: rewardStatus, isRenewal: true, prefillData: agreement);
+        break;
+      case "Furnished Agreement":
+      case "Furnished Renewal":
+        page = FurnishedForm(agreementId: widget.agreementId, rewardStatus: rewardStatus, isRenewal: true, prefillData: agreement);
+        break;
+      case "Furnished by Owner":
+      case "Furnished by Owner Renewal":
+        page = FurnishOwner(agreementId: widget.agreementId, rewardStatus: rewardStatus, isRenewal: true, prefillData: agreement);
+        break;
+      default:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Renewal isn't available for agreement type: $type")),
+        );
+        return;
+    }
+
+    Navigator.push(context, MaterialPageRoute(builder: (_) => page));
   }
 
   // ── Reusable widgets (exact copy from AllDataDetailsPage) ──────────────────
@@ -1088,7 +1124,9 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
 
     final bool isCommercial =
         agreement?["agreement_type"] == "Commercial Agreement" ||
-            agreement?["agreement_type"] == "External Commercial Agreement";
+            agreement?["agreement_type"] == "External Commercial Agreement" ||
+            agreement?["agreement_type"] == "Commercial Renewal" ||
+            agreement?["agreement_type"] == "External Commercial Renewal";
 
     final D_or_T = isCommercial ? "Director" : "Tenant";
 
@@ -1146,16 +1184,21 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
 
             const SizedBox(height: 20),
 
-            if (_isAgreementExpired)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: _pillButton(
-                  label: 'Renew Agreement',
-                  icon: Icons.autorenew,
-                  colors: const [Color(0xFF16A34A), Color(0xFF15803D)],
-                  onPressed: _openRenewalForm,
-                ),
+            // Renewal mode now routes to the correct per-type wizard (isRenewal: true),
+            // which submits as a brand-new agreement instead of overwriting this one.
+            // Shown unconditionally per user's decision -- this screen shows
+            // agreements of any status, and _openRenewalForm's own switch
+            // statement already handles unsupported types (e.g. Police
+            // Verification) gracefully with a SnackBar instead of navigating.
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: _pillButton(
+                label: 'Renew Agreement',
+                icon: Icons.autorenew,
+                colors: const [Color(0xFF16A34A), Color(0xFF15803D)],
+                onPressed: _openRenewalForm,
               ),
+            ),
 
             const SizedBox(height: 20,),
 

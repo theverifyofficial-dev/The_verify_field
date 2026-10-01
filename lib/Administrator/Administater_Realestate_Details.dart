@@ -938,6 +938,14 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                             ],
                           ),
                         ),
+
+                          _buildVideoLinkCard(
+                          prop.videoLink,
+                          context,
+                          isSmallScreen,
+                          isDarkMode,
+                          ),
+
                         // Building Facility Section
                         Container(
                           margin: EdgeInsets.all(horizontalPadding),
@@ -1561,19 +1569,99 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
         ),
       );
     }
-    // Video Link
-    if ((prop.videoLink ?? '').isNotEmpty) {
-      rows.add(
-        GestureDetector(
-          onTap: () => _launchVideo(prop.videoLink, context),
-          child: _buildSimpleInfoCard("Video Link", prop.videoLink, Icons.video_library, Colors.lime, isSmallScreen: isSmallScreen, isDarkMode: isDarkMode),
-        ),
-      );
-    }
+    // Video Link - always show the card
+
     // Fieldworker Info Card
     rows.add(_buildFieldworkerInfoCard(prop, context, isSmallScreen, isDarkMode));
     return rows;
   }
+  Widget _buildVideoLinkCard(
+      String videoUrl,
+      BuildContext context,
+      bool isSmallScreen,
+      bool isDarkMode,
+      ) {
+    final hasVideo = videoUrl.trim().isNotEmpty && videoUrl.trim() != 'null';
+    const cardColor = Colors.red;
+
+    return GestureDetector(
+      onTap: () {
+        if (!hasVideo) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Video is not available. Please add it.'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          return;
+        }
+
+        _launchVideo(videoUrl.trim(), context);
+      },
+      child: Container(
+        width: double.infinity,
+        margin: EdgeInsets.symmetric(vertical: isSmallScreen ? 2.0 : 4.0),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: cardColor.withOpacity(0.3)),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(isSmallScreen ? 10.0 : 12.0),
+          child: Row(
+            children: [
+              Container(
+                width: isSmallScreen ? 32.0 : 36.0,
+                height: isSmallScreen ? 32.0 : 36.0,
+                decoration: BoxDecoration(
+                  color: cardColor,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.video_library,
+                  color: Colors.white,
+                  size: isSmallScreen ? 16.0 : 18.0,
+                ),
+              ),
+              SizedBox(width: isSmallScreen ? 8.0 : 10.0),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Video Link',
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 10.0 : 11.0,
+                        fontWeight: FontWeight.w600,
+                        color: cardColor,
+                      ),
+                    ),
+                    SizedBox(height: isSmallScreen ? 2.0 : 3.0),
+                    Text(
+                      hasVideo
+                          ? 'Tap to open video'
+                          : 'Video is not available. Please add it.',
+                      style: TextStyle(
+                        fontSize: isSmallScreen ? 13.0 : 14.0,
+                        fontWeight: FontWeight.w500,
+                        color: isDarkMode ? Colors.black : Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                hasVideo ? Icons.open_in_new : Icons.info_outline,
+                color: cardColor,
+                size: isSmallScreen ? 20.0 : 22.0,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildFieldworkerInfoCard(RealestateModel prop, BuildContext context, bool isSmallScreen, bool isDarkMode) {
     final String name = prop.fieldWorkerName ?? '';
     final String number = prop.fieldWorkerNumber ?? '';
@@ -1699,13 +1787,36 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
   }
 
   Future<void> _launchVideo(String url, BuildContext context) async {
-    final Uri videoUri = Uri.parse(url);
-    if (await canLaunchUrl(videoUri)) {
-      await launchUrl(videoUri);
-    } else {
+    final trimmedUrl = url.trim();
+
+    if (trimmedUrl.isEmpty || trimmedUrl == 'null') {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Cannot launch video")),
+          const SnackBar(
+            content: Text('Video is not available. Please add it.'),
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
+      final Uri videoUri = Uri.parse(trimmedUrl);
+
+      if (await canLaunchUrl(videoUri)) {
+        await launchUrl(
+          videoUri,
+          mode: LaunchMode.externalApplication,
+        );
+      } else if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cannot launch video')),
+        );
+      }
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cannot launch video')),
         );
       }
     }

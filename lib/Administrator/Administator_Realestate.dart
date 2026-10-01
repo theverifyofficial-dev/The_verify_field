@@ -326,6 +326,8 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     {"name": "Ravi", "id": "9711275300"},
     {"name": "Faizan", "id": "9971172204"},
     {"name": "Yash", "id": "9211335993"},
+    {"name": "Shivam", "id": "9711775300",},
+    {"name": "Aakash", "id": "9211335994",},
   ];
 
   Map<String, List<Catid>> _groupedData = {};
@@ -1038,15 +1040,5 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     );
   }
 
-  void _launchDialer(String phoneNumber) async {
-    final Uri launchUri = Uri(
-      scheme: 'tel',
-      path: phoneNumber,
-    );
-    if (await canLaunch(launchUri.toString())) {
-      await launch(launchUri.toString());
-    } else {
-      throw 'Could not launch $phoneNumber';
-    }
-  }
+
 }

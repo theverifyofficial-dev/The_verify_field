@@ -104,9 +104,11 @@ class DirectorBlock {
 class CommercialWizardPage extends StatefulWidget {
   final String? agreementId;
   final RewardStatus rewardStatus;
+  final bool isRenewal; // true = prefill like Update, but submit as a brand-new agreement
 
 
-  const CommercialWizardPage({Key? key, this.agreementId,required this.rewardStatus}) : super(key: key);
+  final Map<String, dynamic>? prefillData; // Renewal mode: reuse already-loaded agreement data instead of re-fetching
+  const CommercialWizardPage({Key? key, this.agreementId,required this.rewardStatus, this.isRenewal = false, this.prefillData}) : super(key: key);
 
   @override
   State<CommercialWizardPage> createState() => _CommercialWizardPageState();
@@ -219,7 +221,16 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         vsync: this,
         duration: const Duration(milliseconds: 400));
 
-    if (widget.agreementId != null) {
+    if (widget.prefillData != null) {
+      // Renewal mode: reuse already-loaded data instead of re-fetching from
+      // agreemet_details_page.php, which is scoped to PENDING submissions
+      // and does not reliably return already-accepted/final agreements.
+      _applyAgreementData(widget.prefillData!);
+      if (widget.agreementId != null) {
+        _fetchAdditionalTenants(widget.agreementId!, useFinalEndpoint: true);
+      }
+      updateAgreementPrice();
+    } else if (widget.agreementId != null) {
       _fetchAgreementDetails(widget.agreementId!);
     }
   }
@@ -306,20 +317,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
     return parts.join(' ').trim();
   }
 
-  Future<void> _fetchAgreementDetails(String id) async {
-    final url = Uri.parse(
-        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=$id");
-
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final decoded = jsonDecode(response.body);
-
-      if (decoded["status"] == "success" && decoded["data"] != null && decoded["data"].isNotEmpty) {
-        final data = decoded["data"][0]; // 👈 Get first record
-
-        AppLogger.api("✅ Parsed Agreement Data: $data");
-
-        setState(() {
+  void _applyAgreementData(Map<String, dynamic> data) {
           // 🔹 Owner
           ownerName.text = data["owner_name"] ?? "";
           ownerRelation = data["owner_relation"] ?? "S/O";
@@ -383,13 +381,28 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
           isAgreementHide = data["is_agreement_hide"] == "1";
 
 
-          shiftingDate = (data["shifting_date"] != null && data["shifting_date"].toString().isNotEmpty)
-              ? DateTime.tryParse(data["shifting_date"])
-              : null;
+          shiftingDate = _parseAgreementDate(data["shifting_date"]);
           // 🔹 Documents
           ownerAadharFrontUrl = data["owner_aadhar_front"] ?? "";
           ownerAadharBackUrl  = data["owner_aadhar_back"] ?? "";
 
+  }
+
+  Future<void> _fetchAgreementDetails(String id) async {
+    final url = Uri.parse(
+        "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=$id");
+
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+
+      if (decoded["status"] == "success" && decoded["data"] != null && decoded["data"].isNotEmpty) {
+        final data = decoded["data"][0]; // 👈 Get first record
+
+        AppLogger.api("✅ Parsed Agreement Data: $data");
+
+        setState(() {
+          _applyAgreementData(data);
         });
 
         await _fetchAdditionalTenants(id);
@@ -404,9 +417,24 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
     }
   }
 
-  Future<void> _fetchAdditionalTenants(String agreementId) async {
-    final url = Uri.parse(
-      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_api_for_addtional_tenant.php?agreement_id=$agreementId",
+  DateTime? _parseAgreementDate(dynamic value) {
+    if (value == null) return null;
+    if (value is String) {
+      return value.isNotEmpty ? DateTime.tryParse(value) : null;
+    }
+    if (value is Map) {
+      final dateStr = value["date"]?.toString();
+      if (dateStr != null && dateStr.isNotEmpty) {
+        return DateTime.tryParse(dateStr);
+      }
+    }
+    return null;
+  }
+
+  Future<void> _fetchAdditionalTenants(String agreementId, {bool useFinalEndpoint = false}) async {
+    final url = Uri.parse(useFinalEndpoint
+      ? "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_api_addional_tenant_final.php?agreement_id=$agreementId"
+      : "https://verifyrealestateandservices.in/Second%20PHP%20FILE/main_application/agreement/show_api_for_addtional_tenant.php?agreement_id=$agreementId",
     );
 
     final response = await http.get(url);
@@ -1735,7 +1763,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         "notary_price": Notary_price ?? '10 rupees',
         "is_agreement_hide": isAgreementHide ? "1" : "0",
         "gst_type": gstType,
-        "agreement_type": "Commercial Agreement",
+        "agreement_type": widget.isRenewal ? "Commercial Renewal" : "Commercial Agreement",
       };
 
       request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
@@ -2261,7 +2289,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        title: Text('Commercial Agreement', style: TextStyle(fontFamily: "Poppins", fontWeight: FontWeight.w600)),
+        title: Text(widget.isRenewal ? 'Renew Commercial Agreement' : 'Commercial Agreement', style: TextStyle(fontFamily: "Poppins", fontWeight: FontWeight.w600)),
         centerTitle: true,
         leading: Padding(
           padding: const EdgeInsets.all(10),
@@ -2286,6 +2314,40 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                     ],
                   ),
                 ),
+
+                if (widget.isRenewal)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFF9800), Color(0xFFFB8C00)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.orange.withOpacity(0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.autorenew, color: Colors.white),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              'Renewing Agreement — Ye purana agreement renew ho raha hai, submit karne par naya agreement banega',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
 
                 if (widget.rewardStatus.isDiscounted)
                   Padding(
@@ -2359,17 +2421,19 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                       const Spacer(),
                       ElevatedGradientButton(
                         text: _currentStep == 3
-                            ? (widget.agreementId != null ? 'Update' : 'Submit')
+                            ? (widget.isRenewal
+                                ? 'Submit Renewal'
+                                : (widget.agreementId != null ? 'Update' : 'Submit'))
                             : 'Next',
                         icon: _currentStep == 3
                             ? Icons.cloud_upload
                             : Icons.arrow_forward,
                         onPressed: _currentStep == 3
                             ? () {
-                          if (widget.agreementId != null) {
+                          if (widget.agreementId != null && !widget.isRenewal) {
                             _updateAll(); // ✅ Update mode
                           } else {
-                            _submitAll(); // ✅ New submission
+                            _submitAll(); // ✅ New submission (fresh, or Renewal creating a new agreement)
                           }
                         }
                             : _goNext,
@@ -2817,7 +2881,13 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
     return _glassContainer(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Expanded(child: Text('Owner Details', style: TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black))),
+          Expanded(child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Owner Details', style: TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700, color: Colors.black)),
+              const Text('Malik ki Jaankari', style: TextStyle(fontSize: 11, color: Colors.black54)),
+            ],
+          )),
           Container(
             decoration: BoxDecoration(
                 gradient: LinearGradient(colors: [Colors.amber.shade800, Colors.amber.shade600]),
@@ -2915,13 +2985,20 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: Text(
-                          'Director ${index + 1} Details',
-                          style: TextStyle(fontFamily: "Poppins",
-                            fontSize: 20,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.black,
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Director ${index + 1} Details',
+                              style: TextStyle(fontFamily: "Poppins",
+                                fontSize: 20,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black,
+                              ),
+                            ),
+                            const Text('Director ki Jaankari',
+                                style: TextStyle(fontSize: 11, color: Colors.black54)),
+                          ],
                         ),
                       ),
                       Wrap(
@@ -2948,7 +3025,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                           ),
                           // 🔥 Show delete only when creating NEW agreement
                           if (index > 0 &&
-                              (widget.agreementId == null || directors[index].id == null))
+                              (widget.agreementId == null || widget.isRenewal || directors[index].id == null))
                             IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
                               onPressed: () {
@@ -3274,7 +3351,13 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Property Details', style: TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Property Details', style: TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+                Text('Property ki Jaankari', style: TextStyle(fontSize: 11, color: Colors.black54)),
+              ],
+            ),
 
           ],
         ),
@@ -3957,7 +4040,13 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
     return _glassContainer(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Text('Preview', style: TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Preview', style: TextStyle(fontFamily: "Poppins", fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+                const Text('Jaanch Kar Jama Karein', style: TextStyle(fontSize: 11, color: Colors.black54)),
+              ],
+            ),
             Row(children: [
               IconButton(onPressed: () {
                 // _jumpToStep(0); //Currently, not important!!

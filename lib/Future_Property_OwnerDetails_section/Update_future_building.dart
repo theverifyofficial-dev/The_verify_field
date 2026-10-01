@@ -14,7 +14,6 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../provider/property_id_for_multipleimage_provider.dart';
 import '../Custom_Widget/constant.dart';
-import 'metro_api.dart';
 
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -32,6 +31,52 @@ class UpdateRealEstateProperty extends StatefulWidget {
 
 class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   final _formKey = GlobalKey<FormState>();
+
+  // ----- wizard step colors -----
+  static const _kPrimary = Color(0xFF0F6E5C);
+  static const _kAccent = Color(0xFFE98A15);
+  static const _kSurface2 = Color(0xFFF1EEE6);
+  static const _kBorder = Color(0xFFE2DCCB);
+
+  int _stepIndex = 0;
+
+  static const List<String> _stepTitlesEn = [
+    'Photo',
+    'Basic Info',
+    'Address & Location',
+    'Facilities & Access',
+    'Metro & Distance',
+    'Owner & Caretaker',
+  ];
+  static const List<String> _stepTitlesHi = [
+    'Foto',
+    'Basic Jaankari',
+    'Address aur Location',
+    'Suvidhaye aur Access',
+    'Metro aur Doori',
+    'Malik aur Caretaker',
+  ];
+  static const List<IconData> _stepIcons = [
+    Icons.photo_camera_outlined,
+    Icons.info_outline,
+    Icons.location_on_outlined,
+    Icons.checklist_outlined,
+    Icons.train_outlined,
+    Icons.person_outline,
+  ];
+
+  // fixed metro chip options (replaces the old metro-search dialog)
+  static const List<String> _metroOptions = [
+    'Hauz Khas',
+    'Malviya Nagar',
+    'Saket',
+    'Qutub Minar',
+    'Chhattarpur',
+    'Sultanpur',
+    'Ghitorni',
+    'Arjan Garh',
+  ];
+  String? _selectedMetro;
 
   List<String> selectedFacilities = [];
 
@@ -56,11 +101,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   final TextEditingController _address = TextEditingController();
   final TextEditingController _facilityController = TextEditingController();
 
-  // NEW: metro/locality controllers and list
-  final TextEditingController metroController = TextEditingController();
-  final TextEditingController localityController = TextEditingController();
-  List<String> selectedLocalities = [];
-
   final List<String> roadSizeOptions = ['15 Feet', '20 Feet', '25 Feet', '30 Feet', '35 Feet', '40 Above',''];
   final List<String> metroDistanceOptions = ['200 m', '300 m', '400 m', '500 m','600 m','700 m','1 km','1.5 km','2.5 km','2.5+ km',''];
   final List<String> metro_nameOptions = ['','']; // kept but not used (picker used)
@@ -79,7 +119,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   String? _selectedItem;
   String? apiImageUrl;
 
-  final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Ghitorni','Rajpur Khurd','Mangalpuri','Dwarka Mor','Uttam Nagar','Nawada','Vasant Kunj',''];
+  final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Ghitorni','Rajpur Khurd','Manglapuri','Dwarka Mor','Uttam Nagar','Nawada','Vasant Kunj',''];
   String? _selectedItem1;
   final List<String> _items1 = ['Buy','Rent',''];
 
@@ -180,15 +220,11 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         _selectedPropertyType = normalizePropertyType(data.residenceCommercial);
         lat = data.longitude;
         long = data.latitude;
-        metroController.text = data.metroName;
         print('metro name : ${data.metroName}');
 
-// split localities into list
-        if (data.localities_list.isNotEmpty) {
-          selectedLocalities = data.localities_list.split(", ").toList();
-          localityController.text = selectedLocalities.join(", ");
-        }
-
+        // pre-select the metro chip only if it exactly matches one of the fixed options
+        final fetchedMetro = data.metroName.trim();
+        _selectedMetro = _metroOptions.contains(fetchedMetro) ? fetchedMetro : null;
 
         setState(() {
           _isLoading = false;
@@ -222,9 +258,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
     return result;
   }
 
-  final TextEditingController localityCtrl = TextEditingController();
-
-
   String normalizePropertyType(String? val) {
     if (val == null) return '';
     if (val.toLowerCase().startsWith('res')) return 'Residential';
@@ -242,6 +275,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
     // ----------------------------------------------------------
     // IMAGE HANDLING (NEW IMAGE / OLD IMAGE / NO IMAGE)
     // ----------------------------------------------------------
+
     if (imageFile != null) {
       final fileName = imageFile.path.split("/").last;
       print("📸 Sending NEW image: $fileName");
@@ -261,11 +295,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
     }
 
     // ----------------------------------------------------------
-    // LOCALITY LIST
-    // ----------------------------------------------------------
-    final localityListString = selectedLocalities.join(', ');
-
-    // ----------------------------------------------------------
     // ALL OTHER FIELDS
     // ----------------------------------------------------------
     request.fields.addAll({
@@ -282,8 +311,8 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       "your_address": _Google_Location.text,
       "road_size": selectedRoadSize ?? '',
       "metro_distance": selectedMetroDistance ?? '',
-      "metro_name": metroController.text,
-      "locality_list": localityListString,
+      "metro_name": _selectedMetro ?? "",
+      "locality_list": "Sultanpur",
       "main_market_distance": selectedMarketDistance ?? '',
       "age_of_property": _ageOfProperty ?? '',
       "total_floor": _totalFloor ?? '',
@@ -324,31 +353,210 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       SnackBar(content: Text(message, style: const TextStyle(color: Colors.white)), backgroundColor: Colors.grey, duration: const Duration(seconds: 2)),
     );
   }
-  void _addManualLocalityFromMain(String value) {
-    final text = value.trim();
-    if (text.isEmpty) return;
 
-    final parts = text.split(',');
+  // ---------------------------------------------------------------------
+  // step navigation
+  // ---------------------------------------------------------------------
+
+  String? _validateStep(int step) {
+    switch (step) {
+      case 0: // Photo — optional
+        return null;
+      case 1: // Basic Info
+        if (_selectedItem == null || _selectedItem!.isEmpty) return 'Please select a Place';
+        if (_selectedPropertyType == null || _selectedPropertyType!.isEmpty) return 'Please select property type';
+        if (_selectedItem1 == null || _selectedItem1!.isEmpty) return 'Please select Buy/Rent';
+        if (_totalFloor == null || _totalFloor!.isEmpty) return 'Please select total floor';
+        if (_ageOfProperty == null || _ageOfProperty!.isEmpty) return 'Please select age of property';
+        return null;
+      case 2: // Address & Location
+        if (_address.text.trim().isEmpty) return 'Please enter property name & address';
+        if (_Address_apnehisaabka.text.trim().isEmpty) return 'Please enter address for field worker';
+        if (_Google_Location.text.trim().isEmpty) return 'Please enter google location';
+        return null;
+      case 3: // Facilities & Access
+        if (_facilityController.text.trim().isEmpty) return 'Please select facilities';
+        if (selectedRoadSize == null || selectedRoadSize!.isEmpty) return 'Please select road size';
+        if (_selectedLift == null || _selectedLift!.isEmpty) return 'Please select lift availability';
+        if (_selectedParking == null || _selectedParking!.isEmpty) return 'Please select parking type';
+        return null;
+      case 4: // Metro & Distance
+        if (selectedMetroDistance == null || selectedMetroDistance!.isEmpty) return 'Please select metro distance';
+        return null;
+      case 5: // Owner & Caretaker — all optional
+        return null;
+      default:
+        return null;
+    }
+  }
+
+  void _goBack() {
+    if (_stepIndex == 0) {
+      Navigator.pop(context);
+    } else {
+      setState(() => _stepIndex--);
+    }
+  }
+
+  void _goNext() {
+    final err = _validateStep(_stepIndex);
+    if (err != null) {
+      showSnack(err);
+      return;
+    }
+    if (_stepIndex < _stepTitlesEn.length - 1) {
+      setState(() => _stepIndex++);
+    } else {
+      _handleSubmit();
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // submit (unchanged logic — validate -> countdown dialog -> upload -> pop)
+  // ---------------------------------------------------------------------
+
+  Future<void> _handleSubmit() async {
+    // ✅ Validate form before starting countdown
+    if (!_formKey.currentState!.validate()) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text(
+            "Form Incomplete",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            "Please fill all the required fields before submitting.",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("OK"),
+            )
+          ],
+        ),
+      );
+      return; // Stop here if any field is empty
+    }
 
     setState(() {
-      for (final part in parts) {
-        final loc = part.trim();
-        if (loc.isNotEmpty &&
-            !selectedLocalities
-                .any((e) => e.toLowerCase() == loc.toLowerCase())) {
-          selectedLocalities.add(loc);
-        }
-      }
+      _isLoading = true;
+    });
 
-      // update text field
-      localityController.text = selectedLocalities.join(", ");
+    int countdown = 3;
+
+    // Show countdown dialog
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            Future.delayed(const Duration(seconds: 1), () async {
+              if (countdown > 1) {
+                setStateDialog(() {
+                  countdown--;
+                });
+              } else {
+                setStateDialog(() {
+                  countdown = 0;
+                });
+
+                await Future.delayed(const Duration(milliseconds: 1));
+                if (Navigator.of(context).canPop()) {
+                  Navigator.of(context).pop(); // close dialog
+                }
+
+                // Run your upload logic
+                await updateImageWithTitle(_imageFile);
+
+                if (!mounted) return;
+
+                // Show success message
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("✅ Submitted Successfully!"),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            });
+
+            return AlertDialog(
+              backgroundColor:
+              Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey[900]
+                  : Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: const Text(
+                "Submitting...",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 500),
+                    transitionBuilder: (child, animation) =>
+                        ScaleTransition(scale: animation, child: child),
+                    child: countdown > 0
+                        ? Text(
+                      "$countdown",
+                      key: ValueKey<int>(countdown),
+                      style: TextStyle(
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).brightness ==
+                            Brightness.dark
+                            ? Colors.red[300]
+                            : Colors.red,
+                      ),
+                    )
+                        : const Icon(
+                      Icons.verified_rounded,
+                      key: ValueKey<String>("verified"),
+                      color: Colors.green,
+                      size: 60,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    countdown > 0 ? "Please wait..." : "Verified!",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).brightness ==
+                          Brightness.dark
+                          ? Colors.white
+                          : Colors.black,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    setState(() {
+      _isLoading = false;
     });
   }
+
+  // ---------------------------------------------------------------------
+  // build
+  // ---------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade100,
+      backgroundColor: _kSurface2,
       appBar: AppBar(
         surfaceTintColor: Colors.black,
         backgroundColor: Colors.black,
@@ -361,835 +569,750 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildSectionCard(
-                title: 'Upload Main Image',
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.upload, color: Colors.white),
-                      label: const Text('Pick Image', style: TextStyle(color: Colors.white)),
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade600),
-                      onPressed: () async {
-                        XFile? pickedXFile = await pickAndCompressImage();
-                        File? pickedImage = pickedXFile != null ? File(pickedXFile.path) : null;
-                        setState(() {
-                          _imageFile = pickedImage;
-                        });
-                      },
-                    ),
-                    Container(
-                      width: 100,
-                      height: 100,
-                      child: _imageFile != null
-                          ? Image.file(_imageFile!)
-                          : _networkImageUrl != null && _networkImageUrl!.isNotEmpty
-                          ? ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: Image.network(
-                          _networkImageUrl!,
-                          height: 100,
-                          width: 100,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                          : Center(child: Text('No image selected.', style: TextStyle(color: Colors.black))),
-                    ),
-                  ],
-                ),
-              ),
-
-              // ... other fields (place, buy/rent, floors etc.)
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildDropdownRow('Place', _items, _selectedItem, (val) => setState(() => _selectedItem = val),
-                      validator: (val) => val == null || val.isEmpty ? 'Please select a Place' : null,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildDropdownRow('Buy / Rent', _items1, _selectedItem1, (val) => setState(() => _selectedItem1 = val),
-                      validator: (val) => val == null || val.isEmpty ? 'Please select a Buy/Rent' : null,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 10),
-
-              buildTextInput('Owner Name (Optional)', _Ownername),
-              buildTextInput('Owner No. (Optional)', _Owner_number, keyboardType: TextInputType.phone, validateLength: true),
-              buildTextInput('CareTaker Name (Optional)', _CareTaker_name),
-              buildTextInput('CareTaker No. (Optional)', _CareTaker_number, keyboardType: TextInputType.phone, validateLength: true),
-              _buildTextInput('Property Name & Address', _address),
-              _buildDropdownRow(
-                'Property Type',
-                propertyTypes,
-                propertyTypes.contains(_selectedPropertyType)
-                    ? _selectedPropertyType
-                    : null,
-                    (val) {
-                  setState(() {
-                    _selectedPropertyType = val;
-                  });
-                },
-                validator: (val) =>
-                val == null ? 'Please select property type' : null,
-              ),
-
-              _buildSectionCard(
-                child: TextFormField(
-                  controller: _facilityController,
-                  readOnly: true, // Prevents manual editing
-                  onTap: _showFacilitySelectionDialog, // Opens the selection dialog
-                  style:  TextStyle(color: Colors.black,fontWeight: FontWeight.w700),
-                  decoration: InputDecoration(
-                    hintText: 'Select Facilities',
-                    hintStyle:  TextStyle(color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                    border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
-                    filled: true,
-                    fillColor: Colors.white,
-
-                    // ✅ Error text style
-                    errorStyle: const TextStyle(
-                      color: Colors.redAccent, // deep red text
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
-
-                    // ✅ Error border (deep red)
-                    errorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(
-                        color: Colors.redAccent,
-                        width: 2,
-                      ),
-                    ),
-
-                    // ✅ Focused border when error
-                    focusedErrorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(
-                        color: Colors.redAccent,
-                        width: 2,
-                      ),
-                    ),
-
-                  ),
-                  validator: (val) =>
-                  val == null || val.isEmpty
-                      ? "Select facilities"
-                      : null,
-                ), title: 'Facility',
-              ),
-
-              /// METRO STATION
-              _buildSectionCard(
-                title: "Metro Station",
-                child: TextFormField(
-                  controller: metroController,
-                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-                  readOnly: true,
-                  decoration: const InputDecoration(
-                    hintText: "Select Metro Station",
-                    border: OutlineInputBorder(),
-                  ),
-                  onTap: () {
-                    showMetroLocalityPicker(context, (metro, localities) {
-                      setState(() {
-                        metroController.text = metro;
-
-                        selectedLocalities = List.from(localities);
-
-                        // 🔥 THIS IS THE KEY LINE
-                        localityController.text = selectedLocalities.join(", ");
-                      });
-                    });
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 12),
-
-              /// LOCALITIES
-              _buildSectionCard(
-                title: "Localities",
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextFormField(
-                      controller: localityController,
-                      readOnly: false,
-                      maxLines: 2,
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold,
-                      ),
-
-                      // ⏎ Enter key support
-                      onFieldSubmitted: (value) {
-                        _addManualLocalityFromMain(value);
-                      },
-
-                      // , comma support
-                      onChanged: (value) {
-                        if (value.endsWith(',')) {
-                          _addManualLocalityFromMain(value);
-                        }
-                      },
-
-                      decoration: InputDecoration(
-                        hintText: "Type locality or select from list",
-                        border: const OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Chips
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      children: selectedLocalities.map((loc) {
-                        return Chip(
-                          label: Text(loc,style: TextStyle(color: Colors.black),),
-                          backgroundColor: Colors.grey.shade200,
-                          onDeleted: () {
-                            setState(() {
-                              selectedLocalities.remove(loc);
-                              localityController.text =
-                                  selectedLocalities.join(", ");
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ),
-
-
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildDropdownRow('Metro Distance', metroDistanceOptions, selectedMetroDistance, (val) => setState(() => selectedMetroDistance = val),
-                        validator: (val) => val == null || val.isEmpty ? 'Please select metro distance' : null),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildDropdownRow('Total floor', _items_floor2, _totalFloor, (val) => setState(() => _totalFloor = val),
-                        validator: (val) => val == null || val.isEmpty ? 'Please select total floor' : null),
-                  ),
-                ],
-              ),
-
-
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildDropdownRow(
-                      'Parking',
-                      parkingOptions,
-                      _selectedParking,
-                          (val) => setState(() => _selectedParking = val),
-                      validator: (val) => val == null || val.isEmpty ? 'Please select parking type' : null,
-                    ),
-                  ),
-                  SizedBox(width: 6,),
-
-                  Expanded(
-                    child: _buildDropdownRow(
-                      'Lift Availability',
-                      parkingOptions,
-                      _selectedLift,
-                          (val) => setState(() => _selectedLift = val),
-                      validator: (val) =>
-                      val == null || val.isEmpty ? 'Lift Availability' : null,
-                    ),
-                  ),
-                ],
-              ),
-
-              _buildDropdownRow('Road width (in ft)', roadSizeOptions, selectedRoadSize, (val) => setState(() => selectedRoadSize = val),
-                  validator: (val) => val == null || val.isEmpty ? 'Please select road size' : null),
-
-              _buildDropdownRow('Age of property (in years)', Age_Options, _ageOfProperty, (val) => setState(() => _ageOfProperty = val),
-                  validator: (val) => val == null || val.isEmpty ? 'Please select Age of property' : null),
-
-              _buildTextInput('Address for Field Worker', _Address_apnehisaabka),
-              buildTextInput('Owner Vehicle Number (Optional)', _vehicleno),
-              _buildTextInput('Google Location', _Google_Location, icon: PhosphorIcons.mapPin()),
-
-              const SizedBox(height: 20),
-              GestureDetector(
-                onTap: _isLoading
-                    ? null
-                    : () async {
-                  // ✅ Validate form before starting countdown
-                  if (!_formKey.currentState!.validate()) {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text(
-                          "Form Incomplete",
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        content: const Text(
-                          "Please fill all the required fields before submitting.",
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            child: const Text("OK"),
-                          )
-                        ],
-                      ),
-                    );
-                    return; // Stop here if any field is empty
-                  }
-
-                  setState(() {
-                    _isLoading = true;
-                  });
-
-                  int countdown = 3;
-                  bool actionStarted = false; // 🔥 prevents multiple triggers
-
-                  // Show countdown dialog
-                  await showDialog(
-                    context: context,
-                    barrierDismissible: false,
-                    builder: (context) {
-                      return StatefulBuilder(
-                        builder: (context, setStateDialog) {
-                          Future.delayed(const Duration(seconds: 1), () async {
-
-                            // if (!actionStarted) {
-                            //   actionStarted = true;
-                            //   updateImageWithTitle(_imageFile).then((_) {
-                            //     if (!mounted) return;
-                            //
-                            //     ScaffoldMessenger.of(context).showSnackBar(
-                            //       const SnackBar(
-                            //         content: Text("✅ Submitted Successfully!"),
-                            //         backgroundColor: Colors.green,
-                            //       ),
-                            //     );
-                            //     Navigator.pop(context);
-                            //   });
-                            // }
-
-                            if (countdown > 1) {
-                              setStateDialog(() {
-                                countdown--;
-                              });
-                            } else {
-                              setStateDialog(() {
-                                countdown = 0;
-                              });
-
-                              await Future.delayed(const Duration(milliseconds: 1));
-                              if (Navigator.of(context).canPop()) {
-                                Navigator.of(context).pop(); // close dialog
-                              }
-
-                              // Run your upload logic
-                              await updateImageWithTitle(_imageFile);
-
-                              if (!mounted) return;
-
-                              // Show success message
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text("✅ Submitted Successfully!"),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            }
-                          });
-
-                          return AlertDialog(
-                            backgroundColor:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? Colors.grey[900]
-                                : Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            title: const Text(
-                              "Submitting...",
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            content: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 500),
-                                  transitionBuilder: (child, animation) =>
-                                      ScaleTransition(scale: animation, child: child),
-                                  child: countdown > 0
-                                      ? Text(
-                                    "$countdown",
-                                    key: ValueKey<int>(countdown),
-                                    style: TextStyle(
-                                      fontSize: 40,
-                                      fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).brightness ==
-                                          Brightness.dark
-                                          ? Colors.red[300]
-                                          : Colors.red,
-                                    ),
-                                  )
-                                      : const Icon(
-                                    Icons.verified_rounded,
-                                    key: ValueKey<String>("verified"),
-                                    color: Colors.green,
-                                    size: 60,
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Text(
-                                  countdown > 0 ? "Please wait..." : "Verified!",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w500,
-                                    color: Theme.of(context).brightness ==
-                                        Brightness.dark
-                                        ? Colors.white
-                                        : Colors.black,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  );
-
-                  setState(() {
-                    _isLoading = false;
-                  });
-                },
-                child: Center(
-                  child: Container(
-                    height: 50,
-                    padding: const EdgeInsets.symmetric(horizontal: 40),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(40),
-                      color: Colors.red,
-                    ),
-                    child: _isLoading
-                        ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        SizedBox(
-                          width: 18,
-                          height: 30,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        ),
-                        SizedBox(width: 12),
-                        Text(
-                          "Processing...",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    )
-                        : const Center(
-                      child: Text(
-                        "Submit",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontFamily: 'Poppins',
-                          letterSpacing: 0.8,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 50),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showFacilitySelectionDialog() async {
-    final result = await showModalBottomSheet<List<String>>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => _FacilityBottomSheet(
-        options: allFacilities,
-        selected: selectedFacilities,
-      ),
-    );
-
-    if (result != null) {
-      setState(() {
-        selectedFacilities = result;
-        _facilityController.text = selectedFacilities.join(', ');
-      });
-    }
-  }
-
-  Widget _buildSectionCard({required String title, required Widget child}) {
-    return Container(
-      width: double.infinity,
-      child: Card(
-        elevation: 6,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        color: Colors.white,
-        margin: const EdgeInsets.only(bottom: 20),
-        child: Padding(padding: const EdgeInsets.all(16), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: _sectionTitleStyle()), const SizedBox(height: 10), child])),
-      ),
-    );
-  }
-
-  Widget buildTextInput(String label, TextEditingController controller, {IconData? icon, TextInputType? keyboardType, bool validateLength = false}) {
-    return _buildSectionCard(
-      title: label,
-      child: TextFormField(
-        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-        controller: controller,
-        keyboardType: keyboardType,
-        decoration: InputDecoration(hintText: 'Enter $label', hintStyle: const TextStyle(color: Colors.black), prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null, border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))), filled: true, fillColor: Colors.grey.shade100),
-        inputFormatters: validateLength ? [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)] : [],
-      ),
-    );
-  }
-
-  Widget _buildTextInput(String label, TextEditingController controller, {IconData? icon, TextInputType? keyboardType, bool validate10Digits = false}) {
-    return _buildSectionCard(
-      title: label,
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
-        decoration: InputDecoration(hintText: 'Enter $label', hintStyle: const TextStyle(color: Colors.black), prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null, border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))), filled: true, fillColor: Colors.grey.shade100),
-        maxLines: 1,
-        inputFormatters: validate10Digits ? [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)] : [],
-        validator: (value) {
-          if (value == null || value.trim().isEmpty) return 'Please enter $label';
-          if (validate10Digits && value.trim().length != 10) return '$label must be exactly 10 digits';
-          return null;
-        },
-      ),
-    );
-  }
-
-  Widget _buildDropdownRow(String label, List<String> items, String? selectedValue, Function(String?) onChanged, {String? Function(String?)? validator}) {
-    return _buildSectionCard(
-      title: label,
-      child: DropdownButtonFormField<String>(
-        value: selectedValue,
-        style: TextStyle(fontWeight: FontWeight.bold, color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black),
-        validator: validator,
-        autovalidateMode: AutovalidateMode.always,
-        dropdownColor: Colors.grey.shade100,
-        decoration: InputDecoration(filled: true, fillColor: Colors.grey.shade200, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-          // ✅ Error text style
-          errorStyle: const TextStyle(
-          color: Colors.red, // deep red text
-          fontSize: 13,
-          fontWeight: FontWeight.bold,
-        ),
-
-        // ✅ Error border (deep red)
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(
-            color: Colors.red,
-            width: 2,
-          ),
-        ),
-
-        // ✅ Focused border when error
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(
-            color: Colors.red,
-            width: 2,
-          ),
-        ),
-        ),
-        icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
-        onChanged: onChanged,
-        items: items.map((item) => DropdownMenuItem<String>(value: item, child: Text(item, style: TextStyle(color: Colors.grey.shade800, fontSize: 11)))).toList(),
-      ),
-    );
-  }
-
-  TextStyle _sectionTitleStyle() {
-    return const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black, fontFamily: 'Poppins');
-  }
-}
-
-void showMetroLocalityPicker(BuildContext context, Function(String metro, List<String> localities) onSelected) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: Colors.black.withOpacity(0.5),
-    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
-    builder: (context) {
-      return DraggableScrollableSheet(
-        initialChildSize: 0.85,
-        minChildSize: 0.60,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, controller) {
-          return MetroLocalitySheet(onSelected: onSelected);
-        },
-      );
-    },
-  );
-}
-
-class MetroLocalitySheet extends StatefulWidget {
-  final Function(String metro, List<String> localities) onSelected;
-  const MetroLocalitySheet({super.key, required this.onSelected});
-  @override
-  State<MetroLocalitySheet> createState() => _MetroLocalitySheetState();
-}
-
-class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
-  final MetroAPI api = MetroAPI();
-  final TextEditingController metroCtrl = TextEditingController();
-  final TextEditingController localityCtrl = TextEditingController();
-
-  List<Map<String, dynamic>> metroList = [];
-  List<Map<String, dynamic>> nearbyList = [];
-  List<Map<String, dynamic>> filteredNearby = [];
-  List<String> selectedLocalities = [];
-
-  bool loadingMetro = false;
-  bool loadingNearby = false;
-
-  Timer? metroDebounce;
-  Timer? localityDebounce;
-  String? selectedMetro;
-
-  @override
-  void dispose() {
-    metroDebounce?.cancel();
-    localityDebounce?.cancel();
-    super.dispose();
-  }
-
-  void searchMetro(String q) {
-    if (metroDebounce?.isActive ?? false) metroDebounce!.cancel();
-    metroDebounce = Timer(const Duration(milliseconds: 300), () async {
-      if (q.trim().length < 2) {
-        setState(() => metroList = []);
-        return;
-      }
-      setState(() => loadingMetro = true);
-      final result = await api.fetchStations(q);
-      setState(() {
-        metroList = result;
-        loadingMetro = false;
-      });
-    });
-  }
-
-  Future<void> fetchNearby(String metroName) async {
-    setState(() {
-      loadingNearby = true;
-      nearbyList = [];
-      filteredNearby = [];
-      selectedLocalities.clear();
-    });
-    final result = await api.fetchNearby(metroName);
-    setState(() {
-      nearbyList = result;
-      filteredNearby = result;
-      loadingNearby = false;
-    });
-  }
-
-  void searchLocality(String q) {
-    if (localityDebounce?.isActive ?? false) localityDebounce!.cancel();
-    localityDebounce = Timer(const Duration(milliseconds: 200), () {
-      if (q.trim().isEmpty) {
-        setState(() => filteredNearby = nearbyList);
-        return;
-      }
-      setState(() {
-        filteredNearby = nearbyList.where((e) => e["name"].toString().toLowerCase().contains(q.toLowerCase())).toList();
-      });
-    });
-  }
-  void _addManualLocality(String value) {
-    final text = value.trim();
-    if (text.isEmpty) return;
-
-    final parts = text.split(',');
-
-    setState(() {
-      for (final part in parts) {
-        final loc = part.trim();
-        if (loc.isNotEmpty &&
-            !selectedLocalities
-                .any((e) => e.toLowerCase() == loc.toLowerCase())) {
-          selectedLocalities.add(loc);
-        }
-      }
-
-      // 🔥 clear input after adding
-      localityCtrl.clear();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF1A1A1A) : Colors.white;
-    final cardBg = isDark ? const Color(0xFF222222) : Colors.grey.shade100;
-    final textCol = isDark ? Colors.white : Colors.black87;
-
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
-      padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: MediaQuery.of(context).viewInsets.bottom + 20),
-      decoration: BoxDecoration(color: bg, borderRadius: const BorderRadius.vertical(top: Radius.circular(20))),
-      child: Column(
+          : Column(
         children: [
-          Container(width: 40, height: 5, margin: const EdgeInsets.only(bottom: 20), decoration: BoxDecoration(color: Colors.grey, borderRadius: BorderRadius.circular(10))),
-          Text(
-            'Nearby Localities',
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: textCol,
-            ),
-          ),
-          const SizedBox(height: 10),
-          TextField(controller: metroCtrl, onChanged: searchMetro, style: TextStyle(color: textCol), decoration: InputDecoration(labelText: "Metro Station", labelStyle: TextStyle(color: textCol.withOpacity(0.8)), filled: true, fillColor: cardBg, border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)))),
-          if (loadingMetro) const Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator()),
-          if (metroList.isNotEmpty)
-            Expanded(
-              flex: 3,
-              child: ListView.builder(itemCount: metroList.length, itemBuilder: (_, i) {
-                final m = metroList[i];
-                return ListTile(
-                  tileColor: cardBg,
-                  title: Text(m["name"], style: TextStyle(color: textCol)),
-                  onTap: () async {
-                    metroCtrl.text = m["name"];
-                    selectedMetro = m["name"];
-                    metroList.clear();
-                    FocusScope.of(context).unfocus();
-                    await fetchNearby(m["name"]);
-                  },
-                );
-              }),
-            ),
-          const SizedBox(height: 20),
-          TextField(
-            controller: localityCtrl,
-            enabled: nearbyList.isNotEmpty,
-            style: TextStyle(color: textCol),
-            decoration: InputDecoration(
-              labelText: nearbyList.isEmpty
-                  ? "Select Metro First"
-                  : "Search or type locality",
-              hintText: "Type & press enter or comma",
-              filled: true,
-              fillColor: cardBg,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
+          _buildProgressDots(),
+          _buildStepHeader(),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+              child: Form(
+                key: _formKey,
+                child: _buildStepContent(),
               ),
             ),
-
-            // 🔍 API search
-            onChanged: (value) {
-              searchLocality(value);
-
-              // 👇 comma se manual add
-              if (value.contains(',')) {
-                _addManualLocality(value);
-              }
-            },
-
-            // ⏎ enter se manual add
-            onSubmitted: (value) {
-              _addManualLocality(value); // ✅ manual add
-            },
           ),
-          if (loadingNearby) const Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator()),
-          if (selectedLocalities.isNotEmpty)
-            Wrap(spacing: 6, children: selectedLocalities.map((loc) => Chip(label: Text(loc), backgroundColor: isDark ? Colors.white12 : Colors.grey.shade300, deleteIcon: const Icon(Icons.close, size: 18), onDeleted: () { setState(() { selectedLocalities.remove(loc); }); })).toList()),
-          const SizedBox(height: 10),
-          if (filteredNearby.isNotEmpty)
-            Expanded(
-              flex: 5,
-              child: ListView.builder(itemCount: filteredNearby.length, itemBuilder: (_, i) {
-                final loc = filteredNearby[i];
-                return Card(
-                  color: cardBg,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  child: ListTile(
-                    title: Text(loc["name"], style: TextStyle(color: textCol)),
-                    subtitle: Text(loc["type"] ?? "", style: TextStyle(color: textCol.withOpacity(0.6), fontSize: 12)),
-                    trailing: Icon(selectedLocalities.contains(loc["name"]) ? Icons.check_circle : Icons.add_circle_outline, color: Colors.redAccent),
-                    onTap: () {
-                      final name = loc["name"].toString();
+          _buildFooter(),
+        ],
+      ),
+    );
+  }
 
-                      setState(() {
-                        if (!selectedLocalities
-                            .any((e) => e.toLowerCase() == name.toLowerCase())) {
-                          selectedLocalities.add(name);
-                        }
-                      });
-                    },
-                  ),
-                );
-              }),
+  Widget _buildProgressDots() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 14, bottom: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(_stepTitlesEn.length, (i) {
+          final active = i <= _stepIndex;
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            width: i == _stepIndex ? 18 : 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: active ? _kPrimary : _kBorder,
+              borderRadius: BorderRadius.circular(4),
             ),
-          const SizedBox(height: 12),
-          ElevatedButton(
-            onPressed: () {
-              // 🔥 LAST typed locality bhi add karo
-              if (localityCtrl.text.trim().isNotEmpty) {
-                _addManualLocality(localityCtrl.text);
-              }
+          );
+        }),
+      ),
+    );
+  }
 
-              final metroName = selectedMetro ?? metroCtrl.text.trim();
+  Widget _buildStepHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 4, 16, 8),
+      child: Row(
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: _goBack,
+            child: const Padding(
+              padding: EdgeInsets.all(6),
+              child: Icon(Icons.chevron_left, size: 26, color: Colors.black87),
+            ),
+          ),
+          const SizedBox(width: 2),
+          _iconBadge(_stepIcons[_stepIndex]),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(_stepTitlesEn[_stepIndex], style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.black87)),
+                Text(_stepTitlesHi[_stepIndex], style: const TextStyle(fontSize: 11, color: Colors.black45)),
+              ],
+            ),
+          ),
+          Text('${_stepIndex + 1}/${_stepTitlesEn.length}', style: const TextStyle(fontSize: 12, color: Colors.black45, fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
 
-              widget.onSelected(
-                metroName,
-                List<String>.from(selectedLocalities),
-              );
-
-              Navigator.pop(context);
-            },
-
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700, padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 40), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-            child: const Text("Done", style: TextStyle(color: Colors.white, fontSize: 16)),
+  Widget _buildFooter() {
+    final isLast = _stepIndex == _stepTitlesEn.length - 1;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: _kBorder)),
+      ),
+      child: Row(
+        children: [
+          if (_stepIndex > 0)
+            Expanded(
+              child: OutlinedButton(
+                onPressed: _isLoading ? null : _goBack,
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: const BorderSide(color: _kBorder),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Back', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.w600)),
+              ),
+            ),
+          if (_stepIndex > 0) const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _goNext,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _kPrimary,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: _isLoading
+                  ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              )
+                  : Text(isLast ? 'Submit' : 'Next', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15)),
+            ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildStepContent() {
+    switch (_stepIndex) {
+      case 0:
+        return _stepPhoto();
+      case 1:
+        return _stepBasicInfo();
+      case 2:
+        return _stepAddress();
+      case 3:
+        return _stepFacilities();
+      case 4:
+        return _stepMetro();
+      case 5:
+        return _stepOwner();
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // step groups
+  // ---------------------------------------------------------------------
+
+  Widget _stepPhoto() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _fieldWrap(
+          icon: Icons.photo_camera_outlined,
+          en: 'Cover Photo',
+          hi: 'Cover Foto',
+          required: false,
+          child: Center(
+            child: GestureDetector(
+              onTap: () async {
+                XFile? pickedXFile = await pickAndCompressImage();
+                File? pickedImage = pickedXFile != null ? File(pickedXFile.path) : null;
+                if (pickedImage != null) setState(() => _imageFile = pickedImage);
+              },
+              child: Container(
+                width: 160,
+                height: 160,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  color: _kSurface2,
+                  border: Border.all(color: _kBorder),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: _imageFile != null
+                      ? Image.file(_imageFile!, fit: BoxFit.cover)
+                      : (_networkImageUrl != null && _networkImageUrl!.isNotEmpty)
+                      ? Image.network(_networkImageUrl!, fit: BoxFit.cover)
+                      : const Center(child: Icon(Icons.add_a_photo_outlined, size: 34, color: Colors.black38)),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Center(
+          child: TextButton.icon(
+            onPressed: () async {
+              XFile? pickedXFile = await pickAndCompressImage();
+              File? pickedImage = pickedXFile != null ? File(pickedXFile.path) : null;
+              if (pickedImage != null) setState(() => _imageFile = pickedImage);
+            },
+            icon: const Icon(Icons.image_outlined, color: _kPrimary),
+            label: const Text('Change Photo', style: TextStyle(color: _kPrimary, fontWeight: FontWeight.w600)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _stepBasicInfo() {
+    return Column(
+      children: [
+        _fieldWrap(
+          icon: Icons.location_on_outlined,
+          en: 'Place',
+          hi: 'Jagah',
+          child: _bottomSheetSelector(
+            label: 'Place',
+            values: (_selectedItem != null && _selectedItem!.isNotEmpty) ? [_selectedItem!] : [],
+            onTap: () => _openChipSheet(
+              title: 'Select Place',
+              options: _items,
+              selectedValues: (_selectedItem != null && _selectedItem!.isNotEmpty) ? [_selectedItem!] : [],
+              onDone: (vals) => setState(() => _selectedItem = vals.isEmpty ? null : vals.first),
+            ),
+          ),
+        ),
+        _fieldWrap(
+          icon: Icons.apartment_outlined,
+          en: 'Property Type',
+          hi: 'Property ka Prakar',
+          child: _bottomSheetSelector(
+            label: 'Property Type',
+            values: propertyTypes.contains(_selectedPropertyType) ? [_selectedPropertyType!] : [],
+            onTap: () => _openChipSheet(
+              title: 'Select Property Type',
+              options: propertyTypes,
+              selectedValues: propertyTypes.contains(_selectedPropertyType) ? [_selectedPropertyType!] : [],
+              onDone: (vals) => setState(() => _selectedPropertyType = vals.isEmpty ? null : vals.first),
+            ),
+          ),
+        ),
+        _fieldWrap(
+          icon: Icons.sell_outlined,
+          en: 'Buy / Rent',
+          hi: 'Kharido ya Kiraya',
+          child: _bottomSheetSelector(
+            label: 'Buy / Rent',
+            values: (_selectedItem1 != null && _selectedItem1!.isNotEmpty) ? [_selectedItem1!] : [],
+            onTap: () => _openChipSheet(
+              title: 'Select Buy / Rent',
+              options: _items1,
+              selectedValues: (_selectedItem1 != null && _selectedItem1!.isNotEmpty) ? [_selectedItem1!] : [],
+              onDone: (vals) => setState(() => _selectedItem1 = vals.isEmpty ? null : vals.first),
+            ),
+          ),
+        ),
+        _fieldWrap(
+          icon: Icons.stairs_outlined,
+          en: 'Total Floor',
+          hi: 'Kul Floor',
+          child: _bottomSheetSelector(
+            label: 'Total Floor',
+            values: (_totalFloor != null && _totalFloor!.isNotEmpty) ? [_totalFloor!] : [],
+            onTap: () => _openChipSheet(
+              title: 'Select Total Floor',
+              options: _items_floor2,
+              selectedValues: (_totalFloor != null && _totalFloor!.isNotEmpty) ? [_totalFloor!] : [],
+              onDone: (vals) => setState(() => _totalFloor = vals.isEmpty ? null : vals.first),
+            ),
+          ),
+        ),
+        _fieldWrap(
+          icon: Icons.calendar_month_outlined,
+          en: 'Age of Property',
+          hi: 'Property ki Umar',
+          child: _bottomSheetSelector(
+            label: 'Age of Property',
+            values: (_ageOfProperty != null && _ageOfProperty!.isNotEmpty) ? [_ageOfProperty!] : [],
+            onTap: () => _openChipSheet(
+              title: 'Select Age of Property',
+              options: Age_Options,
+              selectedValues: (_ageOfProperty != null && _ageOfProperty!.isNotEmpty) ? [_ageOfProperty!] : [],
+              onDone: (vals) => setState(() => _ageOfProperty = vals.isEmpty ? null : vals.first),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _stepAddress() {
+    return Column(
+      children: [
+        _fieldWrap(
+          icon: Icons.home_outlined,
+          en: 'Property Name & Address',
+          hi: 'Property ka Naam aur Address',
+          child: _styledTextField(_address, hint: 'Enter property name & address'),
+        ),
+        _fieldWrap(
+          icon: Icons.badge_outlined,
+          en: 'Address for Field Worker',
+          hi: 'Field Worker ke liye Address',
+          child: _styledTextField(_Address_apnehisaabka, hint: 'Enter address for field worker'),
+        ),
+        _fieldWrap(
+          icon: Icons.my_location_outlined,
+          en: 'Google Location',
+          hi: 'Google Location',
+          child: _styledTextField(_Google_Location, hint: 'Enter google location'),
+        ),
+      ],
+    );
+  }
+
+  Widget _stepFacilities() {
+    return Column(
+      children: [
+        _fieldWrap(
+          icon: Icons.checklist_outlined,
+          en: 'Facilities',
+          hi: 'Suvidhaye',
+          child: _bottomSheetSelector(
+            label: 'Facilities',
+            values: selectedFacilities,
+            onTap: () => _openChipSheet(
+              title: 'Select Facilities',
+              options: allFacilities,
+              selectedValues: selectedFacilities,
+              multiSelect: true,
+              onDone: (vals) => setState(() {
+                selectedFacilities = vals;
+                _facilityController.text = selectedFacilities.join(', ');
+              }),
+            ),
+          ),
+        ),
+        _fieldWrap(
+          icon: Icons.rule_outlined,
+          en: 'Road Width',
+          hi: 'Road ki Chaudai',
+          child: _bottomSheetSelector(
+            label: 'Road Width',
+            values: (selectedRoadSize != null && selectedRoadSize!.isNotEmpty) ? [selectedRoadSize!] : [],
+            onTap: () => _openChipSheet(
+              title: 'Select Road Width',
+              options: roadSizeOptions,
+              selectedValues: (selectedRoadSize != null && selectedRoadSize!.isNotEmpty) ? [selectedRoadSize!] : [],
+              onDone: (vals) => setState(() => selectedRoadSize = vals.isEmpty ? null : vals.first),
+            ),
+          ),
+        ),
+        _fieldWrap(
+          icon: Icons.elevator_outlined,
+          en: 'Lift Availability',
+          hi: 'Lift Suvidha',
+          child: _bottomSheetSelector(
+            label: 'Lift Availability',
+            values: (_selectedLift != null && _selectedLift!.isNotEmpty) ? [_selectedLift!] : [],
+            onTap: () => _openChipSheet(
+              title: 'Select Lift Availability',
+              options: parkingOptions,
+              selectedValues: (_selectedLift != null && _selectedLift!.isNotEmpty) ? [_selectedLift!] : [],
+              onDone: (vals) => setState(() => _selectedLift = vals.isEmpty ? null : vals.first),
+            ),
+          ),
+        ),
+        _fieldWrap(
+          icon: Icons.local_parking_outlined,
+          en: 'Parking',
+          hi: 'Parking',
+          child: _bottomSheetSelector(
+            label: 'Parking',
+            values: (_selectedParking != null && _selectedParking!.isNotEmpty) ? [_selectedParking!] : [],
+            onTap: () => _openChipSheet(
+              title: 'Select Parking',
+              options: parkingOptions,
+              selectedValues: (_selectedParking != null && _selectedParking!.isNotEmpty) ? [_selectedParking!] : [],
+              onDone: (vals) => setState(() => _selectedParking = vals.isEmpty ? null : vals.first),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _stepMetro() {
+    return Column(
+      children: [
+        _fieldWrap(
+          icon: Icons.train_outlined,
+          en: 'Metro Station',
+          hi: 'Metro Station',
+          required: false,
+          child: _bottomSheetSelector(
+            label: 'Metro Station',
+            values: (_selectedMetro != null && _selectedMetro!.isNotEmpty) ? [_selectedMetro!] : [],
+            onTap: () => _openChipSheet(
+              title: 'Select Metro Station',
+              options: _metroOptions,
+              selectedValues: (_selectedMetro != null && _selectedMetro!.isNotEmpty) ? [_selectedMetro!] : [],
+              onDone: (vals) => setState(() => _selectedMetro = vals.isEmpty ? null : vals.first),
+            ),
+          ),
+        ),
+        _fieldWrap(
+          icon: Icons.directions_walk_outlined,
+          en: 'Metro Distance',
+          hi: 'Metro ki Doori',
+          child: _bottomSheetSelector(
+            label: 'Metro Distance',
+            values: (selectedMetroDistance != null && selectedMetroDistance!.isNotEmpty) ? [selectedMetroDistance!] : [],
+            onTap: () => _openChipSheet(
+              title: 'Select Metro Distance',
+              options: metroDistanceOptions,
+              selectedValues: (selectedMetroDistance != null && selectedMetroDistance!.isNotEmpty) ? [selectedMetroDistance!] : [],
+              onDone: (vals) => setState(() => selectedMetroDistance = vals.isEmpty ? null : vals.first),
+            ),
+          ),
+        ),
+        _fieldWrap(
+          icon: Icons.storefront_outlined,
+          en: 'Market Distance',
+          hi: 'Bazaar ki Doori',
+          required: false,
+          child: _bottomSheetSelector(
+            label: 'Market Distance',
+            values: (selectedMarketDistance != null && selectedMarketDistance!.isNotEmpty) ? [selectedMarketDistance!] : [],
+            onTap: () => _openChipSheet(
+              title: 'Select Market Distance',
+              options: marketDistanceOptions,
+              selectedValues: (selectedMarketDistance != null && selectedMarketDistance!.isNotEmpty) ? [selectedMarketDistance!] : [],
+              onDone: (vals) => setState(() => selectedMarketDistance = vals.isEmpty ? null : vals.first),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _stepOwner() {
+    return Column(
+      children: [
+        _fieldWrap(
+          icon: Icons.person_outline,
+          en: 'Owner Name',
+          hi: 'Malik ka Naam',
+          required: false,
+          child: _styledTextField(_Ownername, hint: 'Enter owner name'),
+        ),
+        _fieldWrap(
+          icon: Icons.phone_outlined,
+          en: 'Owner Number',
+          hi: 'Malik ka Number',
+          required: false,
+          child: _styledTextField(
+            _Owner_number,
+            hint: 'Enter owner number',
+            keyboardType: TextInputType.phone,
+            formatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
+          ),
+        ),
+        _fieldWrap(
+          icon: Icons.person_outline,
+          en: 'Caretaker Name',
+          hi: 'Caretaker ka Naam',
+          required: false,
+          child: _styledTextField(_CareTaker_name, hint: 'Enter caretaker name'),
+        ),
+        _fieldWrap(
+          icon: Icons.phone_outlined,
+          en: 'Caretaker Number',
+          hi: 'Caretaker ka Number',
+          required: false,
+          child: _styledTextField(
+            _CareTaker_number,
+            hint: 'Enter caretaker number',
+            keyboardType: TextInputType.phone,
+            formatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(10)],
+          ),
+        ),
+        _fieldWrap(
+          icon: Icons.directions_car_outlined,
+          en: 'Owner Vehicle Number',
+          hi: 'Malik ki Gaadi Number',
+          required: false,
+          child: _styledTextField(_vehicleno, hint: 'Enter vehicle number'),
+        ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------
+  // shared small widgets
+  // ---------------------------------------------------------------------
+
+  Widget _iconBadge(IconData icon, {Color color = _kPrimary}) {
+    return Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(10)),
+      child: Icon(icon, color: color, size: 20),
+    );
+  }
+
+  Widget _fieldWrap({
+    required IconData icon,
+    required String en,
+    required String hi,
+    bool required = true,
+    required Widget child,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _kBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _iconBadge(icon),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(en, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.black87)),
+                        const SizedBox(width: 6),
+                        if (required)
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                          )
+                        else
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: _kSurface2,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: _kBorder),
+                            ),
+                            child: const Text('Optional', style: TextStyle(fontSize: 9, color: Colors.black54)),
+                          ),
+                      ],
+                    ),
+                    Text(hi, style: const TextStyle(fontSize: 11, color: Colors.black45)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          child,
+        ],
+      ),
+    );
+  }
+
+  Widget _chipRow(List<String> options, String? selected, ValueChanged<String?> onChanged) {
+    final opts = options.where((o) => o.isNotEmpty).toList();
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: opts.map((o) {
+        final isSel = selected == o;
+        return GestureDetector(
+          onTap: () => onChanged(o),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSel ? _kPrimary : _kSurface2,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: isSel ? _kPrimary : _kBorder),
+            ),
+            child: Text(
+              o,
+              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: isSel ? Colors.white : Colors.black87),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _styledTextField(
+      TextEditingController controller, {
+        String? hint,
+        TextInputType? keyboardType,
+        List<TextInputFormatter>? formatters,
+        int maxLines = 1,
+      }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      maxLines: maxLines,
+      inputFormatters: formatters,
+      style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.black87, fontSize: 14),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.black38, fontSize: 13),
+        isDense: true,
+        filled: true,
+        fillColor: _kSurface2,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: _kBorder)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: _kBorder)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: _kPrimary, width: 1.4)),
+      ),
+    );
+  }
+
+  // Compact tappable row: shows the current selection (or a muted
+  // placeholder) and opens a bottom sheet of chips when tapped.
+  Widget _bottomSheetSelector({
+    required String label,
+    required List<String> values,
+    required VoidCallback onTap,
+  }) {
+    final isEmpty = values.isEmpty;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: _kSurface2,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: _kBorder),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: isEmpty
+                  ? Text('Select $label', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black38))
+                  : values.length == 1
+                  ? Text(values.first, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: Colors.black87))
+                  : Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: values.map((v) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: _kPrimary.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(v, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: _kPrimary)),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.black38),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Shared bottom sheet used by every chip-select field. Single-select
+  // closes the sheet as soon as a chip is tapped; multi-select keeps the
+  // sheet open (toggling chips) until "Done" is tapped.
+  Future<void> _openChipSheet({
+    required String title,
+    required List<String> options,
+    required List<String> selectedValues,
+    bool multiSelect = false,
+    required ValueChanged<List<String>> onDone,
+  }) async {
+    List<String> temp = List<String>.from(selectedValues);
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetCtx) {
+        return StatefulBuilder(
+          builder: (sheetCtx, setSheetState) {
+            return SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(18, 10, 18, 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(color: _kBorder, borderRadius: BorderRadius.circular(2)),
+                      ),
+                    ),
+                    Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+                    const SizedBox(height: 14),
+                    multiSelect
+                        ? Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: options.where((o) => o.isNotEmpty).map((o) {
+                        final isSel = temp.contains(o);
+                        return GestureDetector(
+                          onTap: () => setSheetState(() {
+                            if (isSel) {
+                              temp.remove(o);
+                            } else {
+                              temp.add(o);
+                            }
+                          }),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isSel ? _kPrimary : _kSurface2,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: isSel ? _kPrimary : _kBorder),
+                            ),
+                            child: Text(
+                              o,
+                              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: isSel ? Colors.white : Colors.black87),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    )
+                        : _chipRow(options, temp.isEmpty ? null : temp.first, (v) {
+                      temp = v == null ? [] : [v];
+                      Navigator.pop(sheetCtx);
+                    }),
+                    if (multiSelect) ...[
+                      const SizedBox(height: 18),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _kPrimary,
+                            padding: const EdgeInsets.symmetric(vertical: 13),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                          onPressed: () => Navigator.pop(sheetCtx),
+                          child: const Text('Done', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+    onDone(temp);
   }
 }
 
@@ -1320,84 +1443,4 @@ class FutureProperty2 {
   }
 
 
-}
-
-class _FacilityBottomSheet extends StatefulWidget {
-  final List<String> options;
-  final List<String> selected;
-
-  const _FacilityBottomSheet({
-    required this.options,
-    required this.selected,
-  });
-
-  @override
-  State<_FacilityBottomSheet> createState() => _FacilityBottomSheetState();
-}
-
-class _FacilityBottomSheetState extends State<_FacilityBottomSheet> {
-  late List<String> _tempSelected;
-
-  @override
-  void initState() {
-    super.initState();
-    _tempSelected = List.from(widget.selected);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-
-      child: Container(
-        // color: Colors.white,
-        child: Padding(
-          padding:
-          EdgeInsets.only(),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: EdgeInsets.all(16),
-                child: Text(
-                  "Select Facilities",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                ),
-              ),
-              ...widget.options.map((option) {
-                final isSelected = _tempSelected.contains(option);
-                return CheckboxListTile(
-                  title: Text(option,style: TextStyle(),),
-                  value: isSelected,
-                  onChanged: (val) {
-                    setState(() {
-                      if (val == true) {
-                        _tempSelected.add(option);
-                      } else {
-                        _tempSelected.remove(option);
-                      }
-                    });
-                  },
-                );
-              }).toList(),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white, // Button background
-                  foregroundColor: Colors.black, // Text/icon color
-                  side: const BorderSide(color: Colors.black), // Optional border
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                ),
-                onPressed: () => Navigator.pop(context, _tempSelected),
-                child: const Text("Done"),
-              ),
-              SizedBox(height: 10,)
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

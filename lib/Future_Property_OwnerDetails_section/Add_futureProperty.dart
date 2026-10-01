@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,7 +21,6 @@ import '../utilities/bug_founder_fuction.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Future_Property.dart';
 import 'Future_Property_Tabbar.dart';
-import 'metro_api.dart';
 
 class Add_FutureProperty extends StatefulWidget {
   const Add_FutureProperty({super.key});
@@ -35,6 +35,16 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   bool _isCounting = false;
   Timer? _timer;
 
+  // ---- Stepped wizard state ----
+  int _stepIndex = 0;
+  static const int _totalSteps = 6;
+
+  // ---- Small internal design tokens for the wizard UI ----
+  static const Color _kPrimary = Color(0xFF0F6E5C);
+  static const Color _kAccent = Color(0xFFE98A15);
+  static const Color _kSurface2 = Color(0xFFF1EEE6);
+  static const Color _kBorder = Color(0xFFE2DCCB);
+
   String? _selectedItem;
   String? _selectedItem1;
   // String? _typeofproperty;
@@ -47,6 +57,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   String? selectedMarketDistance;
   String? _ageOfProperty;
   String? _totalFloor;
+  String? _selectedMetro;
 
   final TextEditingController _Ownername = TextEditingController();
   final TextEditingController _Owner_number = TextEditingController();
@@ -57,9 +68,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   final TextEditingController _Google_Location = TextEditingController();
   final TextEditingController _address = TextEditingController();
   // final TextEditingController _Building_information = TextEditingController();
-  final TextEditingController _facilityController = TextEditingController();
-  final TextEditingController metroController = TextEditingController();
-  final TextEditingController localityController = TextEditingController();
 
   String _number = '';
   String _name = '';
@@ -77,13 +85,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
   DateTime uploadDate = DateTime.now();
 
-  List<Map<String, dynamic>> nearbyHospitals = [];
-  List<Map<String, dynamic>> nearbySchools = [];
-  List<Map<String, dynamic>> nearbyMetros = [];
-  List<Map<String, dynamic>> nearbyMalls = [];
-  List<Map<String, dynamic>> nearbyParks = [];
-  List<Map<String, dynamic>> nearbyCinemas = [];
-
   bool _isLoading = false;
 
   // Dropdown options
@@ -92,7 +93,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     'ChhattarPur',
     'Aya Nagar',
     'Rajpur Khurd',
-    'Mangalpuri',
+    'Manglapuri',
     'Dwarka Mor',
     'Uttam Nagar',
     'Nawada',
@@ -151,6 +152,17 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     'Dwarka Mor',
     'Vasant Kunj',
     'Ghitorni'
+  ];
+  // New fixed list of metro station chip options for the redesigned Metro field.
+  final List<String> _metroOptions = [
+    'Hauz Khas',
+    'Malviya Nagar',
+    'Saket',
+    'Qutub Minar',
+    'Chhattarpur',
+    'Sultanpur',
+    'Ghitorni',
+    'Arjan Garh',
   ];
   final List<String> marketDistanceOptions = [
     '200 m',
@@ -275,8 +287,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       MapEntry("current_date_",DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.now())),
       MapEntry("Residence_commercial", _selectedPropertyType ?? ''),
       MapEntry("facility", selectedFacilities.join(', ')),
-      MapEntry("metro_name", metroController.text),
-      MapEntry("locality_list", localityController.text),
+      MapEntry("metro_name", _selectedMetro ?? ""),
+      MapEntry("locality_list", "Sultanpur"),
     ]);
 
     for (var xfile in _selectedImages) {
@@ -470,6 +482,739 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     );
   }
 
+  // =========================================================================
+  // Step-wizard helpers
+  // =========================================================================
+
+  final List<String> _stepTitlesEn = const [
+    'Cover Photo',
+    'Basic Info',
+    'Address & Location',
+    'Facilities & Access',
+    'Metro & Distance',
+    'Owner & Caretaker',
+  ];
+
+  final List<String> _stepTitlesHi = const [
+    'Mukhya Photo',
+    'Basic Jaankari',
+    'Address aur Location',
+    'Suvidhayein aur Access',
+    'Metro aur Doori',
+    'Malik aur Caretaker',
+  ];
+
+  final List<IconData> _stepIcons = const [
+    Icons.photo_camera_outlined,
+    Icons.info_outline,
+    Icons.location_on_outlined,
+    Icons.checklist_outlined,
+    Icons.train_outlined,
+    Icons.person_outline,
+  ];
+
+  /// Returns an error message when the current step's required fields are
+  /// not filled, or null when the step can be advanced.
+  String? _validateStep(int step) {
+    switch (step) {
+      case 0:
+        if (_singleImage == null) {
+          return 'Please select a cover photo';
+        }
+        return null;
+      case 1:
+        if (_selectedItem == null || _selectedItem!.isEmpty) {
+          return 'Please select a Place';
+        }
+        if (_selectedPropertyType == null) {
+          return 'Please select Property Type';
+        }
+        if (_selectedItem1 == null) {
+          return 'Please select Buy or Rent';
+        }
+        if (_totalFloor == null) {
+          return 'Please select Total Floor';
+        }
+        if (_ageOfProperty == null) {
+          return 'Please select Age of property';
+        }
+        return null;
+      case 2:
+        if (_address.text.trim().isEmpty) {
+          return 'Please enter property name & address';
+        }
+        if (_Address_apnehisaabka.text.trim().isEmpty) {
+          return 'Please enter address for field worker';
+        }
+        if (_Google_Location.text.trim().isEmpty) {
+          return 'Please enter Google location';
+        }
+        return null;
+      case 3:
+        if (selectedFacilities.isEmpty) {
+          return 'Please select at least one facility';
+        }
+        if (selectedRoadSize == null) {
+          return 'Please select road width';
+        }
+        if (_selectedLift == null) {
+          return 'Please select lift availability';
+        }
+        if (_selectedParking == null) {
+          return 'Please select parking';
+        }
+        return null;
+      case 4:
+        if (selectedMetroDistance == null) {
+          return 'Please select metro distance';
+        }
+        if (selectedMarketDistance == null) {
+          return 'Please select market distance';
+        }
+        return null;
+      default:
+        return null;
+    }
+  }
+
+  void _goNext() {
+    final error = _validateStep(_stepIndex);
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error)),
+      );
+      return;
+    }
+    if (_stepIndex < _totalSteps - 1) {
+      setState(() => _stepIndex++);
+    }
+  }
+
+  void _goBack() {
+    if (_stepIndex > 0) {
+      setState(() => _stepIndex--);
+    }
+  }
+
+  Widget _buildStepProgress() {
+    return Row(
+      children: List.generate(_totalSteps, (i) {
+        final bool active = i <= _stepIndex;
+        return Expanded(
+          child: Container(
+            margin:
+            EdgeInsets.only(right: i == _totalSteps - 1 ? 0 : 4),
+            height: 5,
+            decoration: BoxDecoration(
+              color: active ? _kPrimary : _kBorder,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildStepHeaderRow(Color textColor) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        if (_stepIndex > 0)
+          InkWell(
+            onTap: _goBack,
+            borderRadius: BorderRadius.circular(20),
+            child: const Padding(
+              padding: EdgeInsets.all(4),
+              child: Icon(Icons.chevron_left_rounded, size: 26),
+            ),
+          )
+        else
+          const SizedBox(width: 34),
+        const SizedBox(width: 4),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: _kAccent.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Icon(_stepIcons[_stepIndex], size: 18, color: _kAccent),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Step ${_stepIndex + 1} of $_totalSteps  ·  ${_stepTitlesEn[_stepIndex]}',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
+              Text(
+                _stepTitlesHi[_stepIndex],
+                style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Renders a field's leading icon badge + English label (bold) with a
+  /// small Hinglish caption underneath, plus a required dot or an
+  /// "Optional" pill.
+  Widget _chipLabel({
+    required IconData icon,
+    required String title,
+    required String hinglish,
+    bool required = false,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: _kPrimary.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 16, color: _kPrimary),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(width: 6),
+                  if (required)
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                      ),
+                    )
+                  else
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 1),
+                      decoration: BoxDecoration(
+                        color: _kSurface2,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: _kBorder),
+                      ),
+                      child: const Text(
+                        'Optional',
+                        style: TextStyle(fontSize: 9, color: Colors.grey),
+                      ),
+                    ),
+                ],
+              ),
+              Text(
+                hinglish,
+                style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// A wrapping row of tappable pill chips bound to a single-select state
+  /// variable. Selecting a chip calls [onSelect] exactly like a dropdown's
+  /// onChanged would.
+  Widget _chipOptionsRow({
+    required List<String> options,
+    required String? value,
+    required ValueChanged<String> onSelect,
+    required Color textColor,
+  }) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: options.map((opt) {
+        final bool selected = value == opt;
+        return GestureDetector(
+          onTap: () => onSelect(opt),
+          child: Container(
+            padding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+            decoration: BoxDecoration(
+              color: selected ? _kPrimary : Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: selected ? _kPrimary : _kBorder,
+                width: 1.2,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (selected) ...[
+                  const Icon(Icons.check, size: 14, color: Colors.white),
+                  const SizedBox(width: 4),
+                ],
+                Text(
+                  opt,
+                  style: TextStyle(
+                    // Selected chips have a solid _kPrimary fill, so white
+                    // stays correct there. Unselected chips are only a
+                    // border on a transparent/light background, so they
+                    // must use the theme-appropriate text color instead.
+                    color: selected ? Colors.white : textColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  /// Inline multi-select chip row for facilities. Tapping a chip toggles it
+  /// in/out of [selectedFacilities].
+  Widget _buildFacilityChipsInline(Color textColor, {VoidCallback? onChanged}) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: allFacilities.map((facility) {
+        final bool isSelected = selectedFacilities.contains(facility);
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              if (isSelected) {
+                selectedFacilities.remove(facility);
+              } else {
+                selectedFacilities.add(facility);
+              }
+            });
+            onChanged?.call();
+          },
+          child: Container(
+            padding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+            decoration: BoxDecoration(
+              color: isSelected ? _kPrimary : Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isSelected ? _kPrimary : _kBorder,
+                width: 1.2,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isSelected
+                      ? Icons.check_circle_rounded
+                      : Icons.radio_button_unchecked_rounded,
+                  size: 15,
+                  color: isSelected ? Colors.white : Colors.grey,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  facility,
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : textColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  /// Compact, tappable "selector row" shown in the step body for any field
+  /// that used to render its chips inline. Shows the current selection (or
+  /// a muted placeholder) and opens a bottom sheet with the chip options
+  /// when tapped.
+  Widget _bottomSheetSelector({
+    required String currentDisplay,
+    required bool hasValue,
+    required Color textColor,
+    required Color secondaryTextColor,
+    required bool isDarkMode,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: isDarkMode ? Colors.grey[850] : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.withOpacity(0.25)),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                currentDisplay,
+                style: TextStyle(
+                  color: hasValue ? textColor : secondaryTextColor,
+                  fontWeight: hasValue ? FontWeight.w600 : FontWeight.w400,
+                  fontSize: 13.5,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 6),
+            Icon(Icons.keyboard_arrow_down_rounded,
+                color: secondaryTextColor),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Shared chrome (drag handle + English/Hinglish title + scrollable body
+  /// + optional footer button) used by every chip-picker bottom sheet.
+  Widget _buildChipSheetShell({
+    required BuildContext sheetContext,
+    required Color sheetBg,
+    required Color textColor,
+    required String titleEn,
+    required String titleHi,
+    required Widget optionsChild,
+    Widget? footer,
+  }) {
+    return Container(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(sheetContext).size.height * 0.75,
+      ),
+      decoration: BoxDecoration(
+        color: sheetBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(top: 10, bottom: 4),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: _kBorder,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    titleEn,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: textColor,
+                    ),
+                  ),
+                  Text(
+                    titleHi,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+                child: optionsChild,
+              ),
+            ),
+            if (footer != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+                child: footer,
+              )
+            else
+              const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Opens a bottom sheet with a single-select chip [Wrap] for [options].
+  /// Tapping a chip immediately applies [onSelect] and closes the sheet.
+  void _openChipSheet({
+    required String titleEn,
+    required String titleHi,
+    required List<String> options,
+    required String? value,
+    required ValueChanged<String> onSelect,
+  }) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final Color sheetTextColor =
+        isDarkMode ? Colors.white : const Color(0xFF2D3748);
+    final Color sheetBg = isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        String? currentValue = value;
+        return StatefulBuilder(
+          builder: (sheetContext, setModalState) {
+            return _buildChipSheetShell(
+              sheetContext: sheetContext,
+              sheetBg: sheetBg,
+              textColor: sheetTextColor,
+              titleEn: titleEn,
+              titleHi: titleHi,
+              optionsChild: _chipOptionsRow(
+                options: options,
+                value: currentValue,
+                textColor: sheetTextColor,
+                onSelect: (v) {
+                  onSelect(v);
+                  setModalState(() => currentValue = v);
+                  Navigator.pop(sheetContext);
+                },
+              ),
+            );
+          },
+        );
+      },
+    ).then((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  /// Opens a bottom sheet with the multi-select Facilities chips. The sheet
+  /// stays open as chips are toggled and only closes via the Done button
+  /// (or the usual swipe/tap-outside dismissal).
+  void _openFacilitiesSheet() {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final Color sheetTextColor =
+        isDarkMode ? Colors.white : const Color(0xFF2D3748);
+    final Color sheetBg = isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (sheetContext, setModalState) {
+            return _buildChipSheetShell(
+              sheetContext: sheetContext,
+              sheetBg: sheetBg,
+              textColor: sheetTextColor,
+              titleEn: 'Facilities',
+              titleHi: 'Suvidhayein',
+              optionsChild: _buildFacilityChipsInline(
+                sheetTextColor,
+                onChanged: () => setModalState(() {}),
+              ),
+              footer: SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(sheetContext),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _kPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text(
+                    'Done',
+                    style: TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    ).then((_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  Widget _buildBottomNav() {
+    final bool isLast = _stepIndex == _totalSteps - 1;
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 10,
+        bottom: 10,
+      ),
+      decoration: BoxDecoration(
+        color: isDarkMode ? Colors.black : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            if (_stepIndex > 0) ...[
+              Expanded(
+                flex: 2,
+                child: OutlinedButton(
+                  onPressed: _isSubmitting ? null : _goBack,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: const BorderSide(color: _kBorder),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                  ),
+                  child: const Text(
+                    'Back',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+            ],
+            Expanded(
+              flex: 5,
+              child: Container(
+                height: 54,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [primaryColor, secondaryColor],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: primaryColor.withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(14),
+                    onTap: _isSubmitting
+                        ? null
+                        : () async {
+                      if (!isLast) {
+                        _goNext();
+                        return;
+                      }
+
+                      if (!_formKey.currentState!.validate()) return;
+
+                      setState(() {
+                        _isSubmitting = true;
+                        _countdown = 3;
+                      });
+
+                      // ⏳ Countdown timer
+                      for (int i = 3; i > 0; i--) {
+                        await Future.delayed(const Duration(seconds: 1));
+                        setState(() {
+                          _countdown = i - 1;
+                        });
+                      }
+
+                      // 🚀 API Call
+                      await _handleUpload();
+
+                      setState(() {
+                        _isSubmitting = false;
+                      });
+                    },
+                    child: Center(
+                      child: _isSubmitting
+                          ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.timer,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            _countdown > 0
+                                ? "Submitting in $_countdown"
+                                : "Submitting...",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      )
+                          : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            isLast ? 'SUBMIT PROPERTY' : 'Next',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            isLast
+                                ? Icons.rocket_launch_rounded
+                                : Icons.arrow_forward_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -492,47 +1237,67 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
         centerTitle: true,
       ),
         body: SafeArea(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 16,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-
-            ),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildPremiumHeader(isDarkMode),
-                const SizedBox(height: 32),
-                _buildImageUploadSection(isDarkMode, cardColor, textColor),
-                const SizedBox(height: 20),
-                _buildBasicInfoSection(
-                    isDarkMode, cardColor, textColor, secondaryTextColor),
-                const SizedBox(height: 20),
-                _buildContactInfoSection(
-                    isDarkMode, cardColor, textColor, secondaryTextColor),
-                const SizedBox(height: 20),
-                _buildPropertyDetailsSection(
-                    isDarkMode, cardColor, textColor, secondaryTextColor),
-                const SizedBox(height: 20),
-                _buildLocationSection(
-                    isDarkMode, cardColor, textColor, secondaryTextColor),
-                const SizedBox(height: 20),
-                _buildNearbyFacilitiesSection(isDarkMode, cardColor, textColor),
-                const SizedBox(height: 40),
-                _buildPremiumSubmitButton(),
-                const SizedBox(height: 20),
-              ],
-            ),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                child: _buildStepProgress(),
+              ),
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 16,
+                    bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildStepHeaderRow(textColor),
+                        const SizedBox(height: 18),
+                        _buildCurrentStepContent(
+                            isDarkMode, cardColor, textColor, secondaryTextColor),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              _buildBottomNav(),
+            ],
           ),
         ),
-      ),
     );
+  }
+
+  Widget _buildCurrentStepContent(bool isDarkMode, Color cardColor,
+      Color textColor, Color secondaryTextColor) {
+    switch (_stepIndex) {
+      case 0:
+        return _buildStepCoverPhoto(isDarkMode, cardColor, textColor);
+      case 1:
+        return _buildStepBasicInfo(
+            isDarkMode, cardColor, textColor, secondaryTextColor);
+      case 2:
+        return _buildStepAddressLocation(
+            isDarkMode, cardColor, textColor, secondaryTextColor);
+      case 3:
+        return _buildStepFacilitiesAccess(
+            isDarkMode, cardColor, textColor, secondaryTextColor);
+      case 4:
+        return _buildStepMetroDistance(
+            isDarkMode, cardColor, textColor, secondaryTextColor);
+      case 5:
+        return _buildStepOwnerCaretaker(
+            isDarkMode, cardColor, textColor, secondaryTextColor);
+      default:
+        return const SizedBox();
+    }
   }
 
   Widget _buildSectionCard({required String title, required Widget child}) {
@@ -570,1341 +1335,827 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
             : Colors.black);
   }
 
-  Widget _buildLocationSection(
-      bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
+  // =========================================================================
+  // Step 1: Cover Photo
+  // =========================================================================
+  Widget _buildStepCoverPhoto(
+      bool isDarkMode, Color cardColor, Color textColor) {
     return _buildPremiumCard(
       isDarkMode: isDarkMode,
       cardColor: cardColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(
-              'Location Details', Icons.location_on_rounded, textColor),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: _Address_apnehisaabka,
-                  style: TextStyle(
-                      color: textColor, fontWeight: FontWeight.w500),
-                  decoration: InputDecoration(
-                    labelText: 'Address for Field Worker',
-                    labelStyle: TextStyle(color: secondaryTextColor),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                      BorderSide(color: Colors.grey.withOpacity(0.2)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: primaryColor),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                      BorderSide(color: Colors.grey.withOpacity(0.2)),
-                    ),
-                    prefixIcon:
-                    Icon(Icons.map_rounded, color: primaryColor),
-                    hintText: 'Enter address for field worker',
-                    hintStyle: TextStyle(color: secondaryTextColor),
-                    filled: true,
-                    fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                  ),
-                  maxLines: 2,
-                  validator: (value) =>
-                  (value == null || value.isEmpty)
-                      ? 'Please enter address for field worker'
-                      : null,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _chipLabel(
+              icon: Icons.photo_camera_outlined,
+              title: 'Cover Photo',
+              hinglish: 'Mukhya Photo',
+              required: true,
+            ),
+            const SizedBox(height: 14),
+            GestureDetector(
+              onTap: _pickSingleImage,
+              child: CustomPaint(
+                painter: _DashedBorderPainter(
+                  color: _singleImage == null ? _kBorder : _kPrimary,
                 ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _vehicleno,
-                  style: TextStyle(
-                      color: textColor, fontWeight: FontWeight.w500),
-                  textCapitalization: TextCapitalization.characters,
-                  decoration: InputDecoration(
-                    labelText: 'Owner Vehicle Number (Optional)',
-                    labelStyle: TextStyle(color: secondaryTextColor),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                      BorderSide(color: Colors.grey.withOpacity(0.2)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: primaryColor),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                      BorderSide(color: Colors.grey.withOpacity(0.2)),
-                    ),
-                    prefixIcon: Icon(Icons.directions_car_rounded,
-                        color: primaryColor),
-                    filled: true,
-                    fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _Google_Location,
-                  style: TextStyle(
-                      color: textColor, fontWeight: FontWeight.w500),
-                  decoration: InputDecoration(
-                    labelText: 'Google Location',
-                    labelStyle: TextStyle(color: secondaryTextColor),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                      BorderSide(color: Colors.grey.withOpacity(0.2)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: primaryColor),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide:
-                      BorderSide(color: Colors.grey.withOpacity(0.2)),
-                    ),
-                    prefixIcon:
-                    Icon(Icons.search_rounded, color: primaryColor),
-                    hintText: 'Enter Google location',
-                    hintStyle: TextStyle(color: secondaryTextColor),
-                    suffixIcon: _isGettingLocation
-                        ? Container(
-                      width: 10,
-                      height: 10,
-                      padding: const EdgeInsets.only(right: 2),
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor:
-                        AlwaysStoppedAnimation<Color>(primaryColor),
-                      ),
-                    )
-                        : IconButton(
-                      icon: Icon(Icons.my_location_rounded,
-                          color: primaryColor),
-                      onPressed: _getCurrentLocation,
-                    ),
-                    filled: true,
-                    fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                  ),
-                  maxLines: 2,
-                  validator: (value) =>
-                  (value == null || value.isEmpty)
-                      ? 'Please enter Google location'
-                      : null,
-                ),
-                const SizedBox(height: 12),
-                if (_currentAddress.isNotEmpty || _latitude != null) ...[
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: accentColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                          color: accentColor.withOpacity(0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.check_circle_rounded,
-                            size: 16, color: accentColor),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment:
-                            CrossAxisAlignment.start,
-                            children: [
-                              if (_currentAddress.isNotEmpty)
-                                Text(
-                                  'Detected: $_currentAddress',
-                                  style: TextStyle(
-                                    color: accentColor,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              if (_latitude != null &&
-                                  _longitude != null)
-                                Text(
-                                  'Lat: ${_latitude!.toStringAsFixed(6)}, Lng: ${_longitude!.toStringAsFixed(6)}',
-                                  style: TextStyle(
-                                    color: accentColor
-                                        .withOpacity(0.9),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                            ],
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _currentAddress = '';
-                              _latitude = null;
-                              _longitude = null;
-                            });
-                          },
-                          child: Icon(Icons.close_rounded,
-                              size: 16, color: accentColor),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                ],
-                Container(
-                  padding: const EdgeInsets.all(10),
+                child: Container(
+                  height: 140,
+                  width: double.infinity,
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
+                    color: _singleImage == null
+                        ? _kSurface2.withOpacity(0.6)
+                        : _kPrimary.withOpacity(0.05),
                   ),
-                  child: Row(
+                  child: _singleImage == null
+                      ? Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.info_outline_rounded,
-                          size: 14, color: Colors.blue),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Enter Address manually or get your current Address from one tap on location button',
-                          style: const TextStyle(
-                            color: Colors.blue,
-                            fontSize: 11,
+                      Icon(Icons.add_a_photo_outlined,
+                          size: 30, color: _kPrimary),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Tap to add cover photo',
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        'Cover photo lagayein',
+                        style:
+                        TextStyle(fontSize: 10, color: Colors.grey[800]),
+                      ),
+                    ],
+                  )
+                      : Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.file(
+                          File(_singleImage!.path),
+                          width: double.infinity,
+                          height: 140,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                          child: const Icon(Icons.check,
+                              size: 14, color: Colors.white),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBasicInfoSection(bool isDarkMode, Color cardColor,
-      Color textColor, Color secondaryTextColor) {
-    return _buildPremiumCard(
-      isDarkMode: isDarkMode,
-      cardColor: cardColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(
-              'Basic Information', Icons.info_rounded, textColor),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
+            const SizedBox(height: 12),
+            Row(
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: Colors.grey.withOpacity(0.2)),
-                  ),
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedItem,
-                    decoration: InputDecoration(
-                      labelText: 'Place',
-                      labelStyle: TextStyle(color: secondaryTextColor),
-                      border: InputBorder.none,
-                      contentPadding:
-                      const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 16),
-                      prefixIcon: Icon(Icons.location_city_rounded,
-                          color: primaryColor),
-                      filled: true,
-                      fillColor: isDarkMode
-                          ? Colors.grey[850]
-                          : Colors.white,
-                    ),
-                    dropdownColor:
-                    isDarkMode ? Colors.grey[850] : Colors.white,
-                    style: TextStyle(
-                        color: textColor,
-                        fontWeight: FontWeight.w500),
-                    items: _items
-                        .map((String value) =>
-                        DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value,
-                                style: TextStyle(
-                                    color: textColor))))
-                        .toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedItem = newValue;
-                      });
-                    },
-                    validator: (value) =>
-                    (value == null || value.isEmpty)
-                        ? 'Please select a Place'
-                        : null,
-                  ),
+                _buildImageActionButton(
+                  icon: Icons.camera_alt_rounded,
+                  label: 'Take Photo',
+                  onTap: _takePhoto,
+                  isDarkMode: isDarkMode,
                 ),
-                const SizedBox(height: 16),
-                _buildTwoFieldRow(
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: Colors.grey.withOpacity(0.2)),
-                    ),
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedItem1,
-                      decoration: InputDecoration(
-                        labelText: 'Buy / Rent',
-                        labelStyle:
-                        TextStyle(color: secondaryTextColor),
-                        border: InputBorder.none,
-                        contentPadding:
-                        const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 16),
-                        prefixIcon: Icon(Icons.sell_rounded,
-                            color: primaryColor),
-                        filled: true,
-                        fillColor: isDarkMode
-                            ? Colors.grey[850]
-                            : Colors.white,
-                      ),
-                      dropdownColor: isDarkMode
-                          ? Colors.grey[850]
-                          : Colors.white,
-                      style: TextStyle(
-                          color: textColor,
-                          fontWeight: FontWeight.w500),
-                      items: _items1
-                          .map((String value) =>
-                          DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value,
-                                  style: TextStyle(
-                                      color: textColor))))
-                          .toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _selectedItem1 = newValue;
-                        });
-                      },
-                      validator: (value) =>
-                      (value == null || value.isEmpty)
-                          ? 'Please select Buy/Rent'
-                          : null,
-                    ),
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: Colors.grey.withOpacity(0.2)),
-                    ),
-                    child: DropdownButtonFormField<String>(
-                      value: _totalFloor,
-                      decoration: InputDecoration(
-                        labelText: 'Total Floor',
-                        labelStyle:
-                        TextStyle(color: secondaryTextColor),
-                        border: InputBorder.none,
-                        contentPadding:
-                        const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 16),
-                        prefixIcon: Icon(Icons.layers_rounded,
-                            color: primaryColor),
-                        filled: true,
-                        fillColor: isDarkMode
-                            ? Colors.grey[850]
-                            : Colors.white,
-                      ),
-                      dropdownColor: isDarkMode
-                          ? Colors.grey[850]
-                          : Colors.white,
-                      style: TextStyle(
-                          color: textColor,
-                          fontWeight: FontWeight.w500),
-                      items: _items_floor2
-                          .map((String value) =>
-                          DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value,
-                                  style: TextStyle(
-                                      color: textColor))))
-                          .toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _totalFloor = newValue;
-                        });
-                      },
-                      validator: (value) =>
-                      (value == null || value.isEmpty)
-                          ? 'Please select total floor'
-                          : null,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: Colors.grey.withOpacity(0.2)),
-                  ),
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedPropertyType,
-                    decoration: InputDecoration(
-                      labelText: 'Property Type',
-                      labelStyle:
-                      TextStyle(color: secondaryTextColor),
-                      border: InputBorder.none,
-                      contentPadding:
-                      const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 16),
-                      prefixIcon: Icon(Icons.category_rounded,
-                          color: primaryColor),
-                      filled: true,
-                      fillColor: isDarkMode
-                          ? Colors.grey[850]
-                          : Colors.white,
-                    ),
-                    dropdownColor: isDarkMode
-                        ? Colors.grey[850]
-                        : Colors.white,
-                    style: TextStyle(
-                        color: textColor,
-                        fontWeight: FontWeight.w500),
-                    items: propertyTypes
-                        .map((String value) =>
-                        DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value,
-                                style: TextStyle(
-                                    color: textColor))))
-                        .toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedPropertyType = newValue;
-                      });
-                    },
-                    validator: (value) =>
-                    (value == null || value.isEmpty)
-                        ? 'Select Property Type'
-                        : null,
-                  ),
+                const SizedBox(width: 8),
+                _buildImageActionButton(
+                  icon: Icons.photo_library_rounded,
+                  label: 'From Gallery',
+                  onTap: _pickMultipleImages,
+                  isDarkMode: isDarkMode,
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildContactInfoSection(bool isDarkMode, Color cardColor,
-      Color textColor, Color secondaryTextColor) {
-    return _buildPremiumCard(
-      isDarkMode: isDarkMode,
-      cardColor: cardColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(
-              'Contact Information', Icons.contact_phone_rounded, textColor),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: _Ownername,
-                  style: TextStyle(
-                      color: textColor, fontWeight: FontWeight.w500),
-                  decoration: _buildInputDecoration(
-                    label: 'Owner Name (Optional)',
-                    icon: Icons.person_rounded,
-                    textColor: textColor,
-                    secondaryTextColor: secondaryTextColor,
-                    isDarkMode: isDarkMode,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _Owner_number,
-                  style: TextStyle(
-                      color: textColor, fontWeight: FontWeight.w500),
-                  decoration: _buildInputDecoration(
-                    label: 'Owner No. (Optional)',
-                    icon: Icons.phone_rounded,
-                    textColor: textColor,
-                    secondaryTextColor: secondaryTextColor,
-                    isDarkMode: isDarkMode,
-                  ).copyWith(
-                    counterText: "", // 🔥 hides "0/10"
-                  ),
-                  maxLength: 10,
-                  keyboardType: TextInputType.phone,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _CareTaker_name,
-                  style: TextStyle(
-                      color: textColor, fontWeight: FontWeight.w500),
-                  decoration: _buildInputDecoration(
-                    label: 'CareTaker Name (Optional)',
-                    icon: Icons.person_outline_rounded,
-                    textColor: textColor,
-                    secondaryTextColor: secondaryTextColor,
-                    isDarkMode: isDarkMode,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _CareTaker_number,
-                  style: TextStyle(
-                      color: textColor, fontWeight: FontWeight.w500),
-                  decoration: _buildInputDecoration(
-                    label: 'CareTaker No. (Optional)',
-                    icon: Icons.phone_outlined,
-                    textColor: textColor,
-                    secondaryTextColor: secondaryTextColor,
-                    isDarkMode: isDarkMode,
-                  ).copyWith(
-                  counterText: "", // 🔥 hides "0/10"
-                ),
-                  maxLength: 10,
-                  keyboardType: TextInputType.phone,
-                ),
-              ],
+            const SizedBox(height: 22),
+            _chipLabel(
+              icon: Icons.collections_outlined,
+              title: 'Gallery Photos',
+              hinglish: 'Aur Photos',
+              required: false,
             ),
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPropertyDetailsSection(bool isDarkMode, Color cardColor,
-      Color textColor, Color secondaryTextColor) {
-    return _buildPremiumCard(
-      isDarkMode: isDarkMode,
-      cardColor: cardColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(
-              'Property Details', Icons.home_work_rounded, textColor),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                TextFormField(
-                  controller: _address,
-                  style: TextStyle(
-                      color: textColor, fontWeight: FontWeight.w500),
-                  decoration: _buildInputDecoration(
-                    label: 'Property Name & Address',
-                    icon: Icons.home_rounded,
-                    textColor: textColor,
-                    secondaryTextColor: secondaryTextColor,
-                    isDarkMode: isDarkMode,
-                  ),
-                  maxLines: 2,
-                  validator: (value) =>
-                  (value == null || value.trim().isEmpty)
-                      ? 'Please enter property address'
-                      : null,
-                ),
-                const SizedBox(height: 12),
-                // TextFormField(
-                //   controller: _Building_information,
-                //   style: TextStyle(
-                //     color: textColor,
-                //     fontWeight: FontWeight.w500,
-                //   ),
-                //   decoration: _buildInputDecoration(
-                //     label: 'Building Information',
-                //     icon: Icons.info_outline_rounded,
-                //     textColor: textColor,
-                //     secondaryTextColor: secondaryTextColor,
-                //     isDarkMode: isDarkMode,
-                //   ),
-                //   maxLines: 3,
-                //   validator: (value) =>
-                //   (value == null || value.trim().isEmpty)
-                //       ? 'Please enter building information'
-                //       : null,
-                // ),
-
-                const SizedBox(height: 12),
-                _buildFacilityField(
-                    isDarkMode, textColor, secondaryTextColor),
-                const SizedBox(height: 12),
-                _buildTwoFieldRow(
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: Colors.grey.withOpacity(0.2)),
-                    ),
-                    child: DropdownButtonFormField<String>(
-                      value: selectedRoadSize,
-                      decoration: InputDecoration(
-                        labelText: 'Road width (in ft)',
-                        labelStyle:
-                        TextStyle(color: secondaryTextColor),
-                        border: InputBorder.none,
-                        contentPadding:
-                        const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 16),
-                        prefixIcon: Icon(Icons.aod_rounded,
-                            color: primaryColor),
-                        filled: true,
-                        fillColor: isDarkMode
-                            ? Colors.grey[850]
-                            : Colors.white,
-                      ),
-                      dropdownColor: isDarkMode
-                          ? Colors.grey[850]
-                          : Colors.white,
-                      style: TextStyle(
-                          color: textColor,
-                          fontWeight: FontWeight.w500),
-                      items: roadSizeOptions
-                          .map((String value) =>
-                          DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value,
-                                  style: TextStyle(
-                                      color: textColor))))
-                          .toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          selectedRoadSize = newValue;
-                        });
-                      },
-                      validator: (value) =>
-                      (value == null || value.isEmpty)
-                          ? 'Please select road size'
-                          : null,
-                    ),
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: Colors.grey.withOpacity(0.2)),
-                    ),
-                    child: DropdownButtonFormField<String>(
-                      value: _ageOfProperty,
-                      decoration: InputDecoration(
-                        labelText: 'Age of property',
-                        labelStyle:
-                        TextStyle(color: secondaryTextColor),
-                        border: InputBorder.none,
-                        contentPadding:
-                        const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 16),
-                        prefixIcon: Icon(Icons.date_range_rounded,
-                            color: primaryColor),
-                        filled: true,
-                        fillColor: isDarkMode
-                            ? Colors.grey[850]
-                            : Colors.white,
-                      ),
-                      dropdownColor: isDarkMode
-                          ? Colors.grey[850]
-                          : Colors.white,
-                      style: TextStyle(
-                          color: textColor,
-                          fontWeight: FontWeight.w500),
-                      items: Age_Options
-                          .map((String value) =>
-                          DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value,
-                                  style: TextStyle(
-                                      color: textColor))))
-                          .toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _ageOfProperty = newValue;
-                        });
-                      },
-                      validator: (value) =>
-                      (value == null || value.isEmpty)
-                          ? 'Please select age'
-                          : null,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-            SingleChildScrollView(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-
-                  /// ⭐ METRO FIELD
-                  TextFormField(
-                    controller: metroController,
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      labelText: "Metro Station",
-                      prefixIcon: Icon(Icons.train_rounded, color: primaryColor),
-                      hintText: "Select Metro Station",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: primaryColor),
-                      ),
-                      filled: true,
-                      fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                    ),
-                    style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-                    onTap: () {
-                      showMetroLocalityPicker(context, (metro, localities) {
-                        setState(() {
-                          metroController.text = metro;
-
-                          final existing = localityController.text
-                              .split(',')
-                              .map((e) => e.trim())
-                              .where((e) => e.isNotEmpty)
-                              .toList();
-
-                          for (final loc in localities) {
-                            if (!existing.any((e) => e.toLowerCase() == loc.toLowerCase())) {
-                              existing.add(loc);
-                            }
-                          }
-
-                          localityController.text = existing.join(', ');
-                        });
-                      });
-                    },
-                  ),
-
-                  const SizedBox(height: 14),
-
-                  /// ⭐ LOCALITY LABEL
-                  Text(
-                    "Localities",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: textColor,
-                    ),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  /// ⭐ LOCALITY FIELD
-                  TextFormField(
-                    controller: localityController,
-                    maxLines: 2,
-                    decoration: InputDecoration(
-                      hintText: "Type or select localities",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      filled: true,
-                      fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                    ),
-                    style: TextStyle(color: textColor),
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  /// ⭐ ANIMATED CHIPS (NO GLITCH)
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeInOut,
-                    child: localityController.text.trim().isNotEmpty
-                        ? Wrap(
-                      spacing: 6,
-                      runSpacing: 6,
-                      children: localityController.text
-                          .split(",")
-                          .map((loc) => loc.trim())
-                          .where((loc) => loc.isNotEmpty)
-                          .map(
-                            (loc) => Chip(
-                          label: Text(
-                            loc,
-                            style: const TextStyle(
-                              color: Colors.orange,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          backgroundColor: Colors.orange.withOpacity(0.15),
-                          side: const BorderSide(color: Colors.orange),
-                          deleteIcon: const Icon(Icons.close, size: 16, color: Colors.orange),
-                          onDeleted: () {
-                            final list = localityController.text
-                                .split(",")
-                                .map((e) => e.trim())
-                                .where((e) => e.isNotEmpty)
-                                .toList();
-
-                            list.removeWhere(
-                                    (e) => e.toLowerCase() == loc.toLowerCase());
-
-                            setState(() {
-                              localityController.text = list.join(", ");
-                            });
-                          },
-                        ),
-                      )
-                          .toList(),
-                    )
-                        : const SizedBox(),
-                  ),
-                ],
-              ),
-            ),
-                ],
-              ),
-            ),
-
-                  SizedBox(height: 10,),
-
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: Colors.grey.withOpacity(0.2)),
-                    ),
-                    child: DropdownButtonFormField<String>(
-                      value: selectedMetroDistance,
-                      decoration: InputDecoration(
-                        labelText: 'Metro Distance',
-                        labelStyle:
-                        TextStyle(color: secondaryTextColor),
-                        border: InputBorder.none,
-                        contentPadding:
-                        const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 16),
-                        prefixIcon: Icon(Icons.straighten_rounded,
-                            color: primaryColor),
-                        filled: true,
-                        fillColor: isDarkMode
-                            ? Colors.grey[850]
-                            : Colors.white,
-                      ),
-                      dropdownColor: isDarkMode
-                          ? Colors.grey[850]
-                          : Colors.white,
-                      style: TextStyle(
-                          color: textColor,
-                          fontWeight: FontWeight.w500),
-                      items: metroDistanceOptions
-                          .map((String value) =>
-                          DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value,
-                                  style: TextStyle(
-                                      color: textColor))))
-                          .toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          selectedMetroDistance = newValue;
-                        });
-                      },
-                      validator: (value) =>
-                      (value == null || value.isEmpty)
-                          ? 'Please select metro distance'
-                          : null,
-                    ),
-                  ),
-                const SizedBox(height: 16),
-                _buildTwoFieldRow(
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: Colors.grey.withOpacity(0.2)),
-                    ),
-                    child: DropdownButtonFormField<String>(
-                      value: selectedMarketDistance,
-                      decoration: InputDecoration(
-                        labelText: 'Market Distance',
-                        labelStyle:
-                        TextStyle(color: secondaryTextColor),
-                        border: InputBorder.none,
-                        contentPadding:
-                        const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 16),
-                        prefixIcon:
-                        Icon(Icons.shopping_cart_rounded,
-                            color: primaryColor),
-                        filled: true,
-                        fillColor: isDarkMode
-                            ? Colors.grey[850]
-                            : Colors.white,
-                      ),
-                      dropdownColor: isDarkMode
-                          ? Colors.grey[850]
-                          : Colors.white,
-                      style: TextStyle(
-                          color: textColor,
-                          fontWeight: FontWeight.w500),
-                      items: marketDistanceOptions
-                          .map((String value) =>
-                          DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value,
-                                  style: TextStyle(
-                                      color: textColor))))
-                          .toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          selectedMarketDistance = newValue;
-                        });
-                      },
-                      validator: (value) =>
-                      (value == null || value.isEmpty)
-                          ? 'Please select market distance'
-                          : null,
-                    ),
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: Colors.grey.withOpacity(0.2)),
-                    ),
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedLift,
-                      decoration: InputDecoration(
-                        labelText: 'Lift Availability',
-                        labelStyle:
-                        TextStyle(color: secondaryTextColor),
-                        border: InputBorder.none,
-                        contentPadding:
-                        const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 16),
-                        prefixIcon: Icon(Icons.elevator_rounded,
-                            color: primaryColor),
-                        filled: true,
-                        fillColor: isDarkMode
-                            ? Colors.grey[850]
-                            : Colors.white,
-                      ),
-                      dropdownColor: isDarkMode
-                          ? Colors.grey[850]
-                          : Colors.white,
-                      style: TextStyle(
-                          color: textColor,
-                          fontWeight: FontWeight.w500),
-                      items: lift_options
-                          .map((String value) =>
-                          DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value,
-                                  style: TextStyle(
-                                      color: textColor))))
-                          .toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _selectedLift = newValue;
-                        });
-                      },
-                      validator: (value) =>
-                      (value == null || value.isEmpty)
-                          ? 'Please select lift availability'
-                          : null,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: Colors.grey.withOpacity(0.2)),
-                  ),
-                  child: DropdownButtonFormField<String>(
-                    value: _selectedParking,
-                    decoration: InputDecoration(
-                      labelText: 'Parking',
-                      labelStyle:
-                      TextStyle(color: secondaryTextColor),
-                      border: InputBorder.none,
-                      contentPadding:
-                      const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 16),
-                      prefixIcon: Icon(Icons.local_parking_rounded,
-                          color: primaryColor),
-                      filled: true,
-                      fillColor: isDarkMode
-                          ? Colors.grey[850]
-                          : Colors.white,
-                    ),
-                    dropdownColor: isDarkMode
-                        ? Colors.grey[850]
-                        : Colors.white,
-                    style: TextStyle(
-                        color: textColor,
-                        fontWeight: FontWeight.w500),
-                    items: parkingOptions
-                        .map((String value) =>
-                        DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value,
-                                style: TextStyle(
-                                    color: textColor))))
-                        .toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedParking = newValue;
-                      });
-                    },
-                    validator: (value) =>
-                    (value == null || value.isEmpty)
-                        ? 'Please select parking type'
-                        : null,
-                  ),
-                ),
-                SizedBox(height: 16),
-              ]),
-          );
-  }
-
-  Widget _buildFacilityField(
-      bool isDarkMode, Color textColor, Color secondaryTextColor) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Select Facilities:',
-          style: TextStyle(
-            color: textColor.withOpacity(0.8),
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 12),
-        TextFormField(
-          controller: _facilityController,
-          readOnly: true,
-          onTap: _showFacilitySelectionDialog,
-          style: TextStyle(
-              color: textColor, fontWeight: FontWeight.w500),
-          decoration: InputDecoration(
-            labelText: 'Tap to select facilities',
-            labelStyle: TextStyle(color: secondaryTextColor),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide:
-              BorderSide(color: Colors.grey.withOpacity(0.2)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: primaryColor),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide:
-              BorderSide(color: Colors.grey.withOpacity(0.2)),
-            ),
-            suffixIcon: Icon(Icons.arrow_drop_down_rounded,
-                color: primaryColor),
-            filled: true,
-            fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
-          ),
-          validator: (val) =>
-          val == null || val.isEmpty ? "Select facilities" : null,
-        ),
-        const SizedBox(height: 16),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: allFacilities.map((facility) {
-            final isSelected = selectedFacilities.contains(facility);
-            return GestureDetector(
-              onTap: () {
-                setState(() {
-                  if (isSelected) {
-                    selectedFacilities.remove(facility);
-                  } else {
-                    selectedFacilities.add(facility);
-                  }
-                  _facilityController.text =
-                      selectedFacilities.join(', ');
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? primaryColor.withOpacity(0.1)
-                      : Colors.grey.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: isSelected
-                        ? primaryColor
-                        : Colors.grey.withOpacity(0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isSelected
-                          ? Icons.check_circle_rounded
-                          : Icons.radio_button_unchecked_rounded,
-                      size: 14,
-                      color: isSelected ? primaryColor : Colors.grey,
-                    ),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(
-                        facility,
-                        style: TextStyle(
-                          color: isSelected
-                              ? primaryColor
-                              : textColor.withOpacity(0.7),
-                          fontWeight: FontWeight.w500,
-                          fontSize: 11,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNearbyFacilitiesSection(
-      bool isDarkMode, Color cardColor, Color textColor) {
-    if (nearbyHospitals.isEmpty &&
-        nearbySchools.isEmpty &&
-        nearbyMetros.isEmpty &&
-        nearbyMalls.isEmpty &&
-        nearbyParks.isEmpty &&
-        nearbyCinemas.isEmpty) {
-      return const SizedBox();
-    }
-
-    return _buildPremiumCard(
-      isDarkMode: isDarkMode,
-      cardColor: cardColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader(
-              'Nearby Facilities', Icons.local_activity_rounded, textColor),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Column(
-              children: [
-                if (nearbyHospitals.isNotEmpty)
-                  _buildNearbyCard('Hospitals', nearbyHospitals,
-                      textColor, isDarkMode),
-                if (nearbySchools.isNotEmpty)
-                  _buildNearbyCard(
-                      'Schools', nearbySchools, textColor, isDarkMode),
-                if (nearbyMetros.isNotEmpty)
-                  _buildNearbyCard('Metro Stations', nearbyMetros,
-                      textColor, isDarkMode),
-                if (nearbyMalls.isNotEmpty)
-                  _buildNearbyCard('Shopping Malls', nearbyMalls,
-                      textColor, isDarkMode),
-                if (nearbyParks.isNotEmpty)
-                  _buildNearbyCard(
-                      'Parks', nearbyParks, textColor, isDarkMode),
-                if (nearbyCinemas.isNotEmpty)
-                  _buildNearbyCard(
-                      'Cinemas', nearbyCinemas, textColor, isDarkMode),
-              ],
-            ),
-          ),
-          const SizedBox(height: 24),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNearbyCard(String title, List<Map<String, dynamic>> places,
-      Color textColor, bool isDarkMode) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 12),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: textColor,
-          ),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 100,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: places.length,
-            itemBuilder: (context, index) {
-              final place = places[index];
-              return Container(
-                width: 160,
-                margin: const EdgeInsets.only(right: 12),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                      color: Colors.grey.withOpacity(0.2)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Flexible(
-                      child: Text(
-                        place['name'] ?? 'Unknown',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: textColor,
-                          fontSize: 12,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Flexible(
-                      child: Text(
-                        place['vicinity'] ?? '',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: textColor.withOpacity(0.7),
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(Icons.star_rounded,
-                            size: 12, color: Colors.amber),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${place['rating'] ?? 'N/A'}',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: textColor.withOpacity(0.7),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPremiumHeader(bool isDarkMode) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(28),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [primaryColor, secondaryColor],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: primaryColor.withOpacity(0.3),
-            blurRadius: 25,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.add_home_work_rounded,
-                size: 32, color: Colors.white),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Add Building',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'List your property with premium features',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white.withOpacity(0.9),
-                    letterSpacing: 0.3,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 16),
-                Container(
-                  height: 2,
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: _pickMultipleImages,
+              child: CustomPaint(
+                painter: _DashedBorderPainter(color: _kBorder),
+                child: Container(
+                  height: 80,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                      color: Colors.amber[400],
-                      borderRadius: BorderRadius.circular(2)),
+                    borderRadius: BorderRadius.circular(12),
+                    color: _kSurface2.withOpacity(0.6 ),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                       const Icon(Icons.add_photo_alternate_outlined,
+                          size: 24, color: _kAccent),
+                      const SizedBox(height: 4),
+                      Text(
+                        _selectedImages.isEmpty
+                            ? 'Add gallery photos'
+                            : '${_selectedImages.length} photo(s) added',
+                        style: const TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ],
+            if (_selectedImages.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 64,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _selectedImages.length,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      width: 64,
+                      height: 64,
+                      child: Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              File(_selectedImages[index].path),
+                              width: 64,
+                              height: 64,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            top: 2,
+                            right: 2,
+                            child: GestureDetector(
+                              onTap: () => _removeImage(index),
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: const BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.close_rounded,
+                                    size: 11, color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: _clearAllImages,
+                  icon: const Icon(Icons.delete_outline_rounded,
+                      size: 16, color: Colors.red),
+                  label: const Text('Clear All',
+                      style: TextStyle(color: Colors.red, fontSize: 12)),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // =========================================================================
+  // Step 2: Basic Info
+  // =========================================================================
+  Widget _buildStepBasicInfo(bool isDarkMode, Color cardColor,
+      Color textColor, Color secondaryTextColor) {
+    return _buildPremiumCard(
+      isDarkMode: isDarkMode,
+      cardColor: cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _chipLabel(
+              icon: Icons.location_city_outlined,
+              title: 'Place',
+              hinglish: 'Jagah',
+              required: true,
+            ),
+            const SizedBox(height: 10),
+            _bottomSheetSelector(
+              currentDisplay: _selectedItem ?? 'Select Place',
+              hasValue: _selectedItem != null,
+              textColor: textColor,
+              secondaryTextColor: secondaryTextColor,
+              isDarkMode: isDarkMode,
+              onTap: () => _openChipSheet(
+                titleEn: 'Place',
+                titleHi: 'Jagah',
+                options: _items,
+                value: _selectedItem,
+                onSelect: (v) => setState(() => _selectedItem = v),
+              ),
+            ),
+            const SizedBox(height: 20),
+            _chipLabel(
+              icon: Icons.apartment_outlined,
+              title: 'Property Type',
+              hinglish: 'Property ka Prakar',
+              required: true,
+            ),
+            const SizedBox(height: 10),
+            _bottomSheetSelector(
+              currentDisplay: _selectedPropertyType ?? 'Select Property Type',
+              hasValue: _selectedPropertyType != null,
+              textColor: textColor,
+              secondaryTextColor: secondaryTextColor,
+              isDarkMode: isDarkMode,
+              onTap: () => _openChipSheet(
+                titleEn: 'Property Type',
+                titleHi: 'Property ka Prakar',
+                options: propertyTypes,
+                value: _selectedPropertyType,
+                onSelect: (v) => setState(() => _selectedPropertyType = v),
+              ),
+            ),
+            const SizedBox(height: 20),
+            _chipLabel(
+              icon: Icons.sell_outlined,
+              title: 'Buy or Rent',
+              hinglish: 'Kiraya ya Bikri',
+              required: true,
+            ),
+            const SizedBox(height: 10),
+            _bottomSheetSelector(
+              currentDisplay: _selectedItem1 ?? 'Select Buy or Rent',
+              hasValue: _selectedItem1 != null,
+              textColor: textColor,
+              secondaryTextColor: secondaryTextColor,
+              isDarkMode: isDarkMode,
+              onTap: () => _openChipSheet(
+                titleEn: 'Buy or Rent',
+                titleHi: 'Kiraya ya Bikri',
+                options: _items1,
+                value: _selectedItem1,
+                onSelect: (v) => setState(() => _selectedItem1 = v),
+              ),
+            ),
+            const SizedBox(height: 20),
+            _chipLabel(
+              icon: Icons.stairs_outlined,
+              title: 'Total Floor',
+              hinglish: 'Kul Manzil',
+              required: true,
+            ),
+            const SizedBox(height: 10),
+            _bottomSheetSelector(
+              currentDisplay: _totalFloor ?? 'Select Total Floor',
+              hasValue: _totalFloor != null,
+              textColor: textColor,
+              secondaryTextColor: secondaryTextColor,
+              isDarkMode: isDarkMode,
+              onTap: () => _openChipSheet(
+                titleEn: 'Total Floor',
+                titleHi: 'Kul Manzil',
+                options: _items_floor2,
+                value: _totalFloor,
+                onSelect: (v) => setState(() => _totalFloor = v),
+              ),
+            ),
+            const SizedBox(height: 20),
+            _chipLabel(
+              icon: Icons.calendar_month_outlined,
+              title: 'Age of Property',
+              hinglish: 'Property ki Umar',
+              required: true,
+            ),
+            const SizedBox(height: 10),
+            _bottomSheetSelector(
+              currentDisplay: _ageOfProperty ?? 'Select Age of Property',
+              hasValue: _ageOfProperty != null,
+              textColor: textColor,
+              secondaryTextColor: secondaryTextColor,
+              isDarkMode: isDarkMode,
+              onTap: () => _openChipSheet(
+                titleEn: 'Age of Property',
+                titleHi: 'Property ki Umar',
+                options: Age_Options,
+                value: _ageOfProperty,
+                onSelect: (v) => setState(() => _ageOfProperty = v),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // =========================================================================
+  // Step 3: Address & Location
+  // =========================================================================
+  Widget _buildStepAddressLocation(bool isDarkMode, Color cardColor,
+      Color textColor, Color secondaryTextColor) {
+    return _buildPremiumCard(
+      isDarkMode: isDarkMode,
+      cardColor: cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _chipLabel(
+              icon: Icons.home_outlined,
+              title: 'Property Name & Address',
+              hinglish: 'Property ka Naam aur Address',
+              required: true,
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: _address,
+              style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+              decoration: _buildInputDecoration(
+                label: 'Property Name & Address',
+                icon: Icons.home_rounded,
+                textColor: textColor,
+                secondaryTextColor: secondaryTextColor,
+                isDarkMode: isDarkMode,
+              ),
+              maxLines: 2,
+              validator: (value) =>
+              (value == null || value.trim().isEmpty)
+                  ? 'Please enter property address'
+                  : null,
+            ),
+            const SizedBox(height: 20),
+            _chipLabel(
+              icon: Icons.location_on_outlined,
+              title: 'Address for Field Worker',
+              hinglish: 'Field Worker ke liye Address',
+              required: true,
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: _Address_apnehisaabka,
+              style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+              decoration: _buildInputDecoration(
+                label: 'Address for Field Worker',
+                icon: Icons.map_rounded,
+                textColor: textColor,
+                secondaryTextColor: secondaryTextColor,
+                isDarkMode: isDarkMode,
+              ),
+              maxLines: 2,
+              validator: (value) =>
+              (value == null || value.isEmpty)
+                  ? 'Please enter address for field worker'
+                  : null,
+            ),
+            const SizedBox(height: 20),
+            _chipLabel(
+              icon: Icons.location_on_outlined,
+              title: 'Google Location',
+              hinglish: 'Google Location',
+              required: true,
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: _Google_Location,
+              style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+              decoration: _buildInputDecoration(
+                label: 'Google Location',
+                icon: Icons.search_rounded,
+                textColor: textColor,
+                secondaryTextColor: secondaryTextColor,
+                isDarkMode: isDarkMode,
+              ).copyWith(
+                suffixIcon: _isGettingLocation
+                    ? Container(
+                  width: 10,
+                  height: 10,
+                  padding: const EdgeInsets.only(right: 2),
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor:
+                    AlwaysStoppedAnimation<Color>(primaryColor),
+                  ),
+                )
+                    : IconButton(
+                  icon: Icon(Icons.my_location_rounded,
+                      color: primaryColor),
+                  onPressed: _getCurrentLocation,
+                ),
+              ),
+              maxLines: 2,
+              validator: (value) =>
+              (value == null || value.isEmpty)
+                  ? 'Please enter Google location'
+                  : null,
+            ),
+            if (_currentAddress.isNotEmpty || _latitude != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: accentColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: accentColor.withOpacity(0.3)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.check_circle_rounded,
+                        size: 16, color: accentColor),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (_currentAddress.isNotEmpty)
+                            Text(
+                              'Detected: $_currentAddress',
+                              style: TextStyle(
+                                color: accentColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          if (_latitude != null && _longitude != null)
+                            Text(
+                              'Lat: ${_latitude!.toStringAsFixed(6)}, Lng: ${_longitude!.toStringAsFixed(6)}',
+                              style: TextStyle(
+                                color: accentColor.withOpacity(0.9),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _currentAddress = '';
+                          _latitude = null;
+                          _longitude = null;
+                        });
+                      },
+                      child: Icon(Icons.close_rounded,
+                          size: 16, color: accentColor),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // =========================================================================
+  // Step 4: Facilities & Access
+  // =========================================================================
+  Widget _buildStepFacilitiesAccess(bool isDarkMode, Color cardColor,
+      Color textColor, Color secondaryTextColor) {
+    return _buildPremiumCard(
+      isDarkMode: isDarkMode,
+      cardColor: cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _chipLabel(
+              icon: Icons.checklist_outlined,
+              title: 'Facilities',
+              hinglish: 'Suvidhayein',
+              required: true,
+            ),
+            const SizedBox(height: 10),
+            _bottomSheetSelector(
+              currentDisplay: selectedFacilities.isEmpty
+                  ? 'Select Facilities'
+                  : selectedFacilities.join(', '),
+              hasValue: selectedFacilities.isNotEmpty,
+              textColor: textColor,
+              secondaryTextColor: secondaryTextColor,
+              isDarkMode: isDarkMode,
+              onTap: _openFacilitiesSheet,
+            ),
+            const SizedBox(height: 20),
+            _chipLabel(
+              icon: Icons.rule_outlined,
+              title: 'Road Width',
+              hinglish: 'Sadak ki Chaudai',
+              required: true,
+            ),
+            const SizedBox(height: 10),
+            _bottomSheetSelector(
+              currentDisplay: selectedRoadSize ?? 'Select Road Width',
+              hasValue: selectedRoadSize != null,
+              textColor: textColor,
+              secondaryTextColor: secondaryTextColor,
+              isDarkMode: isDarkMode,
+              onTap: () => _openChipSheet(
+                titleEn: 'Road Width',
+                titleHi: 'Sadak ki Chaudai',
+                options: roadSizeOptions,
+                value: selectedRoadSize,
+                onSelect: (v) => setState(() => selectedRoadSize = v),
+              ),
+            ),
+            const SizedBox(height: 20),
+            _chipLabel(
+              icon: Icons.elevator_outlined,
+              title: 'Lift Availability',
+              hinglish: 'Lift Hai ya Nahi',
+              required: true,
+            ),
+            const SizedBox(height: 10),
+            _bottomSheetSelector(
+              currentDisplay: _selectedLift ?? 'Select Lift Availability',
+              hasValue: _selectedLift != null,
+              textColor: textColor,
+              secondaryTextColor: secondaryTextColor,
+              isDarkMode: isDarkMode,
+              onTap: () => _openChipSheet(
+                titleEn: 'Lift Availability',
+                titleHi: 'Lift Hai ya Nahi',
+                options: lift_options,
+                value: _selectedLift,
+                onSelect: (v) => setState(() => _selectedLift = v),
+              ),
+            ),
+            const SizedBox(height: 20),
+            _chipLabel(
+              icon: Icons.directions_car_outlined,
+              title: 'Parking',
+              hinglish: 'Parking Hai ya Nahi',
+              required: true,
+            ),
+            const SizedBox(height: 10),
+            _bottomSheetSelector(
+              currentDisplay: _selectedParking ?? 'Select Parking',
+              hasValue: _selectedParking != null,
+              textColor: textColor,
+              secondaryTextColor: secondaryTextColor,
+              isDarkMode: isDarkMode,
+              onTap: () => _openChipSheet(
+                titleEn: 'Parking',
+                titleHi: 'Parking Hai ya Nahi',
+                options: parkingOptions,
+                value: _selectedParking,
+                onSelect: (v) => setState(() => _selectedParking = v),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // =========================================================================
+  // Step 5: Metro & Distance
+  // =========================================================================
+  Widget _buildStepMetroDistance(bool isDarkMode, Color cardColor,
+      Color textColor, Color secondaryTextColor) {
+    return _buildPremiumCard(
+      isDarkMode: isDarkMode,
+      cardColor: cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _chipLabel(
+              icon: Icons.train_outlined,
+              title: 'Metro Station',
+              hinglish: 'Metro Station',
+              required: false,
+            ),
+            const SizedBox(height: 10),
+            _bottomSheetSelector(
+              currentDisplay: _selectedMetro ?? 'Select Metro Station',
+              hasValue: _selectedMetro != null,
+              textColor: textColor,
+              secondaryTextColor: secondaryTextColor,
+              isDarkMode: isDarkMode,
+              onTap: () => _openChipSheet(
+                titleEn: 'Metro Station',
+                titleHi: 'Metro Station',
+                options: _metroOptions,
+                value: _selectedMetro,
+                onSelect: (v) => setState(() => _selectedMetro = v),
+              ),
+            ),
+            const SizedBox(height: 20),
+            _chipLabel(
+              icon: Icons.straighten_outlined,
+              title: 'Metro Distance',
+              hinglish: 'Metro ki Doori',
+              required: true,
+            ),
+            const SizedBox(height: 10),
+            _bottomSheetSelector(
+              currentDisplay: selectedMetroDistance ?? 'Select Metro Distance',
+              hasValue: selectedMetroDistance != null,
+              textColor: textColor,
+              secondaryTextColor: secondaryTextColor,
+              isDarkMode: isDarkMode,
+              onTap: () => _openChipSheet(
+                titleEn: 'Metro Distance',
+                titleHi: 'Metro ki Doori',
+                options: metroDistanceOptions,
+                value: selectedMetroDistance,
+                onSelect: (v) => setState(() => selectedMetroDistance = v),
+              ),
+            ),
+            const SizedBox(height: 20),
+            _chipLabel(
+              icon: Icons.shopping_cart_outlined,
+              title: 'Market Distance',
+              hinglish: 'Bazaar ki Doori',
+              required: true,
+            ),
+            const SizedBox(height: 10),
+            _bottomSheetSelector(
+              currentDisplay:
+                  selectedMarketDistance ?? 'Select Market Distance',
+              hasValue: selectedMarketDistance != null,
+              textColor: textColor,
+              secondaryTextColor: secondaryTextColor,
+              isDarkMode: isDarkMode,
+              onTap: () => _openChipSheet(
+                titleEn: 'Market Distance',
+                titleHi: 'Bazaar ki Doori',
+                options: marketDistanceOptions,
+                value: selectedMarketDistance,
+                onSelect: (v) => setState(() => selectedMarketDistance = v),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // =========================================================================
+  // Step 6: Owner & Caretaker (optional group)
+  // =========================================================================
+  Widget _buildStepOwnerCaretaker(bool isDarkMode, Color cardColor,
+      Color textColor, Color secondaryTextColor) {
+    return _buildPremiumCard(
+      isDarkMode: isDarkMode,
+      cardColor: cardColor,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _chipLabel(
+              icon: Icons.person_outline,
+              title: 'Owner Name',
+              hinglish: 'Malik ka Naam',
+              required: false,
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: _Ownername,
+              style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+              decoration: _buildInputDecoration(
+                label: 'Owner Name (Optional)',
+                icon: Icons.person_rounded,
+                textColor: textColor,
+                secondaryTextColor: secondaryTextColor,
+                isDarkMode: isDarkMode,
+              ),
+            ),
+            const SizedBox(height: 20),
+            _chipLabel(
+              icon: Icons.phone_outlined,
+              title: 'Owner Number',
+              hinglish: 'Malik ka Number',
+              required: false,
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: _Owner_number,
+              style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+              decoration: _buildInputDecoration(
+                label: 'Owner No. (Optional)',
+                icon: Icons.phone_rounded,
+                textColor: textColor,
+                secondaryTextColor: secondaryTextColor,
+                isDarkMode: isDarkMode,
+              ).copyWith(
+                counterText: "", // 🔥 hides "0/10"
+              ),
+              maxLength: 10,
+              keyboardType: TextInputType.phone,
+            ),
+            const SizedBox(height: 20),
+            _chipLabel(
+              icon: Icons.person_outline,
+              title: 'Caretaker Name',
+              hinglish: 'Caretaker ka Naam',
+              required: false,
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: _CareTaker_name,
+              style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+              decoration: _buildInputDecoration(
+                label: 'CareTaker Name (Optional)',
+                icon: Icons.person_outline_rounded,
+                textColor: textColor,
+                secondaryTextColor: secondaryTextColor,
+                isDarkMode: isDarkMode,
+              ),
+            ),
+            const SizedBox(height: 20),
+            _chipLabel(
+              icon: Icons.phone_outlined,
+              title: 'Caretaker Number',
+              hinglish: 'Caretaker ka Number',
+              required: false,
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: _CareTaker_number,
+              style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+              decoration: _buildInputDecoration(
+                label: 'CareTaker No. (Optional)',
+                icon: Icons.phone_outlined,
+                textColor: textColor,
+                secondaryTextColor: secondaryTextColor,
+                isDarkMode: isDarkMode,
+              ).copyWith(
+                counterText: "", // 🔥 hides "0/10"
+              ),
+              maxLength: 10,
+              keyboardType: TextInputType.phone,
+            ),
+            const SizedBox(height: 20),
+            _chipLabel(
+              icon: Icons.directions_car_outlined,
+              title: 'Owner Vehicle Number',
+              hinglish: 'Malik ki Gaadi Number',
+              required: false,
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: _vehicleno,
+              style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+              textCapitalization: TextCapitalization.characters,
+              decoration: _buildInputDecoration(
+                label: 'Owner Vehicle Number (Optional)',
+                icon: Icons.directions_car_rounded,
+                textColor: textColor,
+                secondaryTextColor: secondaryTextColor,
+                isDarkMode: isDarkMode,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline_rounded,
+                      size: 14, color: Colors.blue),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Review your details and tap Submit Property to finish.',
+                      style: const TextStyle(color: Colors.blue, fontSize: 11),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1997,277 +2248,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       suffixText: suffixText,
       filled: true,
       fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
-    );
-  }
-
-  Widget _buildImageUploadSection(
-      bool isDarkMode, Color cardColor, Color textColor) {
-    return _buildPremiumCard(
-      isDarkMode: isDarkMode,
-      cardColor: cardColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        primaryColor.withOpacity(0.1),
-                        secondaryColor.withOpacity(0.1)
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(Icons.photo_library_rounded,
-                      size: 18, color: primaryColor),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'Property Images',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: textColor,
-                  ),
-                ),
-                const Spacer(),
-                if (_selectedImages.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: accentColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '${1 + _selectedImages.length} images',
-                      style: TextStyle(
-                        color: accentColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: _pickSingleImage,
-                        child: Container(
-                          height: 100,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: _singleImage == null
-                                  ? Colors.grey.withOpacity(0.3)
-                                  : primaryColor,
-                              width: _singleImage == null ? 1 : 2,
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                            color: _singleImage == null
-                                ? Colors.grey.withOpacity(0.03)
-                                : primaryColor.withOpacity(0.02),
-                          ),
-                          child: _singleImage == null
-                              ? Column(
-                            mainAxisAlignment:
-                            MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.camera_alt_rounded,
-                                  size: 24, color: Colors.grey),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Cover Photo',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          )
-                              : Stack(
-                            children: [
-                              ClipRRect(
-                                borderRadius:
-                                BorderRadius.circular(8),
-                                child: Image.file(
-                                  File(_singleImage!.path),
-                                  width: double.infinity,
-                                  height: 100,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              Positioned(
-                                bottom: 4,
-                                left: 4,
-                                child: Container(
-                                  padding: const EdgeInsets
-                                      .symmetric(
-                                      horizontal: 6,
-                                      vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black
-                                        .withOpacity(0.7),
-                                    borderRadius:
-                                    BorderRadius.circular(4),
-                                  ),
-                                  child: const Text(
-                                    'Main',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: _pickMultipleImages,
-                        child: Container(
-                          height: 100,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Colors.grey.withOpacity(0.3),
-                              width: 1,
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                            color: Colors.grey.withOpacity(0.02),
-                          ),
-                          child: Column(
-                            mainAxisAlignment:
-                            MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.collections_rounded,
-                                  size: 28,
-                                  color:
-                                  Colors.grey.withOpacity(0.6)),
-                              const SizedBox(height: 4),
-                              Text(
-                                _selectedImages.isEmpty
-                                    ? 'Add More'
-                                    : '+${_selectedImages.length}',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              if (_selectedImages.isNotEmpty)
-                                Text(
-                                  'photos',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.grey.withOpacity(0.6),
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    _buildImageActionButton(
-                      icon: Icons.camera_alt_rounded,
-                      label: 'Take Photo',
-                      onTap: _takePhoto,
-                      isDarkMode: isDarkMode,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildImageActionButton(
-                      icon: Icons.photo_library_rounded,
-                      label: 'From Gallery',
-                      onTap: _pickMultipleImages,
-                      isDarkMode: isDarkMode,
-                    ),
-                    const SizedBox(width: 8),
-                    if (_selectedImages.isNotEmpty)
-                      _buildImageActionButton(
-                        icon: Icons.delete_outline_rounded,
-                        label: 'Clear All',
-                        onTap: _clearAllImages,
-                        isDanger: true,
-                        isDarkMode: isDarkMode,
-                      ),
-                  ],
-                ),
-                if (_selectedImages.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    height: 60,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _selectedImages.length,
-                      itemBuilder: (context, index) {
-                        return Container(
-                          margin: const EdgeInsets.only(right: 6),
-                          width: 60,
-                          height: 60,
-                          child: Stack(
-                            children: [
-                              ClipRRect(
-                                borderRadius:
-                                BorderRadius.circular(6),
-                                child: Image.file(
-                                  File(_selectedImages[index].path),
-                                  width: 60,
-                                  height: 60,
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                              Positioned(
-                                top: 2,
-                                right: 2,
-                                child: GestureDetector(
-                                  onTap: () => _removeImage(index),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(1),
-                                    decoration: const BoxDecoration(
-                                      color: Colors.red,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(
-                                        Icons.close_rounded,
-                                        size: 10,
-                                        color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
     );
   }
 
@@ -2472,123 +2452,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     );
   }
 
-  Widget _buildPremiumSubmitButton() {
-    return Container(
-      width: double.infinity,
-      height: 60,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [primaryColor, secondaryColor],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: primaryColor.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(15),
-          onTap: _isSubmitting
-              ? null
-              : () async {
-            if (!_formKey.currentState!.validate()) return;
-
-            setState(() {
-              _isSubmitting = true;
-              _countdown = 3;
-            });
-
-            // ⏳ Countdown timer
-            for (int i = 3; i > 0; i--) {
-              await Future.delayed(const Duration(seconds: 1));
-              setState(() {
-                _countdown = i - 1;
-              });
-            }
-
-            // 🚀 API Call
-            await _handleUpload();
-
-            setState(() {
-              _isSubmitting = false;
-            });
-          },
-          child: Center(
-            child: _isSubmitting
-                ? Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.timer,
-                  color: Colors.white,
-                  size: 20,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  _countdown > 0
-                      ? "Submitting in $_countdown"
-                      : "Submitting...",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            )
-                : Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                Icon(
-                  Icons.rocket_launch_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
-                SizedBox(width: 10),
-                Text(
-                  'SUBMIT PROPERTY',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showFacilitySelectionDialog() async {
-    final result =
-    await showModalBottomSheet<List<String>>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => _FacilityBottomSheet(
-        options: allFacilities,
-        selected: selectedFacilities,
-      ),
-    );
-
-    if (result != null) {
-      setState(() {
-        selectedFacilities = result;
-        _facilityController.text =
-            selectedFacilities.join(', ');
-      });
-    }
-  }
-
   @override
   void dispose() {
     _Ownername.dispose();
@@ -2600,529 +2463,50 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     _Google_Location.dispose();
     _address.dispose();
     // _Building_information.dispose();
-    _facilityController.dispose();
-    metroController.dispose();
-    localityController.dispose();
     super.dispose();
   }
 }
 
-class _FacilityBottomSheet extends StatefulWidget {
-  final List<String> options;
-  final List<String> selected;
+/// Lightweight dashed rounded-rect border painter used by the cover
+/// photo / gallery tap targets, so no new package dependency is needed.
+class _DashedBorderPainter extends CustomPainter {
+  final Color color;
+  final double radius;
 
-  const _FacilityBottomSheet({
-    required this.options,
-    required this.selected,
-  });
-
-  @override
-  State<_FacilityBottomSheet> createState() =>
-      _FacilityBottomSheetState();
-}
-
-class _FacilityBottomSheetState
-    extends State<_FacilityBottomSheet> {
-  late List<String> _tempSelected;
+  _DashedBorderPainter({required this.color, this.radius = 12});
 
   @override
-  void initState() {
-    super.initState();
-    _tempSelected = List.from(widget.selected);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final padding =
-    (screenWidth * 0.04).clamp(12.0, 20.0);
-    final fontSize =
-    (screenWidth * 0.04).clamp(14.0, 18.0);
-    final bool isDarkMode =
-        Theme.of(context).brightness == Brightness.dark;
-    final Color backgroundColor =
-    isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
-    final Color textColor =
-    isDarkMode ? Colors.white : const Color(0xFF2D3748);
-    final Color primaryBlue = const Color(0xFF2D5BFF);
-    final Color secondaryBlue = const Color(0xFF6C63FF);
-
-    // ✅ Responsive + scrollable bottom sheet (NO overflow)
-    return SafeArea(
-      child: Container(
-        color: backgroundColor,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return Padding(
-              padding: EdgeInsets.all(padding),
-              child: Column(
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(padding),
-                    child: Text(
-                      "Select Facilities",
-                      style: TextStyle(
-                        fontSize: fontSize,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
-                      ),
-                    ),
-                  ),
-                  // Scrollable list of facilities
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: widget.options.length,
-                      itemBuilder: (context, index) {
-                        final option = widget.options[index];
-                        final isSelected =
-                        _tempSelected.contains(option);
-                        return CheckboxListTile(
-                          title: Text(
-                            option,
-                            style: TextStyle(
-                              color: textColor,
-                              fontSize: fontSize * 0.8,
-                            ),
-                          ),
-                          value: isSelected,
-                          onChanged: (val) {
-                            setState(() {
-                              if (val == true) {
-                                _tempSelected.add(option);
-                              } else {
-                                _tempSelected.remove(option);
-                              }
-                            });
-                          },
-                          controlAffinity:
-                          ListTileControlAffinity.leading,
-                          contentPadding: EdgeInsets.zero,
-                        );
-                      },
-                    ),
-                  ),
-                  SizedBox(height: padding),
-                  Container(
-                    width: double.infinity,
-                    height: (fontSize * 3)
-                        .clamp(45.0, 55.0),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [primaryBlue, secondaryBlue],
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                      ),
-                      borderRadius:
-                      BorderRadius.circular(padding * 0.75),
-                    ),
-                    child: TextButton(
-                      onPressed: () =>
-                          Navigator.pop(context, _tempSelected),
-                      child: Text(
-                        "Done",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: fontSize * 0.8,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: padding * 0.5),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
+  void paint(Canvas canvas, Size size) {
+    final RRect rrect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Radius.circular(radius),
     );
-  }
-}
+    final Paint paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.4
+      ..style = PaintingStyle.stroke;
+    final Path path = Path()..addRRect(rrect);
+    final Path dashPath = Path();
 
-void showMetroLocalityPicker(
-    BuildContext context,
-    Function(String metro, List<String> localities) onSelected,
-    ) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    barrierColor: Colors.black.withOpacity(0.5),
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    builder: (context) {
-      return DraggableScrollableSheet(
-        initialChildSize: 0.85,
-        minChildSize: 0.60,
-        maxChildSize: 0.95,
-        expand: false,
-        builder: (context, controller) {
-          return MetroLocalitySheet(
-            onSelected: onSelected,
-          );
-        },
-      );
-    },
-  );
-}
+    const double dashWidth = 6.0;
+    const double dashGap = 4.0;
 
-class MetroLocalitySheet extends StatefulWidget {
-  final Function(String metro, List<String> localities) onSelected;
-
-  const MetroLocalitySheet(
-      {super.key, required this.onSelected});
-
-  @override
-  State<MetroLocalitySheet> createState() =>
-      _MetroLocalitySheetState();
-}
-
-class _MetroLocalitySheetState
-    extends State<MetroLocalitySheet> {
-  final MetroAPI api = MetroAPI();
-
-  final TextEditingController metroCtrl =
-  TextEditingController();
-  final TextEditingController localityCtrl =
-  TextEditingController();
-
-  List<Map<String, dynamic>> metroList = [];
-  List<Map<String, dynamic>> nearbyList = [];
-  List<Map<String, dynamic>> filteredNearby = [];
-
-  List<String> selectedLocalities = [];
-
-  bool loadingMetro = false;
-  bool loadingNearby = false;
-
-  Timer? metroDebounce;
-  Timer? localityDebounce;
-
-  String? selectedMetro;
-
-  @override
-  void dispose() {
-    metroDebounce?.cancel();
-    localityDebounce?.cancel();
-    super.dispose();
-  }
-
-  void searchMetro(String q) {
-    if (metroDebounce?.isActive ?? false) {
-      metroDebounce!.cancel();
-    }
-
-    metroDebounce =
-        Timer(const Duration(milliseconds: 300), () async {
-          if (q.trim().length < 2) {
-            setState(() => metroList = []);
-            return;
-          }
-
-          setState(() => loadingMetro = true);
-          final result = await api.fetchStations(q);
-          setState(() {
-            metroList = result;
-            loadingMetro = false;
-          });
-        });
-  }
-
-  Future<void> fetchNearby(String metroName) async {
-    setState(() {
-      loadingNearby = true;
-      nearbyList = [];
-      filteredNearby = [];
-      selectedLocalities.clear();
-    });
-
-    final result = await api.fetchNearby(metroName);
-
-    setState(() {
-      nearbyList = result;
-      filteredNearby = result;
-      loadingNearby = false;
-    });
-  }
-
-  void searchLocality(String q) {
-    if (localityDebounce?.isActive ?? false) {
-      localityDebounce!.cancel();
-    }
-
-    localityDebounce =
-        Timer(const Duration(milliseconds: 200), () {
-          if (q.trim().isEmpty) {
-            setState(() => filteredNearby = nearbyList);
-            return;
-          }
-
-          setState(() {
-            filteredNearby = nearbyList
-                .where((e) => e["name"]
-                .toString()
-                .toLowerCase()
-                .contains(q.toLowerCase()))
-                .toList();
-          });
-        });
-  }
-  void _addManualLocality(String value) {
-    final text = value.trim();
-    if (text.isEmpty) return;
-
-    final parts = text.split(',');
-
-    setState(() {
-      for (final part in parts) {
-        final loc = part.trim();
-        if (loc.isNotEmpty &&
-            !selectedLocalities.any(
-                    (e) => e.toLowerCase() == loc.toLowerCase())) {
-          selectedLocalities.add(loc);
-        }
+    for (final PathMetric metric in path.computeMetrics()) {
+      double distance = 0;
+      while (distance < metric.length) {
+        final double next = distance + dashWidth;
+        dashPath.addPath(
+          metric.extractPath(distance, next.clamp(0, metric.length)),
+          Offset.zero,
+        );
+        distance = next + dashGap;
       }
+    }
 
-      localityCtrl.text = selectedLocalities.join(", ");
-      filteredNearby = nearbyList;
-    });
+    canvas.drawPath(dashPath, paint);
   }
 
   @override
-  Widget build(BuildContext context) {
-    int _countdown = 0;
-    bool _isCounting = false;
-    Timer? _timer;
-
-    final isDark =
-        Theme.of(context).brightness == Brightness.dark;
-    final bg =
-    isDark ? const Color(0xFF1A1A1A) : Colors.white;
-    final cardBg = isDark
-        ? const Color(0xFF222222)
-        : Colors.grey.shade100;
-    final textCol =
-    isDark ? Colors.white : Colors.black87;
-
-    return Container(
-        height: MediaQuery.of(context).size.height * 0.85,
-        padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: 16,
-          bottom:
-          MediaQuery.of(context).viewInsets.bottom + 20,
-        ),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius:
-          const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          children: [
-            Container(
-              width: 40,
-              height: 5,
-              margin: const EdgeInsets.only(bottom: 20),
-              decoration: BoxDecoration(
-                color: Colors.grey,
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            Text(
-              'Nearby Localities',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.bold,
-                color: textCol,
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: metroCtrl,
-              onChanged: searchMetro,
-              style: TextStyle(color: textCol),
-              decoration: InputDecoration(
-                labelText: "Metro Station",
-                labelStyle:
-                TextStyle(color: textCol.withOpacity(0.8)),
-                filled: true,
-                fillColor: cardBg,
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14)),
-              ),
-            ),
-            if (loadingMetro)
-              const Padding(
-                padding: EdgeInsets.all(10),
-                child: CircularProgressIndicator(),
-              ),
-            if (metroList.isNotEmpty)
-              Expanded(
-                flex: 3,
-                child: ListView.builder(
-                  itemCount: metroList.length,
-                  itemBuilder: (_, i) {
-                    final m = metroList[i];
-
-                    return ListTile(
-                      tileColor: cardBg,
-                      title: Text(
-                        m["name"],
-                        style: TextStyle(color: textCol),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                      onTap: () async {
-                        metroCtrl.text = m["name"];
-                        selectedMetro = m["name"];
-                        metroList.clear();
-                        FocusScope.of(context).unfocus();
-                        await fetchNearby(m["name"]);
-                      },
-                    );
-                  },
-                ),
-              ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: localityCtrl,
-              enabled: nearbyList.isNotEmpty,
-              style: TextStyle(color: textCol),
-              decoration: InputDecoration(
-                labelText: nearbyList.isEmpty
-                    ? "Select Metro First"
-                    : "Search or type locality",
-                labelStyle: TextStyle(color: textCol.withOpacity(0.8)),
-                hintText: "Type & press enter or comma",
-                filled: true,
-                fillColor: cardBg,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-              onChanged: searchLocality,
-              onSubmitted: _addManualLocality,
-            ),
-
-            if (loadingNearby)
-              const Padding(
-                padding: EdgeInsets.all(10),
-                child: CircularProgressIndicator(),
-              ),
-            if (selectedLocalities.isNotEmpty)
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Wrap(
-                  spacing: 6,
-                  children: selectedLocalities.map((loc) {
-                    return Chip(
-                      label: Text(
-                        loc,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      backgroundColor:
-                      isDark ? Colors.white12 : Colors.grey.shade300,
-                      deleteIcon: const Icon(Icons.close, size: 18),
-                      side: const BorderSide(color: Colors.orange),
-                      onDeleted: () {
-                        setState(() {
-                          selectedLocalities.remove(loc);
-                          localityCtrl.text = selectedLocalities.join(", ");
-                        });
-                      },
-                    );
-                  }).toList(),
-                ),
-
-              ),
-
-            const SizedBox(height: 10),
-            if (filteredNearby.isNotEmpty)
-              Expanded(
-                flex: 5,
-                child: ListView.builder(
-                  itemCount: filteredNearby.length,
-                  itemBuilder: (_, i) {
-                    final loc = filteredNearby[i];
-                    return Card(
-                      color: cardBg,
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      child: ListTile(
-                        title: Text(
-                          loc["name"],
-                          style: TextStyle(color: textCol),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                        subtitle: Text(
-                          loc["type"] ?? "",
-                          style: TextStyle(
-                            color:
-                            textCol.withOpacity(0.6),
-                            fontSize: 12,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                        trailing: Icon(
-                          selectedLocalities
-                              .contains(loc["name"])
-                              ? Icons.check_circle
-                              : Icons.add_circle_outline,
-                          color: Colors.redAccent,
-                        ),
-                        onTap: () {
-                          final name = loc["name"].toString();
-
-                          setState(() {
-                            if (!selectedLocalities
-                                .any((e) => e.toLowerCase() == name.toLowerCase())) {
-                              selectedLocalities.add(name);
-                            }
-
-                            // 🔥 SHOW SELECTED LOCALITIES
-                            localityCtrl.text = selectedLocalities.join(", ");
-                          });
-                        },
-                      ),
-                    );
-                  },
-                ),
-              ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () {
-                if (selectedMetro == null) return;
-
-                final finalLocalities = localityCtrl.text
-                    .split(',')
-                    .map((e) => e.trim())
-                    .where((e) => e.isNotEmpty)
-                    .toList();
-
-                widget.onSelected(selectedMetro!, finalLocalities);
-                Navigator.pop(context);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red.shade700,
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 40),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text(
-                "Done",
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
-            )
-
-
-          ],
-        )
-    );
-  }
+  bool shouldRepaint(covariant _DashedBorderPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.radius != radius;
 }

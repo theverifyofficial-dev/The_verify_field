@@ -12,6 +12,7 @@ import 'package:open_filex/open_filex.dart';
 import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:image/image.dart' as img;
+import '../../../Rent Agreement/Dashboard_screen.dart';
 import '../../../model/Additional_agreement_tenants.dart';
 import '../../imagepreviewscreen.dart';
 import '../PDFs/Commercial_PDF.dart';
@@ -235,6 +236,7 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
     }
   }
 
+
   Future<void> _fetchAgreementDetail() async {
     try {
       print(widget.agreementId);
@@ -373,7 +375,8 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
         "Fieldwarkarnumber": agreement?["Fieldwarkarnumber"] ?? "",
         "property_id": agreement?["property_id"] ?? "",
         "agreement_type": agreement?["agreement_type"] ?? "",
-        if (agreement?["agreement_type"] == "Commercial Agreement") ...{
+        if (agreement?["agreement_type"] == "Commercial Agreement" ||
+            agreement?["agreement_type"] == "Commercial Renewal") ...{
           "company_name": agreement?["company_name"] ?? "",
           "gst_type": agreement?["gst_type"] ?? "",
           "gst_no": agreement?["gst_no"] ?? "",
@@ -422,7 +425,8 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
       final tenantImg =
       await downloadIfNeeded(agreement?["tenant_image"], "tenant_img.jpg");
 
-      if (agreement?["agreement_type"] == "Commercial Agreement") {
+      if (agreement?["agreement_type"] == "Commercial Agreement" ||
+          agreement?["agreement_type"] == "Commercial Renewal") {
         gstPhoto =
         await downloadIfNeeded(agreement?["gst_photo"], "gst_photo.jpg");
         panPhoto =
@@ -500,10 +504,16 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
       AppLogger.api('🧾 [PDF] Total custom clauses: ${clausesData.length}');
 
       final File file;
-      if (type == "Furnished Agreement") {
+      // Renewal-mode agreements carry a distinguishing type suffix (e.g.
+      // "Commercial Renewal"), so the exact-match dispatch here needs those
+      // variants too or a renewed Commercial/Furnished agreement silently
+      // gets the generic PDF template instead of its correct one.
+      if (type == "Furnished Agreement" || type == "Furnished Renewal") {
         file = await generateFurnishedAgreementPdf(agreement!);
       } else if (type == "Commercial Agreement" ||
-          type == "External Commercial Agreement") {
+          type == "External Commercial Agreement" ||
+          type == "Commercial Renewal" ||
+          type == "External Commercial Renewal") {
         file = await generateCommercialAgreementPdf(agreement!);
       } else {
         file = await generateAgreementPdf(
@@ -1377,7 +1387,9 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
         _kvRow("Mobile", agreement?["tenant_mobile_no"],
         "Aadhar", agreement?["tenant_addhar_no"]),
         if (agreement!["agreement_type"] == "Commercial Agreement"  ||
-            agreement?["agreement_type"] == "External Commercial Agreement") ...[
+            agreement?["agreement_type"] == "External Commercial Agreement" ||
+            agreement?["agreement_type"] == "Commercial Renewal" ||
+            agreement?["agreement_type"] == "External Commercial Renewal") ...[
           const Divider(),
           _kvRow("Company Name", agreement!["company_name"],
           "DOC Type", agreement!["gst_type"]),
@@ -1392,7 +1404,9 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
             _docImage(agreement?["tenant_aadhar_back"]),
             _docImage(agreement?["tenant_image"]),
             if (agreement!["agreement_type"] == "Commercial Agreement" ||
-                agreement?["agreement_type"] == "External Commercial Agreement") ...[
+                agreement?["agreement_type"] == "External Commercial Agreement" ||
+                agreement?["agreement_type"] == "Commercial Renewal" ||
+                agreement?["agreement_type"] == "External Commercial Renewal") ...[
               _docImage(agreement?["gst_photo"]),
               _docImage(agreement?["pan_photo"]),
             ],
@@ -1765,7 +1779,9 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
         agreement?['is_Police']?.toString() == "true";
     final bool isCommercial =
         agreement?["agreement_type"] == "Commercial Agreement" ||
-            agreement?["agreement_type"] == "External Commercial Agreement";
+            agreement?["agreement_type"] == "External Commercial Agreement" ||
+            agreement?["agreement_type"] == "Commercial Renewal" ||
+            agreement?["agreement_type"] == "External Commercial Renewal";
 
     final D_or_T = isCommercial ? "Director" : "Tenant";
 

@@ -5,7 +5,6 @@ import 'package:verify_feild_worker/Z-Screen/Login_page.dart';
 import 'package:verify_feild_worker/Z-Screen/splash.dart';
 import '../Add_Rented_Flat_New/Add_Rented_Flat_Tabbar_New.dart';
 import '../Administrator/Admin_future _property/Administater_Future_Tabbar.dart';
-import '../Administrator/Admin_future _property/Future_Property_Details.dart';
 import '../Administrator/Administator_Agreement/Admin_Agreement_details.dart';
 import '../Administrator/Administator_Realestate.dart';
 import '../Administrator/Administrator_HomeScreen.dart';
@@ -111,17 +110,6 @@ class Routes {
       );
     },
 
-
-
-    // 🔸 Admin Future Property Details
-    administaterFuturePropertyDetails: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
-      return Administater_Future_Property_details(
-        fromNotification: args['fromNotification'] ?? false,
-        buildingId: args['buildingId'],
-        flatId: args['flatId'],
-      );
-    },
 
 
     // 🔸 Field Worker - Accepted Agreements

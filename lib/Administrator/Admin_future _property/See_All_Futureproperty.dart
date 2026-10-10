@@ -5,8 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import '../../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../../model/future_property_model.dart';
-import 'Future_Property_Details.dart';
 
 
 class _DetailRow extends StatelessWidget {
@@ -1057,8 +1057,8 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                         await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => Administater_Future_Property_details(
-                              buildingId: property.id.toString(),
+                            builder: (context) => Future_Property_details(
+                              idd: property.id.toString(),
                             ),
                           ),
                         );

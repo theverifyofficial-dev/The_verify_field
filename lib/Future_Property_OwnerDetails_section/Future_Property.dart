@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Controller/Future_property_controller.dart';
 import 'Future_property_details.dart';
+import 'Future_Property_Network_Map.dart';
 
 class FrontPage_FutureProperty extends StatefulWidget {
   const FrontPage_FutureProperty({super.key});
@@ -19,6 +21,8 @@ class _FrontPage_FuturePropertyState
   String _number = '';
   bool _initialized = false;
   final Map<int, GlobalKey> _cardKeys = {};
+  final TextEditingController _searchCtrl = TextEditingController();
+  Timer? _searchDebounce;
   @override
   void initState() {
     super.initState();
@@ -59,6 +63,8 @@ class _FrontPage_FuturePropertyState
   void dispose() {
     controller.dispose();
     _scrollController.dispose();
+    _searchCtrl.dispose();
+    _searchDebounce?.cancel();
     super.dispose();
   }
 
@@ -71,7 +77,7 @@ class _FrontPage_FuturePropertyState
       );
     }
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = false /* forced light theme */;
 
     return AnimatedBuilder(
       animation: controller,
@@ -84,6 +90,100 @@ class _FrontPage_FuturePropertyState
               controller: _scrollController,
               padding: const EdgeInsets.all(16),
               children: [
+
+                /// ================= NETWORK MAP ENTRY =================
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.black,
+                      side: const BorderSide(color: Colors.black),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const FutureNetworkMapPage(),
+                        ),
+                      );
+                    },
+                    icon: const Icon(Icons.map_outlined),
+                    label: const Text('View Network Map'),
+                  ),
+                ),
+
+                /// ================= SEARCH =================
+                TextField(
+                  controller: _searchCtrl,
+                  style: const TextStyle(color: Colors.black),
+                  onChanged: (value) {
+                    setState(() {});
+                    _searchDebounce?.cancel();
+
+                    _searchDebounce = Timer(const Duration(milliseconds: 450), () {
+                      final q = value.trim();
+
+                      if (q.isEmpty) {
+                        controller.refresh();
+                      } else {
+                        controller.searchBuilding(q);
+                      }
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Search Here',
+                    hintStyle: const TextStyle(color: Colors.black),
+
+                    prefixIcon: const Icon(Icons.search),
+                    prefixIconColor: Colors.black,
+
+                    suffixIcon: _searchCtrl.text.isEmpty
+                        ? null
+                        : IconButton(
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.black,
+                      ),
+                      onPressed: () {
+                        _searchCtrl.clear();
+                        _searchDebounce?.cancel();
+                        controller.refresh();
+                        setState(() {});
+                      },
+                    ),
+
+                    filled: true,
+                    fillColor: Colors.white,
+
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+
+                    // Normal outline
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.black,
+                        width: 1,
+                      ),
+                    ),
+
+                    // Outline when TextField is focused
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.black,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
 
                 /// ================= FILTER BUTTONS =================
                 SingleChildScrollView(
@@ -128,6 +228,26 @@ class _FrontPage_FuturePropertyState
                   return _buildingCard(property);
                 }).toList(),
 
+                if (!controller.isLoading && controller.properties.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 40),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Icon(Icons.search_off, size: 48, color: Colors.grey.shade500),
+                          const SizedBox(height: 12),
+                          Text(
+                            controller.isSearching
+                                ? 'No buildings found for "${controller.searchQuery}"'
+                                : "No buildings found",
+                            style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
                 if (controller.isPaginationLoading)
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 20),
@@ -139,7 +259,9 @@ class _FrontPage_FuturePropertyState
                 if (controller.isLoading)
                   const Padding(
                     padding: EdgeInsets.all(20),
-                    child: Center(),
+                    child: Center(
+                      child: CircularProgressIndicator(),
+                    ),
                   ),
               ],
             ),
@@ -276,7 +398,7 @@ class _FrontPage_FuturePropertyState
         margin: const EdgeInsets.only(bottom: 18),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark
+          color: false /* forced light theme */
               ? Colors.grey.shade900
               : Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -339,18 +461,19 @@ class _FrontPage_FuturePropertyState
                         style: const TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
+                          color: Colors.black
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text("📍 ${property.place ?? '-'}"),
+                      Text("📍 ${property.place ?? '-'}",style: const TextStyle(color: Colors.black),),
                       const SizedBox(height: 6),
-                      Text("🤝 ${property.buyRent ?? '-'}"),
+                      Text("🤝 ${property.buyRent ?? '-'}",style: const TextStyle(color: Colors.black),),
                       const SizedBox(height: 6),
-                      Text("🏢 ${property.residenceCommercial ?? '-'}"),
+                      Text("🏢 ${property.residenceCommercial ?? '-'}",style: const TextStyle(color: Colors.black),),
                       const SizedBox(height: 6),
-                      Text("🏷 Age: ${property.ageOfProperty ?? '-'}"),
+                      Text("🏷 Age: ${property.ageOfProperty ?? '-'}",style: const TextStyle(color: Colors.black),),
                       const SizedBox(height: 6),
-                      Text("📋 Total Flats: $totalFlats"),
+                      Text("📋 Total Flats: $totalFlats",style: const TextStyle(color: Colors.black),),
                     ],
                   ),
                 ),
@@ -362,15 +485,15 @@ class _FrontPage_FuturePropertyState
               children: [
                 Text(
                   "Building ID: ${property.id}",
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Colors.amber,
+                      color: Colors.amber.shade800,
                       fontSize: 12),
                 ),
                 Text(
                   "Added: ${property.currentDate ?? '-'}",
                   style: const TextStyle(
-                      fontStyle: FontStyle.italic, fontSize: 12),
+                      fontStyle: FontStyle.italic, fontSize: 12,color: Colors.black),
                 ),
               ],
             ),

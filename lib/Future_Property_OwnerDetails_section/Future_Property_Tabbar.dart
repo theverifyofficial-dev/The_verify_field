@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Administrator/Admin_future _property/BuildingHistoryPage.dart';
-import '../Controller/Future_property_controller.dart';
 import '../Custom_Widget/constant.dart';
 import 'Add_commercial_property.dart';
 import 'Add_futureProperty.dart';
 import 'Add_plot_property.dart';
 import 'Future_Property.dart';
-import 'Future_property_details.dart';
 import 'PlotShow.dart';
 import 'commercialShow.dart';
 
@@ -27,15 +25,11 @@ class _FuturePropertyTabPageState
   late final TabController _tabController;
 
   bool _isLoading = true;
-  late FuturePropertyController controller;
   String _number = '';
 
   Future<void> _initialize() async {
     final prefs = await SharedPreferences.getInstance();
     _number = prefs.getString('number') ?? '';
-
-    controller = FuturePropertyController(_number);
-    await controller.initialize();
 
     if (mounted) {
       setState(() {
@@ -52,23 +46,15 @@ class _FuturePropertyTabPageState
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
         FocusScope.of(context).unfocus();
-        searchController.clear();
-        isSearching = false;
-        controller.refresh();
         setState(() {});
       }
     });
     _initialize();
   }
 
-  bool isSearching = false;
-  TextEditingController searchController = TextEditingController();
-
   @override
   void dispose() {
-    searchController.dispose();
     _tabController.dispose();
-    controller.dispose();
     super.dispose();
   }
 
@@ -95,7 +81,7 @@ class _FuturePropertyTabPageState
           icon: const Icon(PhosphorIconsRegular.caretLeft, color: Colors.white),
         ),
       ),
-      floatingActionButton: _tabController.index != 4
+      floatingActionButton: _tabController.index != 3
           ? FloatingActionButton.extended(
         onPressed: _showAddOptionsDialog,
         icon: const Icon(Icons.add, color: Colors.white),
@@ -160,250 +146,9 @@ class _FuturePropertyTabPageState
 
           const SizedBox(height: 10),
 
-          // ── Search bar — only on Buildings tab ──
-          if (_tabController.index == 0) ...[
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(30),
-                boxShadow: [
-                  BoxShadow(
-                    color: isDark
-                        ? Colors.black.withOpacity(0.5)
-                        : Colors.grey.withOpacity(0.15),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: searchController,
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black87,
-                  fontSize: 14,
-                ),
-                cursorColor: Colors.blue,
-                decoration: InputDecoration(
-                  hintText: "Search building, owner, place...",
-                  hintStyle: TextStyle(
-                    fontFamily: "PoppinsMedium",
-                    color: isDark
-                        ? Colors.grey.shade400
-                        : Colors.grey.shade600,
-                  ),
-                  prefixIcon: Container(
-                    padding: const EdgeInsets.all(12),
-                    child: Icon(Icons.search,
-                        color: isDark
-                            ? Colors.grey.shade400
-                            : Colors.grey.shade600),
-                  ),
-                  suffixIcon: searchController.text.isNotEmpty
-                      ? IconButton(
-                    icon: Icon(Icons.close,
-                        color: isDark
-                            ? Colors.grey.shade400
-                            : Colors.grey.shade600),
-                    onPressed: () {
-                      searchController.clear();
-                      setState(() => isSearching = false);
-                      controller.refresh();
-                    },
-                  )
-                      : null,
-                  filled: true,
-                  fillColor: isDark ? const Color(0xff1E1E1E) : Colors.white,
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20, vertical: 14),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide: BorderSide.none),
-                  enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(30),
-                      borderSide: BorderSide.none),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide:
-                    const BorderSide(color: Colors.blue, width: 1.2),
-                  ),
-                ),
-                onChanged: (value) async {
-                  setState(() {});
-                  if (value.trim().isEmpty) {
-                    setState(() => isSearching = false);
-                    controller.refresh();
-                    return;
-                  }
-                  setState(() => isSearching = true);
-                  await controller.searchBuilding(value);
-                },
-              ),
-            ),
-            const SizedBox(height: 5),
-          ],
-
-          // ── Body ──
+          // ── Body ── (search lives inside the Buildings tab itself)
           Expanded(
-            child: isSearching
-                ? AnimatedBuilder(
-              animation: controller,
-              builder: (_, __) {
-                if (controller.isLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (controller.properties.isEmpty) {
-                  return const Center(child: Text("No results found"));
-                }
-                return Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: controller.properties.length,
-                    itemBuilder: (context, index) {
-                      final property = controller.properties[index];
-                      final isDark = Theme.of(context).brightness ==
-                          Brightness.dark;
-                      return GestureDetector(
-                        onTap: () async {
-                          final query = searchController.text;
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  Future_Property_details(
-                                      idd: property.id.toString()),
-                            ),
-                          );
-                          if (query.trim().isNotEmpty) {
-                            await controller.searchBuilding(query);
-                          }
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.only(bottom: 18),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(18),
-                            color: isDark
-                                ? const Color(0xff1E1E1E)
-                                : Colors.white,
-                            boxShadow: [
-                              BoxShadow(
-                                color: isDark
-                                    ? Colors.black.withOpacity(0.5)
-                                    : Colors.grey.withOpacity(0.15),
-                                blurRadius: 12,
-                                offset: const Offset(0, 6),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(18),
-                            child: Column(
-                              crossAxisAlignment:
-                              CrossAxisAlignment.start,
-                              children: [
-                                property.images != null &&
-                                    property.images!.isNotEmpty
-                                    ? Image.network(
-                                  "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${property.images}",
-                                  height: 160,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) =>
-                                  const Center(
-                                      child: Padding(
-                                        padding: EdgeInsets.all(8.0),
-                                        child: Icon(Icons.image),
-                                      )),
-                                )
-                                    : Container(
-                                  height: 160,
-                                  width: double.infinity,
-                                  color: isDark
-                                      ? Colors.grey[800]
-                                      : Colors.grey[300],
-                                  child: const Icon(Icons.image,
-                                      size: 40),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                    CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        property.propertyNameAddress ??
-                                            "No Title",
-                                        style: TextStyle(
-                                          fontFamily: "PoppinsMedium",
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: isDark
-                                              ? Colors.white
-                                              : Colors.black87,
-                                          height: 1.3,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Row(
-                                        children: [
-                                          const Icon(Icons.location_on,
-                                              size: 16,
-                                              color: Colors.red),
-                                          const SizedBox(width: 6),
-                                          Expanded(
-                                            child: Text(
-                                              "${property.place ?? "-"}",
-                                              style: TextStyle(
-                                                fontFamily:
-                                                "PoppinsMedium",
-                                                fontSize: 13,
-                                                color: isDark
-                                                    ? Colors.grey.shade400
-                                                    : Colors
-                                                    .grey.shade700,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Wrap(
-                                        spacing: 8,
-                                        runSpacing: 8,
-                                        children: [
-                                          _modernTag(
-                                              property.id.toString(),
-                                              isDark),
-                                          _modernTag(
-                                              property.buyRent, isDark),
-                                          _modernTag(
-                                              property
-                                                  .residenceCommercial,
-                                              isDark),
-                                          _modernTag(
-                                              property.roadSize != null
-                                                  ? "Road ${property.roadSize}"
-                                                  : null,
-                                              isDark),
-                                          _modernTag(
-                                              property.ageOfProperty,
-                                              isDark),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                );
-              },
-            )
-                : TabBarView(
+            child: TabBarView(
               controller: _tabController,
               physics: const NeverScrollableScrollPhysics(),
               children: [
@@ -418,33 +163,6 @@ class _FuturePropertyTabPageState
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _modernTag(String? text, bool isDark) {
-    if (text == null || text.isEmpty) return const SizedBox();
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.blue.withOpacity(0.2)
-            : Colors.blue.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: isDark
-              ? Colors.blue.shade300
-              : Colors.blue.withOpacity(0.2),
-        ),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontFamily: "PoppinsMedium",
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: isDark ? Colors.white : Colors.black87,
-        ),
       ),
     );
   }

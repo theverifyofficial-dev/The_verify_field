@@ -434,7 +434,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                             },
                             {
                               "image": AppImages.propertysale,
-                              "title": "Future\nInventory/Property",
+                              "title": "Future\nProperty",
                               "gradient": AppGradients.orangeRed(),
                               "onTap": () {
                                 Navigator.push(
@@ -462,7 +462,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                             },
                             {
                               "image": AppImages.websiteIssue,
-                              "title": "Web \nQuery",
+                              "title": "Web Query",
                               "gradient": AppGradients.red(),
                               "onTap": () {
                                 Navigator.push(

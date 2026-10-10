@@ -13,9 +13,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import '../Custom_Widget/property_preview.dart';
+import '../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../ui_decoration_tools/app_images.dart';
 import '../model/realestateSlider.dart';
-import 'Admin_future _property/Future_Property_Details.dart';
 
 class RealestateModel {
   final int id;
@@ -1054,14 +1054,14 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
         ),
       ),
       bottomNavigationBar: Container(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
           color: isDarkMode ? Colors.grey[900] : Colors.white,
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: Colors.black12,
               blurRadius: 6,
-              offset: const Offset(0, -2),
+              offset: Offset(0, -2),
             ),
           ],
         ),
@@ -1073,8 +1073,8 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => Administater_Future_Property_details(
-                        buildingId: firstProperty!.subid.toString(),
+                      builder: (context) => Future_Property_details(
+                        idd: firstProperty!.subid.toString(),
                       ),
                     ),
                   );

@@ -4,8 +4,9 @@ import '../../AppLogger.dart';
 import 'package:flutter/material.dart';import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
+import '../../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import 'Admin_SeeAll_Tabbar.dart';
-import 'Future_Property_Details.dart';
+import 'Admin_Future_Network_Map.dart';
 class Catid {
   final int id;
   final String? images;
@@ -205,11 +206,11 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
   String _post = '';
 
   List<Map<String, String>> fieldWorkers = [
-    {"name": "Ravi Kumar", "id": "9711275300"},
     {"name": "Faizan Khan", "id": "9971172204"},
     {"name": "Yash", "id": "9211335993"},
     {"name": "Shivam", "id": "9711775300",},
     {"name": "Aakash", "id": "9211335994",},
+    {"name": "Ravi Kumar", "id": "9711275300"},
   ];
 
   final Map<int, int> _liveCountMap = {};
@@ -217,6 +218,8 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
 
 
   Map<String, List<Catid>> _groupedData = {};
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _searchQuery = '';
 
 
   @override
@@ -572,7 +575,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => Administater_Future_Property_details(buildingId: property.id.toString()),
+            builder: (_) => Future_Property_details(idd: property.id.toString()),
           ),
         );
       },
@@ -686,6 +689,53 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
     );
   }
 
+  bool _matchesSearch(Catid p) {
+    if (_searchQuery.isEmpty) return true;
+    final q = _searchQuery.toLowerCase();
+    final haystack = [
+      p.propertyAddressForFieldworker,
+      p.propertyNameAddress,
+      p.place,
+      p.id.toString(),
+      p.buyRent,
+    ].where((e) => e != null).map((e) => e!.toLowerCase()).join(' ');
+    return haystack.contains(q);
+  }
+
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+      child: Material(
+        elevation: 2,
+        borderRadius: BorderRadius.circular(12),
+        child: TextField(
+          controller: _searchCtrl,
+          onChanged: (v) => setState(() => _searchQuery = v.trim()),
+          decoration: InputDecoration(
+            hintText: 'Search buildings by name, place or ID...',
+            prefixIcon: const Icon(Icons.search),
+            suffixIcon: _searchQuery.isEmpty
+                ? null
+                : IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () {
+                      _searchCtrl.clear();
+                      setState(() => _searchQuery = '');
+                    },
+                  ),
+            filled: true,
+            fillColor: Theme.of(context).cardColor,
+            contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSection(String name, String id, List<Catid> properties) {
     final sortedProperties = List<Catid>.from(properties)..sort((a, b) => b.id.compareTo(a.id));
 
@@ -789,11 +839,38 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
         onRefresh: _fetchAndUpdateData,
         child: hasAccess
             ? ListView(
-          children: workersToShow.map((fw) {
-            final props = _groupedData[fw['id']] ?? [];
-            return _buildSection(fw['name']!, fw['id']!, props);
-
-          }).toList(),
+          children: [
+            _buildSearchBar(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const AdminFutureNetworkMapPage(),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.map_outlined),
+                label: const Text('View Network Map'),
+              ),
+            ),
+            ...workersToShow.map((fw) {
+              final allProps = _groupedData[fw['id']] ?? [];
+              final props = allProps.where(_matchesSearch).toList();
+              if (_searchQuery.isNotEmpty && props.isEmpty) {
+                return const SizedBox.shrink();
+              }
+              return _buildSection(fw['name']!, fw['id']!, props);
+            }),
+          ],
         )
             : ListView(
           children: [
@@ -825,6 +902,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
   @override
   void dispose() {
     _horizontalControllers.values.forEach((c) => c.dispose());
+    _searchCtrl.dispose();
     super.dispose();
   }
 }

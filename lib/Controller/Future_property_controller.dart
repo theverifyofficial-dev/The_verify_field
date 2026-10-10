@@ -154,6 +154,8 @@ class FuturePropertyController extends ChangeNotifier {
   String selectedLabel = "All";
   Future<void> refresh() async {
     selectedLabel = "All";
+    isSearching = false;
+    searchQuery = "";
     _loading = true;
     notifyListeners();
 
@@ -336,7 +338,7 @@ class FuturePropertyController extends ChangeNotifier {
         currentFilter = "commercial";
         break;
 
-      case "Missing Field":      // 🔥 ADD THIS
+      case "Missing":      // 🔥 ADD THIS
         currentFilter = "missing";
         break;
 
@@ -348,7 +350,7 @@ class FuturePropertyController extends ChangeNotifier {
         currentFilter = "unlive";
         break;
 
-      case "Empty Building":
+      case "Empty":
         currentFilter = "empty";
         break;
 
@@ -367,22 +369,30 @@ class FuturePropertyController extends ChangeNotifier {
   bool isSearching = false;
   String searchQuery = "";
   Future<void> searchBuilding(String query) async {
+    final trimmed = query.trim();
+    searchQuery = trimmed;
 
-    print("Searching: $query");
+    print("Searching: $trimmed");
 
-    if (query.trim().isEmpty) {
+    if (trimmed.isEmpty) {
+      isSearching = false;
       await refresh();
       return;
     }
 
     try {
+      isSearching = true;
       _loading = true;
+      // A search result is a complete, unpaginated result set from the
+      // backend, so stop any further page-based loadMore() calls from
+      // firing while search results are on screen (e.g. from scrolling).
+      hasMore = false;
       notifyListeners();
 
       final url = Uri.parse(
           "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/search_in_future_builing.php"
-              "?fieldworkarnumber=$fieldWorkerNumber"
-              "&search=$query"
+              "?fieldworkarnumber=${Uri.encodeQueryComponent(fieldWorkerNumber)}"
+              "&search=${Uri.encodeQueryComponent(trimmed)}"
       );
 
       print("URL: $url");
@@ -395,7 +405,7 @@ class FuturePropertyController extends ChangeNotifier {
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
 
-        if (body["status"] == "success") {
+        if (body["status"] == "success" && body["data"] != null) {
           List data = body["data"];
 
           print("Result count: ${data.length}");
@@ -407,6 +417,10 @@ class FuturePropertyController extends ChangeNotifier {
           _all.clear();
           _filtered.clear();
         }
+      } else {
+        print("Search request failed with status ${response.statusCode}");
+        _all.clear();
+        _filtered.clear();
       }
 
     } catch (e) {

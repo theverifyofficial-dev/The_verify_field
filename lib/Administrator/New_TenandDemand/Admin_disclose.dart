@@ -7,6 +7,7 @@ import '../../Demand_2/Demand_detail.dart';
 import '../../Demand_2/redemand_detailpage.dart';
 import '../../model/demand_model.dart';
 import '../../utilities/bug_founder_fuction.dart';
+import '../../Field_Workers/field_worker_directory.dart';
 
 class AdminDisclosedDemand extends StatefulWidget {
   const AdminDisclosedDemand({super.key});
@@ -34,11 +35,8 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
   List<Map<String, dynamic>> _filteredRedemands = [];
   String? _selectedFilter;
 
-  final List<String> _quickFilters = [
-    "Sumit",
-    "Ravi Kumar",
-    "Faizan Khan",
-  ];
+  // Loaded from FieldWorkerDirectory in initState below.
+  List<String> _quickFilters = [];
 
   @override
   void dispose() {
@@ -54,6 +52,10 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
     _fetchDemands(reset: true);
     _searchController.addListener(_onSearchChanged);
     _scrollController.addListener(_onScroll);
+    FieldWorkerDirectory.instance.load().then((_) {
+      if (!mounted) return;
+      setState(() => _quickFilters = FieldWorkerDirectory.instance.names);
+    });
   }
 
   Future<void> _fetchDemands({bool reset = false}) async {

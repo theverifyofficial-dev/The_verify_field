@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../Custom_Widget/constant.dart';
 import '../../Controller/Commercial_controller.dart';
+import '../../utilities/heic_converter.dart';
 
 class EditCommercialForm extends StatefulWidget {
   final int propertyId;
@@ -227,7 +228,7 @@ class _EditCommercialFormState extends State<EditCommercialForm> {
   }
 
   Future<void> _pickSingleImage() async {
-    final image = await _imagePicker.pickImage(source: ImageSource.gallery);
+    final image = await HeicConverter.pickImage(_imagePicker, source: ImageSource.gallery);
     if (image != null) {
       setState(() {
         _singleImage    = image;
@@ -238,7 +239,7 @@ class _EditCommercialFormState extends State<EditCommercialForm> {
   }
 
   Future<void> _takePhoto() async {
-    final image = await _imagePicker.pickImage(source: ImageSource.camera);
+    final image = await HeicConverter.pickImage(_imagePicker, source: ImageSource.camera);
     if (image != null) {
       setState(() {
         _singleImage    = image;

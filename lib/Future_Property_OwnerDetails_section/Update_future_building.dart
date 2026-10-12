@@ -14,6 +14,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../provider/property_id_for_multipleimage_provider.dart';
 import '../Custom_Widget/constant.dart';
+import '../utilities/heic_converter.dart';
 
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -242,7 +243,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
   Future<XFile?> pickAndCompressImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await HeicConverter.pickImage(picker, source: ImageSource.gallery);
 
     if (pickedFile == null) return null;
 

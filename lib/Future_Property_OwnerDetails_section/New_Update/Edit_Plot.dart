@@ -12,6 +12,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Custom_Widget/constant.dart';
 import '../Plot_detail.dart';
+import '../../utilities/heic_converter.dart';
 
 class EditPlotform extends StatefulWidget {
   final int propertyId;
@@ -526,7 +527,7 @@ class _EditPlotformState extends State<EditPlotform> {
 
   Future<void> _pickSingleImage() async {
     try {
-      final image = await _imagePicker.pickImage(
+      final image = await HeicConverter.pickImage(_imagePicker, 
         source: ImageSource.gallery,
         maxWidth: 1200,
         maxHeight: 1200,
@@ -538,7 +539,7 @@ class _EditPlotformState extends State<EditPlotform> {
 
   Future<void> _takePhoto() async {
     try {
-      final image = await _imagePicker.pickImage(
+      final image = await HeicConverter.pickImage(_imagePicker, 
         source: ImageSource.camera,
         maxWidth: 1200,
         maxHeight: 1200,

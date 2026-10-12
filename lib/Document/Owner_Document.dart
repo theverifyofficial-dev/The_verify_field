@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
+import '../utilities/heic_converter.dart';
 
 class Owner_Document extends StatefulWidget {
   const Owner_Document({super.key});
@@ -48,7 +49,7 @@ class _Owner_DocumentState extends State<Owner_Document> {
 
   Future<void> _pick_AddharCard_FrontImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await HeicConverter.pickImage(picker, source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _AddharCard_FrontImage = File(pickedFile.path);
@@ -58,7 +59,7 @@ class _Owner_DocumentState extends State<Owner_Document> {
 
   Future<void> _pick_AddharCard_BlackImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await HeicConverter.pickImage(picker, source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _AddharCard_BackImage = File(pickedFile.path);
@@ -68,7 +69,7 @@ class _Owner_DocumentState extends State<Owner_Document> {
 
   Future<void> _pick_PasportSize_Photo() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await HeicConverter.pickImage(picker, source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _PasportSize_Photo = File(pickedFile.path);

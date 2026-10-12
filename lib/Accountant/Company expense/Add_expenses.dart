@@ -11,6 +11,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../Custom_Widget/constant.dart';
 import 'Tabbar_control.dart';
+import '../../utilities/heic_converter.dart';
 
 class AddExpenses extends StatefulWidget {
   const AddExpenses({super.key});
@@ -59,7 +60,7 @@ class _AddExpensesState extends State<AddExpenses> {
     );
 
     if (source == null) return null;
-    final pickedFile = await picker.pickImage(source: source);
+    final pickedFile = await HeicConverter.pickImage(picker, source: source);
     if (pickedFile == null) return null;
 
     final tempDir = await getTemporaryDirectory();

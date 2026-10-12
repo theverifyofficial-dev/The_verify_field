@@ -672,7 +672,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
       floating: true,
       pinned: true,
       elevation: 10,
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.transparent,
       automaticallyImplyLeading: false,
       flexibleSpace: FlexibleSpaceBar(
         collapseMode: CollapseMode.parallax,
@@ -697,25 +697,6 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      InkWell(
-                        borderRadius: BorderRadius.circular(20),
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (context) => ProfilePage()),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.account_circle, color: Colors.white, size: 30),
-                            if (userName != null && userName!.isNotEmpty)
-                              Text(
-                                userName!.length > 10 ? '${userName!.substring(0, 10)}..' : userName!,
-                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                          ],
-                        ),
-                      ),
                       Image.asset(AppImages.transparent, height: 36),
                       IconButton(
                         onPressed: () => Navigator.push(

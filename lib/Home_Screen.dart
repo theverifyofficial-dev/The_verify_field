@@ -24,6 +24,7 @@ import 'Rent Agreement/history_tab.dart';
 import 'Tenant_Details_Demand/Parent_class_TenantDemand.dart';
 import 'Z-Screen/Social_Media_links.dart';
 import 'model/FutureBuilding_model.dart';
+import 'Network_Map/Network_Map_Page.dart';
 
 class TodayCounts {
   final int agreements;
@@ -1468,15 +1469,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              IconButton(
-                                onPressed: () {
-                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProfilePage()));
-                                },
-                                icon: Image.asset(
-                                  AppImages.man,
-                                  height: (screenWidth * 0.1).clamp(28.0, 40.0),
-                                ),
-                              ),
                               // App Logo
                               Container(
                                 padding: EdgeInsets.all(screenWidth * 0.03),
@@ -1550,25 +1542,25 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
                     Divider(thickness: 1,color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,),
 
-                    const SizedBox(height: 8),
+                    // const SizedBox(height: 8),
+                    //
+                    // customerDemand2CompactCard(
+                    //   isDark: isDark,
+                    //   loading: demandLoading,
+                    //   acceptCount: acceptCount,
+                    //   progressing: progressingCount,
+                    //   disclosed: disclosedCount,
+                    //   redemand: redemandCount,
+                    //   todayDemands: todayDemands,
+                    //   onTap: () {
+                    //     Navigator.push(
+                    //       context,
+                    //       MaterialPageRoute(builder: (_) => CustomerDemandDashboard(fieldworkerName: userName ?? '',)),
+                    //     );
+                    //   },
+                    // ),
 
-                    customerDemand2CompactCard(
-                      isDark: isDark,
-                      loading: demandLoading,
-                      acceptCount: acceptCount,
-                      progressing: progressingCount,
-                      disclosed: disclosedCount,
-                      redemand: redemandCount,
-                      todayDemands: todayDemands,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => CustomerDemandDashboard(fieldworkerName: userName ?? '',)),
-                        );
-                      },
-                    ),
-
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 5),
 
                     GridView.builder(
                       physics: const NeverScrollableScrollPhysics(),

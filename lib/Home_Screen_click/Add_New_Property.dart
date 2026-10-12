@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../provider/property_id_for_multipleimage_provider.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Real-Estate.dart';
+import '../utilities/heic_converter.dart';
 
 class AddPropertiesFirstPage extends StatefulWidget {
   const AddPropertiesFirstPage({super.key});
@@ -148,7 +149,7 @@ class _AddPropertiesFirstPageState extends State<AddPropertiesFirstPage> {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    final XFile? pickedFile = await HeicConverter.pickImage(_picker, source: ImageSource.gallery);
 
     if (pickedFile != null) {
       final compressedBytes = await FlutterImageCompress.compressWithFile(

@@ -313,10 +313,10 @@ class _Login_pageState extends State<Login_page> {
           Navigator.of(context).pushReplacementNamed(AdministratorHome_Screen.route);
         }
         else if (user["FAadharCard"] == "Sub Administrator") {
-          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context){
-            return SubAdminHomeScreen();
-          }));
-
+          // Now routes through the same role-aware bottom-nav shell as
+          // Administrator/FieldWorkar below -- see Notification_demo/routes.dart,
+          // which is what SubAdminHomeScreen.route now resolves to.
+          Navigator.of(context).pushReplacementNamed(SubAdminHomeScreen.route);
         }
         else if (user["FAadharCard"] == "FieldWorkar") {
           Navigator.of(context).pushReplacementNamed(Home_Screen.route);

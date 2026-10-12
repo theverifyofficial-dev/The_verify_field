@@ -15,6 +15,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Delete_Image.dart';
 import 'Real-Estate.dart';
+import '../utilities/heic_converter.dart';
 
 class Property_id {
   final String property_num;
@@ -212,7 +213,7 @@ class _FileUploadPageState extends State<FileUploadPage> with WidgetsBindingObse
 
   Future<XFile?> pickAndCompressImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await HeicConverter.pickImage(picker, source: ImageSource.gallery);
 
     if (pickedFile == null) return null;
 

@@ -21,6 +21,7 @@ import '../utilities/bug_founder_fuction.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Future_Property.dart';
 import 'Future_Property_Tabbar.dart';
+import '../utilities/heic_converter.dart';
 
 class Add_FutureProperty extends StatefulWidget {
   const Add_FutureProperty({super.key});
@@ -230,7 +231,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
   Future<XFile?> pickAndCompressImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await HeicConverter.pickImage(picker, source: ImageSource.gallery);
 
     if (pickedFile == null) return null;
 
@@ -2299,7 +2300,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
   Future<void> _pickSingleImage() async {
     try {
-      final XFile? image = await _imagePicker.pickImage(
+      final XFile? image = await HeicConverter.pickImage(_imagePicker, 
         source: ImageSource.gallery,
         maxWidth: 1200,
         maxHeight: 800,
@@ -2318,7 +2319,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   Future<void> _pickMultipleImages() async {
     try {
       final List<XFile> images =
-      await _imagePicker.pickMultiImage(
+      await HeicConverter.pickMultiImage(_imagePicker, 
         maxWidth: 1200,
         maxHeight: 800,
         imageQuality: 80,
@@ -2335,7 +2336,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
   Future<void> _takePhoto() async {
     try {
-      final XFile? image = await _imagePicker.pickImage(
+      final XFile? image = await HeicConverter.pickImage(_imagePicker, 
         source: ImageSource.camera,
         maxWidth: 1200,
         maxHeight: 800,

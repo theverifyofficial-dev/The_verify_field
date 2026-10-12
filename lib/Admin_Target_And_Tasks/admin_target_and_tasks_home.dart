@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../Target_And_Tasks/models/agent_task.dart';
@@ -22,6 +21,7 @@ import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/Future_
 import 'package:verify_feild_worker/Demand_2/Demand_detail.dart'; // tenant demand + booked visit
 import 'package:verify_feild_worker/Upcoming/Upcoming_details.dart'; // upcoming flat
 import '../Future_Property_OwnerDetails_section/New_Update/under_flats_infutureproperty.dart'; // add flat
+import 'package:verify_feild_worker/Field_Workers/field_worker_directory.dart';
 
 /// Admin/sub-admin's own "Tasks & Targets" dashboard.
 ///
@@ -91,13 +91,8 @@ class AdminTargetAndTasksHome extends StatefulWidget {
 }
 
 class _AdminTargetAndTasksHomeState extends State<AdminTargetAndTasksHome> {
-  static const List<Map<String, String>> _allAgents = [
-    {"name": "Ravi Kumar", "number": "9711275300", "location": "Sultanpur"},
-    {"name": "Faizan Khan", "number": "9971172204", "location": "Sultanpur"},
-    {"name": "Yash", "number": "9211335993", "location": "Sultanpur"},
-    {"name": "Shivam", "number": "9711775300", "location": "Sultanpur"},
-    {"name": "Aakash", "number": "9211335994", "location": "Sultanpur"},
-  ];
+  // Agent roster is fetched from FieldWorkerDirectory in _loadAgents
+  // below instead of being hardcoded here.
 
   final _targetService = TargetService();
   final _taskService = TaskFeedService();
@@ -147,27 +142,12 @@ class _AdminTargetAndTasksHomeState extends State<AdminTargetAndTasksHome> {
   }
 
   Future<void> _loadAgents() async {
-    final prefs = await SharedPreferences.getInstance();
-    final role = prefs.getString('post');
-    final location = (prefs.getString('location') ?? '').trim().toLowerCase();
-
-    if (role == 'Administrator') {
-      _agents = List.from(_allAgents);
-    } else {
-      // Sub Administrator: own-location agents, PLUS Yash specifically
-      // (2026-09-22 per explicit request "add Yash for sub admin too")
-      // -- Yash is in Rajpur Khurd, a different location from the other
-      // two agents (Sultanpur), so the plain location filter below was
-      // excluding him for a Sultanpur-based sub-admin. Deliberately
-      // narrow: Yash by name, not "show every agent regardless of
-      // location" -- broadening the location filter itself wasn't asked
-      // for.
-      _agents = _allAgents
-          .where((a) =>
-              (a['location'] ?? '').trim().toLowerCase() == location ||
-              a['name'] == 'Yash')
-          .toList();
-    }
+    // Full roster for every role now -- fetched live from
+    // FieldWorkerDirectory instead of the old hardcoded, location-keyed
+    // list (which didn't carry real location data for most agents
+    // anyway).
+    await FieldWorkerDirectory.instance.load();
+    _agents = FieldWorkerDirectory.instance.asMaps;
 
     if (!mounted) return;
     setState(() {
@@ -452,7 +432,7 @@ class _AdminTargetAndTasksHomeState extends State<AdminTargetAndTasksHome> {
                     .map((a) => DropdownMenuItem<String>(
                           value: a['number'],
                           child: Text(
-                            '${a['name']} — ${a['location']}',
+                            '${a['name']}',
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontWeight: FontWeight.w600,

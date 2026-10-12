@@ -6,6 +6,7 @@ import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 import '../../Target_details/Monthly_Tab/Monthly_police_verification.dart';
 import '../Target_details/Monthly_Tab/Monthly_under_detail/Monthly_Building.dart';
 import '../Target_details/history_target.dart';
+import '../Field_Workers/field_worker_directory.dart';
 import 'OwnerCallsHistoryScreen.dart';
 import 'Monthly_Tab/Book_Rent.dart';
 import 'Monthly_Tab/Live_Commercial.dart';
@@ -70,11 +71,9 @@ class _TargetState extends State<Target> {
   DateTime? periodEnd;
 
 
-  final List<Map<String, String>> allUsers = [
-    {"name": "Ravi Kumar", "number": "9711275300", "location": "Sultanpur"},
-    {"name": "Faizan Khan", "number": "9971172204", "location": "Sultanpur"},
-    {"name": "Yash", "number": "9211335993", "location": "Rajpur Khurd"},
-  ];
+  // Field-worker roster is fetched from FieldWorkerDirectory (see
+  // _loadUserAndFilter below) instead of being hardcoded here.
+  List<Map<String, String>> allUsers = [];
 
   List<Map<String, String>> users = []; // filtered list
   void _openBuildingCalculator(UserCounts d) {
@@ -513,22 +512,18 @@ class _TargetState extends State<Target> {
     userRole = prefs.getString("post");
     userLocation = prefs.getString("location");
 
+    await FieldWorkerDirectory.instance.load();
+    allUsers = FieldWorkerDirectory.instance.asMaps;
+
     _filterUsersByRole();
     await _loadAll(); // 🔥 load data immediately
   }
 
 
   void _filterUsersByRole() {
-    if (userRole == "Administrator") {
-      users = List.from(allUsers);
-    } else {
-      final loc = (userLocation ?? "").trim().toLowerCase();
-
-      users = allUsers.where((u) {
-        final uLoc = (u["location"] ?? "").trim().toLowerCase();
-        return uLoc == loc;
-      }).toList();
-    }
+    // Roster now comes from FieldWorkerDirectory (no per-worker
+    // location field anymore), so every role sees the full list.
+    users = List.from(allUsers);
   }
 
   String  activeTab = "Overview"; // Monthly | Overview | Yearly

@@ -36,6 +36,8 @@ class AppImages{
   static const servant="assets/images/servant.png";
   static const persnol_Logo="assets/images/persnollogo.jpeg";
   static const Tick="assets/images/green_tick.png";
+  static const mapPin="assets/images/pin.png";
+  static const home = "assets/images/Homeaddress.png";
   static const Statistics="assets/images/statistics.png";
   static const realestatefeild="assets/images/realestatefeild.png";
   static const houseRealEstate="assets/images/houseRealEstate.png";

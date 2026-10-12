@@ -11,6 +11,7 @@ import '../../Custom_Widget/constant.dart';
 import '../../utilities/bug_founder_fuction.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../Custom_Widget/Crop.dart';
+import '../../utilities/heic_converter.dart';
 
 class AgreementUser {
   final String id;
@@ -82,7 +83,7 @@ class _AgreementCustomerState extends State<AgreementCustomer> {
   })
   async {
 
-    final picked = await _picker.pickImage(
+    final picked = await HeicConverter.pickImage(_picker, 
       source: ImageSource.gallery,
       maxWidth: 1600,
       maxHeight: 1600,

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import '../../utilities/heic_converter.dart';
 
 class Futureproipoerty_FileUploadPage extends StatefulWidget {
 final String idd;
@@ -102,7 +103,7 @@ extends State<Futureproipoerty_FileUploadPage> {
     try {
       final picker = ImagePicker();
 
-      final pickedFiles = await picker.pickMultiImage(
+      final pickedFiles = await HeicConverter.pickMultiImage(picker, 
         imageQuality: 85,
       );
 

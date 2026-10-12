@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../../../model/Agreement_model.dart';
 import 'All_data_details_page.dart';
+import '../../../Field_Workers/field_worker_directory.dart';
 
 
 class FieldWorkerPayment {
@@ -87,13 +88,8 @@ class _AgreementDetailsState extends State<AllData> {
   FieldWorkerPayment? monthlyPaymentSummary;
 
   // ── Field Workers List ─────────────────────────────────────────────────────
-  final List<Map<String, String>> fieldWorkers = [
-    {"number": "9971172204", "name": "Faizan Khan"},
-    {"number": "9211335993", "name": "Yash"},
-    {"number": "9711775300", "name": "Shivam",},
-    {"number": "9211335994", "name": "Aakash",},
-    {"number": "9711275300", "name": "Ravi Kumar"},
-  ];
+  // Loaded from FieldWorkerDirectory in fetchAllFieldWorkersPayments below.
+  List<Map<String, String>> fieldWorkers = [];
 
   @override
   void initState() {
@@ -164,6 +160,8 @@ class _AgreementDetailsState extends State<AllData> {
   }
 
   Future<List<FieldWorkerPayment>> fetchAllFieldWorkersPayments() async {
+    await FieldWorkerDirectory.instance.load();
+    fieldWorkers = FieldWorkerDirectory.instance.asMaps;
     return Future.wait(
       fieldWorkers.map(
             (fw) => fetchPaymentForWorker(

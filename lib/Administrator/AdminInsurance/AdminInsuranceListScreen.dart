@@ -8,6 +8,7 @@ import 'package:verify_feild_worker/Administrator/AdminInsurance/Admin_insurance
   import '../../main.dart';
   import '../Administrator_HomeScreen.dart';
   import '../SubAdmin/SubAdminAccountant_Home.dart';
+  import '../../Field_Workers/field_worker_directory.dart';
 
   const String insuranceBaseUrl =
       "https://verifyrealestateandservices.in/PHP_Files/insurance_insert_api/insurance_details/";
@@ -211,30 +212,11 @@ import 'package:verify_feild_worker/Administrator/AdminInsurance/Admin_insurance
       loadUserName();
     }
 
-    final Map<String, List<String>> locationWorkerMap = {
-      "sultanpur": [
-        "ravi",
-        "faizan",
-        "yash"],
-      // "rajpur": ["manish", "abhey"],
-      // "chattarpur": ["manish", "abhey"],
-    };
-
-    String _normalizeLocation(String raw) {
-      final loc = raw.toLowerCase();
-
-      if (loc.contains("sultanpur")) return "sultanpur";
-      if (loc.contains("rajpur")) return "rajpur";
-      if (loc.contains("chattarpur")) return "chattarpur";
-
-      return "unknown";
-    }
-
-    final List<Map<String, String>> fieldWorkers = [
-      {"name": "Ravi", "id": "9711275300"},
-      {"name": "Faizan", "id": "9971172204"},
-      {"name": "Yash", "id": "9211335993"},
-    ];
+    // Loaded from FieldWorkerDirectory in loadAllWorkers below -- every
+    // role now sees the full dynamically-fetched roster (the old
+    // location->worker allow-list only ever covered 3 of the real
+    // roster's workers anyway).
+    List<Map<String, String>> fieldWorkers = [];
     bool isLoading = true;
 
     Map<String, List<InsuranceModel>> workerData = {};
@@ -264,6 +246,8 @@ import 'package:verify_feild_worker/Administrator/AdminInsurance/Admin_insurance
     }
 
     Future<void> loadAllWorkers() async {
+      await FieldWorkerDirectory.instance.load();
+      fieldWorkers = FieldWorkerDirectory.instance.asMaps;
 
       for (var worker in fieldWorkers) {
 
@@ -309,15 +293,6 @@ import 'package:verify_feild_worker/Administrator/AdminInsurance/Admin_insurance
     }
     @override
     Widget build(BuildContext context) {
-      final normalizedLoc = _normalizeLocation(userStoredLocation ?? "");
-      final allowedWorkers = locationWorkerMap[normalizedLoc];
-
-      final isAdmin =
-          userStoredFAadharCard?.toLowerCase() == "administrator";
-
-      final isSubAdmin =
-          userStoredFAadharCard?.toLowerCase() == "sub administrator";
-
       final isDark = Theme
           .of(context)
           .brightness == Brightness.dark;
@@ -380,19 +355,8 @@ import 'package:verify_feild_worker/Administrator/AdminInsurance/Admin_insurance
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            // Every role sees the full dynamically-fetched roster now.
             children: fieldWorkers
-                .where((worker) {
-
-              final workerName = worker['name']!.toLowerCase();
-
-              if (isAdmin) return true;
-
-              if (isSubAdmin && allowedWorkers != null) {
-                return allowedWorkers.contains(workerName);
-              }
-
-              return false;
-            })
                 .map((worker) {
 
               final workerName = worker['name']!;

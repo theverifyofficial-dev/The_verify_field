@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../ui_decoration_tools/app_images.dart';
 import '../Future_property_details.dart';
+import '../../utilities/heic_converter.dart';
 
 class Add_FutureProperty_forflats extends StatefulWidget {
   String id;
@@ -101,7 +102,7 @@ class _Add_FutureProperty_forflatsState extends State<Add_FutureProperty_forflat
 
   Future<XFile?> pickAndCompressImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await HeicConverter.pickImage(picker, source: ImageSource.gallery);
 
     if (pickedFile == null) return null;
 

@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../Future_Property_OwnerDetails_section/Plot_detail.dart' hide PlotPropertyData;
 import 'Administater_Show_Plot.dart';
 import 'Administater_Under_Plot.dart';
+import '../../Field_Workers/field_worker_directory.dart';
 
 class Show_Administater_Plot extends StatefulWidget {
   final String? plotId;
@@ -37,20 +38,14 @@ class Show_Administater_PlotState extends State<Show_Administater_Plot> {
     if (widget.fromNotification && widget.plotId != null) {
       print("🔥 Highlight plotId: ${widget.plotId}");
     }
-      for (final fw in fieldWorkers) {
-      _horizontalControllers[fw['id']!] = ScrollController();
-    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeData();
     });
   }
 
-  List<Map<String, String>> fieldWorkers = [
-    {"name": "Ravi Kumar", "id": "9711275300"},
-    {"name": "Faizan Khan", "id": "9971172204"},
-    {"name": "Yash", "id": "9211335993"},
-  ];
+  // Loaded from FieldWorkerDirectory in _initializeData below.
+  List<Map<String, String>> fieldWorkers = [];
 
   Map<String, List<PlotPropertyData>> _groupedPlotData = {};
   final Map<String, ScrollController> _horizontalControllers = {};
@@ -75,6 +70,12 @@ class Show_Administater_PlotState extends State<Show_Administater_Plot> {
   }
 
   Future<void> _initializeData() async {
+    await FieldWorkerDirectory.instance.load();
+    fieldWorkers = FieldWorkerDirectory.instance.asMaps;
+    for (final fw in fieldWorkers) {
+      _horizontalControllers[fw['id']!] = ScrollController();
+    }
+
     await _loadUserData();  // Pehle location aur post load hone do
 
     if (!mounted) return;
@@ -92,27 +93,10 @@ class Show_Administater_PlotState extends State<Show_Administater_Plot> {
 
     setState(() => _isLoading = true);
 
-    final loc = _location.toLowerCase();
-    final isAdmin = _post.toLowerCase() == "administrator";
-
-    List<Map<String, String>> allowedWorkers = [];
-
-    if (isAdmin) {
-      allowedWorkers = fieldWorkers;
-    } else if (loc.contains("sultanpur")) {
-      allowedWorkers = fieldWorkers.where((fw) =>
-          fw['name']!.toLowerCase().contains("ravi") ||
-          fw['name']!.toLowerCase().contains("faizan") ||
-          fw['name']!.toLowerCase().contains("yash")
-      ).toList();
-    } else if (loc.contains("rajpur") ||
-        loc.contains("chhattarpur") ||
-        loc.contains("chattar") ||
-        loc.contains("chhattar")) {
-      allowedWorkers = fieldWorkers.where((fw) =>
-          fw['name']!.toLowerCase().contains("yash")
-      ).toList();
-    }
+    // Every role now sees the full dynamically-fetched roster -- the
+    // old location-name filtering here was keyed off a hardcoded list
+    // that didn't match the real roster for most workers anyway.
+    final List<Map<String, String>> allowedWorkers = fieldWorkers;
 
     for (final fw in allowedWorkers) {
       final data =

@@ -9,6 +9,7 @@ import '../Administrator/Administator_Agreement/Admin_Agreement_details.dart';
 import '../Administrator/Administator_Realestate.dart';
 import '../Administrator/Administrator_HomeScreen.dart';
 import '../Administrator/SubAdmin/SubAdminAccountant_Home.dart';
+import '../Navigation/role_main_shell.dart';
 import '../Demand_2/Demand_detail.dart';
 import '../Demand_2/Tabbar.dart';
 import '../Demand_2/redemand_detailpage.dart';
@@ -45,9 +46,16 @@ class Routes {
 
   static Map<String, WidgetBuilder> routes = {
     Splash.route: (context) => const Splash(),
-    Home_Screen.route: (context) => const Home_Screen(),
-    AdministratorHome_Screen.route: (context) => const AdministratorHome_Screen(),
-    SubAdminHomeScreen.route: (context) => const SubAdminHomeScreen(),
+    // These three now resolve to the shared, role-aware bottom-nav shell
+    // (Home/Leads/Map/Profile tabs) instead of the bare Home screen --
+    // every existing caller that pushes one of these named routes (FCM
+    // notification "go home" handlers in main.dart, the back-to-home
+    // button in AdminInsuranceListScreen.dart, splash.dart/Login_page.dart's
+    // role dispatch) keeps working unchanged and now lands in the new
+    // tabbed shell automatically.
+    Home_Screen.route: (context) => const MainShell(role: AppRole.fieldWorker),
+    AdministratorHome_Screen.route: (context) => const MainShell(role: AppRole.administrator),
+    SubAdminHomeScreen.route: (context) => const MainShell(role: AppRole.subAdministrator),
     Login_page.route: (context) => const Login_page(),
 
     // 🔸 Admin Real Estate View

@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Home_Screen_click/Real-Estate.dart';
 
 import '../ui_decoration_tools/app_images.dart';
+import '../utilities/heic_converter.dart';
 
 class Add_Property_Verification extends StatefulWidget {
   @override
@@ -117,7 +118,7 @@ class _Add_Property_VerificationState extends State<Add_Property_Verification> {
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await HeicConverter.pickImage(picker, source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
         _image = File(pickedFile.path);

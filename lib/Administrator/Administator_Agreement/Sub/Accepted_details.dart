@@ -19,6 +19,7 @@ import '../PDFs/Commercial_PDF.dart';
 import '../PDFs/PDF.dart';
 import '../PDFs/furnished pdf.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
+import '../../../utilities/heic_converter.dart';
 
 class CustomClause {
   final TextEditingController titleCtrl;
@@ -559,7 +560,7 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
                 label: const Text("Camera"),
                 onPressed: () async {
                   Navigator.pop(context);
-                  final picked = await ImagePicker().pickImage(
+                  final picked = await HeicConverter.pickImage(ImagePicker(), 
                       source: ImageSource.camera, imageQuality: 90);
                   if (picked != null) {
                     setState(() => isCompressing = true);
@@ -579,7 +580,7 @@ class _AcceptedDetailsState extends State<AcceptedDetails> {
                 label: const Text("Gallery"),
                 onPressed: () async {
                   Navigator.pop(context);
-                  final picked = await ImagePicker().pickImage(
+                  final picked = await HeicConverter.pickImage(ImagePicker(), 
                       source: ImageSource.gallery, imageQuality: 90);
                   if (picked != null) {
                     setState(() => isCompressing = true);

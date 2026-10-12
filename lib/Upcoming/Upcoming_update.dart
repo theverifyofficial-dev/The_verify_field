@@ -5,6 +5,7 @@
 // import '../../AppLogger.dart';
 import '../../AppLogger.dart';
 import 'package:flutter/material.dart';// import 'package:flutter/services.dart';
+import '../utilities/heic_converter.dart';
 // import 'package:flutter_image_compress/flutter_image_compress.dart';
 // import 'package:phosphor_flutter/phosphor_flutter.dart';
 // import 'package:fluttertoast/fluttertoast.dart';
@@ -397,7 +398,7 @@ import 'package:flutter/material.dart';// import 'package:flutter/services.dart'
 //
 //   Future<XFile?> pickAndCompressImage() async {
 //     final picker = ImagePicker();
-//     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+//     final pickedFile = await HeicConverter.pickImage(picker, source: ImageSource.gallery);
 //
 //     if (pickedFile == null) return null;
 //

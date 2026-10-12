@@ -5,6 +5,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:dio/dio.dart';
+import '../utilities/heic_converter.dart';
 
 class MyItem {
   final String title;
@@ -40,7 +41,7 @@ class _MultiImageCompressorState extends State<MultiImageCompressor> {
   List<File> compressedImages = [];
 
   Future<void> selectAndCompressImages() async {
-    final List<XFile>? selectedImages = await imagePicker.pickMultiImage();
+    final List<XFile>? selectedImages = await HeicConverter.pickMultiImage(imagePicker, );
     if (selectedImages != null && selectedImages.isNotEmpty) {
       for (XFile image in selectedImages) {
         XFile? compressed = await compressImage(File(image.path));

@@ -17,6 +17,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Home_Screen_click/Real-Estate.dart';
 import '../ui_decoration_tools/app_images.dart';
+import '../utilities/heic_converter.dart';
 
 class  Add_Realestate extends StatefulWidget {
   @override
@@ -145,7 +146,7 @@ class _Add_RealestateState extends State<Add_Realestate> {
 
   Future<XFile?> pickAndCompressImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await HeicConverter.pickImage(picker, source: ImageSource.gallery);
 
     formattedDate = "${now.day}_${now.month}_${now.year}";
 

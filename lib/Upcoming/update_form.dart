@@ -17,6 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../provider/property_id_for_multipleimage_provider.dart';
 import '../Custom_Widget/constant.dart';
 import '../model/future_property_model.dart';
+import '../utilities/heic_converter.dart';
 
 
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
@@ -528,7 +529,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
   final ImagePicker _picker = ImagePicker();
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(
+    final XFile? pickedFile = await HeicConverter.pickImage(_picker, 
         source: ImageSource.gallery);
 
     if (pickedFile != null) {
@@ -604,7 +605,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
 
   Future<void> pickMultipleImages() async {
     try {
-      final List<XFile> pickedImages = await _MultiPicker.pickMultiImage();
+      final List<XFile> pickedImages = await HeicConverter.pickMultiImage(_MultiPicker, );
       if (pickedImages.isNotEmpty) {
         setState(() {
           _images = pickedImages;

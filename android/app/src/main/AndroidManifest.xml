@@ -59,11 +59,9 @@
             android:resource="@color/black" />
 
         <!-- Google Maps SDK key, used by the Network Map screen (google_maps_flutter). -->
-        <!-- TODO: replace with a real Maps SDK for Android key from Google Cloud Console -->
-        <!-- before building/running the Network Map feature, or the map will render blank. -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="YOUR_GOOGLE_MAPS_API_KEY_HERE" />
+            android:value="AIzaSyA8OTUHZIiHav1_7-vXerKRoL5BfQckFAo" />
 
         <activity
             android:name=".MainActivity"

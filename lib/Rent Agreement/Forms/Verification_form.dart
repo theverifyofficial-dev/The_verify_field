@@ -13,6 +13,7 @@ import '../../Custom_Widget/Crop.dart';
 import '../../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 import '../Dashboard_screen.dart';
+import '../../utilities/heic_converter.dart';
 
 
 class TenantBlock {
@@ -386,7 +387,7 @@ class _VerificationWizardPageState extends State<VerificationWizardPage> with Ti
       child: const Icon(Icons.zoom_in, color: Colors.white, size: 16));
 
   Future<void> _pickImage(String which) async {
-    final picked = await _picker.pickImage(
+    final picked = await HeicConverter.pickImage(_picker, 
       source: ImageSource.gallery,
       maxWidth: 1600,
       maxHeight: 1600,
@@ -424,7 +425,7 @@ class _VerificationWizardPageState extends State<VerificationWizardPage> with Ti
   }
 
   Future<void> _pickTenantDoc(bool isFront) async {
-    final picked = await _picker.pickImage(
+    final picked = await HeicConverter.pickImage(_picker, 
       source: ImageSource.gallery,
       maxWidth: 1600,
       maxHeight: 1600,
@@ -458,7 +459,7 @@ class _VerificationWizardPageState extends State<VerificationWizardPage> with Ti
   }
 
   Future<void> _pickTenantPhoto() async {
-    final picked = await _picker.pickImage(
+    final picked = await HeicConverter.pickImage(_picker, 
       source: ImageSource.gallery,
       maxWidth: 1600,
       maxHeight: 1600,

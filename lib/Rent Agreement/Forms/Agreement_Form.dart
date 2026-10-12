@@ -15,6 +15,7 @@ import 'package:http_parser/http_parser.dart';
 
 import '../../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../Dashboard_screen.dart';
+import '../../utilities/heic_converter.dart';
 
 class TenantBlock {
   String? id; // 🔥 (for update case)
@@ -454,7 +455,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   }
 
   Future<void> _pickImage(String which) async {
-    final picked = await _picker.pickImage(
+    final picked = await HeicConverter.pickImage(_picker, 
       source: ImageSource.gallery,
       maxWidth: 1600,
       maxHeight: 1600,
@@ -522,7 +523,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   }
 
   Future<void> _pickTenantDoc(int index, bool isFront) async {
-    final picked = await _picker.pickImage(
+    final picked = await HeicConverter.pickImage(_picker, 
       source: ImageSource.gallery,
       maxWidth: 1600,
       maxHeight: 1600,
@@ -584,7 +585,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   }
 
   Future<void> _pickTenantPhoto(int index) async {
-    final picked = await _picker.pickImage(
+    final picked = await HeicConverter.pickImage(_picker, 
       source: ImageSource.gallery,
       maxWidth: 1600,
       maxHeight: 1600,

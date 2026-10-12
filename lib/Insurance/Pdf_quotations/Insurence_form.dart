@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../../Administrator/Administrator_HomeScreen.dart';
 import '../../Custom_Widget/constant.dart';
 import 'Details_quotations.dart';
+import '../../utilities/heic_converter.dart';
 
 class InsuranceForm extends StatefulWidget {
   final InsurancePlan plan;
@@ -92,7 +93,7 @@ class _InsuranceFormState extends State<InsuranceForm> {
   Future<void> _pickImage() async {
     try {
       final picker = ImagePicker();
-      final picked = await picker.pickImage(
+      final picked = await HeicConverter.pickImage(picker, 
         source: ImageSource.gallery,
         imageQuality: 80,
       );

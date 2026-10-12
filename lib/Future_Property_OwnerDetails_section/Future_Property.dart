@@ -4,7 +4,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Controller/Future_property_controller.dart';
 import 'Future_property_details.dart';
-import 'Future_Property_Network_Map.dart';
 
 class FrontPage_FutureProperty extends StatefulWidget {
   const FrontPage_FutureProperty({super.key});
@@ -90,31 +89,6 @@ class _FrontPage_FuturePropertyState
               controller: _scrollController,
               padding: const EdgeInsets.all(16),
               children: [
-
-                /// ================= NETWORK MAP ENTRY =================
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.black,
-                      side: const BorderSide(color: Colors.black),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const FutureNetworkMapPage(),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.map_outlined),
-                    label: const Text('View Network Map'),
-                  ),
-                ),
 
                 /// ================= SEARCH =================
                 TextField(

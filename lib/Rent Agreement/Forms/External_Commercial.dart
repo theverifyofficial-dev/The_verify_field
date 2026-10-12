@@ -13,6 +13,7 @@ import '../../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 import '../../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../Dashboard_screen.dart';
+import '../../utilities/heic_converter.dart';
 
 
 class BuildingSuggestion {
@@ -507,7 +508,7 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
   }
 
   Future<void> _pickDirectorAadhaar(int index, bool isFront) async {
-    final picked = await _picker.pickImage(
+    final picked = await HeicConverter.pickImage(_picker, 
       source: ImageSource.gallery,
       maxWidth: 1600,
       maxHeight: 1600,
@@ -541,7 +542,7 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
   }
 
   Future<void> _pickDirectorPhoto(int index) async {
-    final picked = await _picker.pickImage(
+    final picked = await HeicConverter.pickImage(_picker, 
       source: ImageSource.gallery,
       maxWidth: 1600,
       maxHeight: 1600,
@@ -554,7 +555,7 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
   }
 
   Future<void> _pickDirectorGST(int index) async {
-    final picked = await _picker.pickImage(
+    final picked = await HeicConverter.pickImage(_picker, 
       source: ImageSource.gallery,
       maxWidth: 1600,
       maxHeight: 1600,
@@ -568,7 +569,7 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
   }
 
   Future<void> _pickDirectorPAN(int index) async {
-    final picked = await _picker.pickImage(
+    final picked = await HeicConverter.pickImage(_picker, 
       source: ImageSource.gallery,
       maxWidth: 1600,
       maxHeight: 1600,
@@ -912,7 +913,7 @@ class _CommercialWizardPageState extends State<ExternalCommercialWizardPage> wit
       child: const Icon(Icons.zoom_in, color: Colors.white, size: 16));
 
   Future<void> _pickImage(String which) async {
-    final picked = await _picker.pickImage(
+    final picked = await HeicConverter.pickImage(_picker, 
       source: ImageSource.gallery,
       maxWidth: 1600,
       maxHeight: 1600,

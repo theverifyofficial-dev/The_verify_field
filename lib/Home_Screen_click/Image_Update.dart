@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../ui_decoration_tools/app_images.dart';
 import 'Real-Estate.dart';
+import '../utilities/heic_converter.dart';
 
 class image_Update extends StatefulWidget {
   String id;
@@ -25,7 +26,7 @@ class _image_UpdateState extends State<image_Update> {
 
   Future<XFile?> pickAndCompressImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await HeicConverter.pickImage(picker, source: ImageSource.gallery);
 
     if (pickedFile == null) return null;
 

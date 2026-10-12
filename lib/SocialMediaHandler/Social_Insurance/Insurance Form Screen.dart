@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
+import '../../utilities/heic_converter.dart';
 
 class InsuranceFormScreen extends StatefulWidget {
   final String fieldWorkerName;
@@ -50,7 +51,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
   final expiryDateController = TextEditingController();
 
   Future<void> pickImage(Function(File) onSelected) async {
-    final picked = await picker.pickImage(
+    final picked = await HeicConverter.pickImage(picker, 
       source: ImageSource.gallery,
       imageQuality: 75,
     );
@@ -580,7 +581,7 @@ class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
   String? selectedFuel;
 
   Future<void> pickMultipleImages() async {
-    final pickedFiles = await picker.pickMultiImage(imageQuality: 75);
+    final pickedFiles = await HeicConverter.pickMultiImage(picker, imageQuality: 75);
     if (pickedFiles != null && pickedFiles.isNotEmpty) {
       carMultipleImages = pickedFiles.map((e) => File(e.path)).toList();
       setState(() {});

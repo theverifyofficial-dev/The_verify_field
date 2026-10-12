@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../Custom_Widget/constant.dart';
+import '../utilities/heic_converter.dart';
 
 class CommercialPropertyForm extends StatefulWidget {
   @override
@@ -965,7 +966,7 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
 
   Future<void> _pickSingleImage() async {
     try {
-      final XFile? image = await _imagePicker.pickImage(
+      final XFile? image = await HeicConverter.pickImage(_imagePicker, 
         source: ImageSource.gallery,
         maxWidth: 1200,
         maxHeight: 800,
@@ -984,7 +985,7 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
 
   Future<void> _pickMultipleImages() async {
     try {
-      final List<XFile> images = await _imagePicker.pickMultiImage(
+      final List<XFile> images = await HeicConverter.pickMultiImage(_imagePicker, 
         maxWidth: 1200,
         maxHeight: 800,
         imageQuality: 80,
@@ -1010,7 +1011,7 @@ class _CommercialPropertyFormState extends State<CommercialPropertyForm> {
 
   Future<void> _takePhoto() async {
     try {
-      final XFile? image = await _imagePicker.pickImage(
+      final XFile? image = await HeicConverter.pickImage(_imagePicker, 
         source: ImageSource.camera,
         maxWidth: 1200,
         maxHeight: 800,

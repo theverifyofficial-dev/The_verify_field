@@ -13,6 +13,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../Custom_Widget/constant.dart';
+import '../utilities/heic_converter.dart';
 
 
 class PropertyListingPage extends StatefulWidget {
@@ -519,7 +520,7 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
 
   Future<void> _pickSingleImage() async {
     try {
-      final image = await _imagePicker.pickImage(
+      final image = await HeicConverter.pickImage(_imagePicker, 
         source: ImageSource.gallery,
         maxWidth: 1200,
         maxHeight: 1200,
@@ -531,7 +532,7 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
 
   Future<void> _pickMultipleImages() async {
     try {
-      final pickedImages = await _imagePicker.pickMultiImage(
+      final pickedImages = await HeicConverter.pickMultiImage(_imagePicker, 
         maxWidth: 1200,
         maxHeight: 1200,
         imageQuality: 80,
@@ -548,7 +549,7 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
 
   Future<void> _takePhoto() async {
     try {
-      final image = await _imagePicker.pickImage(
+      final image = await HeicConverter.pickImage(_imagePicker, 
         source: ImageSource.camera,
         maxWidth: 1200,
         maxHeight: 1200,

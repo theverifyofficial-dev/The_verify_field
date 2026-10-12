@@ -457,36 +457,6 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
               ),
               child: const Center(child: CircularProgressIndicator()),
             );
-          } else if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
-            return Container(
-              height: 180,
-              margin: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isDarkMode ? Colors.white : Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.photo_library, size: 50, color: isDarkMode ? Colors.black87 : Colors.grey[400]),
-                  const SizedBox(height: 8),
-                  Text(
-                    "No Images Available",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isDarkMode ? Colors.black87 : Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-            );
           } else {
             return Container(
               margin: const EdgeInsets.all(16),
@@ -1631,7 +1601,6 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
 
-                  // Section Header
                   Row(
                     children: [
                       Container(
@@ -1647,12 +1616,12 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                             fit: BoxFit.cover,
                           ),
                         )
-                            : Center(child: Text('No image Added.', style: TextStyle(color: Colors.black))),
+                            : const Center(child: Text('', style: TextStyle(color: Colors.black))),
                       ),
 
                       const SizedBox(width: 20),
 
-                      Icon(Icons.business, color: Colors.blue, size: 20),
+                      const Icon(Icons.business, color: Colors.blue, size: 20),
                       const SizedBox(width: 8),
                       const Text(
                         "Building Details",
@@ -2062,9 +2031,9 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
         }
 
         final data = snapshot.data!.first;
-        _networkImageUrl = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/" + (data.images.isNotEmpty ? data.images : '');
+        _networkImageUrl = "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${data.images.isNotEmpty ? data.images : ''}";
 
-
+        print(_networkImageUrl);
         return Container(
           margin: const EdgeInsets.all(16),
           child: Row(
@@ -2159,7 +2128,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                         ),
                       );
                     },
-                    child: const Text("Add New Flat"),
+                    child: const Text("Add New Flat",style: TextStyle(color: Colors.white),),
                   ),
                 ),
               ],

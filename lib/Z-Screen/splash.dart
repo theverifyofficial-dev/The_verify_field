@@ -148,10 +148,10 @@ class _SplashState extends State<Splash> {
     } else if (role == "Administrator") {
       Navigator.of(context).pushReplacementNamed(AdministratorHome_Screen.route);
     } else if (role == "Sub Administrator") {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => SubAdminHomeScreen()),
-      );
+      // Now routes through the same role-aware bottom-nav shell as the
+      // other roles below -- see Notification_demo/routes.dart, which is
+      // what SubAdminHomeScreen.route now resolves to.
+      Navigator.of(context).pushReplacementNamed(SubAdminHomeScreen.route);
     } else if (role == "Editor") {
       Navigator.pushReplacement(
         context,

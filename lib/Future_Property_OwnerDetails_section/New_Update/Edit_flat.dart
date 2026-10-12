@@ -13,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Custom_Widget/constant.dart';
 import 'flat_edit_model.dart';
+import '../../utilities/heic_converter.dart';
 
 
 class EditFlat extends StatefulWidget {
@@ -166,7 +167,7 @@ class EditFlatState extends State<EditFlat> {
 
   Future<XFile?> pickAndCompressImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await HeicConverter.pickImage(picker, source: ImageSource.gallery);
 
     formattedDate = "${now.day}_${now.month}_${now.year}";
 
@@ -724,7 +725,7 @@ class EditFlatState extends State<EditFlat> {
 
   Future<void> pickMultipleImages() async {
     final picker = ImagePicker();
-    final pickedFiles = await picker.pickMultiImage();
+    final pickedFiles = await HeicConverter.pickMultiImage(picker, );
 
     if (pickedFiles.isNotEmpty) {
       List<File> temp = [];

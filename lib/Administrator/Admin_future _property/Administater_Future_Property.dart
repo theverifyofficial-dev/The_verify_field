@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import '../../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import 'Admin_SeeAll_Tabbar.dart';
-import 'Admin_Future_Network_Map.dart';
+import '../../Field_Workers/field_worker_directory.dart';
 class Catid {
   final int id;
   final String? images;
@@ -205,13 +205,8 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
   String _location = '';
   String _post = '';
 
-  List<Map<String, String>> fieldWorkers = [
-    {"name": "Faizan Khan", "id": "9971172204"},
-    {"name": "Yash", "id": "9211335993"},
-    {"name": "Shivam", "id": "9711775300",},
-    {"name": "Aakash", "id": "9211335994",},
-    {"name": "Ravi Kumar", "id": "9711275300"},
-  ];
+  // Loaded from FieldWorkerDirectory in _initializeData below.
+  List<Map<String, String>> fieldWorkers = [];
 
   final Map<int, int> _liveCountMap = {};
   final Map<int, String> _totalFlatsMap = {};
@@ -226,12 +221,6 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
   void initState() {
     super.initState();
 
-    // Controllers init
-    for (final fw in fieldWorkers) {
-      _horizontalControllers[fw['id']!] = ScrollController();
-      _groupedData[fw['id']!] = [];
-    }
-
     // Starting mein loading true (UI mein spinner dikhega fresh run pe)
     _isLoading = true;
 
@@ -243,6 +232,13 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
 
 
   Future<void> _initializeData() async {
+    await FieldWorkerDirectory.instance.load();
+    fieldWorkers = FieldWorkerDirectory.instance.asMaps;
+    for (final fw in fieldWorkers) {
+      _horizontalControllers[fw['id']!] = ScrollController();
+      _groupedData[fw['id']!] = [];
+    }
+
     await _loadUserData();  // Pehle location aur post load hone do
 
     if (!mounted) return;
@@ -283,28 +279,10 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
 
     setState(() => _isLoading = true);
 
-    final loc = _location.toLowerCase();
-    final isAdmin = _post.toLowerCase() == "administrator";
-
-    List<Map<String, String>> allowedWorkers = [];
-
-    if (isAdmin) {
-      allowedWorkers = fieldWorkers;
-    } else if (loc.contains("sultanpur")) {
-      allowedWorkers = fieldWorkers
-          .where((fw) =>
-          fw['name']!.toLowerCase().contains("ravi") ||
-          fw['name']!.toLowerCase().contains("faizan") ||
-          fw['name']!.toLowerCase().contains("yash")
-      ).toList();
-    } else if (loc.contains("rajpur") ||
-        loc.contains("chhattarpur") ||
-        loc.contains("chattar") ||
-        loc.contains("chhattar")) {
-      allowedWorkers = fieldWorkers.where((fw) =>
-          fw['name']!.toLowerCase().contains("yash")
-      ).toList();
-    }
+    // Every role now sees the full dynamically-fetched roster -- the
+    // old location-name filtering here was keyed off a hardcoded list
+    // that didn't match the real roster for most workers anyway.
+    final List<Map<String, String>> allowedWorkers = fieldWorkers;
 
     for (final fw in allowedWorkers) {
       final data = await _fetchDataByNumber(fw['id']!);
@@ -804,27 +782,9 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
 
   @override
   Widget build(BuildContext context) {
-    final loc = _location.toLowerCase();
-    final post = _post.toLowerCase();
-    final isAdmin = post == "administrator";
-
-    final List<Map<String, String>> workersToShow = isAdmin
-        ? fieldWorkers
-        : fieldWorkers.where((fw) {
-      final nameLower = fw['name']!.toLowerCase();
-      if (loc.contains("sultanpur")) {
-        return
-            nameLower.contains("ravi") ||
-            nameLower.contains("faizan") ||
-            nameLower.contains("yash");
-      }
-      if (loc.contains("rajpur") ||
-          loc.contains("chhattarpur") ||
-          loc.contains("chattar")) {
-        return nameLower.contains("yash");
-      }
-      return false;
-    }).toList();
+    // Every role now sees the full dynamically-fetched roster -- see
+    // the matching note in _fetchAndUpdateData above.
+    final List<Map<String, String>> workersToShow = fieldWorkers;
 
     final bool hasAccess = workersToShow.isNotEmpty;
 
@@ -841,27 +801,6 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
             ? ListView(
           children: [
             _buildSearchBar(),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-              child: OutlinedButton.icon(
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AdminFutureNetworkMapPage(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.map_outlined),
-                label: const Text('View Network Map'),
-              ),
-            ),
             ...workersToShow.map((fw) {
               final allProps = _groupedData[fw['id']] ?? [];
               final props = allProps.where(_matchesSearch).toList();

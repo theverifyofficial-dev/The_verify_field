@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../Custom_Widget/constant.dart';
 import 'InsuranceShowListPage.dart';
+import '../utilities/heic_converter.dart';
 
 class UpdateInsuranceFormScreen extends StatefulWidget {
   final InsuranceModel item;
@@ -155,7 +156,7 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
   }
 
   Future<void> pickMultipleImages() async {
-    final pickedFiles = await picker.pickMultiImage(imageQuality: 75);
+    final pickedFiles = await HeicConverter.pickMultiImage(picker, imageQuality: 75);
     if (!mounted) return;
     if (pickedFiles != null) {
       carMultipleImages = pickedFiles.map((e) => File(e.path)).toList();
@@ -164,7 +165,7 @@ class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
   }
 
   Future<void> pickImage(Function(File) onSelected) async {
-    final picked = await picker.pickImage(
+    final picked = await HeicConverter.pickImage(picker, 
       source: ImageSource.gallery,
       imageQuality: 75,
     );

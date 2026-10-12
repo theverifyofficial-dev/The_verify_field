@@ -12,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'package:http/http.dart' as http;
+import '../utilities/heic_converter.dart';
 
 
 
@@ -249,7 +250,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
 
   Future<XFile?> pickAndCompressImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await HeicConverter.pickImage(picker, source: ImageSource.gallery);
 
     formattedDate = "${now.day}_${now.month}_${now.year}";
 
@@ -268,7 +269,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
   }
   Future<void> pickMultipleImages() async {
     final picker = ImagePicker();
-    final pickedFiles = await picker.pickMultiImage();
+    final pickedFiles = await HeicConverter.pickMultiImage(picker, );
 
     if (pickedFiles.isNotEmpty) {
       List<File> temp = [];
@@ -1805,7 +1806,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                       const SizedBox(height: 10),
                       TextFormField(
                         keyboardType: TextInputType.number,
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14,color: Colors.grey),
                         decoration: InputDecoration(
                           hintText: 'Enter Maintenance Fee',
                           filled: true,

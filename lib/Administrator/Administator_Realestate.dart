@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import 'Add_Assign_Tenant_Demand/See_All_Realestate.dart';
 import 'Administater_Realestate_Details.dart';
+import '../Field_Workers/field_worker_directory.dart';
 
 class Catid {
   final int id;
@@ -322,14 +323,8 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     return list.map((e) => Catid.fromJson(e)).toList();
   }
 
-  List<Map<String, String>> fieldWorkers = [
-    {"name": "Faizan", "id": "9971172204"},
-    {"name": "Yash", "id": "9211335993"},
-    {"name": "Shivam", "id": "9711775300",},
-    {"name": "Aakash", "id": "9211335994",},
-    {"name": "Ravi", "id": "9711275300"},
-
-  ];
+  // Loaded from FieldWorkerDirectory in _initFieldWorkersAndData below.
+  List<Map<String, String>> fieldWorkers = [];
 
   Map<String, List<Catid>> _groupedData = {};
   final Map<int, String> _totalFlatsMap = {}; // subid -> total flats count as String
@@ -352,6 +347,18 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
+    _initFieldWorkersAndData();
+    // Scroll to flat if from notification
+    if (widget.flatId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _handleNotification(widget.flatId!);
+      });
+    }
+  }
+
+  Future<void> _initFieldWorkersAndData() async {
+    await FieldWorkerDirectory.instance.load();
+    fieldWorkers = FieldWorkerDirectory.instance.asMaps;
     // Empty list for each field worker
     for (var fw in fieldWorkers) {
       _groupedData[fw['name']!] = [];
@@ -359,12 +366,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     }
     _loadUserData();
     _fetchAndUpdateData();
-    // Scroll to flat if from notification
-    if (widget.flatId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _handleNotification(widget.flatId!);
-      });
-    }
   }
 
   @override
@@ -1001,28 +1002,13 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
 
   @override
   Widget build(BuildContext context) {
-    final loc = _location.trim().toLowerCase();
-    final post = _post.trim().toLowerCase();
-    bool isSubAdmin = post == "sub administrator";
-    bool isAdmin = post == "administrator";
+    // Every role now sees the full dynamically-fetched roster -- the
+    // old location-name filtering here was keyed off a hardcoded list
+    // that didn't match the real roster for most workers anyway.
     final Widget content = SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: fieldWorkers
-            .where((fw) {
-          final name = fw['name']!.toLowerCase();
-          // ADMIN → SHOW EVERYONE
-          if (isAdmin) return true;
-          // SUB-ADMIN → FILTER BY LOCATION
-          if (loc.contains("sultanpur")) {
-            return name == "sumit" || name == "ravi" || name == "faizan"
-                || name == "yash";          // ✅ lowercase
-          }
-          if (loc.contains("rajpur") || loc.contains("chhattar")) {
-            return name == "yash";   // ✅ lowercase
-          }
-          return false;
-        }).map((fw) {
+        children: fieldWorkers.map((fw) {
           final props = _groupedData[fw['name']] ?? [];
           return _buildFieldWorkerSection(props, fw['id']!, fw['name']!);
         }).toList(),

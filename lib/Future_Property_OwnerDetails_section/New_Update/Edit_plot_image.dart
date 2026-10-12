@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 import '../../Custom_Widget/constant.dart';
+import '../../utilities/heic_converter.dart';
 
 class EditPlotImage extends StatefulWidget {
   final String sub_id;
@@ -80,7 +81,7 @@ class _EditPlotImageState extends State<EditPlotImage> {
 
   Future<void> pickImage() async {
     final picker = ImagePicker();
-    final pickedFiles = await picker.pickMultiImage();
+    final pickedFiles = await HeicConverter.pickMultiImage(picker, );
 
     if (pickedFiles != null && pickedFiles.isNotEmpty) {
       setState(() {

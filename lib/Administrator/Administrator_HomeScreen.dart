@@ -20,6 +20,7 @@ import 'All_Rented_Flat/Administator_Add_Rented_Flat_Tabbar.dart';
 import 'Administator_Agreement/Admin_dashboard.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'New_TenandDemand/Admin_tabbar.dart';
+import '../Network_Map/Admin_Network_Map_Page.dart';
 
 class AppGradients {
 
@@ -417,7 +418,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 8,
+                        itemCount: 7,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
@@ -485,19 +486,18 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                               },
                               "count": 0,
                             },
-                            {
-                              "image": AppImages.demand_2,
-                              "title": "Costumer Demands",
-                              "gradient": AppGradients.indigo(),
-                              "onTap": () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const AdminTabbar()),
-                                );
-                              },
-                              "count": 0,
-                            },
-
+                            // {
+                            //   "image": AppImages.demand_2,
+                            //   "title": "Costumer Demands",
+                            //   "gradient": AppGradients.indigo(),
+                            //   "onTap": () {
+                            //     Navigator.push(
+                            //       context,
+                            //       MaterialPageRoute(builder: (_) => const AdminTabbar()),
+                            //     );
+                            //   },
+                            //   "count": 0,
+                            // },
                             {
                               "image": AppImages.tenant,
                               "title": "Costumer Demands",
@@ -585,7 +585,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
       floating: true,
       pinned: true,
       elevation: 10,
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.transparent,
       automaticallyImplyLeading: false,
       flexibleSpace: FlexibleSpaceBar(
         collapseMode: CollapseMode.parallax,
@@ -610,25 +610,6 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      InkWell(
-                        borderRadius: BorderRadius.circular(20),
-                        onTap: () => Navigator.of(context).push(
-                          MaterialPageRoute(builder: (context) => AdminProfile()),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.account_circle, color: Colors.white, size: 30),
-                            if (userName != null && userName!.isNotEmpty)
-                              Text(
-                                userName!.length > 10 ? '${userName!.substring(0, 10)}..' : userName!,
-                                style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                          ],
-                        ),
-                      ),
                       Image.asset(AppImages.transparent, height: 36),
                       Row(
                         children: [

@@ -12,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Propert_verigication_Document/Property_Verification.dart';
 import '../ui_decoration_tools/app_images.dart';
+import '../utilities/heic_converter.dart';
 
 class MoveTO_Add_propertyverification extends StatefulWidget {
   String type;
@@ -127,7 +128,7 @@ class _MoveTO_Add_propertyverificationState extends State<MoveTO_Add_propertyver
 
   Future<XFile?> pickAndCompressImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await HeicConverter.pickImage(picker, source: ImageSource.gallery);
 
     if (pickedFile == null) return null;
 
@@ -148,7 +149,7 @@ class _MoveTO_Add_propertyverificationState extends State<MoveTO_Add_propertyver
 
   // Future<File?> pickAndCompressImage() async {
   //   final picker = ImagePicker();
-  //   final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+  //   final pickedFile = await HeicConverter.pickImage(picker, source: ImageSource.gallery);
   //
   //   formattedDate = "${now.day}_${now.month}_${now.year}";
   //

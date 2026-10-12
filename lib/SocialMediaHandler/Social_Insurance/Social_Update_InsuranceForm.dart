@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import '../../Custom_Widget/constant.dart';
 import 'Social_InsuranceShowListPage.dart';
+import '../../utilities/heic_converter.dart';
 
 class SocialUpdateInsuranceForm extends StatefulWidget {
   final SocialInsuranceModel item;
@@ -154,7 +155,7 @@ class _SocialUpdateInsuranceFormState extends State<SocialUpdateInsuranceForm> {
   }
 
   Future<void> pickMultipleImages() async {
-    final pickedFiles = await picker.pickMultiImage(imageQuality: 75);
+    final pickedFiles = await HeicConverter.pickMultiImage(picker, imageQuality: 75);
     if (!mounted) return;
     if (pickedFiles != null) {
       carMultipleImages = pickedFiles.map((e) => File(e.path)).toList();
@@ -163,7 +164,7 @@ class _SocialUpdateInsuranceFormState extends State<SocialUpdateInsuranceForm> {
   }
 
   Future<void> pickImage(Function(File) onSelected) async {
-    final picked = await picker.pickImage(
+    final picked = await HeicConverter.pickImage(picker, 
       source: ImageSource.gallery,
       imageQuality: 75,
     );

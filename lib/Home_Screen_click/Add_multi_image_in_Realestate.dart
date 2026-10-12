@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import '../utilities/heic_converter.dart';
 
 class MultiImagePickerPage extends StatefulWidget {
   final int propertyId;
@@ -59,7 +60,7 @@ class _MultiImagePickerPageState extends State<MultiImagePickerPage> {
 
   Future<void> pickImage() async {
     final picker = ImagePicker();
-    final pickedFiles = await picker.pickMultiImage(); // for multiple images
+    final pickedFiles = await HeicConverter.pickMultiImage(picker, ); // for multiple images
 
     if (pickedFiles != null && pickedFiles.isNotEmpty) {
       setState(() {

@@ -5,6 +5,7 @@ import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 
 import '../Target_And_Tasks/models/owner_call_history.dart';
 import '../Target_And_Tasks/services/owner_call_service.dart';
+import '../Field_Workers/field_worker_directory.dart';
 
 /// Admin-side "Building Owner Calls" view — one section per field worker,
 /// each fetched with its own number-scoped `call_history.php` call, i.e.
@@ -19,15 +20,9 @@ import '../Target_And_Tasks/services/owner_call_service.dart';
 /// worker at a time; this screen just calls that same method once per
 /// worker instead of once unscoped.
 ///
-/// `allUsers` here is a deliberate copy of `Targets.dart`'s own
-/// `allUsers` roster (name/number/location), not a shared reference to
-/// it — that field is a private instance field of `_TargetState`, so
-/// duplicating the literal list is the only way to use it here without
-/// modifying `Targets.dart` beyond the single AppBar entry point. If that
-/// roster ever changes, this list needs updating too — same standing
-/// "hardcoded roster, not fetched from anywhere" limitation already
-/// flagged elsewhere in this codebase (see project memory:
-/// `business_logic_targets_roles.md`).
+/// `allUsers` is loaded from `FieldWorkerDirectory` (backed by
+/// `fieldworkar_list.php`) instead of a hardcoded/copy-pasted list, so
+/// it always matches the live roster and needs no manual updating.
 ///
 /// The one change to existing code, anywhere, is the single "Building
 /// Owner Calls" icon button added to `Targets.dart`'s AppBar `actions` to
@@ -42,14 +37,8 @@ class OwnerCallsHistoryScreen extends StatefulWidget {
 class _OwnerCallsHistoryScreenState extends State<OwnerCallsHistoryScreen> {
   final _service = OwnerCallService();
 
-  /// Copied from `Targets.dart`'s own `allUsers` — see this class's doc
-  /// comment for why it's a copy rather than a shared reference.
-  final List<Map<String, String>> allUsers = [
-    {"name": "Ravi Kumar", "number": "9711275300", "location": "Sultanpur"},
-    {"name": "Faizan Khan", "number": "9971172204", "location": "Sultanpur"},
-    {"name": "Yash", "number": "9211335993", "location": "Sultanpur"},
-    {"name": "Pawan", "number": "11", "location": "Sultanpur"},
-  ];
+  /// Loaded from `FieldWorkerDirectory` in `_load()` below.
+  List<Map<String, String>> allUsers = [];
 
   bool _loading = true;
 
@@ -96,6 +85,9 @@ class _OwnerCallsHistoryScreenState extends State<OwnerCallsHistoryScreen> {
   Future<void> _load() async {
     final requestId = ++_requestId;
     setState(() => _loading = true);
+
+    await FieldWorkerDirectory.instance.load();
+    allUsers = FieldWorkerDirectory.instance.asMaps;
 
     final results = <String, List<OwnerCallHistory>>{};
 

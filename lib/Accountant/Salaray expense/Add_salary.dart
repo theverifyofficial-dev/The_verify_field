@@ -12,6 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../Custom_Widget/constant.dart';
 import 'Salary_home.dart';
+import '../../utilities/heic_converter.dart';
 
 class AddSalary extends StatefulWidget {
   const AddSalary({super.key});
@@ -55,7 +56,7 @@ class _AddExpensesState extends State<AddSalary> {
     );
 
     if (source == null) return null;
-    final pickedFile = await picker.pickImage(source: source);
+    final pickedFile = await HeicConverter.pickImage(picker, source: source);
     if (pickedFile == null) return null;
 
     final tempDir = await getTemporaryDirectory();

@@ -17,6 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Custom_Widget/constant.dart';
 import 'New_Update/add_image_under_futureproperty.dart';
 import 'New_Update/flat_edit_model.dart';
+import '../utilities/heic_converter.dart';
 
 
 class _StepMeta {
@@ -183,7 +184,7 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
 
   Future<XFile?> pickAndCompressImage() async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await HeicConverter.pickImage(picker, source: ImageSource.gallery);
 
     formattedDate = "${now.day}_${now.month}_${now.year}";
 
@@ -922,7 +923,7 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
 
   Future<void> pickMultipleImages() async {
     final picker = ImagePicker();
-    final pickedFiles = await picker.pickMultiImage();
+    final pickedFiles = await HeicConverter.pickMultiImage(picker, );
 
     if (pickedFiles.isNotEmpty) {
       List<File> temp = [];

@@ -21,6 +21,7 @@ import '../../../Rent Agreement/Forms/Commercial_Form.dart' hide BuildingSuggest
 import '../../../Rent Agreement/Forms/External_Commercial.dart' hide BuildingSuggestion, FlatSuggestion, ElevatedGradientButton;
 import '../../../Rent Agreement/Forms/Furnished_form.dart' hide BuildingSuggestion, FlatSuggestion, ElevatedGradientButton;
 import '../../../Rent Agreement/Forms/Furnish_owner.dart' hide BuildingSuggestion, FlatSuggestion, ElevatedGradientButton;
+import '../../../utilities/heic_converter.dart';
 
 
 class _SectionTheme {
@@ -559,8 +560,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                   label: const Text("Camera"),
                   onPressed: () async {
                     Navigator.pop(context);
-                    final picked = await ImagePicker()
-                        .pickImage(source: ImageSource.camera, imageQuality: 90);
+                    final picked = await HeicConverter.pickImage(ImagePicker(), source: ImageSource.camera, imageQuality: 90);
                     if (picked == null) return;
                     File original = File(picked.path);
                     XFile? compressedX =
@@ -593,7 +593,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                   label: const Text("Gallery"),
                   onPressed: () async {
                     Navigator.pop(context);
-                    final picked = await ImagePicker().pickImage(
+                    final picked = await HeicConverter.pickImage(ImagePicker(), 
                         source: ImageSource.gallery, imageQuality: 90);
                     if (picked != null) {
                       await _uploadDocument(File(picked.path),

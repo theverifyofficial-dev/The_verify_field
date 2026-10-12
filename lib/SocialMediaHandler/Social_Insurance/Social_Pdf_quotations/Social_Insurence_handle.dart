@@ -8,6 +8,7 @@ import 'package:verify_feild_worker/SocialMediaHandler/Social_Insurance/Social_I
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 
 import '../Social_InsuranceDetail.dart';
+import 'package:verify_feild_worker/Field_Workers/field_worker_directory.dart';
 
 
 class _InsDetailRow extends StatelessWidget {
@@ -91,13 +92,9 @@ class Social_Insurance_handle extends StatefulWidget {
 
 class _Social_Insurance_handleState
     extends State<Social_Insurance_handle> {
-  // ── Field workers (same as Future Property page) ──────────────────────────
-  final List<Map<String, String>> fieldWorkers = [
-    {"name": "Sumit Kasaniya", "id": "9711775300"},
-    {"name": "Ravi Kumar", "id": "9711275300"},
-    {"name": "Faizan Khan", "id": "9971172204"},
-    // {"name": "Abhay", "id": "9675383184"},
-  ];
+  // Field-worker roster, loaded from FieldWorkerDirectory in
+  // _initializeData below (was previously a hardcoded list here).
+  List<Map<String, String>> fieldWorkers = [];
 
   // ── State ─────────────────────────────────────────────────────────────────
   Map<String, List<SocialInsuranceModel>> _groupedData = {};
@@ -110,14 +107,16 @@ class _Social_Insurance_handleState
   @override
   void initState() {
     super.initState();
-    for (final fw in fieldWorkers) {
-      _horizontalControllers[fw['id']!] = ScrollController();
-      _groupedData[fw['id']!] = [];
-    }
     WidgetsBinding.instance.addPostFrameCallback((_) => _initializeData());
   }
 
   Future<void> _initializeData() async {
+    await FieldWorkerDirectory.instance.load();
+    fieldWorkers = FieldWorkerDirectory.instance.asMaps;
+    for (final fw in fieldWorkers) {
+      _horizontalControllers[fw['id']!] = ScrollController();
+      _groupedData[fw['id']!] = [];
+    }
     await _loadUserData();
     if (!mounted) return;
     await _fetchAndUpdateData();
@@ -157,28 +156,10 @@ class _Social_Insurance_handleState
     if (_location.isEmpty || _post.isEmpty) return;
     setState(() => _isLoading = true);
 
-    final loc = _location.toLowerCase();
-    final isAdmin = _post.toLowerCase() == "administrator";
-
-    List<Map<String, String>> allowedWorkers = [];
-    if (isAdmin) {
-      allowedWorkers = fieldWorkers;
-    } else if (loc.contains("sultanpur")) {
-      allowedWorkers = fieldWorkers
-          .where((fw) =>
-      fw['name']!.toLowerCase().contains("sumit") ||
-          fw['name']!.toLowerCase().contains("ravi") ||
-          fw['name']!.toLowerCase().contains("faizan"))
-          .toList();
-    } else if (loc.contains("rajpur") ||
-        loc.contains("chhattarpur") ||
-        loc.contains("chattar")) {
-      allowedWorkers = fieldWorkers
-          .where((fw) =>
-      fw['name']!.toLowerCase().contains("manish") ||
-          fw['name']!.toLowerCase().contains("abhay"))
-          .toList();
-    }
+    // Every role now sees the full dynamically-fetched roster — the old
+    // location-name filtering here was based on a hardcoded list that
+    // didn't match the real roster for most workers anyway.
+    final List<Map<String, String>> allowedWorkers = fieldWorkers;
 
     for (final fw in allowedWorkers) {
       final data = await _fetchByNumber(fw['id']!);
@@ -639,27 +620,9 @@ class _Social_Insurance_handleState
   // ── Build ─────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final loc = _location.toLowerCase();
-    final post = _post.toLowerCase();
-    final isAdmin = post == "administrator";
-
-    final List<Map<String, String>> workersToShow = isAdmin
-        ? fieldWorkers
-        : fieldWorkers.where((fw) {
-      final n = fw['name']!.toLowerCase();
-      if (loc.contains("sultanpur")) {
-        return n.contains("sumit") ||
-            n.contains("ravi") ||
-            n.contains("faizan") ||
-      n.contains("avjit");
-      }
-      if (loc.contains("rajpur") ||
-          loc.contains("chhattarpur") ||
-          loc.contains("chattar")) {
-        return n.contains("manish") || n.contains("abhay");
-      }
-      return false;
-    }).toList();
+    // Every role now sees the full dynamically-fetched roster — see
+    // the matching note in _fetchAndUpdateData above.
+    final List<Map<String, String>> workersToShow = fieldWorkers;
 
     final bool hasAccess = workersToShow.isNotEmpty;
     final isDark = Theme.of(context).brightness == Brightness.dark;

@@ -2,9 +2,12 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Custom_Widget/property_preview.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'InsuranceShowListPage.dart';
 import 'UpdateInsuranceForm Screen.dart';
+import 'insurance_ui_kit.dart';
+import '../Future_Property_OwnerDetails_section/Future_property_details.dart';
+import '../Future_Property_OwnerDetails_section/New_Update/under_flats_infutureproperty.dart';
 
 class InsuranceDetailScreen extends StatefulWidget {
   final int insuranceId;
@@ -62,53 +65,51 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
     super.initState();
     fetchDetails();
     loadUserName();
-    fetchMultipleImages();
   }
+  // **2026-10-22 migration**: both the detail endpoint AND the base it
+  // builds document/image URLs from now point at the NEW table's backend
+  // (same migration as `InsuranceShowListPage.dart`'s top-level
+  // `insuranceBaseUrl` -- kept as a separate field here since this class
+  // already had its own copy of the constant rather than importing the
+  // shared one). See "Vehicle_Info_API_Insurance_Redesign_Spec.md" §15.
   String insuranceBaseUrl =
-      "https://verifyrealestateandservices.in/PHP_Files/"
-      "insurance_insert_api/insurance_details/";
+      "https://verifyrealestateandservices.in/Second%20PHP%20FILE/insurance/";
 
   List<String> multipleImages = [];
 
-  Future<void> fetchMultipleImages() async {
-    try {
-      final response = await http.get(Uri.parse(
-          "https://verifyrealestateandservices.in/PHP_Files/"
-              "insurance_insert_api/insurance_details/"
-              "show_insurance_multiple_image.php?subid=${widget.insuranceId}"));
-
-      final decoded = jsonDecode(response.body);
-      print("show_insurance_multiple_image ${response.body}");
-      print("show_insurance_multiple_image ${widget.insuranceId}");
-      if (decoded['success'] == true) {
-        final List data = decoded['data'];
-
-        multipleImages =
-            data.map((e) => insuranceBaseUrl + e['car_images']).toList();
-      }
-    } catch (e) {
-      debugPrint("Multiple Image Error: $e");
-    }
-
+  /// **2026-10-22**: the new table's own detail endpoint already returns
+  /// `car_images` (a list of relative paths) directly on the record
+  /// itself -- there is no separate "multiple images" endpoint on this
+  /// new backend the way the old table had one, so this just reads off
+  /// whatever `fetchDetails()` already fetched instead of making a
+  /// second network call to an endpoint that doesn't exist here.
+  void _loadMultipleImagesFromRecord() {
+    final images = insurance?.carImageUrls ?? const <String>[];
+    multipleImages = images;
     if (mounted) setState(() {});
   }
 
   Future<void> fetchDetails() async {
     try {
       final response = await http.get(Uri.parse(
-          "https://verifyrealestateandservices.in/PHP_Files/"
-              "insurance_insert_api/insurance_details/"
-              "show_api_for_details_page.php?id=${widget.insuranceId}"));
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/insurance/"
+              "show_api_details_page.php?id=${widget.insuranceId}"));
 
       final decoded = jsonDecode(response.body);
 
-      if (decoded['status'] == "success") {
-        insurance = InsuranceModel.fromJson(decoded['data'][0]);
+      if (decoded['status'] == true) {
+        final data = decoded['data'];
+        if (data is List && data.isNotEmpty) {
+          insurance = InsuranceModel.fromJson(data.first as Map<String, dynamic>);
+        } else if (data is Map<String, dynamic>) {
+          insurance = InsuranceModel.fromJson(data);
+        }
       }
     } catch (e) {
       debugPrint("Detail Error: $e");
     }
 
+    _loadMultipleImagesFromRecord();
     if (mounted) setState(() => isLoading = false);
   }
 
@@ -117,768 +118,419 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
       isLoading = true;
     });
 
-    await Future.wait([
-      fetchDetails(),
-      fetchMultipleImages(),
-    ]);
+    await fetchDetails();
 
     setState(() {
       isLoading = false;
     });
   }
 
-  // String _formatCreatedDate(String? date) {
-  //   if (date == null || date.isEmpty) return "-";
-  //
-  //   try {
-  //     final parsed =
-  //     DateFormat("yyyy-MM-dd HH:mm:ss").parse(date);
-  //     return DateFormat("dd MMM yyyy, hh:mm a").format(parsed);
-  //   } catch (e) {
-  //     return date;
-  //   }
-  // }
 
-  Widget policyHolderCard(InsuranceModel item) {
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: isDark
-            ? const Color(0xFF1A2433)   // Dark mode card
-            : const Color(0xffF5F6F8),  // Light mode card
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withOpacity(.8)
-                : Colors.black.withOpacity(.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-
-          /// TITLE + BADGE
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-
-              Text(
-                "Policy Holder",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                  color: isDark ? Colors.white : Colors.black,
-                ),
-              ),
-
-              Container(
-                height: 28,
-                width: 28,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xffD4AF37)
-                      : Colors.orange.shade100,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.verified,
-                  color: isDark ? Colors.black : Colors.orange,
-                  size: 16,
-                ),
-              )
-            ],
-          ),
-
-          const SizedBox(height: 18),
-
-          /// USER INFO
-          Row(
-            children: [
-
-              /// AVATAR
-              Container(
-                padding: const EdgeInsets.all(3),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: isDark
-                        ? const Color(0xffD4AF37)
-                        : Colors.amber,
-                    width: 1.5,
-                  ),
-                ),
-                child: CircleAvatar(
-                  radius: 24,
-                  backgroundColor: isDark
-                      ? const Color(0xff121212)
-                      : Colors.grey.shade200,
-                  child: Icon(
-                    Icons.person,
-                    color: isDark
-                        ? const Color(0xffA0A0A0)
-                        : Colors.grey,
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 12),
-
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-
-                  Text(
-                    item.name ?? "-",
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-
-                  const SizedBox(height: 2),
-
-                  Text(
-                    "Privilege Member since 2021",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark
-                          ? const Color(0xffB8860B)
-                          : Colors.grey,
-                    ),
-                  )
-                ],
-              )
-            ],
-          ),
-
-          const SizedBox(height: 16),
-
-          Divider(
-            color: isDark
-                ? const Color(0xff2E3A4E)
-                : Colors.grey.shade300,
-          ),
-
-          const SizedBox(height: 14),
-
-          /// EMAIL
-          Row(
-            children: [
-              Icon(
-                Icons.email_outlined,
-                size: 18,
-                color: isDark
-                    ? const Color(0xffA0A0A0)
-                    : Colors.grey.shade700,
-              ),
-
-              const SizedBox(width: 10),
-
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    Text(
-                      "EMAIL ADDRESS",
-                      style: TextStyle(
-                        fontSize: 10,
-                        letterSpacing: 1,
-                        color: isDark
-                            ? const Color(0xffA0A0A0)
-                            : Colors.grey,
-                      ),
-                    ),
-
-                    Text(
-                      item.emailId ?? "-",
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            ],
-          ),
-
-          const SizedBox(height: 14),
-
-          /// PHONE
-          Row(
-            children: [
-              Icon(
-                Icons.phone_iphone,
-                size: 18,
-                color: isDark
-                    ? const Color(0xffA0A0A0)
-                    : Colors.grey.shade700,
-              ),
-
-              const SizedBox(width: 10),
-
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-
-                  Text(
-                    "PRIMARY CONTACT",
-                    style: TextStyle(
-                      fontSize: 10,
-                      letterSpacing: 1,
-                      color: isDark
-                          ? const Color(0xffA0A0A0)
-                          : Colors.grey,
-                    ),
-                  ),
-
-                  Text(
-                    item.number ?? "-",
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: isDark ? Colors.white : Colors.black,
-                    ),
-                  ),
-                ],
-              )
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget vehicleSpecCard(InsuranceModel item) {
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: isDark
-            ? const Color(0xFF1A2433)   // Dark mode card
-            : const Color(0xffF5F6F8),  // Light mode card
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withOpacity(.8)
-                : Colors.black.withOpacity(.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-
-          /// TITLE
-          Text(
-            "Vehicle Specifications",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : Colors.black,
-            ),
-          ),
-
-          const SizedBox(height: 18),
-
-          /// ROW 1
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-
-              specItem("DRIVE TYPE", item.vehicleType, isDark),
-
-              specItem("FUEL SOURCE", item.fuelType, isDark),
-            ],
-          ),
-
-          const SizedBox(height: 18),
-
-          /// ROW 2
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-
-              specItem("REGISTRATION", item.vehicleNumber, isDark),
-
-              specItem("ENGINE REF.", item.vehicle_category, isDark),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget specItem(String title, String? value, bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildHeaderCarousel() {
+    return Stack(
+      fit: StackFit.expand,
       children: [
+        multipleImages.isEmpty
+            ? Container(
+                color: InsColors.bg,
+                child: const Center(
+                  child: Icon(Icons.directions_car_filled_rounded,
+                      color: InsColors.textMuted, size: 56),
+                ),
+              )
+            : PageView.builder(
+                controller: _pageController,
+                itemCount: multipleImages.length,
+                onPageChanged: (index) {
+                  setState(() {
+                    currentPage = index;
+                  });
+                },
+                itemBuilder: (context, index) {
+                  final imageUrl = multipleImages[index];
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => FullImageViewer(
+                            images: multipleImages,
+                            initialIndex: index,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      gaplessPlayback: true,
+                      loadingBuilder: (context, child, progress) {
+                        if (progress == null) return child;
+                        return const Center(child: CircularProgressIndicator());
+                      },
+                      errorBuilder: (_, __, ___) => Container(
+                        color: InsColors.bg,
+                        child: const Icon(Icons.broken_image_rounded,
+                            color: InsColors.textMuted, size: 40),
+                      ),
+                    ),
+                  );
+                },
+              ),
 
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 10,
-            letterSpacing: 1,
-            color: isDark
-                ? const Color(0xffA0A0A0)
-                : Colors.grey,
+        /// bottom gradient so the top buttons/dots stay legible over bright photos
+        Positioned.fill(
+          child: IgnorePointer(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(.25),
+                    Colors.transparent,
+                    Colors.transparent,
+                    Colors.black.withOpacity(.35),
+                  ],
+                  stops: const [0, 0.25, 0.7, 1],
+                ),
+              ),
+            ),
           ),
         ),
 
-        const SizedBox(height: 4),
+        if (multipleImages.length > 1)
+          Positioned(
+            bottom: 14,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                multipleImages.length,
+                (index) => Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: currentPage == index ? 9 : 6,
+                  height: currentPage == index ? 9 : 6,
+                  decoration: BoxDecoration(
+                    color: currentPage == index ? Colors.white : Colors.white54,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+            ),
+          ),
 
-        Text(
-          value ?? "-",
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : const Color(0xff111827),
+        Positioned(
+          top: 48,
+          left: 16,
+          right: 16,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _circleButton(Icons.arrow_back_ios_new_rounded, () {
+                Navigator.pop(context);
+              }),
+              if (userStoredFAadharCard == "FieldWorkar")
+                _circleButton(Icons.edit_rounded, () async {
+                  final refreshed = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => UpdateInsuranceFormScreen(item: insurance!),
+                    ),
+                  );
+                  if (refreshed == true) {
+                    _refreshPage();
+                  }
+                }),
+            ],
           ),
         ),
       ],
     );
   }
 
-  Widget currentPolicyCard(InsuranceModel item) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xff0F172A),
-            Color(0xff1E293B),
+  Widget _circleButton(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.black.withOpacity(0.38),
+          border: Border.all(color: Colors.white24),
+        ),
+        child: Icon(icon, color: Colors.white, size: 18),
+      ),
+    );
+  }
+
+  Widget policyHolderCard(InsuranceModel item) {
+    final ownerNumber = item.number;
+    final hasOwnerNumber = ownerNumber != null && ownerNumber.trim().isNotEmpty;
+
+    return InsSectionCard(
+      title: "Policy Holder",
+      icon: Icons.verified_user_rounded,
+      children: [
+        Row(
+          children: [
+            CircleAvatar(
+              radius: 24,
+              backgroundColor: InsColors.bg,
+              child: const Icon(Icons.person_rounded, color: InsColors.primary),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.name ?? "-",
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: InsColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    item.number ?? "-",
+                    style: const TextStyle(fontSize: 13, color: InsColors.textSecondary),
+                  ),
+                ],
+              ),
+            ),
+            if (hasOwnerNumber) ...[
+              GestureDetector(
+                onTap: () => _callNumber(ownerNumber),
+                child: Container(
+                  height: 38,
+                  width: 38,
+                  decoration: BoxDecoration(
+                    color: InsColors.successBg,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.call_rounded, color: InsColors.success, size: 18),
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () => _openWhatsApp(ownerNumber),
+                child: Container(
+                  height: 38,
+                  width: 38,
+                  decoration: BoxDecoration(
+                    color: InsColors.successBg,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.chat_rounded, color: InsColors.success, size: 18),
+                ),
+              ),
+            ],
           ],
         ),
-        borderRadius: BorderRadius.circular(22),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+        const SizedBox(height: 12),
+        const Divider(height: 1, color: InsColors.border),
+        const SizedBox(height: 4),
+        InsInfoRow(
+          label: "Email Address",
+          value: item.emailId ?? "",
+          icon: Icons.email_outlined,
+        ),
+        InsInfoRow(label: "Extra Number", value: item.extraNumber ?? "", icon: Icons.contact_phone_outlined, copyable: true),
+        InsInfoRow(label: "Calling Number", value: item.callingNumber ?? "", icon: Icons.call_outlined, copyable: true),
+      ],
+    );
+  }
 
-          /// TOP ROW
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+  // **2026-10-22 dedup**: "Insurance Valid Upto" used to duplicate the
+  // exact same INSURANCE_UPTO value the "Insurance Policy Details"
+  // dynamic section below already shows -- removed from here, leaving
+  // only the manually-entered Claim status (not an RTO field, so it has
+  // nowhere else to live). Hidden entirely when there's no claim on
+  // file, same "no empty card" rule `nomineeCard` already follows.
+  // `vehicleSpecCard` (Body Type / Fuel / Registration No. / Engine
+  // Number) was removed outright in the same pass -- every one of its
+  // rows duplicated a field the "Engine & Vehicle Specs" / "Registration
+  // & Authority" dynamic sections already render.
+  Widget currentPolicyCard(InsuranceModel item) {
+    final hasClaim = item.claim != null && item.claim!.trim().isNotEmpty;
+    if (!hasClaim) return const SizedBox.shrink();
+    return InsSectionCard(
+      title: "Claim Status",
+      icon: Icons.workspace_premium_outlined,
+      children: [
+        InsInfoRow(label: "Insurance Claim", value: item.claim ?? "", icon: Icons.workspace_premium_outlined),
+      ],
+    );
+  }
 
-              const Text(
-                "CURRENT POLICY",
-                style: TextStyle(
-                  color: Color(0xffFACC15),
-                  fontSize: 11,
-                  letterSpacing: 1,
-                  fontWeight: FontWeight.bold,
+  Widget documentsGrid(InsuranceModel item) {
+    final docs = [
+      {"title": "Vehicle Photo", "url": item.carPhotoUrl},
+      {"title": "RC Front", "url": item.rcFrontUrl},
+      {"title": "RC Back", "url": item.rcBackUrl},
+      {"title": "Aadhar Front", "url": item.aadharFrontUrl},
+      {"title": "Aadhar Back", "url": item.aadharBackUrl},
+      {"title": "PAN Card", "url": item.panCardPhotoUrl},
+      {"title": "Old Policy", "url": item.oldPolicyUrl},
+      {"title": "Driving License", "url": item.dlImgUrl},
+      {"title": "New Policy", "url": item.newPolicyDocumentUrl},
+      {"title": "Pollution", "url": item.pollutionPhotoUrl},
+    ];
+
+    // Only the documents that actually have an uploaded image are
+    // swipeable in the full-screen viewer -- tapping any one of them
+    // opens the viewer positioned on that document, and from there the
+    // person can swipe through every other uploaded document too,
+    // instead of being dropped into an isolated single-image view.
+    final availableDocs = docs
+        .where((d) => (d["url"] as String?)?.isNotEmpty == true)
+        .map((d) => InsDocItem(title: d["title"] as String, url: d["url"] as String))
+        .toList();
+
+    return InsSectionCard(
+      title: "Documents",
+      icon: Icons.folder_copy_outlined,
+      children: [
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.95,
+          ),
+          itemCount: docs.length,
+          itemBuilder: (_, i) {
+            final doc = docs[i];
+            final imageUrl = doc["url"];
+            final hasImage = imageUrl != null && imageUrl.toString().isNotEmpty;
+
+            return GestureDetector(
+              onTap: hasImage
+                  ? () {
+                      final startIndex = availableDocs.indexWhere((d) => d.title == doc["title"]);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => InsDocumentViewer(
+                            items: availableDocs,
+                            initialIndex: startIndex < 0 ? 0 : startIndex,
+                          ),
+                        ),
+                      );
+                    }
+                  : null,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: InsColors.bg,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: InsColors.border),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (hasImage)
+                      Image.network(
+                        imageUrl.toString(),
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, progress) {
+                          if (progress == null) return child;
+                          return const Center(
+                            child: SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          );
+                        },
+                        errorBuilder: (_, __, ___) => _docPlaceholder(doc["title"]!),
+                      )
+                    else
+                      _docPlaceholder(doc["title"]!),
+                    if (hasImage)
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [
+                                Colors.black.withOpacity(.55),
+                                Colors.transparent,
+                              ],
+                            ),
+                          ),
+                          child: Text(
+                            doc["title"]!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
+            );
+          },
+        ),
+      ],
+    );
+  }
 
-              /// EXPIRING BADGE
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: Colors.white24,
-                  ),
-                ),
-                child: const Text(
-                  "EXPIRING\nSOON",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 9,
-                    color: Color(0xffFACC15),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              )
-            ],
-          ),
-
-          const SizedBox(height: 10),
-
-          /// POLICY NAME
-          const Text(
-            "Comprehensive Plus",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
+  Widget _docPlaceholder(String title) {
+    return Container(
+      color: InsColors.bg,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.insert_drive_file_outlined, size: 30, color: InsColors.textMuted),
+          const SizedBox(height: 4),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: InsColors.textMuted),
             ),
           ),
-
-          const SizedBox(height: 20),
-
-          /// SMALL INFO CARDS
-          Row(
-            children: [
-
-              /// RENEWAL DATE CARD
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(.05),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-
-                      const Text(
-                        "RENEWAL DUE",
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.white54,
-                        ),
-                      ),
-
-                      const SizedBox(height: 4),
-
-                      Text(
-                        item.nextRenewDate ?? "-",
-                        style: const TextStyle(
-                          fontSize: 15,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(width: 12),
-
-              /// CLAIM BONUS CARD
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(.05),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white10),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-
-                      const Text(
-                        "CLAIM BONUS",
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.white54,
-                        ),
-                      ),
-
-                      const SizedBox(height: 4),
-
-                      Text(
-                        item.claim ?? "No Claims",
-                        style: const TextStyle(
-                          fontSize: 15,
-                          color: Colors.greenAccent,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          )
         ],
       ),
     );
   }
 
-  Widget documentsGrid(InsuranceModel item) {
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final docs = [
-
-      {"title": "Vehicle Photo", "url": item.carPhotoUrl, "tag": ""},
-      {"title": "RC Front", "url": item.rcFrontUrl, "tag": ""},
-      {"title": "RC Back", "url": item.rcBackUrl, "tag": ""},
-      {"title": "Aadhar Front", "url": item.aadharFrontUrl, "tag": ""},
-      {"title": "Aadhar Back", "url": item.aadharBackUrl, "tag": ""},
-      {"title": "Old Policy", "url": item.oldPolicyUrl, "tag": ""}, // ✅ ADD THIS
-      {"title": "Pollution", "url": item.pollutionPhotoUrl, "tag": ""},
-
-    ];
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 14,
-        mainAxisSpacing: 14,
-        childAspectRatio: 1.05,
-      ),
-
-      itemCount: docs.length,
-
-      itemBuilder: (_, i) {
-
-        final doc = docs[i];
-        final imageUrl = doc["url"];
-
-        return GestureDetector(
-          onTap: () {
-
-            if (imageUrl != null && imageUrl.toString().isNotEmpty) {
-
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => PropertyPreview(ImageUrl: imageUrl),
-                ),
-              );
-
-            }
-
-          },
-
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: isDark
-                      ? Colors.black.withOpacity(.6)
-                      : Colors.black.withOpacity(.08),
-                  blurRadius: 10,
-                )
-              ],
-            ),
-
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(18),
-
-              child: Stack(
-                children: [
-
-                  /// IMAGE OR PLACEHOLDER
-                  Positioned.fill(
-                    child: imageUrl != null && imageUrl.toString().isNotEmpty
-
-                        ? Image.network(
-                      imageUrl,
-                      fit: BoxFit.contain,
-
-                      loadingBuilder: (context, child, progress) {
-
-                        if (progress == null) return child;
-
-                        return Center(
-                          child: SizedBox(
-                            height: 22,
-                            width: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: isDark
-                                  ? Colors.white
-                                  : Colors.black,
-                            ),
-                          ),
-                        );
-                      },
-
-                      errorBuilder: (_, __, ___) {
-
-                        return Container(
-                          color: isDark
-                              ? const Color(0xff1A2433)
-                              : Colors.grey.shade200,
-
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-
-                              Icon(
-                                Icons.insert_drive_file_rounded,
-                                size: 40,
-                                color: isDark
-                                    ? Colors.white54
-                                    : Colors.grey,
-                              ),
-
-                              const SizedBox(height: 6),
-
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 6),
-                                child: Text(
-                                  doc["title"]!,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: isDark
-                                        ? Colors.white60
-                                        : Colors.grey,
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                        );
-                      },
-                    )
-
-                    /// IF IMAGE URL EMPTY
-                        : Container(
-                      color: isDark
-                          ? const Color(0xff1A2433)
-                          : Colors.grey.shade200,
-
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-
-                          Icon(
-                            Icons.insert_drive_file,
-                            size: 40,
-                            color: isDark
-                                ? Colors.white54
-                                : Colors.grey,
-                          ),
-
-                          const SizedBox(height: 6),
-
-                          Text(
-                            doc["title"]!,
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: isDark
-                                  ? Colors.white60
-                                  : Colors.grey,
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  /// OVERLAY ONLY IF IMAGE EXISTS
-                  if (imageUrl != null && imageUrl.toString().isNotEmpty)
-                    Positioned.fill(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.bottomCenter,
-                            end: Alignment.topCenter,
-                            colors: [
-                              Colors.black.withOpacity(.7),
-                              Colors.transparent,
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-
-                  /// TAG
-                  Positioned(
-                    top: 10,
-                    left: 10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        doc["tag"]!,
-                        style: const TextStyle(
-                          color: Color(0xffFACC15),
-                          fontSize: 9,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  /// TITLE
-                  Positioned(
-                    bottom: 10,
-                    left: 10,
-                    child: Text(
-                      doc["title"]!,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Widget multipleImagesGallery() {
-
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     if (multipleImages.isEmpty) {
       return const SizedBox();
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return InsSectionCard(
+      title: "Car Gallery",
+      icon: Icons.photo_library_outlined,
       children: [
-
-        const SizedBox(height: 16),
-
-        Text(
-          "Car Gallery",
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: isDark ? Colors.white : Colors.black,
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
         SizedBox(
-          height: 110,
-
+          height: 96,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: multipleImages.length,
-
             itemBuilder: (context, index) {
-
               final imageUrl = multipleImages[index];
-
               return GestureDetector(
-
                 onTap: () {
                   Navigator.push(
                     context,
@@ -889,57 +541,39 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
                       ),
                     ),
                   );
-
                 },
-
                 child: Container(
-                  margin: const EdgeInsets.only(right: 12),
-
+                  margin: const EdgeInsets.only(right: 10),
+                  width: 96,
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-
+                    borderRadius: BorderRadius.circular(14),
                     child: Image.network(
                       imageUrl,
-                      fit: BoxFit.contain,
-                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      width: 96,
+                      height: 96,
                       gaplessPlayback: true,
-
-                      /// LOADING
                       loadingBuilder: (context, child, progress) {
-
                         if (progress == null) return child;
-
-                        return SizedBox(
-                          height: 110,
-                          width: 110,
-                          child: Center(
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: isDark
-                                  ? Colors.white
-                                  : Colors.black,
+                        return Container(
+                          color: InsColors.bg,
+                          width: 96,
+                          height: 96,
+                          child: const Center(
+                            child: SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
                             ),
                           ),
                         );
                       },
-
-                      /// ERROR IMAGE
-                      errorBuilder: (_, __, ___) {
-
-                        return Container(
-                          height: 110,
-                          width: 110,
-                          color: isDark
-                              ? const Color(0xff1A2433)
-                              : Colors.grey.shade200,
-                          child: Icon(
-                            Icons.broken_image,
-                            color: isDark
-                                ? Colors.white54
-                                : Colors.grey,
-                          ),
-                        );
-                      },
+                      errorBuilder: (_, __, ___) => Container(
+                        color: InsColors.bg,
+                        width: 96,
+                        height: 96,
+                        child: const Icon(Icons.broken_image_rounded, color: InsColors.textMuted),
+                      ),
                     ),
                   ),
                 ),
@@ -952,487 +586,305 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
   }
 
   Widget nomineeCard(InsuranceModel item) {
+    // Hide the whole card rather than showing a "Not provided"
+    // placeholder when there's no nominee on file.
+    final hasNominee = item.nomineeName != null && item.nomineeName!.isNotEmpty;
+    if (!hasNominee) return const SizedBox.shrink();
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: isDark
-            ? const Color(0xFF1A2433)   // dark card
-            : const Color(0xffF5F6F8),  // light card
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withOpacity(.8)
-                : Colors.black.withOpacity(.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-
-          /// TITLE
-          Text(
-            "Nomine",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : Colors.black,
+    return InsSectionCard(
+      title: "Nominee",
+      icon: Icons.groups_rounded,
+      children: [
+        Row(
+          children: [
+            Container(
+              height: 42,
+              width: 42,
+              decoration: BoxDecoration(
+                color: InsColors.bg,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.groups_rounded, color: InsColors.primary),
             ),
-          ),
-
-          const SizedBox(height: 16),
-
-          Row(
-            children: [
-
-              /// ICON BOX
-              Container(
-                height: 42,
-                width: 42,
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.orange.withOpacity(.15)
-                      : Colors.orange.shade100,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.groups_rounded,
-                  color: Colors.orange,
-                ),
-              ),
-
-              const SizedBox(width: 14),
-
-              /// NOMINEE INFO
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-
-                    Text(
-                      item.nomineeName ?? "-",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-
-                    const SizedBox(height: 2),
-
-                    Text(
-                      "${item.nomineeRelation ?? "-"} • ${item.nomineeAge ?? "-"} Years",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isDark
-                            ? const Color(0xffA0A0A0)
-                            : Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              /// SHARE SECTION
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   Text(
-                    "SHARE",
-                    style: TextStyle(
-                      fontSize: 10,
-                      letterSpacing: 1,
-                      color: isDark
-                          ? const Color(0xffA0A0A0)
-                          : Colors.grey,
+                    item.nomineeName ?? "-",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: InsColors.textPrimary,
                     ),
                   ),
-
-                  const SizedBox(height: 4),
-
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? Colors.orange.withOpacity(.15)
-                          : Colors.orange.shade100,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text(
-                      "100%",
-                      style: TextStyle(
-                        color: Colors.orange,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  )
+                  const SizedBox(height: 2),
+                  Text(
+                    "${item.nomineeRelation ?? "-"} • ${item.nomineeAge ?? "-"} Years",
+                    style: const TextStyle(fontSize: 12, color: InsColors.textSecondary),
+                  ),
                 ],
-              )
-            ],
-          )
-        ],
-      ),
+              ),
+            ),
+          ],
+        ),
+        InsInfoRow(label: "Marital Status", value: item.maritalStatus ?? "", icon: Icons.family_restroom_outlined),
+      ],
     );
   }
 
+  Future<void> _callNumber(String? number) async {
+    if (number == null || number.trim().isEmpty) return;
+    final uri = Uri(scheme: 'tel', path: number.trim());
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
+  Future<void> _openWhatsApp(String? number) async {
+    if (number == null || number.trim().isEmpty) return;
+    final digits = number.trim().replaceAll(RegExp(r'[^0-9+]'), '');
+    final uri = Uri.parse('https://wa.me/$digits');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
   Widget agentCallCard() {
+    final number = insurance?.fieldWorkerNumber;
+    final hasNumber = number != null && number.trim().isNotEmpty;
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: isDark
-            ? const Color(0xFF1A2433)
-            : const Color(0xffF5F6F8),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withOpacity(.8)
-                : Colors.black.withOpacity(.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          )
-        ],
-      ),
-      child: Row(
-        children: [
-
-          /// AGENT AVATAR
-          Container(
-            padding: const EdgeInsets.all(3),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: Colors.orange,
-                width: 1.5,
+    return InsSectionCard(
+      title: "Dedicated Agent",
+      icon: Icons.support_agent_rounded,
+      children: [
+        Row(
+          children: [
+            Container(
+              height: 42,
+              width: 42,
+              decoration: BoxDecoration(
+                color: InsColors.bg,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.person_rounded, color: InsColors.primary),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    insurance?.fieldWorkerName ?? "Agent",
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: InsColors.textPrimary,
+                    ),
+                  ),
+                  Text(
+                    number ?? "-",
+                    style: const TextStyle(fontSize: 12, color: InsColors.textSecondary),
+                  ),
+                ],
               ),
             ),
-            child: CircleAvatar(
-              radius: 22,
-              backgroundColor:
-              isDark ? const Color(0xff121212) : Colors.grey.shade200,
-              child: const Icon(Icons.person, color: Colors.grey),
-            ),
-          ),
-
-          const SizedBox(width: 14),
-
-          /// AGENT INFO
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-
-                Text(
-                  "DEDICATED AGENT",
-                  style: TextStyle(
-                    fontSize: 10,
-                    letterSpacing: 1,
-                    color: isDark
-                        ? const Color(0xffA0A0A0)
-                        : Colors.grey,
+            if (hasNumber)
+              GestureDetector(
+                onTap: () => _callNumber(number),
+                child: Container(
+                  height: 38,
+                  width: 38,
+                  decoration: BoxDecoration(
+                    color: InsColors.successBg,
+                    borderRadius: BorderRadius.circular(10),
                   ),
+                  child: const Icon(Icons.call_rounded, color: InsColors.success, size: 18),
                 ),
-
-                const SizedBox(height: 2),
-
-                Text(
-                  insurance?.fieldWorkerName ?? "Agent",
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : Colors.black,
-                  ),
-                ),
-
-                Text(
-                  insurance?.fieldWorkerNumber ?? "-",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark
-                        ? const Color(0xffA0A0A0)
-                        : Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+              ),
+          ],
+        ),
+      ],
     );
   }
 
   Widget currentDateCard(String? date) {
+    // Only a single row -- hide the whole card rather than leaving an
+    // empty header showing when there's no date.
+    if (date == null || date.trim().isEmpty) return const SizedBox.shrink();
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return InsSectionCard(
+      title: "Created Date",
+      icon: Icons.calendar_month_rounded,
+      children: [
+        InsInfoRow(label: "Created On", value: formatInsuranceDate(date), icon: Icons.schedule_rounded),
+      ],
+    );
+  }
 
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: isDark
-            ? const Color(0xFF1A2433)
-            : const Color(0xffF5F6F8),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.black.withOpacity(.8)
-                : Colors.black.withOpacity(.3 ),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          )
-        ],
-      ),
-      child: Row(
+  @override
+  // 2026-10-29, Building/Flat insurance-linking feature: "Go to
+  // Building"/"Go to Flat" buttons on the Detail page itself -- previously
+  // this navigation only existed on the field-worker List card (§34.3),
+  // not here, even though InsuranceModel has carried buildingId/flatId
+  // since §34. Only rendered when the record actually has a linked id.
+  Widget _buildLinkageRow(InsuranceModel item) {
+    if (!item.hasBuildingLink && !item.hasFlatLink) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
         children: [
-
-          /// DATE ICON BOX
-          Container(
-            height: 42,
-            width: 42,
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.blue.withOpacity(.15)
-                  : Colors.blue.shade100,
-              borderRadius: BorderRadius.circular(12),
+          if (item.hasBuildingLink)
+            OutlinedButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => Future_Property_details(idd: item.buildingId!)),
+              ),
+              icon: const Icon(Icons.apartment, size: 16),
+              label: Text('Go to Building #${item.buildingId}'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: InsColors.primary,
+                side: const BorderSide(color: InsColors.primary),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              ),
             ),
-            child: const Icon(
-              Icons.calendar_month_rounded,
-              color: Colors.blue,
-            ),
-          ),
-
-          const SizedBox(width: 14),
-
-          /// DATE INFO
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-
-              Text(
-                "CREATED DATE",
-                style: TextStyle(
-                  fontSize: 10,
-                  letterSpacing: 1,
-                  color: isDark
-                      ? const Color(0xffA0A0A0)
-                      : Colors.grey,
+          if (item.hasFlatLink)
+            OutlinedButton.icon(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => underflat_futureproperty(
+                    id: item.flatId!,
+                    Subid: '',
+                    buildingId: item.buildingId,
+                  ),
                 ),
               ),
-
-              const SizedBox(height: 4),
-
-              Text(
-                date ?? "-",
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: isDark
-                      ? Colors.white
-                      : const Color(0xff111827),
-                ),
+              icon: const Icon(Icons.door_front_door_outlined, size: 16),
+              label: Text('Go to Flat #${item.flatId}'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: InsColors.primary,
+                side: const BorderSide(color: InsColors.primary),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               ),
-            ],
-          )
+            ),
         ],
       ),
     );
   }
 
-  @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     if (isLoading) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        backgroundColor: InsColors.bg,
+        body: Center(child: CircularProgressIndicator(color: InsColors.primary)),
       );
     }
 
     if (insurance == null) {
       return const Scaffold(
-        body: Center(child: Text("No Data Found")),
+        backgroundColor: InsColors.bg,
+        body: Center(
+          child: Text(
+            "No Data Found",
+            style: TextStyle(color: InsColors.textSecondary),
+          ),
+        ),
       );
     }
 
     final item = insurance!;
 
     return Scaffold(
-      backgroundColor:
-      isDark ? const Color(0xFF0A192F) : Colors.white,
-
+      backgroundColor: InsColors.bg,
       body: RefreshIndicator(
         onRefresh: _refreshPage,
+        color: InsColors.primary,
         child: CustomScrollView(
           slivers: [
-            /// ✅ HERO HEADER
-            //     PageController _pageController = PageController();
-            // int currentPage = 0;
-
             SliverAppBar(
-              expandedHeight: 250,
+              expandedHeight: 240,
               pinned: false,
               automaticallyImplyLeading: false,
-              backgroundColor: Colors.black,
-
+              backgroundColor: InsColors.bg,
               flexibleSpace: FlexibleSpaceBar(
-                background: Stack(
-                  fit: StackFit.expand,
-                  children: [
-
-                    /// PAGE VIEW (BETTER THAN CAROUSEL FOR DELETE)
-                    multipleImages.isEmpty
-                        ? Container(
-                      color: Colors.black,
-                      child: const Center(
-                        child: Icon(
-                          Icons.broken_image,
-                          color: Colors.white,
-                          size: 50,
-                        ),
-                      ),
-                    )
-                        : PageView.builder(
-                      controller: _pageController,
-                      itemCount: multipleImages.length,
-                      onPageChanged: (index) {
-                        setState(() {
-                          currentPage = index;
-                        });
-                      },
-                      itemBuilder: (context, index) {
-
-                        final imageUrl = multipleImages[index];
-
-                        return Image.network(
-                          imageUrl,
-                          fit: BoxFit.contain,
-                          width: double.infinity,
-                          gaplessPlayback: true,
-
-                          loadingBuilder: (context, child, progress) {
-                            if (progress == null) return child;
-
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          },
-                        );
-                      },
-                    ),
-
-                    /// PAGINATION DOTS
-                    Positioned(
-                      bottom: 15,
-                      left: 0,
-                      right: 0,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          multipleImages.length,
-                              (index) => Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 4),
-                            width: currentPage == index ? 10 : 6,
-                            height: currentPage == index ? 10 : 6,
-                            decoration: BoxDecoration(
-                              color: currentPage == index
-                                  ? Colors.white
-                                  : Colors.white54,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    /// TOP BUTTONS
-                    Positioned(
-                      top: 50,
-                      left: 16,
-                      right: 16,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-
-                          _circleButton(Icons.arrow_back_ios_new, () {
-                            Navigator.pop(context);
-                          }),
-
-                          if (userStoredFAadharCard == "FieldWorkar")
-                            _circleButton(Icons.edit, () async {
-
-                              final refreshed = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      UpdateInsuranceFormScreen(item: item),
-                                ),
-                              );
-
-                              if (refreshed == true) {
-                                _refreshPage();
-                              }
-
-                            }),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                background: _buildHeaderCarousel(),
               ),
             ),
-
-            /// ✅ CONTENT
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.all(18),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
-                    const SizedBox(height: 8),
-
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            item.name ?? "Insurance Record",
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: InsColors.textPrimary,
+                            ),
+                          ),
+                        ),
+                        if (item.vehicleNumber?.trim().isNotEmpty == true)
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8, top: 2),
+                            child: InsBadge(
+                              label: item.vehicleNumber!,
+                              tone: InsBadgeTone.primary,
+                              icon: Icons.directions_car_filled_rounded,
+                            ),
+                          ),
+                      ],
+                    ),
+                    if (item.blacklistStatus != null &&
+                        item.blacklistStatus!.trim().isNotEmpty &&
+                        !['NA', 'N/A', '-'].contains(item.blacklistStatus!.trim().toUpperCase()))
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: InsBadge(
+                          label: 'Blacklisted: ${item.blacklistStatus}',
+                          tone: InsBadgeTone.error,
+                        ),
+                      ),
+                    const SizedBox(height: 16),
+                    // 2026-10-22 restyle: the dark gradient summary card
+                    // the user asked to match from the reference RTO-
+                    // lookup app, reading off the same RTO-keyed map the
+                    // section cards below it use -- see
+                    // `InsVehicleHeaderCard` in `insurance_ui_kit.dart`.
+                    _buildLinkageRow(item),
+                    InsVehicleHeaderCard(record: item.toVehicleInfoMap()),
                     policyHolderCard(item),
-
-                    SizedBox(height: 16),
-
-                    vehicleSpecCard(item),
-
-                    SizedBox(height: 16),
-
+                    // Owner Name / Mobile Number / Owner Email are already
+                    // shown above (header card + Policy Holder card) --
+                    // excluded here so they don't repeat a 3rd/4th time in
+                    // the "Owner & Contact Info" section below. Owner
+                    // Serial No. is excluded too -- it's already in the
+                    // header card's "Owner #<serial>" pill.
+                    ...buildDynamicVehicleInfoSections(
+                      item.toVehicleInfoMap(),
+                      isFromApiPayload: false,
+                      excludeApiKeys: const {
+                        'OWNER_NAME',
+                        'MOBILE_NO',
+                        'owner_email',
+                        'OWNER_SERIAL_NO',
+                      },
+                    ),
                     currentPolicyCard(item),
-
-                    SizedBox(height: 16),
-
                     nomineeCard(item),
-
-                    SizedBox(height: 16),
-
                     currentDateCard(item.current_dates),
-
-                    SizedBox(height: 14),
-
                     documentsGrid(item),
-
-                    SizedBox(height: 16),
-
+                    multipleImagesGallery(),
                     agentCallCard(),
-
-                    SizedBox(height: 14),
-
                   ],
                 ),
               ),
@@ -1442,26 +894,9 @@ class _InsuranceDetailScreenState extends State<InsuranceDetailScreen> {
       ),
     );
   }
-
-  Widget _circleButton(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 42,
-        height: 42,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.black.withOpacity(0.35),
-          border: Border.all(color: Colors.white24),
-        ),
-        child: Icon(icon, color: Colors.white, size: 18),
-      ),
-    );
-  }
 }
 
 class FullImageViewer extends StatelessWidget {
-
   final List images;
   final int initialIndex;
 
@@ -1473,21 +908,16 @@ class FullImageViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-    PageController controller =
-    PageController(initialPage: initialIndex);
+    PageController controller = PageController(initialPage: initialIndex);
 
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-
           PageView.builder(
             controller: controller,
             itemCount: images.length,
-
             itemBuilder: (context, index) {
-
               return InteractiveViewer(
                 minScale: 1,
                 maxScale: 4,
@@ -1500,7 +930,6 @@ class FullImageViewer extends StatelessWidget {
               );
             },
           ),
-
           Positioned(
             top: 50,
             left: 20,
@@ -1516,6 +945,5 @@ class FullImageViewer extends StatelessWidget {
         ],
       ),
     );
-
   }
 }

@@ -241,26 +241,30 @@ class AppColors {
   });
 
   static AppColors of(BuildContext context) {
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    return dark ? _dark : _light;
+    // Standardized to the shared insurance light theme across this
+    // section (list, detail, forms, quotations) regardless of device
+    // brightness, matching the rest of the redesigned Insurance screens.
+    return _light;
   }
 
+  // Re-themed to match the shared insurance_ui_kit.dart light palette
+  // (InsColors) used across the rest of the Insurance section.
   static const _light = AppColors._(
-    teal: Color(0xFF0D7A6E),
-    tealLight: Color(0xFFE6F4F1),
-    accent: Color(0xFF3461FF),
-    accentLight: Color(0xFFEEF2FF),
-    red: Color(0xFFE84040),
-    redLight: Color(0xFFFFF0F0),
-    bg: Color(0xFFEEF3F7),
-    card: Color(0xFFFFFFFF),
-    text: Color(0xFF1A1A2E),
-    muted: Color(0xFF8A8FA8),
-    border: Color(0xFFE8ECF4),
-    green: Color(0xFF22C55E),
-    greenBg: Color(0xFFDCFCE7),
+    teal: Color(0xFF1E54C9),       // InsColors.primaryDark
+    tealLight: Color(0xFFEAF1FD),  // light tint of InsColors.primary
+    accent: Color(0xFF2F6FED),     // InsColors.primary
+    accentLight: Color(0xFFEAF1FD),
+    red: Color(0xFFDC2626),        // InsColors.error
+    redLight: Color(0xFFFDECEC),   // InsColors.errorBg
+    bg: Color(0xFFF6F7F9),         // InsColors.bg
+    card: Color(0xFFFFFFFF),       // InsColors.surface
+    text: Color(0xFF1A1D23),       // InsColors.textPrimary
+    muted: Color(0xFF8A919E),      // InsColors.textMuted
+    border: Color(0xFFE1E4EA),     // InsColors.border
+    green: Color(0xFF15803D),      // InsColors.success
+    greenBg: Color(0xFFEAF7EF),    // InsColors.successBg
     shadow: Color(0x0E000000),
-    orange: Color(0xFFFF8000),
+    orange: Color(0xFFB45309),     // InsColors.warning
   );
 
   static const _dark = AppColors._(

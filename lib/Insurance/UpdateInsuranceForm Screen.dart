@@ -1,1426 +1,946 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 
-import '../Custom_Widget/constant.dart';
 import 'InsuranceShowListPage.dart';
 import '../utilities/heic_converter.dart';
+import 'insurance_ui_kit.dart';
 
+/// Update Insurance -- redesigned 2026-10-16 into a clean, sectioned
+/// light-theme layout (per request: "the Update form also uses a clean,
+/// sectioned layout so users can add these details later without
+/// friction"). Unlike the Add form, this is NOT a forced step-by-step
+/// wizard -- everything is editable on one scrollable page, grouped into
+/// cards, since the whole point of deferring fields here is that the
+/// user can fill in as much or as little as they want, in any order,
+/// without being walked through steps again.
+///
+/// Holds every field the old Add/Update forms had between them: the
+/// fields now required at creation (Full Name, Phone, Vehicle Number,
+/// Policy Number, Insurance Provider, Policy Type) stay required there,
+/// and everything the new Add form deferred (Email, Vehicle
+/// Category/Type/Fuel, Nominee details, Claim/Pollution status, Policy
+/// Expiry Date) lives in its own section below, all optional. The Policy
+/// Expiry Date field existed before as a plain, unvalidated text field
+/// with no date picker ever wired to it -- it now actually opens one.
+/// All documents remain optional, with the same "upload / preview /
+/// remove" pattern as the Add form, pre-filled from whatever the server
+/// already has on file.
+///
+/// **2026-10-23:** Full Name and Primary Phone Number are no longer
+/// editable here -- removed from both the UI and the submit request's
+/// controller-driven fields -- since these identify the vehicle's owner
+/// and shouldn't be changed after the record is created. `_submitForm()`
+/// still sends `OWNER_NAME`/`MOBILE_NO` on every update, straight from
+/// `widget.item` rather than a controller, same "send the existing
+/// value so it's never blanked out" pattern `vehicleNumber` already
+/// used below. Two new fields were added in their place: the person's
+/// name for each alternate contact number (`extra_name`/`calling_name`,
+/// alongside the existing `extra_number`/`calling_number`).
 class UpdateInsuranceFormScreen extends StatefulWidget {
   final InsuranceModel item;
 
-  const UpdateInsuranceFormScreen({super.key, required this.item,});
+  const UpdateInsuranceFormScreen({super.key, required this.item});
 
   @override
   State<UpdateInsuranceFormScreen> createState() => _UpdateInsuranceFormScreenState();
 }
 
 class _UpdateInsuranceFormScreenState extends State<UpdateInsuranceFormScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final picker = ImagePicker();
+  bool isLoading = false;
+
+  // **2026-10-22 migration + trim**: moved to the new table's backend
+  // (same one the Add form and DB-first lookup already use -- see
+  // "Vehicle_Info_API_Insurance_Redesign_Spec.md" §15), and trimmed down
+  // to only the fields the field worker actually fills in by hand on the
+  // Add form: Email, the two alternate-contact number/name pairs, and
+  // Documents (2026-10-23: Name/Phone removed from this list -- see the
+  // class doc comment above). Everything else this form used to collect
+  // (Vehicle Number, Nominee details, Marital Status, Claim, Pollution
+  // Yes/No, Policy Expiry Date, Vehicle Category/Type/Fuel) either isn't
+  // a manually-entered field on the Add form at all, or is sourced from
+  // the RTO lookup instead -- none of it belongs on an "edit what I
+  // typed" form.
+  //
+  // `updateEndpointPath` confirmed 2026-10-22: real endpoint on the new
+  // table's backend, takes the record's `id` (already sent below).
+  static const String insuranceBaseUrl =
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/insurance/';
+  static const String updateEndpointPath = 'update_insurance_api.php';
+
+  // **2026-10-23**: the gallery (`car_images`) lives in its own separate
+  // table on the backend -- `update_insurance_api.php` above can never
+  // touch it, which is why adding/removing additional photos silently
+  // did nothing. This dedicated, action-based endpoint is the real one
+  // for that table: `action=add` (+ `sub_id`, one or more `car_images[]`
+  // files) to add new photos to this record; `action=update` (+
+  // `image_id`, a single `car_images` file) to replace one existing
+  // photo in place; `action=delete` (+ `image_id`) to remove one.
+  static const String multipleImageEndpointPath = 'multiple_image_update_api.php';
+
+  // Insurance Yearly Documents -- a separate table/endpoint (2026-11-02)
+  // for per-year claim/insured-value/document records a vehicle can
+  // accumulate over time (one entry per renewal year, say). The user
+  // gave this exact field list: vehicleNumber, policy_year,
+  // claim_details, insured_value, pollution_pdf, old_policy_pdf,
+  // insurance_pdf -- sent as one multipart POST per entry, same pattern
+  // `insert_insurance.php`/`multiple_image_update_api.php` already use.
+  // INSERT-ONLY: no GET/list capability was confirmed for this endpoint
+  // (the user explicitly said to build it insert-only rather than guess
+  // at a listing shape), so entries saved via `_saveYearlyDocument()`
+  // below are only ever shown for the rest of THIS screen's lifetime --
+  // `yearlyDocEntries` is in-memory only and starts empty again every
+  // time this form is reopened. See the project doc's open questions.
+  static const String yearlyDocumentEndpointPath = 'Insurance%20yearly%20documents%20api.php';
+
+  // Owner Email -- manually filled on the Add form. Full Name and
+  // Primary Phone Number used to live here too (as `nameController`/
+  // `numberController`) -- removed 2026-10-23, see the class doc comment.
+  final emailController = TextEditingController();
+
+  // Nominee & additional details -- new table columns (2026-10-22), also
+  // manually filled on the Add form, so they belong here too.
+  final nomineeNameController = TextEditingController();
+  final nomineeRelationController = TextEditingController();
+  final nomineeAgeController = TextEditingController();
+  final extraNumberController = TextEditingController();
+  final callingNumberController = TextEditingController();
+  // The person's name for each alternate contact number above --
+  // `extra_name`/`calling_name` (2026-10-23, new API params).
+  final extraNameController = TextEditingController();
+  final callingNameController = TextEditingController();
+  // 2026-10-29, Building/Flat insurance-linking feature: editable here so
+  // a vehicle's property link can be corrected or added after creation,
+  // same "optional, manually typed" treatment as every other field in
+  // this Contact Details section.
+  final buildingIdController = TextEditingController();
+  final flatIdController = TextEditingController();
+  String _claim = 'No';
+  String? _maritalStatus;
+
+  // Documents (optional) -- newly-picked local files, if any
+  File? carPhoto;
+  File? rcFront;
+  File? rcBack;
+  File? aadharFront;
+  File? aadharBack;
+  File? panCardPhoto;
+  File? oldPolicy;
+  File? dlImg;
+  File? newPolicy;
+  File? pollutionPhoto;
+  List<File> carMultipleImages = [];
+
+  // Insurance Yearly Documents (2026-11-02) -- the sub-form that builds
+  // one new entry at a time; `yearlyDocEntries` only ever holds entries
+  // saved during this screen's current lifetime (see the endpoint-
+  // constant comment above for why nothing is fetched back on open).
+  final yearlyPolicyYearController = TextEditingController();
+  final yearlyClaimDetailsController = TextEditingController();
+  final yearlyInsuredValueController = TextEditingController();
+  File? yearlyPollutionPdf;
+  File? yearlyOldPolicyPdf;
+  File? yearlyInsurancePdf;
+  bool isSavingYearlyDoc = false;
+  final List<_YearlyDocEntry> yearlyDocEntries = [];
+
+  // Existing, already-uploaded gallery images (each with its own
+  // server-side id, per InsuranceCarImage -- see
+  // `multiple_image_update_api.php`'s note above). `deleteImageIds` and
+  // `replaceImages` are applied via that API on Save, not immediately on
+  // tap, so the user can still back out before hitting Save.
+  List<InsuranceCarImage> serverImages = [];
+  final Set<int> deleteImageIds = {};
+  final Map<int, File> replaceImages = {};
 
   @override
   void initState() {
     super.initState();
-    fetchMultipleImages();
-
-    final item = widget.item;
-
-    // 🔹 TEXT FIELDS
-    nameController.text = item.name ?? "";
-    numberController.text = item.number ?? "";
-    vehicleNumberController.text = item.vehicleNumber ?? "";
-    fieldWorkerNameController.text = item.fieldWorkerName ?? "";
-    fieldWorkerNumberController.text = item.fieldWorkerNumber ?? "";
-    emailController.text = item.emailId ?? "";
-    nomineeNameController.text = item.nomineeName ?? "";
-    nomineeAgeController.text = item.nomineeAge ?? "";
-    nomineeRelationController.text = item.nomineeRelation ?? "";
-
-    claimStatus = item.claim ?? "No";
-    pollutionStatus = item.pollutionYesNo ?? "No";
-
-    // ✅ CATEGORY FIX
-    if (item.vehicle_category != null &&
-        item.vehicle_category!.trim().isNotEmpty) {
-      selectedCategory = vehicleCategoryOptions.firstWhere(
-            (e) =>
-        e.toLowerCase().trim() ==
-            item.vehicle_category!.toLowerCase().trim(),
-        orElse: () => "",
-      );
-
-      if (selectedCategory == "") {
-        selectedCategory = null;
-      }
-    }
-
-    // ✅ WHEELER FIX
-    if (item.vehicleType != null &&
-        item.vehicleType!.trim().isNotEmpty) {
-      selectedWheeler = wheelOptions.firstWhere(
-            (e) =>
-        e.toLowerCase().trim() ==
-            item.vehicleType!.toLowerCase().trim(),
-        orElse: () => "",
-      );
-
-      if (selectedWheeler == "") {
-        selectedWheeler = null;
-      }
-    }
-
-    // ✅ FUEL FIX
-    if (item.fuelType != null &&
-        item.fuelType!.trim().isNotEmpty) {
-      selectedFuel = fuelOptions.firstWhere(
-            (e) =>
-        e.toLowerCase().trim() ==
-            item.fuelType!.toLowerCase().trim(),
-        orElse: () => "",
-      );
-
-      if (selectedFuel == "") {
-        selectedFuel = null;
-      }
-    }
-  }
-
-  final _formKey = GlobalKey<FormState>();
-
-  final nameController = TextEditingController();
-  final numberController = TextEditingController();
-  final vehicleNumberController = TextEditingController();
-  final fieldWorkerNameController = TextEditingController();
-  final fieldWorkerNumberController = TextEditingController();
-  final vehicleTypeController = TextEditingController();
-
-  File? aadharFront;
-  File? aadharBack;
-  File? rcFront;
-  File? rcBack;
-  File? carPhoto;
-  File? oldPolicy;
-  File? panCardPhoto;
-
-  final emailController = TextEditingController();
-  final nomineeNameController = TextEditingController();
-  final nomineeAgeController = TextEditingController();
-  final nomineeRelationController = TextEditingController();
-  final expiryDateController = TextEditingController();
-  bool hideExistingPollutionImage = false;
-  String claimStatus = "No";
-  String pollutionStatus = "No";
-
-  File? pollutionPhoto;
-  List<String> serverMultipleImages = [];
-  List<File> carMultipleImages = [];
-
-  Future<void> fetchMultipleImages() async {
-    try {
-      final response = await http.get(Uri.parse(
-          "https://verifyrealestateandservices.in/PHP_Files/insurance_insert_api/insurance_details/show_insurance_multiple_image.php?subid=${widget
-              .item.id}"));
-
-      final decoded = jsonDecode(response.body);
-
-      if (decoded['success'] == true) {
-        final List data = decoded['data'];
-
-        serverMultipleImages =
-            data
-                .map<String>((e) => insuranceBaseUrl + e['car_images'])
-                .toList();
-      }
-    } catch (e) {
-      debugPrint("Multiple Image Error: $e");
-    }
-
-    if (mounted) setState(() {});
-  }
-
-  List<String> deleteImages = [];
-
-  final picker = ImagePicker();
-  bool isLoading = false;
-  String insuranceBaseUrl =
-      "https://verifyrealestateandservices.in/PHP_Files/insurance_insert_api/insurance_details/";
-
-  String? _buildUrl(String? path) {
-    if (path == null || path.isEmpty) return null;
-
-    if (path.startsWith("http")) return path;
-
-    return insuranceBaseUrl + path; // ✅ correct
-  }
-
-  Future<void> pickMultipleImages() async {
-    final pickedFiles = await HeicConverter.pickMultiImage(picker, imageQuality: 75);
-    if (!mounted) return;
-    if (pickedFiles != null) {
-      carMultipleImages = pickedFiles.map((e) => File(e.path)).toList();
-      setState(() {});
-    }
-  }
-
-  Future<void> pickImage(Function(File) onSelected) async {
-    final picked = await HeicConverter.pickImage(picker, 
-      source: ImageSource.gallery,
-      imageQuality: 75,
-    );
-    if (!mounted) return;
-    if (picked != null) {
-      onSelected(File(picked.path));
-      setState(() {});
-    }
-  }
-
-  List<String> vehicleCategoryOptions = [
-    "Commercial",
-    "Private",
-  ];
-
-  List<String> wheelOptions = [
-    "2 Wheeler",
-    "3 Wheeler",
-    "4 Wheeler",
-    "6 Wheeler",
-    "8 Wheeler",
-  ];
-
-  String? selectedCategory;
-  String? selectedWheeler;
-
-  List<String> fuelOptions = [
-    "Petrol / CNG",
-    "Petrol",
-    "Diesel",
-    "CNG",
-    "EV",
-  ];
-
-  String? selectedFuel;
-
-  Future<void> submitForm() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => isLoading = true);
-
-    try {
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse(
-          'https://verifyrealestateandservices.in/PHP_Files/'
-              'insurance_insert_api/insurance_details/'
-              'insurance_update.php',
-        ),
-      );
-
-      request.fields['id'] = widget.item.id.toString();
-      request.fields['name_'] = nameController.text;
-      request.fields['number'] = numberController.text;
-      request.fields['vehicle_number'] = vehicleNumberController.text;
-      request.fields['fieldworkar_name'] =
-          widget.item.fieldWorkerName.toString();
-      request.fields['fieldworkar_number'] =
-          widget.item.fieldWorkerNumber.toString();
-      // ✅ NOW SAFE
-      if (selectedCategory == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select vehicle category")),
-        );
-        setState(() => isLoading = false);
-        return;
-      }
-      request.fields['vehicle_category'] = selectedCategory!;
-
-      if (selectedWheeler == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select wheeler type")),
-        );
-        setState(() => isLoading = false);
-        return;
-      }
-      request.fields['vehicle_type'] = selectedWheeler!;
-
-      // ✅ VALIDATE FIRST
-      if (selectedFuel == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please select fuel type")),
-        );
-        setState(() => isLoading = false);
-        return;
-      }
-      request.fields['petrol_desiel'] = selectedFuel!;
-
-      request.fields['current_dates'] =
-          DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
-
-      request.fields['email_id'] = emailController.text;
-      request.fields['Nominie_name'] = nomineeNameController.text;
-      request.fields['Nominie_age'] = nomineeAgeController.text;
-      request.fields['Nominie_relation'] = nomineeRelationController.text;
-      request.fields['claim'] = claimStatus;
-      request.fields['polution_yes_no'] = pollutionStatus;
-
-
-      /// ✅ DOCUMENTS
-
-
-      /// 🔹 PAN FILE
-      if (panCardPhoto != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'pan_card_photo',
-          panCardPhoto!.path,
-        ));
-      }
-
-      if (pollutionPhoto != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'polution_photo',
-          pollutionPhoto!.path,
-        ));
-      }
-
-      if (aadharFront != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'Aadhar_front',
-          aadharFront!.path,
-        ));
-      }
-
-      if (aadharBack != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'Aadhar_back',
-          aadharBack!.path,
-        ));
-      }
-
-      if (rcFront != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'Rc_front',
-          rcFront!.path,
-        ));
-      }
-
-      if (rcBack != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'Rc_back',
-          rcBack!.path,
-        ));
-      }
-
-      if (carPhoto != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'car_photo',
-          carPhoto!.path,
-        ));
-      }
-
-      if (oldPolicy != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'old_policy_docement',
-          oldPolicy!.path,
-        ));
-      }
-
-      /// ✅ MULTIPLE IMAGES
-
-      for (var image in carMultipleImages) {
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'car_multiple_images[]',
-            image.path,
-          ),
-        );
-      }
-
-
-      /// ✅ DELETE IMAGES
-      print("Delete Images List Length: ${deleteImages.length}");
-      print("Delete Images List Data: $deleteImages");
-
-      for (int i = 0; i < deleteImages.length; i++) {
-        request.fields['delete_images[$i]'] = deleteImages[i];
-      }
-
-      print("Final Request Fields: ${request.fields}");
-
-
-      print("Final Request Fields: ${request.fields}");
-
-      var response = await request.send();
-      final responseBody = await response.stream.bytesToString();
-
-      debugPrint("UPDATE RESPONSE: $responseBody");
-
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Updated Successfully')),
-        );
-
-        Navigator.pop(context, true);
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
-    }
-
-    if (mounted) {
-      setState(() => isLoading = false);
-    }
-  }
-
-  Widget buildTextField(String label,
-      TextEditingController controller, {
-        TextInputType keyboardType = TextInputType.text,
-        int? maxLength,
-        bool isRequired = false,
-      }) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        maxLength: maxLength,
-
-        validator: (value) {
-          if (isRequired) {
-            if (value == null || value
-                .trim()
-                .isEmpty) {
-              return 'Required';
-            }
-          }
-
-          if (keyboardType == TextInputType.phone &&
-              value != null &&
-              value.isNotEmpty) {
-            if (value.length != 10) {
-              return 'Enter valid 10-digit number';
-            }
-          }
-
-          if (label.toLowerCase().contains("vehicle number") &&
-              value != null &&
-              value.isNotEmpty) {
-            if (value.length < 6) {
-              return 'Enter valid vehicle number';
-            }
-          }
-
-          return null;
-        },
-
-        style: theme.textTheme.bodyMedium?.copyWith(
-          fontFamily: "PoppinsMedium",
-        ),
-
-        decoration: InputDecoration(
-
-          counterText: "",
-
-          labelText: label,
-
-          labelStyle: theme.textTheme.bodySmall?.copyWith(
-            color: theme.hintColor,
-            fontFamily: "PoppinsMedium",
-          ),
-
-          filled: true,
-
-          fillColor: theme.cardColor,
-
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 12,
-          ),
-
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(
-              color: theme.dividerColor,
-            ),
-          ),
-
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(
-              color: theme.dividerColor,
-            ),
-          ),
-
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(
-              color: theme.colorScheme.primary,
-              width: 1.4,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget buildPreview({
-    required File? file,
-    required String? networkUrl,
-  }) {
-    /// ✅ NEW IMAGE SELECTED
-    if (file != null) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: Image.file(
-          file,
-          fit: BoxFit.cover,
-          width: 56,
-          height: 56,
-        ),
-      );
-    }
-
-    /// ✅ OLD IMAGE FROM SERVER
-    if (networkUrl != null) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: Image.network(
-          networkUrl,
-          fit: BoxFit.cover,
-          width: 56,
-          height: 56,
-
-          errorBuilder: (_, __, ___) =>
-          const Icon(Icons.broken_image, color: Colors.red),
-
-          loadingBuilder: (context, child, progress) {
-            if (progress == null) return child;
-            return const SizedBox(
-              height: 20,
-              width: 20,
-              child: Center(
-                child: CircularProgressIndicator(strokeWidth: 2,
-                  color: Colors.blue,
-                ),
-              ),
-            );
-          },
-        ),
-      );
-    }
-
-    /// ✅ NO IMAGE
-    return const Icon(Icons.upload_rounded, color: Colors.indigo);
+    _prefillFromItem();
+    _fetchMultipleImages();
   }
 
   @override
   void dispose() {
-    nameController.dispose();
-    numberController.dispose();
-    vehicleNumberController.dispose();
-    fieldWorkerNameController.dispose();
-    fieldWorkerNumberController.dispose();
-    vehicleTypeController.dispose();
     emailController.dispose();
     nomineeNameController.dispose();
-    nomineeAgeController.dispose();
     nomineeRelationController.dispose();
+    nomineeAgeController.dispose();
+    extraNumberController.dispose();
+    callingNumberController.dispose();
+    extraNameController.dispose();
+    callingNameController.dispose();
+    buildingIdController.dispose();
+    flatIdController.dispose();
+    yearlyPolicyYearController.dispose();
+    yearlyClaimDetailsController.dispose();
+    yearlyInsuredValueController.dispose();
     super.dispose();
   }
 
-  /// ✅ PREMIUM IMAGE PICKER WITH PREVIEW
-  Widget buildImagePicker(String title, File? file, VoidCallback onTap) {
-    final theme = Theme.of(context);
-    final networkUrl = _getNetworkUrl(title);
-    final isUploaded = file != null || networkUrl != null;
+  void _prefillFromItem() {
+    final item = widget.item;
+    emailController.text = item.emailId ?? '';
+    nomineeNameController.text = item.nomineeName ?? '';
+    nomineeRelationController.text = item.nomineeRelation ?? '';
+    nomineeAgeController.text = item.nomineeAge ?? '';
+    extraNumberController.text = item.extraNumber ?? '';
+    callingNumberController.text = item.callingNumber ?? '';
+    extraNameController.text = item.extraName ?? '';
+    callingNameController.text = item.callingName ?? '';
+    buildingIdController.text = item.buildingId ?? '';
+    flatIdController.text = item.flatId ?? '';
+    _claim = (item.claim == null || item.claim!.trim().isEmpty) ? 'No' : item.claim!;
+    _maritalStatus = (item.maritalStatus == null || item.maritalStatus!.trim().isEmpty) ? null : item.maritalStatus;
+  }
 
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(10),
+  /// **2026-10-22**: the new table's detail/list responses already
+  /// return `car_images` directly on the record -- no separate "multiple
+  /// images" endpoint exists on this backend (same note as
+  /// `InsuranceDetail.dart`'s own migration), so this reads off
+  /// `widget.item` instead of making a network call to an endpoint that
+  /// belongs to the old table.
+  void _fetchMultipleImages() {
+    serverImages = widget.item.carImagesForEdit;
+    if (mounted) setState(() {});
+  }
 
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(10),
+  // 2026-11-02: every single-document tile now offers Camera/Gallery/
+  // Browse Files (PDF) via the shared `pickInsuranceDocument()` sheet,
+  // instead of always opening the Gallery picker directly.
+  Future<void> _pickSingle(void Function(File) assign) async {
+    final picked = await pickInsuranceDocument(context);
+    if (picked != null && mounted) setState(() => assign(picked));
+  }
 
-          border: Border.all(
-            color: isUploaded
-                ? theme.colorScheme.primary
-                : theme.dividerColor,
-          ),
+  Future<void> _pickMultiple() async {
+    final pickedFiles = await HeicConverter.pickMultiImage(picker, imageQuality: 75);
+    if (pickedFiles.isNotEmpty && mounted) {
+      setState(() => carMultipleImages.addAll(pickedFiles.map((e) => File(e.path))));
+    }
+  }
 
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
-            )
-          ],
-        ),
+  /// Queues a replacement for one existing gallery image (`action=update`
+  /// on Save). Only possible when the image actually has a server id --
+  /// see `InsuranceCarImage`'s doc comment for when it might not. A
+  /// pending delete for the same image is cleared since the two actions
+  /// contradict each other.
+  Future<void> _replaceExistingImage(InsuranceCarImage image) async {
+    final id = image.id;
+    if (id == null) return;
+    final picked = await HeicConverter.pickImage(picker, source: ImageSource.gallery, imageQuality: 75);
+    if (picked != null && mounted) {
+      setState(() {
+        replaceImages[id] = File(picked.path);
+        deleteImageIds.remove(id);
+      });
+    }
+  }
 
-        child: Row(
-          children: [
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
 
-            /// PREVIEW BOX
-            Container(
-              height: 40,
-              width: 40,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(8),
-              ),
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => isLoading = true);
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$insuranceBaseUrl$updateEndpointPath'),
+      );
 
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
+      request.fields['id'] = widget.item.id.toString();
+      // Full Name and Primary Phone Number are no longer editable on
+      // this form (2026-10-23) -- same "keep sending whatever the record
+      // already has so this update can never blank it out server-side"
+      // reasoning `vehicleNumber` below already uses.
+      request.fields['OWNER_NAME'] = widget.item.name ?? '';
+      request.fields['MOBILE_NO'] = widget.item.number ?? '';
+      request.fields['owner_email'] = emailController.text.trim();
+      // Vehicle number isn't editable on this trimmed form (changing the
+      // plate here would desync it from the RTO record already fetched
+      // for it) -- keep sending whatever the record already has so this
+      // update can never blank it out server-side.
+      request.fields['vehicleNumber'] = widget.item.vehicleNumber ?? '';
+      request.fields['Fieldworkar_name'] = widget.item.fieldWorkerName ?? '';
+      request.fields['Fieldworkar_number'] = widget.item.fieldWorkerNumber ?? '';
+      request.fields['claim'] = _claim;
+      request.fields['Nominie_name'] = nomineeNameController.text.trim();
+      request.fields['Nominie_relation'] = nomineeRelationController.text.trim();
+      request.fields['Nominie_age'] = nomineeAgeController.text.trim();
+      request.fields['Marital_status'] = _maritalStatus ?? '';
+      request.fields['extra_number'] = extraNumberController.text.trim();
+      request.fields['calling_number'] = callingNumberController.text.trim();
+      request.fields['extra_name'] = extraNameController.text.trim();
+      request.fields['calling_name'] = callingNameController.text.trim();
+      request.fields['Building_id'] = buildingIdController.text.trim();
+      request.fields['Flat_id'] = flatIdController.text.trim();
 
-                child: file != null
-                    ? Image.file(
-                  file,
-                  fit: BoxFit.cover,
-                )
-                    : networkUrl != null
-                    ? Image.network(
-                  networkUrl,
-                  fit: BoxFit.cover,
-                )
-                    : Icon(
-                  Icons.upload_file,
-                  size: 20,
-                  color: theme.iconTheme.color,
-                ),
-              ),
-            ),
+      Future<void> addFile(String field, File? file) async {
+        if (file == null) return;
+        request.files.add(await http.MultipartFile.fromPath(field, file.path));
+      }
 
-            const SizedBox(width: 12),
+      await addFile('car_photo', carPhoto);
+      await addFile('Rc_front', rcFront);
+      await addFile('Rc_back', rcBack);
+      await addFile('Aadhar_front', aadharFront);
+      await addFile('Aadhar_back', aadharBack);
+      await addFile('pan_card_photo', panCardPhoto);
+      await addFile('old_policy_docement', oldPolicy);
+      await addFile('DL_img', dlImg);
+      await addFile('new_policy_docement', newPolicy);
+      await addFile('polution_photo', pollutionPhoto);
 
-            /// TEXT
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      debugPrint('INSURANCE UPDATE RESPONSE (${response.statusCode}): $responseBody');
 
-                  Text(
-                    title,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontFamily: "PoppinsMedium",
-                    ),
-                  ),
+      if (response.statusCode == 200) {
+        final addOk = await _addNewImages();
+        final deleteOk = await _deleteQueuedImages();
+        final replaceOk = await _replaceQueuedImages();
+        if (!mounted) return;
+        final imagesOk = addOk && deleteOk && replaceOk;
+        _showSnack(imagesOk
+            ? 'Updated successfully'
+            : 'Updated, but one or more photo changes failed -- please retry those.');
+        Navigator.pop(context, true);
+      } else {
+        _showSnack('Update failed (status ${response.statusCode}). Please try again.');
+      }
+    } catch (e) {
+      _showSnack('Error: $e');
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
 
-                  const SizedBox(height: 2),
+  /// `action=add` -- one POST carrying every newly-picked local file at
+  /// once (the API's `car_images[]` accepts more than one), keyed to
+  /// this record via `sub_id`. No-ops if nothing was picked.
+  Future<bool> _addNewImages() async {
+    if (carMultipleImages.isEmpty) return true;
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse('$insuranceBaseUrl$multipleImageEndpointPath'));
+      request.fields['action'] = 'add';
+      request.fields['sub_id'] = widget.item.id.toString();
+      for (final image in carMultipleImages) {
+        request.files.add(await http.MultipartFile.fromPath('car_images[]', image.path));
+      }
+      final response = await request.send();
+      debugPrint('IMAGE ADD RESPONSE (${response.statusCode})');
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Image add error: $e');
+      return false;
+    }
+  }
 
-                  Text(
-                    file != null
-                        ? "New image selected"
-                        : networkUrl != null
-                        ? "Existing image"
-                        : "Tap to upload",
-                    style: theme.textTheme.bodySmall,
-                  ),
-                ],
-              ),
-            ),
+  /// `action=delete` -- one POST per queued `image_id` (the API takes a
+  /// single id, not a batch). No-ops if nothing was queued.
+  Future<bool> _deleteQueuedImages() async {
+    if (deleteImageIds.isEmpty) return true;
+    var allOk = true;
+    for (final id in deleteImageIds) {
+      try {
+        final request = http.MultipartRequest('POST', Uri.parse('$insuranceBaseUrl$multipleImageEndpointPath'));
+        request.fields['action'] = 'delete';
+        request.fields['image_id'] = id.toString();
+        final response = await request.send();
+        debugPrint('IMAGE DELETE RESPONSE ($id, ${response.statusCode})');
+        if (response.statusCode != 200) allOk = false;
+      } catch (e) {
+        debugPrint('Image delete error ($id): $e');
+        allOk = false;
+      }
+    }
+    return allOk;
+  }
 
-            /// CHECK ICON
-            if (isUploaded)
-              const Icon(
-                Icons.check_circle,
-                color: Colors.green,
-                size: 18,
-              ),
-          ],
-        ),
+  /// `action=update` -- one POST per queued replacement, each with its
+  /// own `image_id` and a single (non-array) `car_images` file. No-ops
+  /// if nothing was queued.
+  Future<bool> _replaceQueuedImages() async {
+    if (replaceImages.isEmpty) return true;
+    var allOk = true;
+    for (final entry in replaceImages.entries) {
+      try {
+        final request = http.MultipartRequest('POST', Uri.parse('$insuranceBaseUrl$multipleImageEndpointPath'));
+        request.fields['action'] = 'update';
+        request.fields['image_id'] = entry.key.toString();
+        request.files.add(await http.MultipartFile.fromPath('car_images', entry.value.path));
+        final response = await request.send();
+        debugPrint('IMAGE UPDATE RESPONSE (${entry.key}, ${response.statusCode})');
+        if (response.statusCode != 200) allOk = false;
+      } catch (e) {
+        debugPrint('Image update error (${entry.key}): $e');
+        allOk = false;
+      }
+    }
+    return allOk;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: InsColors.bg,
+      appBar: AppBar(
+        backgroundColor: InsColors.surface,
+        foregroundColor: InsColors.textPrimary,
+        elevation: 0.5,
+        title: const Text('Update Insurance', style: TextStyle(fontWeight: FontWeight.w700)),
       ),
-    );
-  }
-
-
-  Widget buildDropdownField({
-    required String label,
-    required String? value,
-    required List<String> items,
-    Function(String?)? onChanged,
-    String hint = "Select",
-  }) {
-
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontFamily: "PoppinsMedium",
-            ),
-          ),
-
-          const SizedBox(height: 6),
-
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: value == null
-                    ? theme.dividerColor
-                    : theme.colorScheme.primary,
-              ),
-            ),
-
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: value,
-                isExpanded: true,
-
-                /// 👇 Theme Based Dropdown Background
-                dropdownColor: isDark
-                    ? const Color(0xFF020617)   // dark dropdown
-                    : Colors.white,            // light dropdown
-
-                hint: Text(
-                  hint,
-                  style: theme.textTheme.bodySmall,
-                ),
-
-                items: items.map((item) {
-                  return DropdownMenuItem(
-                    value: item,
-                    child: Text(
-                      item,
-                      style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                  );
-                }).toList(),
-
-                icon: Icon(
-                  Icons.keyboard_arrow_down,
-                  color: theme.iconTheme.color,
-                ),
-
-                onChanged: onChanged,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildVehicleCategoryDropdown() {
-    return buildDropdownField(
-      label: "Vehicle Category *",
-      value: selectedCategory,
-      items: vehicleCategoryOptions,
-      hint: "Select Category",
-      onChanged: (value) {
-        setState(() {
-          selectedCategory = value;
-          selectedWheeler = null;
-          vehicleTypeController.clear();
-        });
-      },
-    );
-  }
-
-  Widget buildWheelerDropdown() {
-    return buildDropdownField(
-      label: "Wheeler Type *",
-      value: selectedWheeler,
-      items: wheelOptions,
-      hint: selectedCategory == null
-          ? "Select category first"
-          : "Select Wheeler",
-      onChanged: selectedCategory == null
-          ? null
-          : (value) {
-        setState(() {
-          selectedWheeler = value;
-          vehicleTypeController.text =
-          "${selectedCategory!} | ${selectedWheeler!}";
-        });
-      },
-    );
-  }
-
-  Widget buildFuelDropdown() {
-    return buildDropdownField(
-      label: "Fuel Type *",
-      value: selectedFuel,
-      items: fuelOptions,
-      hint: "Select Fuel Type",
-      onChanged: (value) {
-        setState(() {
-          selectedFuel = value;
-        });
-      },
-    );
-  }
-
-  Widget buildPremiumHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Color(0xFF0F172A),
-            Color(0xFF020617),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-
-          /// TOP ROW
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      body: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 100),
             children: [
-
-              /// 🔝 TOP ROW (Back + Logo)
-              Row(
+              InsSectionCard(
+                title: 'Contact Details',
+                icon: Icons.person_outline_rounded,
                 children: [
-
-                  /// BACK BUTTON
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      height: 40,
-                      width: 40,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new,
-                        color: Colors.white,
-                        size: 18,
-                      ),
-                    ),
+                  InsTextField(
+                    label: 'Owner Email',
+                    controller: emailController,
+                    required: false,
+                    keyboardType: TextInputType.emailAddress,
+                    hint: 'owner@example.com',
+                    validator: insEmailValidator,
                   ),
-
-                  const SizedBox(width: 250),
-
-                  /// LOGO
-                  CircleAvatar(
-                    radius: 26,
-                    backgroundColor: Colors.white,
-                    child: CircleAvatar(
-                      radius: 23,
-                      backgroundImage: AssetImage(AppImages.logo),
-                    ),
+                  // Order per 2026-10-23 request: Calling Person (name,
+                  // then number) first, then Alternate Person (name, then
+                  // number) -- `callingNumber`/`callingName` map to the
+                  // "Calling Person" pair, `extraNumber`/`extraName` to
+                  // the "Alternate Person" pair.
+                  InsTextField(
+                    label: 'Calling Person Name',
+                    controller: callingNameController,
+                    required: false,
+                    hint: 'Name of the best person to call',
+                  ),
+                  InsTextField(
+                    label: 'Calling Person Number',
+                    controller: callingNumberController,
+                    required: false,
+                    keyboardType: TextInputType.phone,
+                    maxLength: 10,
+                    hint: 'Best number to call on',
+                  ),
+                  InsTextField(
+                    label: 'Alternate Person Name',
+                    controller: extraNameController,
+                    required: false,
+                    hint: 'Name of the person on the alternate number',
+                  ),
+                  InsTextField(
+                    label: 'Alternate Person Number',
+                    controller: extraNumberController,
+                    required: false,
+                    keyboardType: TextInputType.phone,
+                    maxLength: 10,
+                    hint: 'An alternate contact number',
                   ),
                 ],
               ),
-
-              const SizedBox(height: 18),
-
-              /// 📝 FORM TITLE
-              const Text(
-                "Update Insurance Form",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
+              InsSectionCard(
+                title: 'Property Linkage',
+                icon: Icons.apartment_outlined,
+                subtitle: 'Optional',
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: InsTextField(
+                          label: 'Building ID',
+                          controller: buildingIdController,
+                          required: false,
+                          hint: 'Building id, if any',
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: InsTextField(
+                          label: 'Flat ID',
+                          controller: flatIdController,
+                          required: false,
+                          hint: 'Flat id, if any',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-
-              const Text(
-                "Application",
-                style: TextStyle(
-                  color: Color(0xFFFACC15),
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
+              InsSectionCard(
+                title: 'Nominee Details',
+                icon: Icons.family_restroom_rounded,
+                subtitle: 'Optional',
+                children: [
+                  InsYesNoRow(label: 'Insurance Claim?', value: _claim, onChanged: (v) => setState(() => _claim = v)),
+                  const SizedBox(height: 4),
+                  InsTextField(label: 'Nominee Name', controller: nomineeNameController, hint: 'e.g. Sita Devi'),
+                  InsTextField(label: 'Nominee Relation', controller: nomineeRelationController, hint: 'e.g. Spouse, Son, Daughter'),
+                  InsTextField(
+                    label: 'Nominee Age',
+                    controller: nomineeAgeController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 3,
+                    hint: 'Age in years',
+                  ),
+                  InsDropdownField(
+                    label: 'Marital Status',
+                    value: _maritalStatus,
+                    items: const ['Married', 'Unmarried', 'Divorced', 'Widowed'],
+                    onChanged: (v) => setState(() => _maritalStatus = v),
+                    hint: 'Select marital status',
+                  ),
+                ],
               ),
+              _buildDocumentsSection(),
+              _buildYearlyDocumentsSection(),
             ],
-          )
-        ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
+          child: ElevatedButton(
+            onPressed: isLoading ? null : _submitForm,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: InsColors.primary,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: isLoading
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : const Text('Save Changes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15.5)),
+          ),
+        ),
       ),
     );
   }
 
-  Widget buildSectionTitle(String title) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Row(
+  Widget _buildDocumentsSection() {
+    final item = widget.item;
+    return InsSectionCard(
+      title: 'Documents',
+      icon: Icons.folder_open_outlined,
+      subtitle: 'Optional · tap to upload, tap the X to remove',
       children: [
-
-        const Icon(
-          Icons.folder,
-          size: 18,
-          color: Color(0xFFFACC15),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: 0.95,
+          children: [
+            DocumentUploadTile(
+              label: 'Vehicle Photo',
+              file: carPhoto,
+              existingUrl: item.carPhotoUrl,
+              onPick: () => _pickSingle((f) => carPhoto = f),
+              onRemove: () => setState(() => carPhoto = null),
+            ),
+            DocumentUploadTile(
+              label: 'RC Front',
+              file: rcFront,
+              existingUrl: item.rcFrontUrl,
+              onPick: () => _pickSingle((f) => rcFront = f),
+              onRemove: () => setState(() => rcFront = null),
+            ),
+            DocumentUploadTile(
+              label: 'RC Back',
+              file: rcBack,
+              existingUrl: item.rcBackUrl,
+              onPick: () => _pickSingle((f) => rcBack = f),
+              onRemove: () => setState(() => rcBack = null),
+            ),
+            DocumentUploadTile(
+              label: 'Aadhar Front',
+              file: aadharFront,
+              existingUrl: item.aadharFrontUrl,
+              onPick: () => _pickSingle((f) => aadharFront = f),
+              onRemove: () => setState(() => aadharFront = null),
+            ),
+            DocumentUploadTile(
+              label: 'Aadhar Back',
+              file: aadharBack,
+              existingUrl: item.aadharBackUrl,
+              onPick: () => _pickSingle((f) => aadharBack = f),
+              onRemove: () => setState(() => aadharBack = null),
+            ),
+            DocumentUploadTile(
+              label: 'PAN Card',
+              file: panCardPhoto,
+              existingUrl: item.panCardPhotoUrl,
+              onPick: () => _pickSingle((f) => panCardPhoto = f),
+              onRemove: () => setState(() => panCardPhoto = null),
+            ),
+            DocumentUploadTile(
+              label: 'Old Policy',
+              file: oldPolicy,
+              existingUrl: item.oldPolicyUrl,
+              onPick: () => _pickSingle((f) => oldPolicy = f),
+              onRemove: () => setState(() => oldPolicy = null),
+            ),
+            DocumentUploadTile(
+              label: 'Driving License',
+              file: dlImg,
+              existingUrl: item.dlImgUrl,
+              onPick: () => _pickSingle((f) => dlImg = f),
+              onRemove: () => setState(() => dlImg = null),
+            ),
+            DocumentUploadTile(
+              label: 'New Policy',
+              file: newPolicy,
+              existingUrl: item.newPolicyDocumentUrl,
+              onPick: () => _pickSingle((f) => newPolicy = f),
+              onRemove: () => setState(() => newPolicy = null),
+            ),
+            DocumentUploadTile(
+              label: 'Pollution Photo',
+              file: pollutionPhoto,
+              existingUrl: item.pollutionPhotoUrl,
+              onPick: () => _pickSingle((f) => pollutionPhoto = f),
+              onRemove: () => setState(() => pollutionPhoto = null),
+            ),
+          ],
         ),
-
-        const SizedBox(width: 8),
-
-        Text(
-          title,
-          style: TextStyle(
-            color: isDark ? Colors.white : Colors.black87,
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
-          ),
+        const SizedBox(height: 14),
+        const Text('Additional Photos', style: TextStyle(color: InsColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 13.5)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            // Already-uploaded gallery images -- each goes through the
+            // dedicated action-based image API on Save, not immediately
+            // on tap, so the user can still back out before saving:
+            // tapping the photo itself queues a replacement
+            // (`action=update`, only possible when the image has a
+            // server id -- see InsuranceCarImage), tapping the X queues
+            // a deletion (`action=delete`) and clears any pending
+            // replacement for the same image.
+            ...serverImages.where((img) => !deleteImageIds.contains(img.id)).map((img) {
+              final pendingReplacement = img.id != null ? replaceImages[img.id] : null;
+              return Stack(
+                children: [
+                  InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: img.id == null ? null : () => _replaceExistingImage(img),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: pendingReplacement != null
+                          ? Image.file(pendingReplacement, width: 72, height: 72, fit: BoxFit.cover)
+                          : Image.network(
+                              img.path,
+                              width: 72,
+                              height: 72,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Container(
+                                width: 72,
+                                height: 72,
+                                color: InsColors.bg,
+                                child: const Icon(Icons.broken_image_outlined, color: InsColors.textMuted),
+                              ),
+                            ),
+                    ),
+                  ),
+                  if (img.id != null)
+                    Positioned(
+                      top: -4,
+                      right: -4,
+                      child: InkWell(
+                        onTap: () => setState(() {
+                          deleteImageIds.add(img.id!);
+                          replaceImages.remove(img.id);
+                        }),
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(color: InsColors.error, shape: BoxShape.circle),
+                          child: const Icon(Icons.close_rounded, color: Colors.white, size: 13),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            }),
+            ...carMultipleImages.asMap().entries.map((entry) => Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.file(entry.value, width: 72, height: 72, fit: BoxFit.cover),
+                    ),
+                    Positioned(
+                      top: -4,
+                      right: -4,
+                      child: InkWell(
+                        onTap: () => setState(() => carMultipleImages.removeAt(entry.key)),
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(color: InsColors.error, shape: BoxShape.circle),
+                          child: const Icon(Icons.close_rounded, color: Colors.white, size: 13),
+                        ),
+                      ),
+                    ),
+                  ],
+                )),
+            InkWell(
+              onTap: _pickMultiple,
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(color: InsColors.bg, borderRadius: BorderRadius.circular(10), border: Border.all(color: InsColors.border)),
+                child: const Icon(Icons.add_rounded, color: InsColors.primary),
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  String? _getNetworkUrl(String title) {
-    final item = widget.item;
+  // ------------------------------------------------------------------
+  // Insurance Yearly Documents (2026-11-02)
+  // ------------------------------------------------------------------
 
-    switch (title) {
-      case "Aadhar Front":
-        return item.aadharFrontUrl;
+  Future<void> _pickYearlyDoc(void Function(File) assign) async {
+    final picked = await pickInsuranceDocument(context);
+    if (picked != null && mounted) setState(() => assign(picked));
+  }
 
-      case "Aadhar Back":
-        return item.aadharBackUrl;
+  /// Posts one Yearly Documents entry immediately (its own action,
+  /// independent of the main "Save Changes" button below, per the
+  /// user's explicit choice) to the dedicated endpoint, then appends it
+  /// to the in-memory `yearlyDocEntries` list and clears the sub-form so
+  /// another entry can be started right away. Requires at least a
+  /// Policy Year -- everything else on this entry (claim details,
+  /// insured value, the three PDFs) is optional, same "optional unless
+  /// stated otherwise" convention every other field on this form uses.
+  Future<void> _saveYearlyDocument() async {
+    final year = yearlyPolicyYearController.text.trim();
+    if (year.isEmpty) {
+      _showSnack('Please enter the policy year before saving.');
+      return;
+    }
+    setState(() => isSavingYearlyDoc = true);
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse('$insuranceBaseUrl$yearlyDocumentEndpointPath'));
+      request.fields['vehicleNumber'] = widget.item.vehicleNumber ?? '';
+      request.fields['policy_year'] = year;
+      request.fields['claim_details'] = yearlyClaimDetailsController.text.trim();
+      request.fields['insured_value'] = yearlyInsuredValueController.text.trim();
+      if (yearlyPollutionPdf != null) {
+        request.files.add(await http.MultipartFile.fromPath('pollution_pdf', yearlyPollutionPdf!.path));
+      }
+      if (yearlyOldPolicyPdf != null) {
+        request.files.add(await http.MultipartFile.fromPath('old_policy_pdf', yearlyOldPolicyPdf!.path));
+      }
+      if (yearlyInsurancePdf != null) {
+        request.files.add(await http.MultipartFile.fromPath('insurance_pdf', yearlyInsurancePdf!.path));
+      }
+      final response = await request.send();
+      debugPrint('YEARLY DOC SAVE RESPONSE (${response.statusCode})');
+      if (response.statusCode == 200) {
+        setState(() {
+          yearlyDocEntries.add(_YearlyDocEntry(
+            policyYear: year,
+            claimDetails: yearlyClaimDetailsController.text.trim(),
+            insuredValue: yearlyInsuredValueController.text.trim(),
+            hasPollutionPdf: yearlyPollutionPdf != null,
+            hasOldPolicyPdf: yearlyOldPolicyPdf != null,
+            hasInsurancePdf: yearlyInsurancePdf != null,
+          ));
+          yearlyPolicyYearController.clear();
+          yearlyClaimDetailsController.clear();
+          yearlyInsuredValueController.clear();
+          yearlyPollutionPdf = null;
+          yearlyOldPolicyPdf = null;
+          yearlyInsurancePdf = null;
+        });
+        _showSnack('Yearly document saved.');
+      } else {
+        _showSnack('Save failed (status ${response.statusCode}). Please try again.');
+      }
+    } catch (e) {
+      _showSnack('Error: $e');
+    } finally {
+      if (mounted) setState(() => isSavingYearlyDoc = false);
+    }
+  }
 
-      case "RC Front":
-        return item.rcFrontUrl;
-
-      case "RC Back":
-        return item.rcBackUrl;
-
-      case "Car Photo":
-        return item.carPhotoUrl;
-
-      case "Old Policy (Optional)":
-        return item.oldPolicyUrl;
-
-    /// ✅🔥 ADD THIS ↓↓↓
-
-      case "Pollution Photo":
-        return item.pollutionPhotoUrl;
-
-      case "PAN Card Photo":
-        return item.panCardPhotoUrl;
-
-      case "Vehicle Photo":
-        return item.carPhotoUrl;
+  Widget _buildYearlyDocumentsSection() {
+    String _docsSummary(_YearlyDocEntry e) {
+      final names = <String>[
+        if (e.hasPollutionPdf) 'Pollution',
+        if (e.hasOldPolicyPdf) 'Old Policy',
+        if (e.hasInsurancePdf) 'Insurance',
+      ];
+      return names.isEmpty ? 'No documents attached' : 'Docs: ${names.join(', ')}';
     }
 
-    return null;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme
-        .of(context)
-        .brightness == Brightness.dark;
-    final hasServerImage =
-        widget.item.pollutionPhotoUrl != null;
-
-    return Scaffold(
-
-      backgroundColor:
-      isDark ? const Color(0xFF020617) : Colors.grey.shade50,
-
-      // appBar: AppBar(
-      //   backgroundColor: isDark ? const Color(0xFF020617) : Colors.grey.shade100,
-      //   surfaceTintColor:
-      //   isDark ? const Color(0xFF020617) : Colors.grey.shade100,
-      //
-      //   title: const Text("Insurance Details",style: TextStyle(fontFamily: "PoppinsMedium"),),
-      //   elevation: 0,
-      // ),
-
-      body: Stack(
-        children: [
-
-          Column(
-            children: [
-
-              /// 🔥 PREMIUM HEADER
-              buildPremiumHeader(),
-
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(18),
-
-                  child: Form(
-                    key: _formKey,
-
-                    child: Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.start,
+    return InsSectionCard(
+      title: 'Yearly Documents',
+      icon: Icons.event_note_outlined,
+      subtitle: 'Optional \u00b7 saved separately, per year',
+      children: [
+        if (yearlyDocEntries.isNotEmpty) ...[
+          ...yearlyDocEntries.map((e) => Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: InsColors.bg,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: InsColors.border),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-
-                        /// ✅ SECTION: CUSTOMER DETAILS
-                        const Text(
-                          "Customer Details",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontFamily: "PoppinsBold",
-                          ),
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        buildTextField(
-                            "Name", nameController,
-                            isRequired: true
-                        ),
-
-
-                        buildTextField(
-                            maxLength: 10,
-                            keyboardType: TextInputType.phone,
-                            "Number", numberController,
-                            isRequired: true
-                        ),
-
-                        buildTextField("Vehicle Number",
-                            vehicleNumberController,
-                            keyboardType: TextInputType.text,
-                            isRequired: true
-                        ),
-
-
-                        buildVehicleCategoryDropdown(),
-                        buildWheelerDropdown(),
-                        buildFuelDropdown(),
-
-
-                        buildTextField("Nominee Name", nomineeNameController),
-
-                        buildTextField(
-                          "Nominee Age",
-                          nomineeAgeController,
-                          keyboardType: TextInputType.number,
-                        ),
-                        buildTextField(
-                            "Nominee Relation", nomineeRelationController),
-
-                        buildTextField(
-                          "Email ID",
-                          emailController,
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-
-
-                        buildRadioRow(
-                          "Claim",
-                          claimStatus,
-                              (v) => setState(() => claimStatus = v),
-                        ),
-
-                        buildRadioRow(
-                          "Pollution",
-                          pollutionStatus,
-                              (v) {
-                            setState(() {
-                              pollutionStatus = v;
-
-                              /// Optional → No पर image clear
-                              if (v == "No") {
-                                pollutionPhoto = null;
-                              }
-                            });
-                          },
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        /// ✅ SECTION: DOCUMENTS
-                        buildSectionTitle("Upload Documents"),
-
-                        const SizedBox(height: 12),
-
-                        GridView.count(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 14,
-                          mainAxisSpacing: 14,
-                          childAspectRatio: 1.1,
-
-                          children: [
-
-                            buildImagePicker(
-                              "Aadhar Front",
-                              aadharFront,
-                                  () => pickImage((f) => aadharFront = f),
-                            ),
-
-                            buildImagePicker(
-                              "Aadhar Back",
-                              aadharBack,
-                                  () => pickImage((f) => aadharBack = f),
-                            ),
-
-                            buildImagePicker(
-                              "RC Front",
-                              rcFront,
-                                  () => pickImage((f) => rcFront = f),
-                            ),
-
-                            buildImagePicker(
-                              "RC Back",
-                              rcBack,
-                                  () => pickImage((f) => rcBack = f),
-                            ),
-
-                            buildImagePicker(
-                              "Vehicle Photo",
-                              carPhoto,
-                                  () => pickImage((f) => carPhoto = f),
-                            ),
-
-                            buildImagePicker(
-                              "PAN Card Photo",
-                              panCardPhoto,
-                                  () => pickImage((f) => panCardPhoto = f),
-                            ),
-
-                            buildImagePicker(
-                              "Pollution Photo",
-                              pollutionPhoto,
-                                  () => pickImage((f) => pollutionPhoto = f),
-                            ),
-
-                            buildImagePicker(
-                              "Old Policy (Optional)",
-                              oldPolicy,
-                                  () => pickImage((f) => oldPolicy = f), ),
-                          ],
-                        ),
-                        SizedBox(height: 20,),
-
-                        GestureDetector(
-                          onTap: pickMultipleImages,
-                          child: Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: Theme.of(context).dividerColor,
-                                width: 0.8,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 6,
-                                  offset: const Offset(0, 2),
-                                )
-                              ],
-                            ),
-
-                            child: Row(
-                              children: [
-
-                                /// PREVIEW STACK
-                                SizedBox(
-                                  height: 48,
-                                  width: 48,
-                                  child: Stack(
-                                    children: [
-
-                                      if (carMultipleImages.isNotEmpty)
-                                        ...carMultipleImages.take(3).map((file) {
-                                          final index = carMultipleImages.indexOf(file);
-
-                                          return Positioned(
-                                            left: index * 10,
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(8),
-                                              child: Image.file(
-                                                file,
-                                                height: 48,
-                                                width: 48,
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
-                                          );
-                                        }),
-
-                                      if (carMultipleImages.isEmpty && serverMultipleImages.isNotEmpty)
-                                        ...serverMultipleImages.take(3).map((url) {
-                                          final index = serverMultipleImages.indexOf(url);
-
-                                          return Positioned(
-                                            left: index * 10,
-                                            child: ClipRRect(
-                                              borderRadius: BorderRadius.circular(8),
-                                              child: Image.network(
-                                                url,
-                                                height: 48,
-                                                width: 48,
-                                                fit: BoxFit.cover,
-                                              ),
-                                            ),
-                                          );
-                                        }),
-
-                                      if (carMultipleImages.isEmpty && serverMultipleImages.isEmpty)
-                                        Container(
-                                          height: 48,
-                                          width: 48,
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context).colorScheme.surface,
-                                            borderRadius: BorderRadius.circular(10),
-                                            border: Border.all(
-                                              color: Theme.of(context).dividerColor,
-                                            ),
-                                          ),
-                                          child: Icon(
-                                            Icons.upload_file,
-                                            color: Theme.of(context).iconTheme.color,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-
-                                const SizedBox(width: 12),
-
-                                /// TEXT
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-
-                                      Text(
-                                        "Car Multiple Images",
-                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                          fontFamily: "PoppinsMedium",
-                                        ),
-                                      ),
-
-                                      const SizedBox(height: 2),
-
-                                      Text(
-                                        carMultipleImages.isNotEmpty
-                                            ? "${carMultipleImages.length} images selected"
-                                            : serverMultipleImages.isNotEmpty
-                                            ? "${serverMultipleImages.length} existing images"
-                                            : "Tap to upload vehicle images",
-                                        style: Theme.of(context).textTheme.bodySmall,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                if (carMultipleImages.isNotEmpty || serverMultipleImages.isNotEmpty)
-                                  const Icon(Icons.check_circle, color: Colors.green),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        if (serverMultipleImages.isNotEmpty && carMultipleImages.isEmpty)
-                          SizedBox(
-                            height: 90,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: serverMultipleImages.length,
-                              itemBuilder: (context, index) {
-
-                                final imageUrl = serverMultipleImages[index];
-
-                                return Padding(
-                                  padding: const EdgeInsets.only(right: 12),
-                                  child: Stack(
-                                    children: [
-
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: Image.network(
-                                          imageUrl,
-                                          height: 90,
-                                          width: 90,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),
-
-                                      Positioned(
-                                        top: 4,
-                                        right: 4,
-                                        child: GestureDetector(
-                                          onTap: () {
-
-                                            final fileName = imageUrl.split('/').last;
-                                            final dbPath = "insurance_uploads/$fileName";
-
-                                            deleteImages.add(dbPath);
-                                            serverMultipleImages.removeAt(index);
-
-                                            setState(() {});
-                                          },
-                                          child: Container(
-                                            padding: const EdgeInsets.all(4),
-                                            decoration: BoxDecoration(
-                                              color: Colors.black.withOpacity(0.6),
-                                              shape: BoxShape.circle,
-                                            ),
-                                            child: const Icon(
-                                              Icons.close,
-                                              size: 16,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-
-                        const SizedBox(height: 24),
-
-                        /// ✅ PREMIUM BUTTON
-                        SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: ElevatedButton(
-                            onPressed: submitForm,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                              const Color(0xFFE6C47A),
-                              shape: RoundedRectangleBorder(
-                                borderRadius:
-                                BorderRadius.circular(20),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: const Text(
-                              "SUBMIT DETAILS",
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontFamily: "PoppinsBold",
-                                fontSize: 14,
-                                letterSpacing: 0.6,
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 40),
+                        const Icon(Icons.check_circle_rounded, color: InsColors.success, size: 16),
+                        const SizedBox(width: 6),
+                        Text('Policy Year ${e.policyYear}', style: const TextStyle(color: InsColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 12.5)),
                       ],
                     ),
-                  ),
+                    if (e.claimDetails.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text('Claim: ${e.claimDetails}', style: const TextStyle(color: InsColors.textSecondary, fontSize: 11.5)),
+                      ),
+                    if (e.insuredValue.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Text('Insured Value: ${e.insuredValue}', style: const TextStyle(color: InsColors.textSecondary, fontSize: 11.5)),
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(_docsSummary(e), style: const TextStyle(color: InsColors.textMuted, fontSize: 10.5)),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+              )),
+          const Padding(
+            padding: EdgeInsets.only(bottom: 10),
+            child: Text(
+              "Saved this session \u2014 reopening this form won't show these again (no fetch endpoint yet).",
+              style: TextStyle(color: InsColors.textMuted, fontSize: 10, fontStyle: FontStyle.italic),
+            ),
           ),
-
-          /// ✅ LOADING OVERLAY
-          if (isLoading)
-            Container(
-              color: Colors.black.withOpacity(0.35),
-              child: Center(
-                child: Container(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(
-                    color: Colors.blue,
-                  ),
-                ),
-              ),
-            )
         ],
-      ),
-    );
-  }
-
-  Widget buildRadioRow(String title,
-      String groupValue,
-      Function(String) onChanged,) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(10),
-
-          border: Border.all(
-            color: groupValue.isNotEmpty
-                ? theme.colorScheme.primary
-                : theme.dividerColor,
-          ),
-
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            )
-          ],
+        InsTextField(
+          label: 'Policy Year',
+          controller: yearlyPolicyYearController,
+          required: false,
+          keyboardType: TextInputType.number,
+          maxLength: 4,
+          hint: 'e.g. 2026',
         ),
-
-        child: Row(
+        InsTextField(
+          label: 'Claim Details',
+          controller: yearlyClaimDetailsController,
+          required: false,
+          maxLines: 3,
+          hint: 'Describe any claim made this year, if any',
+        ),
+        InsTextField(
+          label: 'Insured Value',
+          controller: yearlyInsuredValueController,
+          required: false,
+          keyboardType: TextInputType.number,
+          hint: 'Insured Declared Value (IDV)',
+        ),
+        const SizedBox(height: 4),
+        // 2026-11-02 fix: a 3-column, 0.82-aspect-ratio grid gave each
+        // DocumentUploadTile roughly half the height the proven-safe
+        // 9-tile Documents grid above gives it (crossAxisCount: 2,
+        // childAspectRatio: 0.95) -- not enough room for its empty-state
+        // Column (icon + up to 2-line label + "Tap to upload" + subtitle),
+        // causing a real RenderFlex "overflowed by 24 pixels on the
+        // bottom" at insurance_ui_kit.dart:1548 (DocumentUploadTile's
+        // empty-state Column). Matched to that exact safe configuration
+        // instead -- 2 columns, same aspect ratio -- so the third tile
+        // simply wraps to its own row.
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: 0.95,
           children: [
-
-            /// TITLE
-            Expanded(
-              child: Text(
-                title,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontFamily: "PoppinsMedium",
-                ),
-              ),
+            DocumentUploadTile(
+              label: 'Pollution PDF',
+              file: yearlyPollutionPdf,
+              subtitle: 'Photo or PDF',
+              onPick: () => _pickYearlyDoc((f) => yearlyPollutionPdf = f),
+              onRemove: () => setState(() => yearlyPollutionPdf = null),
             ),
-
-            /// YES OPTION
-            Row(
-              children: [
-                Radio<String>(
-                  value: "Yes",
-                  groupValue: groupValue,
-                  activeColor: theme.colorScheme.primary,
-                  visualDensity: VisualDensity.compact,
-                  onChanged: (v) => onChanged(v!),
-                ),
-
-                Text(
-                  "Yes",
-                  style: theme.textTheme.bodySmall,
-                ),
-              ],
+            DocumentUploadTile(
+              label: 'Old Policy PDF',
+              file: yearlyOldPolicyPdf,
+              subtitle: 'Photo or PDF',
+              onPick: () => _pickYearlyDoc((f) => yearlyOldPolicyPdf = f),
+              onRemove: () => setState(() => yearlyOldPolicyPdf = null),
             ),
-
-            /// NO OPTION
-            Row(
-              children: [
-                Radio<String>(
-                  value: "No",
-                  groupValue: groupValue,
-                  activeColor: theme.colorScheme.primary,
-                  visualDensity: VisualDensity.compact,
-                  onChanged: (v) => onChanged(v!),
-                ),
-
-                Text(
-                  "No",
-                  style: theme.textTheme.bodySmall,
-                ),
-              ],
+            DocumentUploadTile(
+              label: 'Insurance PDF',
+              file: yearlyInsurancePdf,
+              subtitle: 'Photo or PDF',
+              onPick: () => _pickYearlyDoc((f) => yearlyInsurancePdf = f),
+              onRemove: () => setState(() => yearlyInsurancePdf = null),
             ),
           ],
         ),
-      ),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton(
+            onPressed: isSavingYearlyDoc ? null : _saveYearlyDocument,
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: InsColors.primary),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            child: isSavingYearlyDoc
+                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                : const Text('Add Yearly Document', style: TextStyle(color: InsColors.primary, fontWeight: FontWeight.w700)),
+          ),
+        ),
+      ],
     );
   }
+}
+
+/// One Yearly Documents entry already saved to the backend this session
+/// (2026-11-02) -- display-only summary of what was POSTed, since the
+/// endpoint is insert-only and nothing is fetched back to repopulate
+/// this list on a fresh open of the form. See `yearlyDocumentEndpointPath`'s
+/// doc comment above for the full rationale.
+class _YearlyDocEntry {
+  final String policyYear;
+  final String claimDetails;
+  final String insuredValue;
+  final bool hasPollutionPdf;
+  final bool hasOldPolicyPdf;
+  final bool hasInsurancePdf;
+
+  _YearlyDocEntry({
+    required this.policyYear,
+    required this.claimDetails,
+    required this.insuredValue,
+    required this.hasPollutionPdf,
+    required this.hasOldPolicyPdf,
+    required this.hasInsurancePdf,
+  });
 }

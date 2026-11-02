@@ -14,13 +14,10 @@ import '../ui_decoration_tools/app_images.dart';
 import 'AdminInsurance/AdminInsuranceListScreen.dart';
 import 'AdminRealEstateTabbar.dart';
 import 'Admin_future _property/Administater_Future_Tabbar.dart';
-import 'Admin_profile.dart';
 import 'Administater_Parent_TenantDemand.dart';
 import 'All_Rented_Flat/Administator_Add_Rented_Flat_Tabbar.dart';
 import 'Administator_Agreement/Admin_dashboard.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'New_TenandDemand/Admin_tabbar.dart';
-import '../Network_Map/Admin_Network_Map_Page.dart';
 
 class AppGradients {
 
@@ -441,7 +438,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (_) => AdministaterPropertyTabPage()),
+                                      builder: (_) => const AdministaterPropertyTabPage()),
                                 );
                               },
                               "count": 0,

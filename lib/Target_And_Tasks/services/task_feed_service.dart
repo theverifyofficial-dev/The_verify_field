@@ -38,6 +38,14 @@ class TaskFeedService {
     final d =
         '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
 
+    // Started here, before the main `Future.wait` below, so this call
+    // runs concurrently with the other 9 feeds instead of adding its own
+    // latency on top of them afterward. Awaited further down, once its
+    // result is actually needed.
+    final dueCallsFuture = _ownerCallService.fetchDueCallsResolved(
+      fieldWorkerNumber: fieldWorkerNumber,
+    );
+
     final results = await Future.wait([
       _get(Uri.parse(
           '$_base/task_for_agreement_on_date.php?current_dates=$d&Fieldwarkarnumber=$fieldWorkerNumber')),
@@ -86,10 +94,7 @@ class TaskFeedService {
     // re-filtered per selected date. Every due call is surfaced regardless
     // of which date is being browsed.
     try {
-      final dueCalls =
-      await _ownerCallService.fetchDueCallsResolved(
-        fieldWorkerNumber: fieldWorkerNumber,
-      );
+      final dueCalls = await dueCallsFuture;
 
       tasks.addAll(
         dueCalls.map(

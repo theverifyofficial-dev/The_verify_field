@@ -122,23 +122,36 @@ class TargetService {
 
 
   Future<List<TargetProgress>> _fetchMonthly(String fw, String fieldWorkerName) async {
-    final buildings = await _statusDataLength(
+    // Fired off together (not one `await` after another) so these 6
+    // independent HTTP calls + the local owner-calls read run
+    // concurrently -- total wait is ~the slowest single call instead of
+    // their sum. Same endpoints, same parsers, same results as before;
+    // only when each Future is awaited changed.
+    final buildingsFuture = _statusDataLength(
         Uri.parse('$_base/builidng_monthly_data.php?fieldworkarnumber=$fw'));
-    final book = await _bookCounts(
+    final bookFuture = _bookCounts(
         Uri.parse('$_base/book_monthly_show.php?field_workar_number=$fw'));
-    final live = await _rentBuyCounts(
+    final liveFuture = _rentBuyCounts(
         Uri.parse('$_base/live_monthly_show.php?field_workar_number=$fw'));
-    final agreement = await _singleField(
+    final agreementFuture = _singleField(
         Uri.parse(
             '$_base/count_api_for_all_agreement_with_reword_monthly.php?Fieldwarkarnumber=$fw'),
         'total_agreement');
-    final police = await _singleField(
+    final policeFuture = _singleField(
         Uri.parse('$_base/police_verification_monthly.php?Fieldwarkarnumber=$fw'),
         'total_police_verification');
-    final commercial = await _singleField(
+    final commercialFuture = _singleField(
         Uri.parse('$_base/commercial_month.php?field_workar_number=$fw'),
         'total_commercial');
-    final ownerCallsDone = await _ownerCallsDoneThisMonth();
+    final ownerCallsDoneFuture = _ownerCallsDoneThisMonth();
+
+    final buildings = await buildingsFuture;
+    final book = await bookFuture;
+    final live = await liveFuture;
+    final agreement = await agreementFuture;
+    final police = await policeFuture;
+    final commercial = await commercialFuture;
+    final ownerCallsDone = await ownerCallsDoneFuture;
 
     return [
       // Building Owner Calls is placed FIRST per explicit user request —
@@ -248,10 +261,12 @@ class TargetService {
     // building-follow-up / agreement task cards actually shown for today.
     final today = DateTime.now();
     final d = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-    final buildings = await _taskListLength(Uri.parse(
+    final buildingsFuture = _taskListLength(Uri.parse(
         '$_taskBase/task_for_building.php?current_date_=$d&fieldworkarnumber=$fw'));
-    final agreement = await _taskListLength(Uri.parse(
+    final agreementFuture = _taskListLength(Uri.parse(
         '$_taskBase/task_for_agreement_on_date.php?current_dates=$d&Fieldwarkarnumber=$fw'));
+    final buildings = await buildingsFuture;
+    final agreement = await agreementFuture;
 
     return [
       // Owner Calls REMOVED from the Today tab per explicit follow-up
@@ -283,17 +298,24 @@ class TargetService {
   }
 
   Future<List<TargetProgress>> _fetchYearly(String fw) async {
-    final book = await _bookCounts(
+    // Same fix as `_fetchMonthly`: start all 4 HTTP calls before awaiting
+    // any of them, so they run concurrently instead of one after another.
+    final bookFuture = _bookCounts(
         Uri.parse('$_base/book_yearly_show.php?field_workar_number=$fw'));
-    final agreement = await _singleField(
+    final agreementFuture = _singleField(
         Uri.parse(
             '$_base/count_api_agreement_yealry_with_reward.php?Fieldwarkarnumber=$fw'),
         'total_agreement');
-    final police = await _singleField(
+    final policeFuture = _singleField(
         Uri.parse('$_base/police_verification_yearly.php?Fieldwarkarnumber=$fw'),
         'total_police_verification');
-    final buildings = await _statusDataLength(
+    final buildingsFuture = _statusDataLength(
         Uri.parse('$_base/building_data_yearly.php?fieldworkarnumber=$fw'));
+
+    final book = await bookFuture;
+    final agreement = await agreementFuture;
+    final police = await policeFuture;
+    final buildings = await buildingsFuture;
 
     return [
       TargetProgress(

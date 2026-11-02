@@ -16,6 +16,11 @@ import 'Edit_flat.dart';
 import 'add_image_under_futureproperty.dart'; // Note: Fix filename if 'Futureproipoerty' is a typo
 import 'add_tenant_infutureproperty.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:share_plus/share_plus.dart';
+import '../../Z-Screen/field_catalog_service.dart';
+import '../../Insurance/Insurance Form Screen.dart';
+import '../../Insurance/insurance_linking_service.dart';
+import '../../Insurance/linked_vehicles_section.dart';
 
 class Property {
   final int pId;
@@ -229,11 +234,17 @@ class Catid1 {
 class underflat_futureproperty extends StatefulWidget {
   final String id;
   final String Subid;
+  // 2026-10-29, Building/Flat insurance-linking feature: the parent
+  // Building's id, passed down from the Building Detail page so this Flat
+  // Detail page can show/link insurance records in Building+Flat context.
+  // Optional (nullable) so every pre-existing call site compiles unchanged.
+  final String? buildingId;
 
   const underflat_futureproperty({
     super.key,
     required this.id,
     required this.Subid,
+    this.buildingId,
   });
 
   @override
@@ -247,6 +258,8 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
   final GlobalKey _facilitySectionKey = GlobalKey();
   final GlobalKey _additionalSectionKey = GlobalKey();
   final GlobalKey _tenantSectionKey = GlobalKey();
+  // 2026-10-29, Building/Flat insurance-linking feature.
+  final GlobalKey<LinkedVehiclesSectionState> _linkedVehiclesKey = GlobalKey<LinkedVehiclesSectionState>();
 
   void _jumpTo(GlobalKey key) {
     final ctx = key.currentContext;
@@ -268,6 +281,8 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
   late Future<List<Catid1>> catidFuture;
   String userRole = '';
   bool isFieldWorker = false;
+  bool _isOpeningProperty = false; // 2026-10-28: Detail page "Open" icon button
+  bool _isSharingProperty = false; // 2026-10-28: Detail page "Share" icon button
   final List<String> furnitureItems = [
     'Fan',
     'Light',
@@ -1213,6 +1228,72 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
     return '$firstPart****$lastPart';
   }
 
+  /// Shared lookup both property-link buttons below call -- calls the
+  /// same Field Catalog API the Profile page's buttons use, and builds
+  /// THIS property's own link by appending "&p=<P_id>" to the returned
+  /// catalog `url`, per the user's explicit instruction. Returns null on
+  /// any failure (missing number, API error, network failure) after
+  /// showing the reason in a SnackBar, so callers just bail out.
+  Future<String?> _fetchPropertyLink() async {
+    final prefs = await SharedPreferences.getInstance();
+    final number = prefs.getString('number');
+
+    if (number == null || number.isEmpty) {
+      if (!mounted) return null;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not find your number. Please log in again.")),
+      );
+      return null;
+    }
+
+    final result = await fetchFieldCatalogLink(number);
+    if (!mounted) return null;
+
+    if (!result.success || result.url == null || result.url!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.errorMessage ?? "Something went wrong.")),
+      );
+      return null;
+    }
+
+    return '${result.url}&p=${widget.id}';
+  }
+
+  /// Detail-page "Open" icon button -- 2026-10-28. Opens this property's
+  /// own catalog link straight in the browser/app.
+  Future<void> _openThisProperty() async {
+    setState(() => _isOpeningProperty = true);
+    final propertyLink = await _fetchPropertyLink();
+    if (!mounted) return;
+    setState(() => _isOpeningProperty = false);
+
+    if (propertyLink == null) return;
+
+    final uri = Uri.parse(propertyLink);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not open this property's link.")),
+      );
+    }
+  }
+
+  /// Detail-page "Share" icon button -- 2026-10-28. Shares this
+  /// property's own link wrapped in a proper message (not a bare url),
+  /// matching the tone of the API's own `share_text` for the whole
+  /// catalog.
+  Future<void> _shareThisProperty() async {
+    setState(() => _isSharingProperty = true);
+    final propertyLink = await _fetchPropertyLink();
+    if (!mounted) return;
+    setState(() => _isSharingProperty = false);
+
+    if (propertyLink == null) return;
+
+    final message = "Namaste! Yeh verified property dekhiye: $propertyLink";
+    await Share.share(message, subject: "Verified Property");
+  }
+
   Widget buildResponsiveInfoGrid(List<Widget> infoRows) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -1253,6 +1334,30 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
 
   List<Widget> getPropertyDetailsRows(Property prop) {
     final List<Widget> items = [];
+
+    // 2026-10-29: Flat ID / Building ID weren't shown anywhere on this
+    // page even though both are now used internally (insurance linking,
+    // §34/§35 of the Insurance spec doc) -- surfaced here, at the top of
+    // the existing "Property Details" grid, so a field worker can
+    // actually see them rather than them only existing in code.
+    items.add(
+      _compactDetailItem(
+        icon: Icons.tag,
+        title: 'Flat ID',
+        value: widget.id,
+        color: Colors.teal,
+      ),
+    );
+    if (widget.buildingId != null && widget.buildingId!.trim().isNotEmpty) {
+      items.add(
+        _compactDetailItem(
+          icon: Icons.apartment,
+          title: 'Building ID',
+          value: widget.buildingId!,
+          color: Colors.indigo,
+        ),
+      );
+    }
 
     // Type
     if (prop.typeofProperty.trim().isNotEmpty) {
@@ -1985,37 +2090,94 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                               ),
                             ),
 
-// Menu Button
-                            if (isFieldWorker)
-                              Positioned(
-                                top: MediaQuery.of(context).padding.top +
-                                    (isSmallScreen ? 4.0 : 8.0),
-                                right: horizontalPadding,
-                                child: CircleAvatar(
-                                  radius: isSmallScreen ? 20 : 22,
-                                  backgroundColor: Colors.black.withOpacity(0.6),
-                                  child: PopupMenuButton<String>(
-                                    splashRadius: 22,
-                                    offset: const Offset(0, 45),
-                                    onSelected: handleMenuItemClick,
-                                    itemBuilder: (context) => const [
-                                      PopupMenuItem(
-                                        value: 'Edit Flat',
-                                        child: Text('Edit Flat'),
-                                      ),
-                                      PopupMenuItem(
-                                        value: 'Add Flat Images',
-                                        child: Text('Add Flat Images'),
-                                      ),
-                                    ],
-                                    icon: Icon(
-                                      Icons.more_vert,
-                                      color: Colors.white,
-                                      size: isSmallScreen ? 22 : 26,
-                                    ),
+// Open + Share + Menu Buttons -- 2026-10-28: Open/Share are shown to
+// everyone who opens this page (sharing a property isn't an
+// edit-capable action), the Edit/Add-Images menu stays
+// field-worker-only as before.
+                            Positioned(
+                              top: MediaQuery.of(context).padding.top +
+                                  (isSmallScreen ? 4.0 : 8.0),
+                              right: horizontalPadding,
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  CircleAvatar(
+                                    radius: isSmallScreen ? 20 : 22,
+                                    backgroundColor: Colors.black.withOpacity(0.6),
+                                    child: _isOpeningProperty
+                                        ? SizedBox(
+                                            width: isSmallScreen ? 16 : 18,
+                                            height: isSmallScreen ? 16 : 18,
+                                            child: const CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        : IconButton(
+                                            splashRadius: 22,
+                                            padding: EdgeInsets.zero,
+                                            onPressed: _openThisProperty,
+                                            icon: Icon(
+                                              Icons.open_in_new,
+                                              color: Colors.white,
+                                              size: isSmallScreen ? 20 : 24,
+                                            ),
+                                          ),
                                   ),
-                                ),
+                                  SizedBox(width: isSmallScreen ? 6 : 8),
+                                  CircleAvatar(
+                                    radius: isSmallScreen ? 20 : 22,
+                                    backgroundColor: Colors.black.withOpacity(0.6),
+                                    child: _isSharingProperty
+                                        ? SizedBox(
+                                            width: isSmallScreen ? 16 : 18,
+                                            height: isSmallScreen ? 16 : 18,
+                                            child: const CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.white,
+                                            ),
+                                          )
+                                        : IconButton(
+                                            splashRadius: 22,
+                                            padding: EdgeInsets.zero,
+                                            onPressed: _shareThisProperty,
+                                            icon: Icon(
+                                              Icons.share,
+                                              color: Colors.white,
+                                              size: isSmallScreen ? 20 : 24,
+                                            ),
+                                          ),
+                                  ),
+                                  if (isFieldWorker) ...[
+                                    SizedBox(width: isSmallScreen ? 6 : 8),
+                                    CircleAvatar(
+                                      radius: isSmallScreen ? 20 : 22,
+                                      backgroundColor: Colors.black.withOpacity(0.6),
+                                      child: PopupMenuButton<String>(
+                                        splashRadius: 22,
+                                        offset: const Offset(0, 45),
+                                        onSelected: handleMenuItemClick,
+                                        itemBuilder: (context) => const [
+                                          PopupMenuItem(
+                                            value: 'Edit Flat',
+                                            child: Text('Edit Flat'),
+                                          ),
+                                          PopupMenuItem(
+                                            value: 'Add Flat Images',
+                                            child: Text('Add Flat Images'),
+                                          ),
+                                        ],
+                                        icon: Icon(
+                                          Icons.more_vert,
+                                          color: Colors.white,
+                                          size: isSmallScreen ? 22 : 26,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
                               ),
+                            ),
 
                             Positioned(
                               left: 10,
@@ -2379,6 +2541,33 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                             height:
                                 screenHeight * (isSmallScreen ? 0.1 : 0.08)),
                       ],
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                      child: LinkedVehiclesSection(
+                        key: _linkedVehiclesKey,
+                        title: 'Linked Vehicles',
+                        fetcher: () => fetchVehiclesForFlat(widget.id),
+                        onAddVehicle: () async {
+                          final prefs = await SharedPreferences.getInstance();
+                          final workerName = prefs.getString('user') ?? '';
+                          final workerNumber = prefs.getString('number') ?? '';
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => InsuranceFormScreen(
+                                fieldWorkerName: workerName,
+                                fieldWorkerNumber: workerNumber,
+                                lockedBuildingId: widget.buildingId,
+                                lockedFlatId: widget.id,
+                              ),
+                            ),
+                          );
+                          _linkedVehiclesKey.currentState?.refresh();
+                        },
+                      ),
                     ),
                   ),
                 ],

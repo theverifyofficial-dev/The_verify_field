@@ -46,6 +46,20 @@ class OwnerCallDue {
         'img',
       ]);
 
+  /// 2026-10-31, new: admin-facing "Today's Owner Calls" needs to show
+  /// whether a call is already answered/not-answered for the selected
+  /// date, and how overdue it is -- all confirmed present on the real,
+  /// live `todays_calls.php` response the user pasted this pass
+  /// (`current_status`, `days_overdue`, `next_call_due`, `last_call_date`).
+  /// Purely additive getters reading from the already-stored `raw` map --
+  /// no constructor change, so every existing call site/usage of this
+  /// class (the field-worker due-calls/today's-calls screens) is
+  /// untouched.
+  String get currentStatus => _firstNonEmpty(raw, ['current_status', 'status']);
+  String get daysOverdue => _firstNonEmpty(raw, ['days_overdue']);
+  String get nextCallDue => _firstNonEmpty(raw, ['next_call_due']);
+  String get lastCallDate => _firstNonEmpty(raw, ['last_call_date']);
+
   const OwnerCallDue({
     required this.propertyId,
     required this.buildingAddress,

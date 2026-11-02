@@ -8,6 +8,7 @@ import '../Target_details/Monthly_Tab/Monthly_under_detail/Monthly_Building.dart
 import '../Target_details/history_target.dart';
 import '../Field_Workers/field_worker_directory.dart';
 import 'OwnerCallsHistoryScreen.dart';
+import 'TodaysOwnerCallsAdminScreen.dart';
 import 'Monthly_Tab/Book_Rent.dart';
 import 'Monthly_Tab/Live_Commercial.dart';
 import 'Monthly_Tab/Monthly_LiveBuy.dart';
@@ -541,8 +542,12 @@ class _TargetState extends State<Target> {
 
       final List<Future> allFutures = [];
 
+      // Queued into `allFutures` (not awaited up front) so this no longer
+      // blocks every agent's monthly fetch from starting -- it now runs
+      // concurrently with them instead of serially before them. Same
+      // "stop once found" lookup, same result either way.
       if (activeTab == "Monthly" && users.isNotEmpty) {
-        await _fetchMonthlyPeriod();
+        allFutures.add(_fetchMonthlyPeriod());
       }
 
       for (final u in users) {
@@ -893,6 +898,20 @@ class _TargetState extends State<Target> {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const OwnerCallsHistoryScreen()),
+            ),
+          ),
+          // NEW (2026-10-31): admin view of today's (or any picked date's)
+          // owner-call due list per field worker, via the new
+          // `todays_calls.php` endpoint -- see
+          // `TodaysOwnerCallsAdminScreen`'s doc comment. Added alongside
+          // the existing "Building Owner Calls" history button above, not
+          // replacing it; everything else on this AppBar is untouched.
+          IconButton(
+            tooltip: "Today's Owner Calls",
+            icon: const Icon(Icons.today_rounded),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const TodaysOwnerCallsAdminScreen()),
             ),
           ),
         ],

@@ -763,7 +763,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     final lightTheme = ThemeData(
       brightness: Brightness.light,
-      fontFamily: 'PoppinsMedium', // 👈 THIS IS THE KEY
+      fontFamily: 'PoppinsMedium',
       scaffoldBackgroundColor: const Color(0xFFF7F7F7),
       cardColor: Colors.white,
       appBarTheme: const AppBarTheme(

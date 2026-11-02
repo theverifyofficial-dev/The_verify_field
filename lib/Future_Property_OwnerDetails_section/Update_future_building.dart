@@ -174,6 +174,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         "https://verifyrealestateandservices.in/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_for_details_page.php?id=${widget.propertyId}"
     );
 
+    print(widget.propertyId);
     final res = await http.get(url);
 
     if (res.statusCode != 200) throw Exception("API error");

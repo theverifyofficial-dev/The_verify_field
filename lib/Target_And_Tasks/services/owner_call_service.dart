@@ -94,16 +94,93 @@ class OwnerCallService {
   /// duplicated at each call site.
   Future<List<OwnerCallDue>> fetchDueCallsResolved({required String fieldWorkerNumber}) async {
     final calls = await fetchDueCalls(fieldWorkerNumber: fieldWorkerNumber);
-    final resolved = <OwnerCallDue>[];
-    for (final c in calls) {
+    // Every call that needs a fallback lookup is fetched concurrently
+    // (not one-by-one in a sequential loop) -- same per-call logic as
+    // before, just no longer waiting for each fallback HTTP request to
+    // finish before starting the next one.
+    final resolvedFutures = calls.map((c) {
       if (c.ownerNumber.isNotEmpty) {
-        resolved.add(c);
-        continue;
+        return Future.value(c);
       }
-      final fallback = await fetchOwnerNumberFallback(c.propertyId);
-      resolved.add(fallback != null ? c.copyWith(ownerNumber: fallback) : c);
+      return fetchOwnerNumberFallback(c.propertyId).then(
+        (fallback) => fallback != null ? c.copyWith(ownerNumber: fallback) : c,
+      );
+    });
+    return Future.wait(resolvedFutures);
+  }
+
+  /// `GET todays_calls.php?fieldworkarnumber=...&date=yyyy-MM-dd` --
+  /// 2026-10-30, new "clone" feature: a field worker's owner-call
+  /// reminders scoped to one specific date, rather than `due_calls.php`'s
+  /// undated full backlog. Same `Building_Calling` API family as every
+  /// other endpoint on this class, so the response envelope/field-name
+  /// uncertainty is handled the same defensive way `fetchDueCalls` already
+  /// does -- this pass could not reach the live endpoint to confirm its
+  /// exact shape either (no network egress to
+  /// `verifyrealestateandservices.in` from this environment), so the
+  /// already-proven `OwnerCallDue.fromJson` key-guess list is reused as-is
+  /// rather than guessing a second, separate set of keys for what is very
+  /// likely the identical record shape as `due_calls.php`.
+  Future<List<OwnerCallDue>> fetchTodaysCalls({
+    required String fieldWorkerNumber,
+    required String date,
+  }) async {
+    try {
+      final uri = Uri.parse(
+        '$_base/todays_calls.php?fieldworkarnumber=${Uri.encodeQueryComponent(fieldWorkerNumber)}&date=${Uri.encodeQueryComponent(date)}',
+      );
+      final res = await http.get(uri).timeout(const Duration(seconds: 12));
+      // 2026-10-31: was a bare `print(fieldWorkerNumber)` -- replaced with
+      // actual failure diagnostics (status + body on a bad response, the
+      // caught error otherwise), since the real server response ({success,
+      // date, count, data:[...]}, confirmed live by the user) parses fine
+      // against this method's own envelope check below, so a silent
+      // empty-list return here was hiding whatever the real cause of
+      // "data not showing" was (bad status, timeout, non-200, etc.)
+      // rather than a parsing mismatch.
+      if (res.statusCode != 200 || res.body.isEmpty) {
+        // ignore: avoid_print
+        print('todays_calls.php: unexpected response -- status=${res.statusCode} body=${res.body}');
+        return const [];
+      }
+      final decoded = jsonDecode(res.body);
+      List<dynamic> list;
+      if (decoded is Map && decoded['data'] is List) {
+        list = decoded['data'] as List;
+      } else if (decoded is List) {
+        list = decoded;
+      } else {
+        // ignore: avoid_print
+        print('todays_calls.php: unrecognized envelope shape -- decoded=$decoded');
+        return const [];
+      }
+      return list.whereType<Map>().map((e) => OwnerCallDue.fromJson(Map<String, dynamic>.from(e))).toList();
+    } catch (e, st) {
+      // ignore: avoid_print
+      print('todays_calls.php: exception -- $e\n$st');
+      return const [];
     }
-    return resolved;
+  }
+
+  /// `fetchTodaysCalls()` plus the same owner-number fallback lookup
+  /// `fetchDueCallsResolved()` already applies to `due_calls.php` records
+  /// -- kept as an exact parallel of that method (same concurrent
+  /// `Future.wait` pattern) so the new "Today's Owner Calls" screen's
+  /// call button is just as reliable as the existing due-calls one.
+  Future<List<OwnerCallDue>> fetchTodaysCallsResolved({
+    required String fieldWorkerNumber,
+    required String date,
+  }) async {
+    final calls = await fetchTodaysCalls(fieldWorkerNumber: fieldWorkerNumber, date: date);
+    final resolvedFutures = calls.map((c) {
+      if (c.ownerNumber.isNotEmpty) {
+        return Future.value(c);
+      }
+      return fetchOwnerNumberFallback(c.propertyId).then(
+        (fallback) => fallback != null ? c.copyWith(ownerNumber: fallback) : c,
+      );
+    });
+    return Future.wait(resolvedFutures);
   }
 
   /// `POST submit_call.php` with the exact five fields the redesign spec

@@ -19,9 +19,12 @@ migrate_working_dir/
 .idea/
 
 # The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# VS Code -- normally fine to commit, but 2026-10-28: a local launch.json may
+# now carry the real FIELD_CATALOG_APP_KEY via --dart-define (see the field
+# catalog share feature), so this folder is now git-ignored to keep that key
+# out of version control. Re-comment this line if you'd rather keep .vscode/
+# tracked and put the key somewhere else (a local, gitignored file instead).
+.vscode/
 
 # Flutter/Dart/Pub related
 **/doc/api/

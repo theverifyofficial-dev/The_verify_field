@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'Login_page.dart';
 import '../model/Profile_model.dart';
 import '../main.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'field_catalog_service.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -16,10 +18,59 @@ class _ProfilePageState extends State<ProfilePage> {
   UserProfile? _user;
   bool _isLoading = true;
   bool isDeleting = false;
+  bool _isOpeningCatalog = false; // 2026-10-28: "Open my catalog" AppBar icon button
 
   Future<String?> getUserNumber() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('number');
+  }
+
+  /// Shared lookup both catalog buttons below call -- reads the worker's
+  /// number the same way every other call on this page already does,
+  /// calls the one Field Catalog API, and shows the API's own error
+  /// `message` (or a generic fallback) in a SnackBar on failure. Returns
+  /// null on failure so the caller just bails out.
+  Future<FieldCatalogResult?> _fetchMyCatalog() async {
+    final number = await getUserNumber();
+    print(number);
+    if (number == null || number.isEmpty) {
+      if (!mounted) return null;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not find your number. Please log in again.")),
+      );
+      return null;
+    }
+
+    final result = await fetchFieldCatalogLink(number);
+    if (!result.success) {
+      if (!mounted) return null;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.errorMessage ?? "Something went wrong.")),
+      );
+      return null;
+    }
+    return result;
+  }
+
+  /// "Open Catalog" icon button -- 2026-10-28. Opens the catalog `url`
+  /// straight in the browser/app, same `launchUrl` pattern already used
+  /// on `Social_Media_links.dart`.
+  Future<void> _openMyCatalog() async {
+    setState(() => _isOpeningCatalog = true);
+    final result = await _fetchMyCatalog();
+    if (!mounted) return;
+    setState(() => _isOpeningCatalog = false);
+
+    final url = result?.url;
+    if (url == null || url.isEmpty) return;
+
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not open the catalog link.")),
+      );
+    }
   }
 
   Future<void> fetchUserProfile() async {
@@ -176,6 +227,28 @@ class _ProfilePageState extends State<ProfilePage> {
             color: isDark ? Colors.white : const Color(0xFF1A1A1A),
           ),
         ),
+        actions: [
+          // "Open Catalog" -- 2026-10-28: moved here from the body, and
+          // the separate Share button was removed per the user's request
+          // (just one icon button that opens the catalog url).
+          IconButton(
+            tooltip: "Open my catalog",
+            onPressed: _isOpeningCatalog ? null : _openMyCatalog,
+            icon: _isOpeningCatalog
+                ? SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: isDark ? Colors.white : const Color(0xFF1A1A1A),
+                    ),
+                  )
+                : Icon(
+                    Icons.open_in_new,
+                    color: isDark ? Colors.white : const Color(0xFF1A1A1A),
+                  ),
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.amber))

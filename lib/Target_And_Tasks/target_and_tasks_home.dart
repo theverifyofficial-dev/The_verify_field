@@ -15,6 +15,7 @@ import 'widgets/task_tile.dart';
 import 'widgets/owner_call_card.dart';
 import 'widgets/owner_call_outcome_chip.dart';
 import 'owner_calls_detail.dart';
+import 'todays_owner_calls_screen.dart';
 
 // ---------------------------------------------------------------------
 // Every one of these is the SAME detail screen the original per-feed
@@ -391,6 +392,8 @@ class _TargetAndTasksHomeState extends State<TargetAndTasksHome> with WidgetsBin
                   ),
             const SizedBox(height: 24),
             _ownerCallsSection(context, isDark),
+            const SizedBox(height: 10),
+            _todaysOwnerCallsSection(context, isDark),
             const SizedBox(height: 28),
             _sectionHeader(context, 'Calendar', trailing: _calendarFormatToggle()),
             const SizedBox(height: 10),
@@ -531,6 +534,84 @@ class _TargetAndTasksHomeState extends State<TargetAndTasksHome> with WidgetsBin
                     style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: Colors.white),
                   ),
                 ),
+              const SizedBox(width: 4),
+              const Icon(Icons.chevron_right_rounded, color: Colors.white70),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 2026-10-30, new section: a standalone entry point for "Today's Owner
+  /// Calls" (the date-scoped `todays_calls.php` endpoint), added alongside
+  /// (not replacing) `_ownerCallsSection` above -- a close clone of that
+  /// method's full-width gradient button, differing only in its copy,
+  /// icon-less-badge (today's count isn't known until the screen itself
+  /// loads, so no due-count badge is shown here), destination screen, and
+  /// gradient color (teal/green instead of blue) so the two buttons read as
+  /// related but distinct at a glance.
+  Widget _todaysOwnerCallsSection(BuildContext context, bool isDark) {
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          if (_fieldWorkerNumber == null || _fieldWorkerNumber!.isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Missing field worker credentials — please log in again.')),
+            );
+            return;
+          }
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => TodaysOwnerCallsScreen(
+                fieldWorkerNumber: _fieldWorkerNumber!,
+                fieldWorkerName: _fieldWorkerName ?? '',
+              ),
+            ),
+          );
+        },
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF1FA37A), Color(0xFF3FC79A)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle),
+                child: const Icon(Icons.today_rounded, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Today's Owner Calls",
+                      style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w700, color: Colors.white),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      "View and log today's owner calls",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 11.5, color: Colors.white70),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(width: 4),
               const Icon(Icons.chevron_right_rounded, color: Colors.white70),
             ],

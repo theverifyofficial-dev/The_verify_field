@@ -493,17 +493,30 @@ Future<File> generateAgreementPdf(
       : rawTenantAadhaar;
 
   pw.TextSpan getMeterClause(Map<String, dynamic>? data) {
-    final customMeterUnit = data?["custom_meter_unit"];
-    final meterRate = data?["meter"];
-    final meterValue =
-    (customMeterUnit != null &&
-        customMeterUnit.toString().isNotEmpty)
-        ? customMeterUnit.toString()
-        : (meterRate != null && meterRate.toString().isNotEmpty)
-        ? meterRate.toString()
-        : null;
+    final customMeterUnit = data?["custom_meter_unit"]?.toString().trim() ?? '';
+    // The form's "Meter Info" dropdown ("As per Govt. Unit" / "Custom
+    // Unit (Enter Amount)") is saved verbatim in this "meter" field --
+    // it's a label, not a number. Previously this was read as `meterRate`
+    // and printed straight into "The rate per unit is INR <meterRate>"
+    // whenever custom_meter_unit was empty, producing nonsense like
+    // "INR As per Govt. Unit per unit". It's used below only as a
+    // dynamic fallback label, never as the numeric rate.
+    final meterParam = data?["meter"]?.toString().trim() ?? '';
 
-    if (meterValue != null) {
+    // A "0" (or "0.00", etc.) custom rate is just as meaningless as a
+    // blank/missing one -- treat all three the same instead of literally
+    // quoting "INR 0" per unit.
+    final parsedCustomRate = double.tryParse(customMeterUnit);
+    final hasValidCustomRate =
+        customMeterUnit.isNotEmpty && parsedCustomRate != null && parsedCustomRate != 0;
+
+    // The dropdown's own "custom amount" option, left with no real
+    // number entered, isn't a meaningful label to print either --
+    // only a real category like "As per Govt. Unit" is.
+    final hasMeaningfulMeterParam =
+        meterParam.isNotEmpty && meterParam != "Custom Unit (Enter Amount)";
+
+    if (hasValidCustomRate) {
       return pw.TextSpan(
         children: [
           const pw.TextSpan(
@@ -511,7 +524,7 @@ Future<File> generateAgreementPdf(
             style: pw.TextStyle(fontSize: 11),
           ),
           pw.TextSpan(
-            text: meterValue,
+            text: customMeterUnit,
             style: pw.TextStyle(
                 fontSize: 11, fontWeight: pw.FontWeight.bold),
           ),
@@ -522,8 +535,31 @@ Future<File> generateAgreementPdf(
           ),
         ],
       );
+    } else if (hasMeaningfulMeterParam) {
+      // No valid custom rate was entered -- show the "meter" parameter's
+      // own current value dynamically (e.g. "As per Govt. Unit") instead
+      // of a fixed hardcoded sentence that ignores it. Bolded the same
+      // way the custom-rate branch above bolds its dynamic value.
+      return pw.TextSpan(
+        children: [
+          const pw.TextSpan(
+            text: "The electricity charges shall be payable ",
+            style: pw.TextStyle(fontSize: 11),
+          ),
+          pw.TextSpan(
+            text: meterParam,
+            style: pw.TextStyle(
+                fontSize: 11, fontWeight: pw.FontWeight.bold),
+          ),
+          const pw.TextSpan(
+            text:
+            ", and water charges as per actual usage. These payments are separate from the monthly rent.",
+            style: pw.TextStyle(fontSize: 11),
+          ),
+        ],
+      );
     } else {
-      return const  pw.TextSpan(
+      return const pw.TextSpan(
         text:
         "The rate per unit will be billed separately from the monthly rent as per applicable rates.",
         style: pw.TextStyle(fontSize: 11),

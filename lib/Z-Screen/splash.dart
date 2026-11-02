@@ -97,7 +97,12 @@ class _SplashState extends State<Splash> {
 
       if (result.isNotEmpty) {
         User user = result.first;
-        _routeByRole(user.F_AadhaarCard, applicationStatus: user.status);
+        _routeByRole(
+          user.F_AadhaarCard,
+          applicationStatus: user.status,
+          pref: pref,
+          allowFallback: true,
+        );
       } else {
         // A 200 response with no data for this number -- fall back to
         // the role saved locally at the last successful login rather
@@ -127,7 +132,12 @@ class _SplashState extends State<Splash> {
   /// `init()`'s success branch) and the offline/fallback path
   /// (`_routeByStoredRole`, cached role only, status unknown) -- same
   /// routing either way; `applicationStatus` is simply omitted offline.
-  void _routeByRole(String role, {String? applicationStatus}) {
+  void _routeByRole(
+    String role, {
+    String? applicationStatus,
+    SharedPreferences? pref,
+    bool allowFallback = false,
+  }) {
     if (!mounted) return;
 
     if (role == "FieldWorkar") {
@@ -157,14 +167,30 @@ class _SplashState extends State<Splash> {
         context,
         MaterialPageRoute(builder: (_) => VideoHomepage()),
       );
+    } else if (allowFallback && pref != null) {
+      // This fresh re-check calls `home_screen.php` -- a different,
+      // older endpoint than the one Login_page.dart actually signs in
+      // against -- purely to pick up a status change (e.g. newly
+      // Rejected). If IT returns a role string that doesn't match any
+      // of ours (stale/mismatched data on that side, or this number
+      // simply isn't known there), that's a problem with this secondary
+      // check, not with the user's actual session -- don't bounce an
+      // already-logged-in user back to the login screen over it. Trust
+      // the role saved locally at their last successful login instead,
+      // same as the offline/empty-data fallback below already does.
+      _routeByStoredRole(pref);
     } else {
       Navigator.of(context).pushReplacementNamed(Login_page.route);
     }
   }
 
-  /// Offline (or empty-data) fallback: route using whatever role was
-  /// saved locally at the user's last successful login, instead of
-  /// blocking them on the splash screen with no way in.
+  /// Offline (or empty-data, or unrecognized-fresh-role) fallback: route
+  /// using whatever role was saved locally at the user's last successful
+  /// login, instead of stranding/bouncing the user here. Deliberately
+  /// does NOT pass `allowFallback` on -- if the cached role itself is
+  /// also unrecognized (e.g. nothing was ever actually saved), this is
+  /// still the one place that sends them to the login screen, same as
+  /// before this fallback existed.
   void _routeByStoredRole(SharedPreferences pref) {
     _routeByRole(pref.getString('post') ?? '');
   }

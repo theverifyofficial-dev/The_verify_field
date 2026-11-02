@@ -1,13 +1,15 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 import '../../Custom_Widget/constant.dart';
 import '../../Insurance/InsuranceDetail.dart';
-import 'Admin_Pdf_Quotation.dart';
+import '../../Insurance/insurance_ui_kit.dart';
 
+// 2026-10-23 fix: `fetchInsurance()` below calls the NEW table's
+// endpoint, so image paths it returns (e.g. `car_photo`) must resolve
+// against the NEW table's base URL, not the old one. Same fix as §26.
 const String insuranceBaseUrl =
-    "https://verifyrealestateandservices.in/PHP_Files/insurance_insert_api/insurance_details/";
+    "https://verifyrealestateandservices.in/Second%20PHP%20FILE/insurance/";
 
 class InsuranceModel {
   final int id;
@@ -39,6 +41,62 @@ class InsuranceModel {
   final String? current_dates;
   final String? pan_card_photo;
 
+  // Vehicle Info API (RTO Sarthi) -- real backend field names (2026-10-22)
+  final String? rtoOwnerName;
+  final String? rtoFatherName;
+  final String? rtoPresentAddress;
+  final String? rtoPermanentAddress;
+  final String? rtoMobileNo;
+  final String? rtoOwnerEmail;
+  final String? rtoOwnerSerialNo;
+  final String? rtoCurrentAddStateName;
+  final String? rtoCurrentAddDistrictCode;
+  final String? rtoCurrentAddPincode;
+  final String? chasiNo;
+  final String? engineNo;
+  final String? makerDesc;
+  final String? makerModel;
+  final String? bodyTypeDesc;
+  final String? rtoVehicleClass;
+  final String? rtoVehicleCategory;
+  final String? rtoIsCommercial;
+  final String? fuelDesc;
+  final String? vehicleColor;
+  final String? manuMonthYr;
+  final String? rtoVehicleSurrenderedToDealer;
+  final String? regnNo;
+  final String? regnDt;
+  final String? regnUpto;
+  final String? registeredAt;
+  final String? stateCd;
+  final String? rtoCd;
+  final String? rcNpNo;
+  final String? fitUpto;
+  final String? taxUpto;
+  final String? rtoStatus;
+  final String? statusAsOn;
+  final String? insuranceComp;
+  final String? policyNo;
+  final String? insPolicyNo;
+  final String? insuranceUpto;
+  final String? pucUpto;
+  final String? puccUpto;
+  final String? puccNo;
+  final String? permitNo;
+  final String? permitIssueDate;
+  final String? financerDetails;
+  final String? seatingCapacity;
+  final String? sleeperCapacity;
+  final String? standingCapacity;
+  final String? unladenWeight;
+  final String? ladenWeight;
+  final String? wheelbase;
+  final String? noOfCylinders;
+  final String? cubicCapacity;
+  final String? fuelNorms;
+  final String? blacklistStatus;
+  final String? nocDetails;
+
   InsuranceModel({
     required this.id,
     this.name,
@@ -68,23 +126,84 @@ class InsuranceModel {
     this.current_dates,
     this.pan_card_photo,
     this.vehicle_category,
+    this.rtoOwnerName,
+    this.rtoFatherName,
+    this.rtoPresentAddress,
+    this.rtoPermanentAddress,
+    this.rtoMobileNo,
+    this.rtoOwnerEmail,
+    this.rtoOwnerSerialNo,
+    this.rtoCurrentAddStateName,
+    this.rtoCurrentAddDistrictCode,
+    this.rtoCurrentAddPincode,
+    this.chasiNo,
+    this.engineNo,
+    this.makerDesc,
+    this.makerModel,
+    this.bodyTypeDesc,
+    this.rtoVehicleClass,
+    this.rtoVehicleCategory,
+    this.rtoIsCommercial,
+    this.fuelDesc,
+    this.vehicleColor,
+    this.manuMonthYr,
+    this.rtoVehicleSurrenderedToDealer,
+    this.regnNo,
+    this.regnDt,
+    this.regnUpto,
+    this.registeredAt,
+    this.stateCd,
+    this.rtoCd,
+    this.rcNpNo,
+    this.fitUpto,
+    this.taxUpto,
+    this.rtoStatus,
+    this.statusAsOn,
+    this.insuranceComp,
+    this.policyNo,
+    this.insPolicyNo,
+    this.insuranceUpto,
+    this.pucUpto,
+    this.puccUpto,
+    this.puccNo,
+    this.permitNo,
+    this.permitIssueDate,
+    this.financerDetails,
+    this.seatingCapacity,
+    this.sleeperCapacity,
+    this.standingCapacity,
+    this.unladenWeight,
+    this.ladenWeight,
+    this.wheelbase,
+    this.noOfCylinders,
+    this.cubicCapacity,
+    this.fuelNorms,
+    this.blacklistStatus,
+    this.nocDetails,
   });
 
   factory InsuranceModel.fromJson(Map<String, dynamic> json) {
     return InsuranceModel(
       id: json['id'] ?? 0,
-      name: json['name_'],
-      number: json['number'],
-      vehicleNumber: json['vehicle_number'],
-      fieldWorkerName: json['fieldworkar_name'],
-      fieldWorkerNumber: json['fieldworkar_number'],
+      // 2026-10-23 fix: this endpoint (`show_api_fieldworkar_number.php`,
+      // the new table) has no separate `name_`/`number`/`vehicle_number`
+      // columns -- the field worker's typed name/phone are stored AS the
+      // RTO fields `OWNER_NAME`/`MOBILE_NO` directly, and the vehicle
+      // number key is camelCase `vehicleNumber`, not `vehicle_number`.
+      // Same fix as `InsuranceShowListPage.dart`/`AdminInsuranceListScreen.dart`
+      // for this same endpoint (see doc §26).
+      name: json['OWNER_NAME'],
+      number: json['MOBILE_NO'],
+      vehicleNumber: json['vehicleNumber'],
+      fieldWorkerName: json['Fieldworkar_name'],
+      fieldWorkerNumber: json['Fieldworkar_number'],
       nextRenewDate: json['next_renew_date'],
       aadharFront: json['Aadhar_front'],
       aadharBack: json['Aadhar_back'],
       rcFront: json['Rc_front'],
       rcBack: json['Rc_back'],
       oldPolicyDocument: json['old_policy_docement'],
-      emailId: json['email_id'],
+      emailId: json['owner_email'],
       claim: json['claim'],
       fuelType: json['petrol_desiel'],
       carPhoto: json['car_photo'],
@@ -98,8 +217,62 @@ class InsuranceModel {
       maritalStatus: json['Marital_status'],
       vehicle_category: json['vehicle_category'],
       vehicleType: json['vehicle_type'],
-      current_dates: json['current_dates'],
+      current_dates: json['current_dates'] ?? json['created_at'] ?? json['createdAt'],
       pan_card_photo: json['pan_card_photo'],
+      rtoOwnerName: json['OWNER_NAME'],
+      rtoFatherName: json['F_NAME'],
+      rtoPresentAddress: json['PRESENT_ADDRESS'],
+      rtoPermanentAddress: json['PERMANENT_ADDRESS'],
+      rtoMobileNo: json['MOBILE_NO'],
+      rtoOwnerEmail: json['owner_email'],
+      rtoOwnerSerialNo: json['OWNER_SERIAL_NO'],
+      rtoCurrentAddStateName: json['CURRENTADD_STATENAME'],
+      rtoCurrentAddDistrictCode: json['CURRENTADD_DISTRICTCODE'],
+      rtoCurrentAddPincode: json['CURRENTADD_PINCODE'],
+      chasiNo: json['CHASI_NO'],
+      engineNo: json['ENG_NO'],
+      makerDesc: json['MAKER_DESC'],
+      makerModel: json['MAKER_MODEL'],
+      bodyTypeDesc: json['BODY_TYPE_DESC'],
+      rtoVehicleClass: json['VEHICLE_CLASS'],
+      rtoVehicleCategory: json['VEHICLE_CATEGORY'],
+      rtoIsCommercial: json['IS_COMMERCIAL'],
+      fuelDesc: json['FUEL_DESC'],
+      vehicleColor: json['COLOR'],
+      manuMonthYr: json['MANU_MONTH_YR'],
+      rtoVehicleSurrenderedToDealer: json['VEHICLE_SURRENDERED_TO_DEALER'],
+      regnNo: json['REGN_NO'],
+      regnDt: json['REGN_DT'],
+      regnUpto: json['REGN_UPTO'],
+      registeredAt: json['REGISTERED_AT'],
+      stateCd: json['STATE_CD'],
+      rtoCd: json['RTO_CD'],
+      rcNpNo: json['RC_NP_NO'],
+      fitUpto: json['FIT_UPTO'],
+      taxUpto: json['TAX_UPTO'],
+      rtoStatus: json['STATUS'],
+      statusAsOn: json['STATUS_AS_ON'],
+      insuranceComp: json['INSURANCE_COMP'],
+      policyNo: json['POLICY_NO'],
+      insPolicyNo: json['INS_POLICY_NO'],
+      insuranceUpto: json['INSURANCE_UPTO'],
+      pucUpto: json['PUC_UPTO'],
+      puccUpto: json['PUCC_UPTO'],
+      puccNo: json['PUCC_NO'],
+      permitNo: json['PERMIT_NO'],
+      permitIssueDate: json['PERMIT_ISSUE_DATE'],
+      financerDetails: json['FINANCER_DETAILS'],
+      seatingCapacity: json['SEATING_CAPACITY'],
+      sleeperCapacity: json['SLEEPER_CAPACITY'],
+      standingCapacity: json['STANDING_CAPACITY'],
+      unladenWeight: json['UNLADEN_WEIGHT'],
+      ladenWeight: json['LADEN_WEIGHT'],
+      wheelbase: json['WHEELBASE'],
+      noOfCylinders: json['NO_OF_CYLINDERS'],
+      cubicCapacity: json['CUBIC_CAPACITY'],
+      fuelNorms: json['FUEL_NORMS'],
+      blacklistStatus: json['BLACKLIST_STATUS'],
+      nocDetails: json['NOC_DETAILS'],
     );
   }
 
@@ -121,6 +294,68 @@ class InsuranceModel {
 
     return insuranceBaseUrl + path;
   }
+
+  Map<String, dynamic> toVehicleInfoMap() => {
+    'OWNER_NAME': rtoOwnerName,
+    'F_NAME': rtoFatherName,
+    'PRESENT_ADDRESS': rtoPresentAddress,
+    'PERMANENT_ADDRESS': rtoPermanentAddress,
+    'MOBILE_NO': rtoMobileNo,
+    'owner_email': rtoOwnerEmail,
+    'OWNER_SERIAL_NO': rtoOwnerSerialNo,
+    'CURRENTADD_STATENAME': rtoCurrentAddStateName,
+    'CURRENTADD_DISTRICTCODE': rtoCurrentAddDistrictCode,
+    'CURRENTADD_PINCODE': rtoCurrentAddPincode,
+    'CHASI_NO': chasiNo,
+    'ENG_NO': engineNo,
+    'MAKER_DESC': makerDesc,
+    'MAKER_MODEL': makerModel,
+    'BODY_TYPE_DESC': bodyTypeDesc,
+    'VEHICLE_CLASS': rtoVehicleClass,
+    'VEHICLE_CATEGORY': rtoVehicleCategory,
+    'IS_COMMERCIAL': rtoIsCommercial,
+    'FUEL_DESC': fuelDesc,
+    'COLOR': vehicleColor,
+    'MANU_MONTH_YR': manuMonthYr,
+    'VEHICLE_SURRENDERED_TO_DEALER': rtoVehicleSurrenderedToDealer,
+    'REGN_NO': regnNo,
+    'REGN_DT': regnDt,
+    'REGN_UPTO': regnUpto,
+    'REGISTERED_AT': registeredAt,
+    'STATE_CD': stateCd,
+    'RTO_CD': rtoCd,
+    'RC_NP_NO': rcNpNo,
+    'FIT_UPTO': fitUpto,
+    'TAX_UPTO': taxUpto,
+    'STATUS': rtoStatus,
+    'STATUS_AS_ON': statusAsOn,
+    'INSURANCE_COMP': insuranceComp,
+    'POLICY_NO': policyNo,
+    'INS_POLICY_NO': insPolicyNo,
+    'INSURANCE_UPTO': insuranceUpto,
+    'PUC_UPTO': pucUpto,
+    'PUCC_UPTO': puccUpto,
+    'PUCC_NO': puccNo,
+    'PERMIT_NO': permitNo,
+    'PERMIT_ISSUE_DATE': permitIssueDate,
+    'FINANCER_DETAILS': financerDetails,
+    'SEATING_CAPACITY': seatingCapacity,
+    'SLEEPER_CAPACITY': sleeperCapacity,
+    'STANDING_CAPACITY': standingCapacity,
+    'UNLADEN_WEIGHT': unladenWeight,
+    'LADEN_WEIGHT': ladenWeight,
+    'WHEELBASE': wheelbase,
+    'NO_OF_CYLINDERS': noOfCylinders,
+    'CUBIC_CAPACITY': cubicCapacity,
+    'FUEL_NORMS': fuelNorms,
+    'BLACKLIST_STATUS': blacklistStatus,
+    'NOC_DETAILS': nocDetails,
+  };
+
+  bool get hasRtoVehicleInfo =>
+      (chasiNo?.trim().isNotEmpty ?? false) ||
+      (regnNo?.trim().isNotEmpty ?? false) ||
+      (rtoOwnerName?.trim().isNotEmpty ?? false);
 }
 
 class InsuranceResponse {
@@ -163,6 +398,8 @@ class _AdminListInsuranceState extends State<AdminListInsurance> {
 
   TextEditingController searchController = TextEditingController();
   List<InsuranceModel> filteredList = [];
+  // null means "All" -- see InsuranceStatusFilterBar.
+  InsuranceExpiryStatus? _statusFilter;
 
   int totalMissingFields = 0;
   bool isLoading = true;
@@ -205,16 +442,21 @@ class _AdminListInsuranceState extends State<AdminListInsurance> {
     searchController.addListener(_filterList);
   }
 
-  void _filterList() {
+  void _filterList() => _applyFilters();
+
+  /// Applies both the text search and the status-tab filter together,
+  /// so narrowing by status doesn't lose the typed search query (and
+  /// vice versa).
+  void _applyFilters() {
     final query = searchController.text.toLowerCase().trim();
 
     setState(() {
-      if (query.isEmpty) {
-        filteredList = insuranceList;
-        return;
-      }
-
       filteredList = insuranceList.where((item) {
+        if (_statusFilter != null && insuranceExpiryStatusFor(item.insuranceUpto) != _statusFilter) {
+          return false;
+        }
+        if (query.isEmpty) return true;
+
         final name = item.name?.toLowerCase() ?? "";
         final vehicle = item.vehicleNumber?.toLowerCase() ?? "";
         final number = item.number?.toLowerCase() ?? "";
@@ -248,21 +490,18 @@ class _AdminListInsuranceState extends State<AdminListInsurance> {
     try {
       final response = await http.get(
         Uri.parse(
-          "https://verifyrealestateandservices.in/PHP_Files/insurance_insert_api/"
-              "insurance_details/show_insurance_api_base_on_fieldwoakr_number.php"
-              "?fieldworkar_number=${widget.fieldWorkerNumber}",
-        ),
+          "https://verifyrealestateandservices.in/Second%20PHP%20FILE/insurance/"
+              "show_api_fieldworkar_number.php?Fieldworkar_number=${widget.fieldWorkerNumber}",),
       );
 
       final decoded = jsonDecode(response.body);
 
       debugPrint("RESPONSE: ${response.body}");
 
-      if (decoded['status'] == "success") {
+      if (decoded['status'] == true || decoded['status'] == 'success') {
         insuranceList = (decoded['data'] as List)
             .map((e) => InsuranceModel.fromJson(e))
             .toList();
-        filteredList = insuranceList;
 
         calculateMissingFields();
       }
@@ -270,6 +509,7 @@ class _AdminListInsuranceState extends State<AdminListInsurance> {
       debugPrint("Error: $e");
     }
 
+    _applyFilters();
     if (mounted) {
       setState(() => isLoading = false);
     }
@@ -280,103 +520,66 @@ class _AdminListInsuranceState extends State<AdminListInsurance> {
 
     await fetchInsurance();
   }
+
   @override
   Widget build(BuildContext context) {
-
-    final isDark = Theme
-        .of(context)
-        .brightness == Brightness.dark;
-
     return Scaffold(
-      backgroundColor:
-      isDark ? const Color(0xFF050202)
-          : Colors.grey.shade100,
-
-      // appBar: AppBar(
-      //   backgroundColor:
-      //   isDark ? const Color(0xFF050202)
-      //       : Colors.grey.shade100,
-      //
-      //   surfaceTintColor: Colors.transparent, // 🔥 important
-      //   scrolledUnderElevation: 0, // 🔥 important
-      //
-      //   automaticallyImplyLeading: false,
-      //   title: const Text(
-      //     "Insurance Records",
-      //     style: TextStyle(fontFamily: "PoppinsBold"),
-      //   ),
-      //   elevation: 0,
-      // ),
-
+      backgroundColor: InsColors.bg,
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: InsColors.primary))
           : Column(
-          children: [
-
-          /// HEADER
-          _premiumHeader(isDark),
-
-      /// 📊 COUNT SECTION
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-
-            Text(
-              "Total Records: ${filteredList.length}",
-              style: const TextStyle(
-                fontFamily: "PoppinsBold",
-                fontSize: 13,
-              ),
-            ),
-
-            Text(
-              "Showing: ${filteredList.length}",
-              style: TextStyle(
-                fontFamily: "PoppinsMedium",
-                fontSize: 12,
-                color: Colors.grey.shade600,
-              ),
-            ),
-
-          ],
-        ),
-      ),
-
-      /// 📄 LIST
-      Expanded(
-        child: RefreshIndicator(
-          onRefresh: refreshInsurance,
-          child: filteredList.isEmpty
-              ? ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: const [
-              SizedBox(height: 200),
-              Center(
-                child: Text(
-                  "No Insurance Records Found",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontFamily: "PoppinsMedium",
+              children: [
+                _header(context),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Total Records: ${filteredList.length}",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                          color: InsColors.textPrimary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-            ],
-          )
-              : ListView.builder(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            itemCount: filteredList.length,
-            itemBuilder: (context, index) {
-              final item = filteredList[index];
-              return _insuranceCard(item, isDark, context);
-            },
-          ),
-        ),
-      ),
-        ]
-      ),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: refreshInsurance,
+                    color: InsColors.primary,
+                    child: filteredList.isEmpty
+                        ? ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: const [
+                              SizedBox(height: 200),
+                              Center(
+                                child: Text(
+                                  "No Insurance Records Found",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: InsColors.textMuted,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : ListView.builder(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.all(16),
+                            itemCount: filteredList.length,
+                            itemBuilder: (context, index) {
+                              final item = filteredList[index];
+                              return _insuranceCard(item, context);
+                            },
+                          ),
+                  ),
+                ),
+              ],
+            ),
     );
   }
 
@@ -386,187 +589,92 @@ class _AdminListInsuranceState extends State<AdminListInsurance> {
     super.dispose();
   }
 
-  /// ✅ EMPTY STATE
-  Widget _buildEmptyState(bool isDark) {
-    return Center(
-      child: Text(
-        "No Insurance Records Found",
-        style: TextStyle(
-          fontSize: 16,
-          fontFamily: "PoppinsBold",
-          color: isDark ? Colors.white70 : Colors.black54,
-        ),
-      ),
-    );
-  }
-
-  Widget _premiumHeader(bool isDark) {
+  Widget _header(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 60, 20, 25),
+      padding: const EdgeInsets.fromLTRB(16, 56, 16, 18),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Color(0xFF071A35),
-            Color(0xFF0B2548),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(40),
-        ),
+        color: InsColors.surface,
+        border: Border(bottom: BorderSide(color: InsColors.border)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
-          /// 🔙 BACK BUTTON + PROFILE
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-
-              /// BACK BUTTON
               GestureDetector(
-                onTap: () {
-                  Navigator.pop(context);
-                },
+                onTap: () => Navigator.pop(context),
                 child: Container(
-                  height: 42,
-                  width: 42,
+                  height: 36,
+                  width: 36,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(.1),
-                    borderRadius: BorderRadius.circular(12),
+                    color: InsColors.bg,
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(
                     Icons.arrow_back_ios_new_rounded,
-                    color: Colors.white,
-                    size: 18,
+                    color: InsColors.textPrimary,
+                    size: 16,
                   ),
                 ),
               ),
-
-              /// PROFILE
-              CircleAvatar(
-                radius: 26,
-                backgroundColor: Colors.white,
-                child: CircleAvatar(
-                  radius: 23,
-                  backgroundImage: AssetImage(AppImages.logo),
+              const SizedBox(width: 12),
+              const Text(
+                "Field Worker Insurances",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: InsColors.textPrimary,
                 ),
               ),
             ],
           ),
-
-          const SizedBox(height: 8),
-
-          /// TITLE
-          const Text(
-            "CONCIERGE SERVICE",
-            style: TextStyle(
-              color: Colors.amber,
-              fontSize: 11,
-              letterSpacing: 2,
-              fontFamily: "PoppinsMedium",
-            ),
+          const SizedBox(height: 14),
+          InsSearchField(
+            controller: searchController,
+            onClear: () => searchController.clear(),
           ),
-
-          const SizedBox(height: 6),
-
-          const Text(
-            "My Insurances",
-            style: TextStyle(
-              fontSize: 28,
-              color: Colors.white,
-              fontFamily: "PoppinsBold",
-            ),
-          ),
-
-          const SizedBox(height: 15),
-
-          /// SEARCH BAR
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFF1A3458),
-              borderRadius: BorderRadius.circular(30),
-            ),
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF1A3458),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: TextField(
-                controller: searchController,
-                style: const TextStyle(
-                  fontFamily: "PoppinsMedium",
-                  fontSize: 14,
-                ),
-                decoration: InputDecoration(
-                  hintText: "Search",
-                  hintStyle: TextStyle(
-                    color: Colors.grey.shade500,
-                    fontSize: 13,
-                  ),
-
-                  prefixIcon: Container(
-                    padding: const EdgeInsets.all(12),
-                    child: Icon(
-                      Icons.search_rounded,
-                      color: Colors.grey.shade600,
-                      size: 22,
-                    ),
-                  ),
-
-                  suffixIcon: searchController.text.isNotEmpty
-                      ? IconButton(
-                    icon: const Icon(Icons.close_rounded),
-                    onPressed: () {
-                      searchController.clear();
-                    },
-                  )
-                      : null,
-
-                  filled: true,
-                  fillColor: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xFF1A1A1A)
-                      : Colors.white,
-
-                  contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: BorderSide(
-                      color: Colors.grey.shade300,
-                    ),
-                  ),
-
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF4F46E5),
-                      width: 1.5,
-                    ),
-                  ),
-
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-              ),
-            ),
+          const SizedBox(height: 12),
+          InsuranceStatusFilterBar(
+            selected: _statusFilter,
+            onChanged: (status) {
+              setState(() => _statusFilter = status);
+              _applyFilters();
+            },
           ),
         ],
       ),
     );
   }
 
-  /// ✅ PREMIUM INSURANCE CARD
-  Widget _insuranceCard(InsuranceModel item, bool isDark, BuildContext context) {
+  /// ✅ INSURANCE CARD
+  // Vehicle model name shown on the list card in place of the old
+  // "Via Registry" badge (2026-10-23 request). Prefers the specific
+  // model (MAKER_MODEL, e.g. "THAR LX D AT 4WD 4S HT") and falls back
+  // to the manufacturer name (MAKER_DESC) when no model is on file;
+  // truncated so a long RTO description never breaks the card layout.
+  String? _vehicleModelLabel(InsuranceModel item) {
+    final model = item.makerModel?.trim();
+    final maker = item.makerDesc?.trim();
+    String? label;
+    if (model != null && model.isNotEmpty) {
+      label = model;
+    } else if (maker != null && maker.isNotEmpty) {
+      label = maker;
+    }
+    if (label == null || label.isEmpty) return null;
+    return label.length > 28 ? '${label.substring(0, 28).trim()}\u2026' : label;
+  }
 
+  Widget _insuranceCard(InsuranceModel item, BuildContext context) {
     final missingFields = _missingFieldsFor(item);
-    final hasMissingFields = missingFields.isNotEmpty;
-
-    return GestureDetector(
+    return InsuranceListCard(
+      id: item.id,
+      name: item.name,
+      vehicleNumber: item.vehicleNumber,
+      carPhotoUrl: item.carPhotoUrl,
+      missingCount: missingFields.length,
+      vehicleModelLabel: _vehicleModelLabel(item),
+      insuranceUpto: item.insuranceUpto,
       onTap: () {
         Navigator.push(
           context,
@@ -577,393 +685,7 @@ class _AdminListInsuranceState extends State<AdminListInsurance> {
           ),
         );
       },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 24),
-        decoration: BoxDecoration(
-          gradient: isDark
-              ? const LinearGradient(
-            colors: [
-              Color(0xFF111111),
-              Color(0xFF1C1C1C),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          )
-              : const LinearGradient(
-            colors: [
-              Colors.white,
-              Color(0xFFF7F9FC),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(28),
-
-          /// 🔥 Border Highlight
-          border: Border.all(
-            color: const Color(0xFF4F46E5).withOpacity(.15),
-            width: 1,
-          ),
-
-          /// 🔥 Strong Elevation Shadow
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(.12),
-              blurRadius: 28,
-              spreadRadius: 2,
-              offset: const Offset(0, 14),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-            /// 🚗 IMAGE AREA
-            Stack(
-              children: [
-
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(28),
-                  ),
-                  child: item.carPhotoUrl != null
-                      ? Image.network(
-                    item.carPhotoUrl!,
-                    height: 200,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  )
-                      : Container(
-                    height: 200,
-                    width: double.infinity,
-                    color: Colors.grey.shade300,
-                    child: const Icon(
-                      Icons.directions_car,
-                      size: 50,
-                    ),
-                  ),
-                ),
-
-                /// 🔥 IMAGE DARK OVERLAY
-                Container(
-                  height: 200,
-                  decoration: BoxDecoration(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(28),
-                    ),
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withOpacity(.25),
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                  ),
-                ),
-
-                /// ID BADGE
-                Positioned(
-                  top: 14,
-                  right: 14,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFF4F46E5),
-                          Color(0xFF3B82F6),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      "ID ${item.id}",
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: Colors.white,
-                        fontFamily: "PoppinsBold",
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            /// CONTENT
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child:
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-
-                      /// NAME
-                      Expanded(
-                        child: Text(
-                          item.name ?? "Unknown Owner",
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontFamily: "PoppinsBold",
-                            fontWeight: FontWeight.w700,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-
-                      const SizedBox(width: 10),
-
-                      /// VEHICLE CATEGORY BADGE
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: (item.vehicle_category == null || item.vehicle_category!.trim().isEmpty)
-                              ? Colors.red.withOpacity(.12)        // 🔴 Empty category
-                              : const Color(0xFF4F46E5).withOpacity(.12), // 🟣 Normal
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        child: Text(
-                          (item.vehicle_category == null || item.vehicle_category!.trim().isEmpty)
-                              ? "Vehicle Category Empty"
-                              : item.vehicle_category!,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontFamily: "PoppinsBold",
-                            color: (item.vehicle_category == null || item.vehicle_category!.trim().isEmpty)
-                                ? Colors.red
-                                : const Color(0xFF4F46E5),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  /// VEHICLE NUMBER
-                  Text(
-                    item.vehicleNumber ?? "",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.white70 : Colors.grey.shade800,
-                      fontFamily: "PoppinsMedium",
-                    ),
-                  ),
-
-
-                  const SizedBox(height: 16),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-
-                      /// RENEW DATE
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-
-                          Text(
-                            "RENEWAL DATE",
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.grey.shade500,
-                              fontFamily: "PoppinsMedium",
-                            ),
-                          ),
-
-                          const SizedBox(height: 4),
-
-                          Text(
-                            formatExpiryDate(item.nextRenewDate),
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontFamily: "PoppinsBold",
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      /// FUEL BADGE
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => Admin_PdfQuotation(projectId: item.id),
-                            ),
-                          );
-                        },
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                          backgroundColor: isDark
-                              ? Colors.white.withOpacity(.08)
-                              : const Color(0xFF4F46E5).withOpacity(.1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                            side: BorderSide(
-                              color: isDark
-                                  ? Colors.white.withOpacity(.15)
-                                  : const Color(0xFF4F46E5).withOpacity(.3),
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.remove_red_eye_outlined,
-                              size: 13,
-                              color: isDark ? Colors.white70 : const Color(0xFF4F46E5),
-                            ),
-                            const SizedBox(width: 5),
-                            Text(
-                              "View Details",
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontFamily: "PoppinsBold",
-                                color: isDark ? Colors.white70 : const Color(0xFF4F46E5),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (hasMissingFields)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 10),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.red.withOpacity(.08),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.red.withOpacity(.5),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-
-                            const Icon(
-                              Icons.warning_amber_rounded,
-                              color: Colors.red,
-                              size: 18,
-                            ),
-
-                            const SizedBox(width: 6),
-
-                            Expanded(
-                              child: Text(
-                                "Missing: ${missingFields.join(', ')}",
-                                style: const TextStyle(
-                                  color: Colors.red,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
-  }
-
-  Widget _bigInfoBlock({
-    required String label,
-    required String value,
-    required bool isDark,
-    required bool missing,
-    bool alignEnd = false,
-  }) {
-    return Column(
-      crossAxisAlignment:
-      alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-      children: [
-
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            fontFamily: "PoppinsMedium",
-            color: isDark ? Colors.white38 : Colors.grey,
-          ),
-        ),
-
-        const SizedBox(height: 6),
-
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontFamily: "PoppinsBold",
-            fontStyle: missing ? FontStyle.italic : FontStyle.normal,
-            color: missing
-                ? (isDark ? Colors.white30 : Colors.grey)
-                : (isDark ? Colors.white : Colors.black87),
-          ),
-        ),
-      ],
-    );
-  }
-  Widget _statusBadge({
-    required String label,
-    required String value,
-  }) {
-    final isYes = value == "Yes";
-
-    final color = isYes ? Colors.green : Colors.redAccent;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 4,
-      ),
-      decoration: BoxDecoration(
-        color: color.withOpacity(.15),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        "$label: $value",
-        style: TextStyle(
-          fontSize: 10,
-          fontFamily: "PoppinsBold",
-          color: color,
-        ),
-      ),
-    );
-  }
-}
-String formatExpiryDate(String? rawDate) {
-  if (rawDate == null || rawDate.isEmpty) return "Not Available";
-
-  try {
-    final parsed = DateFormat("dd-MM-yyyy").parse(rawDate);
-
-    return DateFormat("dd MMM yyyy").format(parsed);
-
-    /// Example Output → 24 Feb 2026 😎
-  } catch (e) {
-    return rawDate; // fallback safety
   }
 }
 

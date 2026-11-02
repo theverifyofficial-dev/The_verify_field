@@ -15,6 +15,7 @@ import '../../Demand_2/Tabbar.dart';
 import '../../Future_Property_OwnerDetails_section/Future_Property.dart';
 import '../../Future_Property_OwnerDetails_section/Future_Property_Tabbar.dart';
 import '../../Home_Screen_click/live_tabbar.dart';
+import '../../Insurance/InsuranceShowListPage.dart';
 import '../../Rent Agreement/history_tab.dart';
 import '../../Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
 import '../../Upcoming/Parent_Upcoming.dart';
@@ -484,7 +485,18 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                 "title": "Customer Demands (Field)",
                                 "onTap": () => Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (_) => Tabbar())),
+                                    MaterialPageRoute(builder: (_) =>  const Tabbar())),
+                                "count": 0,
+                              },
+                              {
+                                "image": AppImages.compliant,
+                                "title": "Insurance (Field)",
+                                "onTap": () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                              builder: (_) =>  InsuranceListScreen(
+                              fieldWorkerNumber: userNumber,
+                              fieldWorkerName: userName ?? "",))),
                                 "count": 0,
                               },
                             ];

@@ -4,1170 +4,1045 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../utilities/heic_converter.dart';
+import 'insurance_ui_kit.dart';
 
+/// Add Insurance -- redesigned 2026-10-21 into a fetch-first flow around
+/// the paid "RTO Sarthi" Vehicle Info API: Step 1 is now "Vehicle Lookup"
+/// (Vehicle Number + Fetch Details), which ALWAYS checks our own DB first
+/// and only spends the paid API call when the plate isn't already on
+/// file -- but as of the **2026-10-22 correction**, that fetch-first
+/// decision is made SERVER-SIDE, in a single call to one lookup endpoint
+/// (see `vehicleLookupEndpointPath` in insurance_ui_kit.dart -- still a
+/// confirmed-temporary placeholder path the user will replace). The real
+/// insert endpoint (`insert_insurance.php`, under the "Second PHP
+/// FILE/insurance/" path) is confirmed and already wired up below via
+/// `insertEndpointPath`; the real update endpoint
+/// (`update_insurance_api.php`, keyed by `id`) was confirmed 2026-10-22
+/// and is now wired up via `updateEndpointPath` too.
+/// See the project doc "Vehicle_Info_API_Insurance_Redesign_Spec.md" for
+/// the full design and its "2026-10-22 correction" section for exactly
+/// what changed from the original assumed two-endpoint contract.
+///
+/// Previous (2026-10-16/17) history retained below for context: this was
+/// a 3-step wizard (Policy Holder Details -> Policy Information ->
+/// Documents) with Full Name/Phone/Vehicle Number as the only required
+/// fields. That step order is now inverted -- Vehicle Number comes
+/// first, since what the lookup returns determines whether Full
+/// Name/Phone even need to be typed by hand.
 class InsuranceFormScreen extends StatefulWidget {
   final String fieldWorkerName;
   final String fieldWorkerNumber;
+
+  // 2026-10-29: set when this form was opened via "Add Vehicle" from a
+  // Future Property Building or Flat Detail page -- locks the linkage
+  // so the field worker can't change which building/flat the new
+  // insurance record gets attached to. lockedBuildingId alone means a
+  // building-level vehicle (no flat); both set means a flat-level
+  // vehicle. Both null (the normal "Add Insurance" FAB flow) means no
+  // linkage at all, unchanged from before this feature existed.
+  final String? lockedBuildingId;
+  final String? lockedFlatId;
+
   const InsuranceFormScreen({
     super.key,
     required this.fieldWorkerName,
-    required this.fieldWorkerNumber});
+    required this.fieldWorkerNumber,
+    this.lockedBuildingId,
+    this.lockedFlatId,
+  });
 
   @override
   State<InsuranceFormScreen> createState() => _InsuranceFormScreenState();
 }
 
+class _StepMeta {
+  final String title;
+  final IconData icon;
+  const _StepMeta(this.title, this.icon);
+}
+
 class _InsuranceFormScreenState extends State<InsuranceFormScreen> {
+  // **2026-10-22 correction**: the real backend lives at a NEW location
+  // the user shared directly from a live endpoint -- a different path and
+  // field-naming convention than originally assumed (see
+  // "Vehicle_Info_API_Insurance_Redesign_Spec.md" §11 for the full history).
+  // `insertEndpointPath` is confirmed, real, and final. `lookupEndpointPath`
+  // (from `insurance_ui_kit.dart`) is still a TEMPORARY PLACEHOLDER --
+  // do not treat it as correct. `updateEndpointPath` is now confirmed
+  // real too (2026-10-22), same endpoint the Update form uses, keyed by
+  // `id` (sent below).
+  static const String insuranceBaseUrl =
+      'https://verifyrealestateandservices.in/Second%20PHP%20FILE/insurance/';
+  static const String insertEndpointPath = 'insert_insurance.php'; // REAL, confirmed 2026-10-22
+  static const String updateEndpointPath = 'update_insurance_api.php'; // REAL, confirmed 2026-10-22
+
+  static const List<_StepMeta> _steps = [
+    _StepMeta('Vehicle Lookup', Icons.search_rounded),
+    _StepMeta('Policy Holder Details', Icons.person_outline_rounded),
+    _StepMeta('Documents', Icons.folder_open_outlined),
+  ];
+
+  int _stepIndex = 0;
+  bool _isLoading = false;
+  bool _restoredDraft = false;
 
   final _formKey = GlobalKey<FormState>();
+
+  // Step 0 -- Vehicle Lookup (required)
+  final vehicleNumberController = TextEditingController();
+  VehicleFetchStatus _fetchStatus = VehicleFetchStatus.idle;
+  Map<String, dynamic>? _record; // DB row (foundInternal) or API `data` object (foundExternal)
+  String? _fetchMessage;
+
+  // Step 1 -- Policy Holder Details (required)
   final nameController = TextEditingController();
   final numberController = TextEditingController();
-  final vehicleNumberController = TextEditingController();
-  final fieldWorkerNameController = TextEditingController();
-  final fieldWorkerNumberController = TextEditingController();
-  final vehicleTypeController = TextEditingController();
+  // Owner email -- entered manually by the field worker (2026-10-22); the
+  // backend returns `owner_email` on an existing record too, but it is
+  // never auto-filled from a lookup, by the user's explicit request.
+  final emailController = TextEditingController();
 
-  File? aadharFront;
-  File? aadharBack;
+  // Nominee & additional details -- new columns on the table (2026-10-22),
+  // all manually typed/picked by the field worker, same as Name/Phone/Email.
+  final nomineeNameController = TextEditingController();
+  final nomineeRelationController = TextEditingController();
+  final nomineeAgeController = TextEditingController();
+  final extraNumberController = TextEditingController();
+  final callingNumberController = TextEditingController();
+  // The person's name for each alternate contact number above --
+  // `extra_name`/`calling_name` (2026-10-23, new API params).
+  final extraNameController = TextEditingController();
+  final callingNameController = TextEditingController();
+  String _claim = 'No'; // Yes/No, same pattern as the old form's claim field
+  String? _maritalStatus;
+
+  // Quota counters from the paid API's own `usage` object, if this
+  // lookup actually spent a paid call -- shown via a small popup next to
+  // the "Fetched from Vehicle Registry" badge (2026-10-22).
+  RtoApiUsage? _usage;
+
+  // Step 2 -- Documents (all optional)
+  final picker = ImagePicker();
+  File? carPhoto;
   File? rcFront;
   File? rcBack;
-  File? carPhoto;
-  File? oldPolicy;
+  File? aadharFront;
+  File? aadharBack;
   File? panCardPhoto;
-
-  final picker = ImagePicker();
-  bool isLoading = false;
-  final emailController = TextEditingController();
-  final nomineeNameController = TextEditingController();
-  final nomineeAgeController = TextEditingController();
-  final nomineeRelationController = TextEditingController();
-
-  String claimStatus = "No";
-  String pollutionStatus = "No";
-  List<File> carMultipleImages = [];
+  File? oldPolicy;
+  File? dlImg;
+  File? newPolicy;
   File? pollutionPhoto;
-  final expiryDateController = TextEditingController();
+  List<File> carMultipleImages = [];
 
-  Future<void> pickImage(Function(File) onSelected) async {
-    final picked = await HeicConverter.pickImage(picker, 
-      source: ImageSource.gallery,
-      imageQuality: 75,
-    );
+  String get _draftKey => 'insurance_draft_${widget.fieldWorkerNumber}';
 
-    if (picked != null) {
-      onSelected(File(picked.path));
-      setState(() {});
-    }
-  }
+  bool get _vehicleNumberLocked =>
+      _fetchStatus != VehicleFetchStatus.idle && _fetchStatus != VehicleFetchStatus.error;
+
+  bool get _lookupResolved => const {
+        VehicleFetchStatus.foundInternal,
+        VehicleFetchStatus.foundExternal,
+        VehicleFetchStatus.quotaExhausted,
+        VehicleFetchStatus.notFoundExternal,
+      }.contains(_fetchStatus);
 
   @override
   void initState() {
     super.initState();
-
-    fieldWorkerNameController.text = widget.fieldWorkerName;
-    fieldWorkerNumberController.text = widget.fieldWorkerNumber;
+    _maybeOfferDraftRestore();
   }
 
-  Future<void> submitForm() async {
+  @override
+  void dispose() {
+    vehicleNumberController.dispose();
+    nameController.dispose();
+    numberController.dispose();
+    emailController.dispose();
+    nomineeNameController.dispose();
+    nomineeRelationController.dispose();
+    nomineeAgeController.dispose();
+    extraNumberController.dispose();
+    callingNumberController.dispose();
+    extraNameController.dispose();
+    callingNameController.dispose();
+    super.dispose();
+  }
 
-    if (!_formKey.currentState!.validate()) return;
+  // ------------------------------------------------------------------
+  // Draft save/restore -- "Save-as-draft capability between steps".
+  // Only text fields are persisted (SharedPreferences can't hold picked
+  // `File`s across app restarts, and the vehicle-lookup result is live
+  // server data, not something safe to freeze-dry) -- a restored draft
+  // always resumes at Step 0 with lookup state reset to idle, so the
+  // field worker re-runs "Fetch Details" rather than the form showing
+  // Step 2/3 content for a lookup that never actually happened this
+  // session. This is a deliberate, flagged limitation, not an oversight.
+  // ------------------------------------------------------------------
 
-    /// VALIDATIONS FIRST
-    if (selectedCategory == null) {
-      showSnack("Please select vehicle category");
-      return;
-    }
+  Map<String, dynamic> _draftJson() => {
+        'name': nameController.text,
+        'number': numberController.text,
+        'email': emailController.text,
+        'vehicleNumber': vehicleNumberController.text,
+        'nomineeName': nomineeNameController.text,
+        'nomineeRelation': nomineeRelationController.text,
+        'nomineeAge': nomineeAgeController.text,
+        'extraNumber': extraNumberController.text,
+        'callingNumber': callingNumberController.text,
+        'extraName': extraNameController.text,
+        'callingName': callingNameController.text,
+        'claim': _claim,
+        'maritalStatus': _maritalStatus,
+      };
 
-    if (selectedWheeler == null) {
-      showSnack("Please select wheeler type");
-      return;
-    }
-
-    if (selectedFuel == null) {
-      showSnack("Please select fuel type");
-      return;
-    }
-
-    if (pollutionStatus == "Yes" && pollutionPhoto == null) {
-      showSnack("Upload Pollution Photo");
-      return;
-    }
-
-
-    setState(() => isLoading = true);
-
-    try {
-
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse(
-          '00',
-        ),
-      );
-
-      /// FIELDS
-      request.fields['name_'] = nameController.text.trim();
-      request.fields['number'] = numberController.text.trim();
-      request.fields['vehicle_number'] = vehicleNumberController.text.trim();
-      request.fields['vehicle_category'] = selectedCategory!;
-      request.fields['vehicle_type'] = selectedWheeler!;
-      request.fields['petrol_desiel'] = selectedFuel!;
-      request.fields['fieldworkar_name'] = widget.fieldWorkerName;
-      request.fields['fieldworkar_number'] = widget.fieldWorkerNumber;
-      request.fields['email_id'] = emailController.text.trim();
-      request.fields['Nominie_name'] = nomineeNameController.text.trim();
-      request.fields['Nominie_age'] = nomineeAgeController.text.trim();
-      request.fields['Nominie_relation'] = nomineeRelationController.text.trim();
-      request.fields['claim'] = claimStatus;
-      request.fields['polution_yes_no'] = pollutionStatus;
-      request.fields['expiry_date'] = expiryDateController.text.trim();
-
-      request.fields['current_dates'] =
-          DateFormat("yyyy-MM-dd HH:mm:ss").format(DateTime.now());
-
-      /// FILE UPLOADS
-
-      if (panCardPhoto != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'pan_card_photo',
-          panCardPhoto!.path,
-        ));
-      }
-
-      if (pollutionPhoto != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'polution_photo',
-          pollutionPhoto!.path,
-        ));
-      }
-
-      if (aadharFront != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'Aadhar_front',
-          aadharFront!.path,
-        ));
-      }
-
-      if (aadharBack != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'Aadhar_back',
-          aadharBack!.path,
-        ));
-      }
-
-      if (rcFront != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'Rc_front',
-          rcFront!.path,
-        ));
-      }
-
-      if (rcBack != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'Rc_back',
-          rcBack!.path,
-        ));
-      }
-
-      if (carPhoto != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'car_photo',
-          carPhoto!.path,
-        ));
-      }
-
-      if (oldPolicy != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'old_policy_docement',
-          oldPolicy!.path,
-        ));
-      }
-
-      /// MULTIPLE CAR IMAGES
-
-      print("Total Multiple Images Selected: ${carMultipleImages.length}");
-
-      for (var image in carMultipleImages) {
-
-        print("Uploading Image: ${image.path}");
-
-        request.files.add(
-          await http.MultipartFile.fromPath(
-            'car_images[]',
-            image.path,
-          ),
-        );
-      }
-
-      /// DEBUG FILES
-
-      print("------ FILES GOING TO API ------");
-
-      for (var file in request.files) {
-        print("FIELD: ${file.field}");
-        print("FILE NAME: ${file.filename}");
-      }
-
-      print("TOTAL FILES SENT: ${request.files.length}");
-
-      /// SEND REQUEST
-
-      var response = await request.send();
-      final responseBody = await response.stream.bytesToString();
-
-      print("STATUS CODE: ${response.statusCode}");
-      print("RESPONSE BODY: $responseBody");
-
-      if (response.statusCode == 200) {
-
-        final decoded = jsonDecode(responseBody);
-
-        /// SUCCESS
-        if (decoded["status"] == true) {
-
-          setState(() => isLoading = false);
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Submitted Successfully')),
-          );
-
-          Navigator.pop(context, true);
-        }
-
-        /// DUPLICATE VEHICLE
-        else if (decoded["status"] == false &&
-            decoded["vehicle_number"] != null) {
-
-          setState(() => isLoading = false);
-
-          final vehicleNumber = decoded["vehicle_number"];
-          final addedByName = decoded["added_by_fieldworker_name"];
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                "Vehicle $vehicleNumber already exists\nAdded by: $addedByName",
-                style: const TextStyle(color: Colors.white),
-              ),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 4),
-            ),
-          );
-
-          vehicleNumberController.clear();
-        }
-
-        /// OTHER FAILURE
-        else {
-
-          setState(() => isLoading = false);
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(decoded["message"] ?? "Something went wrong"),
-            ),
-          );
-        }
-
-      } else {
-
-        setState(() => isLoading = false);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Server Error: ${response.statusCode}')),
-        );
-      }
-
-    } catch (e) {
-
-      setState(() => isLoading = false);
-
+  Future<void> _saveDraft({bool silent = false}) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_draftKey, jsonEncode(_draftJson()));
+    if (!silent && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
+        const SnackBar(content: Text('Draft saved')),
       );
     }
   }
 
-  void showSnack(String message) {
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+  Future<void> _clearDraft() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_draftKey);
   }
 
-
-
-  List<String> vehicleCategoryOptions = [
-    "Commercial",
-    "Private",
-  ];
-
-  List<String> wheelOptions = [
-    "2 Wheeler",
-    "3 Wheeler",
-    "4 Wheeler",
-    "6 Wheeler",
-    "8 Wheeler",
-  ];
-
-  String? selectedCategory;
-  String? selectedWheeler;
-
-  List<String> fuelOptions = [
-    "Petrol / CNG",
-    "Petrol",
-    "Diesel",
-    "CNG",
-    "EV",
-  ];
-
-  String? selectedFuel;
-
-  Future<void> pickMultipleImages() async {
-    final pickedFiles = await HeicConverter.pickMultiImage(picker, imageQuality: 75);
-    if (pickedFiles != null && pickedFiles.isNotEmpty) {
-      carMultipleImages = pickedFiles.map((e) => File(e.path)).toList();
-      setState(() {});
-    }
-  }
-
-  Widget buildTextField(String label,
-      TextEditingController controller, {
-        TextInputType keyboardType = TextInputType.text,
-        int? maxLength,
-        bool isRequired = false,
-      }) {
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        maxLength: maxLength,
-
-        validator: (value) {
-          if (isRequired) {
-            if (value == null || value
-                .trim()
-                .isEmpty) {
-              return 'Required';
-            }
-          }
-
-          if (keyboardType == TextInputType.phone &&
-              value != null &&
-              value.isNotEmpty) {
-            if (value.length != 10) {
-              return 'Enter valid 10-digit number';
-            }
-          }
-
-          if (label.toLowerCase().contains("vehicle number") &&
-              value != null &&
-              value.isNotEmpty) {
-            if (value.length < 6) {
-              return 'Enter valid vehicle number';
-            }
-          }
-
-          return null;
-        },
-
-        style: theme.textTheme.bodyMedium?.copyWith(
-          fontFamily: "PoppinsMedium",
+  Future<void> _maybeOfferDraftRestore() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(_draftKey);
+    if (saved == null || !mounted) return;
+    final shouldRestore = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: InsColors.surface,
+        surfaceTintColor: InsColors.surface,
+        title: const Text(
+          'Resume saved draft?',
+          style: TextStyle(color: InsColors.textPrimary, fontWeight: FontWeight.w700),
         ),
-
-        decoration: InputDecoration(
-
-          counterText: "",
-
-          labelText: label,
-
-          labelStyle: theme.textTheme.bodySmall?.copyWith(
-            color: theme.hintColor,
-            fontFamily: "PoppinsMedium",
-          ),
-
-          filled: true,
-
-          fillColor: theme.cardColor,
-
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 12,
-            vertical: 12,
-          ),
-
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(
-              color: theme.dividerColor,
-            ),
-          ),
-
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(
-              color: theme.dividerColor,
-            ),
-          ),
-
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide(
-              color: theme.colorScheme.primary,
-              width: 1.4,
-            ),
-          ),
+        content: const Text(
+          'You have an unfinished Insurance form saved on this device. Resume where you left off?',
+          style: TextStyle(color: InsColors.textSecondary),
         ),
-      ),
-    );
-  }
-
-  Widget buildRadioRow(
-      String title,
-      String groupValue,
-      Function(String) onChanged,
-      ) {
-
-    final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(10),
-
-          border: Border.all(
-            color: groupValue.isNotEmpty
-                ? theme.colorScheme.primary
-                : theme.dividerColor,
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Start fresh', style: TextStyle(color: InsColors.textSecondary, fontWeight: FontWeight.w600)),
           ),
-
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            )
-          ],
-        ),
-
-        child: Row(
-          children: [
-
-            /// TITLE
-            Expanded(
-              child: Text(
-                title,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontFamily: "PoppinsMedium",
-                ),
-              ),
-            ),
-
-            /// YES
-            Row(
-              children: [
-                Radio<String>(
-                  value: "Yes",
-                  groupValue: groupValue,
-                  activeColor: theme.colorScheme.primary,
-                  visualDensity: VisualDensity.compact,
-                  onChanged: (v) => onChanged(v!),
-                ),
-
-                Text(
-                  "Yes",
-                  style: theme.textTheme.bodySmall,
-                ),
-              ],
-            ),
-
-            /// NO
-            Row(
-              children: [
-                Radio<String>(
-                  value: "No",
-                  groupValue: groupValue,
-                  activeColor: theme.colorScheme.primary,
-                  visualDensity: VisualDensity.compact,
-                  onChanged: (v) => onChanged(v!),
-                ),
-
-                Text(
-                  "No",
-                  style: theme.textTheme.bodySmall,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-  /// ✅ PREMIUM IMAGE PICKER WITH PREVIEW
-  Widget buildUploadCard(String title, File? file, VoidCallback onTap) {
-
-    final theme = Theme.of(context);
-    final isUploaded = file != null;
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(10),
-
-          border: Border.all(
-            color: isUploaded
-                ? theme.colorScheme.primary
-                : theme.dividerColor,
-            width: 1,
-          ),
-
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 6,
-              offset: const Offset(0,2),
-            )
-          ],
-        ),
-
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-
-            /// ICON / IMAGE
-            Container(
-              height: 40,
-              width: 40,
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(8),
-              ),
-
-              child: file != null
-                  ? ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.file(
-                  file,
-                  fit: BoxFit.cover,
-                ),
-              )
-                  : Icon(
-                Icons.upload_file,
-                size: 20,
-                color: theme.iconTheme.color,
-              ),
-            ),
-
-            const SizedBox(height: 6),
-
-            /// TITLE
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-
-            const SizedBox(height: 2),
-
-            /// STATUS
-            Text(
-              isUploaded ? "Uploaded" : "Upload",
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: isUploaded
-                    ? Colors.green
-                    : theme.hintColor,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget buildDropdownField({
-    required String label,
-    required String? value,
-    required List<String> items,
-    Function(String?)? onChanged,
-    String hint = "Select",
-  }) {
-
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-
-          Text(
-            label,
-            style: theme.textTheme.bodySmall?.copyWith(
-              fontFamily: "PoppinsMedium",
-            ),
-          ),
-
-          const SizedBox(height: 6),
-
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              color: theme.cardColor,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: value == null
-                    ? theme.dividerColor
-                    : theme.colorScheme.primary,
-              ),
-            ),
-
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String>(
-                value: value,
-                isExpanded: true,
-
-                /// 👇 Theme Based Dropdown Background
-                dropdownColor: isDark
-                    ? const Color(0xFF020617)   // dark dropdown
-                    : Colors.white,            // light dropdown
-
-                hint: Text(
-                  hint,
-                  style: theme.textTheme.bodySmall,
-                ),
-
-                items: items.map((item) {
-                  return DropdownMenuItem(
-                    value: item,
-                    child: Text(
-                      item,
-                      style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                  );
-                }).toList(),
-
-                icon: Icon(
-                  Icons.keyboard_arrow_down,
-                  color: theme.iconTheme.color,
-                ),
-
-                onChanged: onChanged,
-              ),
-            ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Resume', style: TextStyle(color: InsColors.primary, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
     );
+    if (shouldRestore != true) {
+      await _clearDraft();
+      return;
+    }
+    try {
+      final data = jsonDecode(saved) as Map<String, dynamic>;
+      nameController.text = data['name'] ?? '';
+      numberController.text = data['number'] ?? '';
+      emailController.text = data['email'] ?? '';
+      vehicleNumberController.text = data['vehicleNumber'] ?? '';
+      nomineeNameController.text = data['nomineeName'] ?? '';
+      nomineeRelationController.text = data['nomineeRelation'] ?? '';
+      nomineeAgeController.text = data['nomineeAge'] ?? '';
+      extraNumberController.text = data['extraNumber'] ?? '';
+      callingNumberController.text = data['callingNumber'] ?? '';
+      extraNameController.text = data['extraName'] ?? '';
+      callingNameController.text = data['callingName'] ?? '';
+      _claim = data['claim'] ?? 'No';
+      _maritalStatus = data['maritalStatus'];
+      _stepIndex = 0; // always resume at the lookup step -- see comment above
+      _restoredDraft = true;
+      if (mounted) setState(() {});
+    } catch (_) {
+      // Corrupt/old-shape draft -- ignore rather than crash the form.
+    }
   }
 
-  Widget buildVehicleCategoryDropdown() {
-    return buildDropdownField(
-      label: "Vehicle Category *",
-      value: selectedCategory,
-      items: vehicleCategoryOptions,
-      hint: "Select Category",
-      onChanged: (value) {
-        setState(() {
-          selectedCategory = value;
-          selectedWheeler = null;
-          vehicleTypeController.clear();
-        });
-      },
+  // ------------------------------------------------------------------
+  // Vehicle lookup -- the fetch-first flow itself
+  // ------------------------------------------------------------------
+
+  Future<void> _onFetchDetailsTapped() async {
+    final vno = vehicleNumberController.text.trim();
+    if (vno.length < 6) {
+      _showSnack('Enter a valid vehicle number');
+      return;
+    }
+    setState(() {
+      _fetchStatus = VehicleFetchStatus.checkingInternal; // DB-first check reinstated 2026-10-22
+      _fetchMessage = null;
+      _record = null;
+      _usage = null;
+    });
+
+    final result = await fetchVehicleDetails(
+      baseUrl: insuranceBaseUrl,
+      vehicleNumber: vno,
+      fieldWorkerNumber: widget.fieldWorkerNumber,
     );
+
+    if (!mounted) return;
+    setState(() {
+      _fetchStatus = result.status;
+      _record = result.record;
+      _fetchMessage = result.message;
+      _usage = result.usage;
+    });
+
+    // Prefill Policy Holder Details from whatever we now know, without
+    // clobbering anything the field worker may have already typed. The
+    // real backend uses the same OWNER_NAME/MOBILE_NO schema whether the
+    // record already existed or was just fetched, so both outcomes
+    // prefill identically now.
+    if (result.record != null &&
+        (result.status == VehicleFetchStatus.foundInternal || result.status == VehicleFetchStatus.foundExternal)) {
+      final ownerName = normalizeRtoValue(result.record!['OWNER_NAME'], InsFieldFormat.text);
+      final mobile = normalizeRtoValue(result.record!['MOBILE_NO'], InsFieldFormat.text);
+      if (ownerName.isNotEmpty && nameController.text.trim().isEmpty) {
+        nameController.text = ownerName;
+      }
+      if (mobile.isNotEmpty && numberController.text.trim().isEmpty) {
+        numberController.text = mobile.replaceAll(RegExp(r'[^0-9]'), '');
+      }
+    }
   }
 
-  Widget buildWheelerDropdown() {
-    return buildDropdownField(
-      label: "Wheeler Type *",
-      value: selectedWheeler,
-      items: wheelOptions,
-      hint: selectedCategory == null
-          ? "Select category first"
-          : "Select Wheeler",
-      onChanged: selectedCategory == null
-          ? null
-          : (value) {
-        setState(() {
-          selectedWheeler = value;
-          vehicleTypeController.text =
-          "${selectedCategory!} | ${selectedWheeler!}";
-        });
-      },
-    );
+  void _resetLookup() {
+    setState(() {
+      _fetchStatus = VehicleFetchStatus.idle;
+      _record = null;
+      _fetchMessage = null;
+      _usage = null;
+    });
   }
 
-  Widget buildFuelDropdown() {
-    return buildDropdownField(
-      label: "Fuel Type *",
-      value: selectedFuel,
-      items: fuelOptions,
-      hint: "Select Fuel Type",
-      onChanged: (value) {
-        setState(() {
-          selectedFuel = value;
-        });
-      },
-    );
+  // ------------------------------------------------------------------
+  // Step validation + navigation
+  // ------------------------------------------------------------------
+
+  bool _validateStep(int step) {
+    if (step == 0) {
+      if (!_lookupResolved) {
+        _showSnack('Tap "Fetch Details" first.');
+        return false;
+      }
+      if (_fetchStatus == VehicleFetchStatus.foundInternal) {
+        // **2026-10-22**: "I want the vehicle entry is just be once" --
+        // a vehicle already on file stops the wizard here; the only way
+        // forward is a different plate, not continuing to re-enter it.
+        _showSnack('This vehicle is already registered. Try a different vehicle number.');
+        return false;
+      }
+      return true;
+    }
+    if (step == 1) {
+      final formValid = _formKey.currentState?.validate() ?? true;
+      if (!formValid) {
+        _showSnack('Please fix the highlighted field(s) before continuing.');
+        return false;
+      }
+      return true;
+    }
+    return true; // Step 3 (Documents) is entirely optional.
   }
 
-  Widget buildPremiumHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 50, 20, 20),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Color(0xFF0F172A),
-            Color(0xFF020617),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+  void _onNextPressed() {
+    if (!_validateStep(_stepIndex)) return;
+    final isLast = _stepIndex == _steps.length - 1;
+    if (isLast) {
+      _submitForm();
+    } else {
+      setState(() => _stepIndex++);
+      _saveDraft(silent: true);
+    }
+  }
+
+  void _onBackPressed() => setState(() => _stepIndex--);
+
+  void _showSnack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  // ------------------------------------------------------------------
+  // Document pickers
+  // ------------------------------------------------------------------
+
+  // 2026-11-02: every single-document tile now offers Camera/Gallery/
+  // Browse Files (PDF) via the shared `pickInsuranceDocument()` sheet,
+  // instead of always opening the Gallery picker directly.
+  Future<void> _pickSingle(void Function(File) assign) async {
+    final picked = await pickInsuranceDocument(context);
+    if (picked != null) {
+      setState(() => assign(picked));
+    }
+  }
+
+  Future<void> _pickMultiple() async {
+    final pickedFiles = await HeicConverter.pickMultiImage(picker, imageQuality: 75);
+    if (pickedFiles.isNotEmpty) {
+      setState(() => carMultipleImages.addAll(pickedFiles.map((e) => File(e.path))));
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // Submit -- routes to a different endpoint depending on what the
+  // Step 0 lookup found, so an already-existing plate is always
+  // updated in place rather than ever creating a second row for it.
+  // ------------------------------------------------------------------
+
+  void _addVehicleInfoFields(http.MultipartRequest request, Map<String, dynamic>? record) {
+    for (final section in vehicleInfoSections) {
+      for (final f in section.fields) {
+        request.fields[f.apiKey] = (record?[f.apiKey] ?? '').toString();
+      }
+    }
+  }
+
+  /// Nominee + a few other new table columns (2026-10-22) -- all manually
+  /// typed/picked by the field worker, same as Name/Phone/Email, so they
+  /// go on every submit exactly like those do (never sourced from a
+  /// lookup record, since the RTO registry has no concept of a nominee).
+  void _addNomineeFields(http.MultipartRequest request) {
+    request.fields['claim'] = _claim;
+    request.fields['Nominie_name'] = nomineeNameController.text.trim();
+    request.fields['Nominie_relation'] = nomineeRelationController.text.trim();
+    request.fields['Nominie_age'] = nomineeAgeController.text.trim();
+    request.fields['Marital_status'] = _maritalStatus ?? '';
+    request.fields['extra_number'] = extraNumberController.text.trim();
+    request.fields['calling_number'] = callingNumberController.text.trim();
+    request.fields['extra_name'] = extraNameController.text.trim();
+    request.fields['calling_name'] = callingNameController.text.trim();
+  }
+
+  Future<void> _addDocumentFiles(http.MultipartRequest request) async {
+    Future<void> addFile(String field, File? file) async {
+      if (file == null) return;
+      request.files.add(await http.MultipartFile.fromPath(field, file.path));
+    }
+
+    await addFile('car_photo', carPhoto);
+    await addFile('Rc_front', rcFront);
+    await addFile('Rc_back', rcBack);
+    await addFile('Aadhar_front', aadharFront);
+    await addFile('Aadhar_back', aadharBack);
+    await addFile('pan_card_photo', panCardPhoto);
+    await addFile('old_policy_docement', oldPolicy);
+    await addFile('DL_img', dlImg);
+    await addFile('new_policy_docement', newPolicy);
+    await addFile('polution_photo', pollutionPhoto);
+    for (final image in carMultipleImages) {
+      request.files.add(await http.MultipartFile.fromPath('car_images[]', image.path));
+    }
+  }
+
+  Future<void> _submitForm() async {
+    setState(() => _isLoading = true);
+    try {
+      final http.MultipartRequest request;
+      // **2026-10-22 note**: the wizard's Step 0 footer now blocks any
+      // further progress once `_fetchStatus == foundInternal` (see
+      // `_buildFooter()`'s `blockedAsDuplicate` branch -- "a vehicle can
+      // only be added once"), so this branch can no longer actually be
+      // reached from the UI. Left in place rather than removed, since
+      // it's harmless and still correct if that guard is ever relaxed.
+      final bool isUpdatingExisting = _fetchStatus == VehicleFetchStatus.foundInternal && _record != null;
+
+      if (isUpdatingExisting) {
+        // The plate already has a record -- update it in place rather than
+        // creating a duplicate row for the same vehicle. Every field this
+        // trimmed form doesn't show is sourced from the record the lookup
+        // already returned (not left blank), so updating just Name/Phone/
+        // Documents here can never wipe out the rest of that record's data
+        // -- same precaution as the Update form's own submit logic.
+        request = http.MultipartRequest('POST', Uri.parse('$insuranceBaseUrl' '$updateEndpointPath'));
+        final r = _record!;
+        _addVehicleInfoFields(request, r);
+        request.fields['id'] = (r['id'] ?? '').toString();
+        request.fields['vehicleNumber'] = vehicleNumberController.text.trim();
+        request.fields['OWNER_NAME'] = nameController.text.trim();
+        request.fields['MOBILE_NO'] = numberController.text.trim();
+        request.fields['owner_email'] = emailController.text.trim();
+        request.fields['Fieldworkar_name'] = widget.fieldWorkerName;
+        request.fields['Fieldworkar_number'] = widget.fieldWorkerNumber;
+        _addNomineeFields(request);
+      } else {
+        // New record -- either populated from the paid API (foundExternal)
+        // or fully manual (quotaExhausted / notFoundExternal). Every
+        // curated Vehicle Info field `insert_insurance.php` accepts is
+        // sent (blank when there's no fetched record), so a manual-entry
+        // submission and an API-populated one hit the exact same endpoint
+        // with the exact same field set -- the backend tells them apart
+        // by which fields actually came back non-blank, since there's no
+        // separate `data_source` column in the real schema.
+        request = http.MultipartRequest('POST', Uri.parse('$insuranceBaseUrl' '$insertEndpointPath'));
+        _addVehicleInfoFields(request, _record);
+        request.fields['vehicleNumber'] = vehicleNumberController.text.trim();
+        request.fields['OWNER_NAME'] = nameController.text.trim();
+        request.fields['MOBILE_NO'] = numberController.text.trim();
+        request.fields['owner_email'] = emailController.text.trim();
+        request.fields['Fieldworkar_name'] = widget.fieldWorkerName;
+        request.fields['Fieldworkar_number'] = widget.fieldWorkerNumber;
+        _addNomineeFields(request);
+      }
+
+      // 2026-10-29: Building/Flat linkage, if this form was opened via
+      // "Add Vehicle" from a Building/Flat Detail page. Sent on both
+      // branches above (new insert AND the dead-but-harmless update
+      // branch) since a locked linkage should stick regardless of which
+      // path a submit takes.
+      if (widget.lockedBuildingId != null && widget.lockedBuildingId!.isNotEmpty) {
+        request.fields['Building_id'] = widget.lockedBuildingId!;
+      }
+      if (widget.lockedFlatId != null && widget.lockedFlatId!.isNotEmpty) {
+        request.fields['Flat_id'] = widget.lockedFlatId!;
+      }
+
+      await _addDocumentFiles(request);
+
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+      debugPrint('INSURANCE ADD RESPONSE (${response.statusCode}): $responseBody');
+
+      if (response.statusCode == 200) {
+        await _clearDraft();
+        if (!mounted) return;
+        _showSnack(isUpdatingExisting ? 'Record updated successfully' : 'Insurance details submitted successfully');
+        Navigator.pop(context, true);
+      } else {
+        _showSnack('Submission failed (status ${response.statusCode}). Please try again.');
+      }
+    } catch (e) {
+      debugPrint('INSURANCE ADD ERROR: $e');
+      _showSnack('Error: $e');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // UI
+  // ------------------------------------------------------------------
+
+  @override
+  Widget build(BuildContext context) {
+    final step = _steps[_stepIndex];
+    return Scaffold(
+      backgroundColor: InsColors.bg,
+      appBar: AppBar(
+        backgroundColor: InsColors.surface,
+        foregroundColor: InsColors.textPrimary,
+        elevation: 0.5,
+        title: const Text('Add Insurance', style: TextStyle(fontWeight: FontWeight.w700)),
+        actions: [
+          TextButton(
+            onPressed: _isLoading ? null : () => _saveDraft(),
+            child: const Text('Save Draft', style: TextStyle(color: InsColors.primary, fontWeight: FontWeight.w600)),
+          ),
+        ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-
-          /// TOP ROW
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+          child: Column(
             children: [
-
-              /// 🔝 TOP ROW (Back + Logo)
-              Row(
-                children: [
-
-                  /// BACK BUTTON
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      height: 40,
-                      width: 40,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E293B),
-                        borderRadius: BorderRadius.circular(10),
+              StepProgressBar(currentStep: _stepIndex, stepTitles: _steps.map((s) => s.title).toList()),
+              const SizedBox(height: 16),
+              if (widget.lockedBuildingId != null && widget.lockedBuildingId!.isNotEmpty)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                  decoration: BoxDecoration(color: InsColors.primary.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.lock_outline, size: 16, color: InsColors.primary),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          (widget.lockedFlatId != null && widget.lockedFlatId!.isNotEmpty)
+                              ? 'Linked to Flat #${widget.lockedFlatId} · Building #${widget.lockedBuildingId}'
+                              : 'Linked to Building #${widget.lockedBuildingId}',
+                          style: const TextStyle(color: InsColors.primary, fontSize: 12, fontWeight: FontWeight.w600),
+                        ),
                       ),
-                      child: const Icon(
-                        Icons.arrow_back_ios_new,
-                        color: Colors.white,
-                        size: 18,
+                    ],
+                  ),
+                ),
+              if (_restoredDraft && _stepIndex == 0)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+                  decoration: BoxDecoration(color: InsColors.successBg, borderRadius: BorderRadius.circular(10)),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.check_circle_outline, size: 16, color: InsColors.success),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text('Resumed from your saved draft -- tap Fetch Details to continue.', style: TextStyle(color: InsColors.success, fontSize: 12, fontWeight: FontWeight.w600)),
                       ),
+                    ],
+                  ),
+                ),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(color: InsColors.primary.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                              alignment: Alignment.center,
+                              child: Icon(step.icon, size: 18, color: InsColors.primary),
+                            ),
+                            const SizedBox(width: 10),
+                            Text(step.title, style: const TextStyle(color: InsColors.textPrimary, fontWeight: FontWeight.w700, fontSize: 16)),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        _buildStepContent(),
+                      ],
                     ),
                   ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildFooter(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-                  const SizedBox(width: 250),
+  Widget _buildStepContent() {
+    switch (_stepIndex) {
+      case 0:
+        return _buildVehicleLookupStep();
+      case 1:
+        return _buildPolicyHolderStep();
+      default:
+        return _buildDocumentsStep();
+    }
+  }
 
-                  /// LOGO
-                  CircleAvatar(
-                    radius: 26,
-                    backgroundColor: Colors.white,
-                    child: CircleAvatar(
-                      radius: 23,
-                      backgroundImage: AssetImage(AppImages.logo),
+  // **2026-10-22**: a dedicated read-only "Saved Field Worker Details"
+  // card and a "View Full Record" detail-page link used to live here for
+  // the `foundInternal` case -- both removed per the user's explicit
+  // instruction: any field worker can type in an arbitrary plate, so
+  // surfacing another agent's full record (or even just their contact/
+  // nominee details) to whoever happens to try that plate number is a
+  // data-exposure risk, not a convenience. `foundInternal` now shows
+  // only the summary header card (see `_buildLookupStatusContent()`).
+
+  Widget _buildVehicleLookupStep() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InsTextField(
+          label: 'Vehicle Number',
+          controller: vehicleNumberController,
+          required: true,
+          readOnly: _vehicleNumberLocked,
+          hint: 'e.g. DL01AB1234',
+          textCapitalization: TextCapitalization.characters,
+          inputFormatters: [UpperCaseTextFormatter()],
+          validator: (v) => (v == null || v.trim().length < 6) ? 'Enter a valid vehicle number' : null,
+          suffixIcon: _vehicleNumberLocked
+              ? IconButton(
+                  icon: const Icon(Icons.edit_rounded, size: 18, color: InsColors.textSecondary),
+                  onPressed: _resetLookup,
+                  tooltip: 'Change vehicle number',
+                )
+              : null,
+        ),
+        const SizedBox(height: 4),
+        if (!_vehicleNumberLocked)
+          const Text(
+            'We check our own records first -- the paid vehicle registry lookup only runs if this vehicle isn\'t already on file.',
+            style: TextStyle(color: InsColors.textSecondary, fontSize: 12.5),
+          ),
+        const SizedBox(height: 14),
+        _buildLookupStatusContent(),
+      ],
+    );
+  }
+
+  Widget _buildLookupStatusContent() {
+    switch (_fetchStatus) {
+      case VehicleFetchStatus.idle:
+      case VehicleFetchStatus.error:
+        if (_fetchStatus == VehicleFetchStatus.error) {
+          return Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: InsColors.errorBg, borderRadius: BorderRadius.circular(10)),
+            child: Row(
+              children: [
+                const Icon(Icons.error_outline_rounded, color: InsColors.error, size: 18),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _fetchMessage ?? 'Could not reach the vehicle registry.',
+                    style: const TextStyle(color: InsColors.error, fontSize: 12.5, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        return const SizedBox.shrink();
+
+      case VehicleFetchStatus.checkingInternal:
+      case VehicleFetchStatus.checkingExternal:
+        return Row(
+          children: [
+            const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: InsColors.primary)),
+            const SizedBox(width: 10),
+            Text(
+              _fetchStatus == VehicleFetchStatus.checkingInternal ? 'Checking our records...' : 'Checking vehicle registry...',
+              style: const TextStyle(color: InsColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+          ],
+        );
+
+      case VehicleFetchStatus.foundInternal:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: InsColors.warningBg, borderRadius: BorderRadius.circular(10)),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline_rounded, color: InsColors.warning, size: 18),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'This vehicle is already registered. A vehicle can only be added once.',
+                      style: TextStyle(color: InsColors.warning, fontSize: 12.5, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: 14),
+            // **2026-10-22**: only the summary header card -- no full
+            // record, no navigation to the Detail page. Any field worker
+            // can type in any plate, so letting that reveal the full
+            // record (owner contact info, nominee details, documents --
+            // everything) would hand out another agent's data to anyone
+            // who happens to know or guess the plate number.
+            if (_record != null) InsVehicleHeaderCard(record: _record!),
+          ],
+        );
 
-              const SizedBox(height: 18),
+      case VehicleFetchStatus.foundExternal:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const InsBadge(label: 'Fetched from Vehicle Registry', tone: InsBadgeTone.success, icon: Icons.verified_rounded),
+                if (_usage != null && _usage!.hasAny) ...[
+                  const SizedBox(width: 8),
+                  RtoUsageIconButton(usage: _usage!),
+                ],
+              ],
+            ),
+            const SizedBox(height: 14),
+            if (_record != null) buildVehicleInfoSectionsRow(_record!, isFromApiPayload: true),
+          ],
+        );
 
-              /// 📝 FORM TITLE
-              const Text(
-                "Insurance Form",
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-
-              const Text(
-                "Application",
-                style: TextStyle(
-                  color: Color(0xFFFACC15),
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
+      case VehicleFetchStatus.quotaExhausted:
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: InsColors.warningBg, borderRadius: BorderRadius.circular(10)),
+          child: Row(
+            children: [
+              const Icon(Icons.hourglass_bottom_rounded, color: InsColors.warning, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _fetchMessage ?? 'Daily lookup limit reached -- you can still save this record manually.',
+                  style: const TextStyle(color: InsColors.warning, fontSize: 12.5, fontWeight: FontWeight.w600),
                 ),
               ),
             ],
-          )
-        ],
-      ),
-    );
+          ),
+        );
+
+      case VehicleFetchStatus.notFoundExternal:
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: InsColors.bg, borderRadius: BorderRadius.circular(10), border: Border.all(color: InsColors.border)),
+          child: Row(
+            children: [
+              const Icon(Icons.search_off_rounded, color: InsColors.textSecondary, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _fetchMessage ?? 'Not found in the vehicle registry either -- enter details manually.',
+                  style: const TextStyle(color: InsColors.textSecondary, fontSize: 12.5, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+        );
+    }
   }
 
-  Widget buildSectionTitle(String title) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Row(
+  Widget _buildPolicyHolderStep() {
+    final showBanner = _fetchStatus == VehicleFetchStatus.foundInternal || _fetchStatus == VehicleFetchStatus.foundExternal;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
-        const Icon(
-          Icons.folder,
-          size: 18,
-          color: Color(0xFFFACC15),
-        ),
-
-        const SizedBox(width: 8),
-
-        Text(
-          title,
-          style: TextStyle(
-            color: isDark ? Colors.white : Colors.black87,
-            fontSize: 15,
-            fontWeight: FontWeight.bold,
+        if (showBanner)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Text(
+              _fetchStatus == VehicleFetchStatus.foundInternal
+                  ? 'Prefilled from our existing record -- edit if anything has changed.'
+                  : 'Prefilled from the vehicle registry -- edit if anything looks wrong.',
+              style: const TextStyle(color: InsColors.textSecondary, fontSize: 12.5),
+            ),
           ),
+        InsTextField(label: 'Full Name', controller: nameController, required: true, hint: 'e.g. Ramesh Kumar', validator: insRequired),
+        InsTextField(
+          label: 'Primary Phone Number',
+          controller: numberController,
+          required: true,
+          keyboardType: TextInputType.phone,
+          maxLength: 10,
+          hint: '10-digit mobile number',
+          validator: insPhoneValidator,
+        ),
+        InsTextField(
+          label: 'Owner Email',
+          controller: emailController,
+          required: false,
+          keyboardType: TextInputType.emailAddress,
+          hint: 'owner@example.com',
+          validator: insEmailValidator,
+        ),
+        // Order per 2026-10-23 request: Calling Person (name, then
+        // number) first, then Alternate Person (name, then number) --
+        // `callingNumber`/`callingName` map to the "Calling Person" pair,
+        // `extraNumber`/`extraName` to the "Alternate Person" pair.
+        InsTextField(
+          label: 'Calling Person Name',
+          controller: callingNameController,
+          required: false,
+          hint: 'Name of the best person to call',
+        ),
+        InsTextField(
+          label: 'Calling Person Number',
+          controller: callingNumberController,
+          required: false,
+          keyboardType: TextInputType.phone,
+          maxLength: 10,
+          hint: 'Best number to call on',
+        ),
+        InsTextField(
+          label: 'Alternate Person Name',
+          controller: extraNameController,
+          required: false,
+          hint: 'Name of the person on the alternate number',
+        ),
+        InsTextField(
+          label: 'Alternate Person Number',
+          controller: extraNumberController,
+          required: false,
+          keyboardType: TextInputType.phone,
+          maxLength: 10,
+          hint: 'An alternate contact number',
+        ),
+        const SizedBox(height: 4),
+        InsSectionCard(
+          title: 'Nominee Details',
+          icon: Icons.family_restroom_rounded,
+          subtitle: 'Optional',
+          children: [
+            InsYesNoRow(label: 'Insurance Claim?', value: _claim, onChanged: (v) => setState(() => _claim = v)),
+            const SizedBox(height: 4),
+            InsTextField(label: 'Nominee Name', controller: nomineeNameController, hint: 'e.g. Sita Devi'),
+            InsTextField(label: 'Nominee Relation', controller: nomineeRelationController, hint: 'e.g. Spouse, Son, Daughter'),
+            InsTextField(
+              label: 'Nominee Age',
+              controller: nomineeAgeController,
+              keyboardType: TextInputType.number,
+              maxLength: 3,
+              hint: 'Age in years',
+            ),
+            InsDropdownField(
+              label: 'Marital Status',
+              value: _maritalStatus,
+              items: const ['Married', 'Unmarried', 'Divorced', 'Widowed'],
+              onChanged: (v) => setState(() => _maritalStatus = v),
+              hint: 'Select marital status',
+            ),
+          ],
         ),
       ],
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Scaffold(
-      backgroundColor:
-      isDark ? const Color(0xFF020617) : Colors.grey.shade50,
-
-        body: Stack(
-            children: [
-
-            Column(
-            children: [
-
-            /// 🔥 PREMIUM HEADER
-            buildPremiumHeader(),
-
-        /// 🔥 FORM AREA
-        Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(18),
-
-            child: Form(
-              key: _formKey,
-
-              child: Column(
-                crossAxisAlignment:
-                CrossAxisAlignment.start,
-                children: [
-
-                  /// ✅ SECTION: CUSTOMER DETAILS
-                  const Text(
-                    "Customer Details",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontFamily: "PoppinsBold",
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  buildTextField(
-                      "Name", nameController,
-                    isRequired: true,
-                  ),
-                  buildTextField(
-                      maxLength: 10,
-                      keyboardType: TextInputType.phone,
-                      "Number", numberController,
-                    isRequired: true,
-                  ),
-
-                  buildTextField("Vehicle Number",
-                      vehicleNumberController,
-                    keyboardType: TextInputType.text,
-                    isRequired: true,
-                  ),
-
-                  buildVehicleCategoryDropdown(),
-                  buildWheelerDropdown(),
-                  buildFuelDropdown(),
-
-                   SizedBox(height: 10),
-                  buildTextField(
-                    "Email ID",
-                    emailController,
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-
-                  buildTextField("Nominee Name", nomineeNameController),
-
-                  buildTextField(
-                    "Nominee Age",
-                    nomineeAgeController,
-                    keyboardType: TextInputType.number,
-                  ),
-
-                  buildTextField("Nominee Relation", nomineeRelationController),
-
-                  buildRadioRow(
-                    "Pollution",
-                    pollutionStatus,
-                        (v) => setState(() => pollutionStatus = v),
-                  ),
-
-                  if (pollutionStatus == "Yes")
-                    buildUploadCard(
-                      "Pollution Photo",
-                      pollutionPhoto,
-                          () => pickImage((f) => pollutionPhoto = f),
-                    ),
-
-                  /// ✅ SECTION: DOCUMENTS
-                  SizedBox(height: 16,),
-
-                  buildSectionTitle("Document Uploads"),
-
-
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 14,
-                    mainAxisSpacing: 14,
-                    childAspectRatio: 1.1,
-
-                    children: [
-
-                      buildUploadCard(
-                        "Aadhar Front",
-                        aadharFront,
-                            () => pickImage((f) => aadharFront = f),
-                      ),
-
-                      buildUploadCard(
-                        "Aadhar Back",
-                        aadharBack,
-                            () => pickImage((f) => aadharBack = f),
-                      ),
-
-                      buildUploadCard(
-                        "RC Front",
-                        rcFront,
-                            () => pickImage((f) => rcFront = f),
-                      ),
-
-                      buildUploadCard(
-                        "RC Back",
-                        rcBack,
-                            () => pickImage((f) => rcBack = f),
-                      ),
-
-                      buildUploadCard(
-                        "Vehicle Photo",
-                        carPhoto,
-                            () => pickImage((f) => carPhoto = f),
-                      ),
-
-                      buildUploadCard(
-                        "PAN Card",
-                        panCardPhoto,
-                            () => pickImage((f) => panCardPhoto = f),
-                      ),
-
-                      buildUploadCard(
-                        "Old Policy",
-                        oldPolicy,
-                            () => pickImage((f) => oldPolicy = f),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 20,),
-                  GestureDetector(
-                    onTap: pickMultipleImages,
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).cardColor,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: Theme.of(context).dividerColor,
-                          width: 0.8,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          )
-                        ],
-                      ),
-
-                      child: Row(
-                        children: [
-
-                          /// ICON BOX
-                          Container(
-                            height: 48,
-                            width: 48,
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: Theme.of(context).dividerColor,
-                              ),
-                            ),
-                            child: Icon(
-                              Icons.upload_file,
-                              color: Theme.of(context).iconTheme.color,
-                            ),
-                          ),
-
-                          const SizedBox(width: 12),
-
-                          /// TEXT
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-
-                                Text(
-                                  "Car Multiple Images",
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    fontFamily: "PoppinsMedium",
-                                  ),
-                                ),
-
-                                const SizedBox(height: 2),
-
-                                Text(
-                                  carMultipleImages.isEmpty
-                                      ? "Tap to upload vehicle images"
-                                      : "${carMultipleImages.length} images selected",
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          if (carMultipleImages.isNotEmpty)
-                            const Icon(Icons.check_circle, color: Colors.green),
-                        ],
-                      ),
-                    ),
-                  ),
-
-                  SizedBox(height: 20,),
-
-                  if (carMultipleImages.isNotEmpty)
-                    SizedBox(
-                      height: 90,
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: carMultipleImages.length,
-                        itemBuilder: (context, index) {
-
-                          final file = carMultipleImages[index];
-
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 12),
-                            child: Stack(
-                              children: [
-
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.file(
-                                    file,
-                                    height: 90,
-                                    width: 90,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-
-                                Positioned(
-                                  top: 4,
-                                  right: 4,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      carMultipleImages.removeAt(index);
-                                      setState(() {});
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: BoxDecoration(
-                                        color: Colors.black.withOpacity(0.6),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                        Icons.close,
-                                        size: 16,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  const SizedBox(height: 24),
-
-                  /// ✅ PREMIUM BUTTON
-                  SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton(
-                      onPressed: submitForm,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                        const Color(0xFFE6C47A),
-                        shape: RoundedRectangleBorder(
-                          borderRadius:
-                          BorderRadius.circular(20),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: const Text(
-                        "SUBMIT DETAILS",
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontFamily: "PoppinsBold",
-                          fontSize: 14,
-                          letterSpacing: 0.6,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 40),
-                ],
-              ),
-            ),
+  Widget _buildDocumentsStep() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(bottom: 12),
+          child: Text(
+            'All documents below are optional. You can add or update them later from the Update form.',
+            style: TextStyle(color: InsColors.textSecondary, fontSize: 12.5),
           ),
         ),
-          /// ✅ LOADING OVERLAY
-          if (isLoading)
-            Container(
-              color: Colors.black.withOpacity(0.35),
-              child: const Center(
-                child: CircularProgressIndicator(),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          childAspectRatio: 0.95,
+          children: [
+            DocumentUploadTile(label: 'Vehicle Photo', file: carPhoto, onPick: () => _pickSingle((f) => carPhoto = f), onRemove: () => setState(() => carPhoto = null)),
+            DocumentUploadTile(label: 'RC Front', file: rcFront, onPick: () => _pickSingle((f) => rcFront = f), onRemove: () => setState(() => rcFront = null)),
+            DocumentUploadTile(label: 'RC Back', file: rcBack, onPick: () => _pickSingle((f) => rcBack = f), onRemove: () => setState(() => rcBack = null)),
+            DocumentUploadTile(label: 'Aadhar Front', file: aadharFront, onPick: () => _pickSingle((f) => aadharFront = f), onRemove: () => setState(() => aadharFront = null)),
+            DocumentUploadTile(label: 'Aadhar Back', file: aadharBack, onPick: () => _pickSingle((f) => aadharBack = f), onRemove: () => setState(() => aadharBack = null)),
+            DocumentUploadTile(label: 'PAN Card', file: panCardPhoto, onPick: () => _pickSingle((f) => panCardPhoto = f), onRemove: () => setState(() => panCardPhoto = null)),
+            DocumentUploadTile(label: 'Old Policy', file: oldPolicy, onPick: () => _pickSingle((f) => oldPolicy = f), onRemove: () => setState(() => oldPolicy = null)),
+            DocumentUploadTile(label: 'Driving License', file: dlImg, onPick: () => _pickSingle((f) => dlImg = f), onRemove: () => setState(() => dlImg = null)),
+            DocumentUploadTile(label: 'New Policy', file: newPolicy, onPick: () => _pickSingle((f) => newPolicy = f), onRemove: () => setState(() => newPolicy = null)),
+            DocumentUploadTile(label: 'Pollution Photo', file: pollutionPhoto, onPick: () => _pickSingle((f) => pollutionPhoto = f), onRemove: () => setState(() => pollutionPhoto = null)),
+          ],
+        ),
+        const SizedBox(height: 14),
+        const Text('Additional Photos', style: TextStyle(color: InsColors.textPrimary, fontWeight: FontWeight.w600, fontSize: 13.5)),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            ...carMultipleImages.asMap().entries.map((entry) => Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.file(entry.value, width: 72, height: 72, fit: BoxFit.cover),
+                    ),
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: InkWell(
+                        onTap: () => setState(() => carMultipleImages.removeAt(entry.key)),
+                        child: Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: const BoxDecoration(color: InsColors.error, shape: BoxShape.circle),
+                          child: const Icon(Icons.close_rounded, color: Colors.white, size: 13),
+                        ),
+                      ),
+                    ),
+                  ],
+                )),
+            InkWell(
+              onTap: _pickMultiple,
+              borderRadius: BorderRadius.circular(10),
+              child: Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(color: InsColors.bg, borderRadius: BorderRadius.circular(10), border: Border.all(color: InsColors.border)),
+                child: const Icon(Icons.add_rounded, color: InsColors.primary),
               ),
-            )
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFooter() {
+    final isLast = _stepIndex == _steps.length - 1;
+    final onStep0WaitingForFetch = _stepIndex == 0 && !_lookupResolved;
+    final isFetching = _fetchStatus == VehicleFetchStatus.checkingInternal || _fetchStatus == VehicleFetchStatus.checkingExternal;
+    final blockedAsDuplicate = _stepIndex == 0 && _fetchStatus == VehicleFetchStatus.foundInternal;
+
+    if (blockedAsDuplicate) {
+      // **2026-10-22**: the wizard stops here for an already-registered
+      // vehicle -- no Next/Submit, and (per the user's explicit request)
+      // no navigation to the full record either, since any field worker
+      // could otherwise type in an arbitrary plate and read another
+      // agent's complete record. The only way forward is a different plate.
+      return SizedBox(
+        width: double.infinity,
+        child: OutlinedButton(
+          onPressed: _isLoading ? null : _resetLookup,
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            side: const BorderSide(color: InsColors.border),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          child: const Text('Try Another Vehicle', style: TextStyle(color: InsColors.textSecondary, fontWeight: FontWeight.w700)),
+        ),
+      );
+    }
+
+    String primaryLabel;
+    VoidCallback? primaryAction;
+    if (onStep0WaitingForFetch) {
+      primaryLabel = _fetchStatus == VehicleFetchStatus.error ? 'Retry' : 'Fetch Details';
+      primaryAction = (_isLoading || isFetching) ? null : _onFetchDetailsTapped;
+    } else {
+      primaryLabel = isLast ? 'Submit' : 'Next';
+      primaryAction = (_isLoading || isFetching) ? null : _onNextPressed;
+    }
+
+    return Row(
+      children: [
+        if (_stepIndex > 0) ...[
+          Expanded(
+            child: OutlinedButton(
+              onPressed: _isLoading ? null : _onBackPressed,
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: const BorderSide(color: InsColors.border),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Back', style: TextStyle(color: InsColors.textSecondary, fontWeight: FontWeight.w700)),
+            ),
+          ),
+          const SizedBox(width: 12),
         ],
-      ),
-    ]),
+        Expanded(
+          flex: 2,
+          child: ElevatedButton(
+            onPressed: primaryAction,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: InsColors.primary,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              elevation: 0,
+            ),
+            child: (_isLoading || isFetching)
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : Text(primaryLabel, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15.5)),
+          ),
+        ),
+      ],
     );
   }
 }
-

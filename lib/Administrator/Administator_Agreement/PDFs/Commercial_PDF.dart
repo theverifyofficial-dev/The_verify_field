@@ -194,11 +194,25 @@ Future<File> generateCommercialAgreementPdf(Map<String, dynamic> data) async {
   pw.TextSpan getMeterClause(Map<String, dynamic>? data) {
     final customMeterUnit =
         data?["custom_meter_unit"]?.toString().trim() ?? '';
+    // The form's "Meter Info" dropdown ("Commercial" / "Custom Unit
+    // (Enter Amount)") is saved verbatim in this "meter" field -- a
+    // label, not a number. Used below only as a dynamic fallback label.
+    final meterParam = data?["meter"]?.toString().trim() ?? '';
 
-    final String meterValue =
-    customMeterUnit.isNotEmpty
-        ? "${customMeterUnit} per unit"
-        : "commercial unit";
+    // A "0" (or "0.00", etc.) custom rate is just as meaningless as a
+    // blank/missing one -- don't print "INR 0 per unit" for any of them.
+    final parsedCustomRate = double.tryParse(customMeterUnit);
+    final hasValidCustomRate =
+        customMeterUnit.isNotEmpty && parsedCustomRate != null && parsedCustomRate != 0;
+
+    // The dropdown's own "custom amount" option, left with no real
+    // number entered, isn't a meaningful label to print either.
+    final hasMeaningfulMeterParam =
+        meterParam.isNotEmpty && meterParam != "Custom Unit (Enter Amount)";
+
+    final String meterValue = hasValidCustomRate
+        ? "$customMeterUnit per unit"
+        : (hasMeaningfulMeterParam ? meterParam : "commercial unit");
 
     return pw.TextSpan(
       children: [
